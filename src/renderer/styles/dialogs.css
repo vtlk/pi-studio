@@ -1,0 +1,121 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+  background: #24253055;
+}
+
+.dialog {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  max-height: calc(100vh - 50px);
+  overflow: auto;
+  box-shadow: 0 12px 45px #0002;
+}
+.modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 21px;
+}
+.modal-top > .eyebrow {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dialog-backdrop {
+  z-index: 50;
+}
+.dialog {
+  width: 550px;
+  max-width: 100%;
+  padding: 0 23px 22px;
+}
+.dialog > .modal-top {
+  padding: 18px 0 10px;
+}
+.dialog-icon {
+  color: var(--accent);
+}
+.dialog > h2 {
+  font-size: 22px;
+  margin: 10px 0;
+}
+.dialog > p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+.run-environment {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  margin-top: 17px;
+}
+.run-environment button {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 13px;
+}
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.compiled-prompt {
+  max-height: 430px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 18px;
+}
+.compiled-prompt h4 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+}
+.compiled-prompt > h4:first-child {
+  margin-top: 0;
+}
+.compiled-prompt p {
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+.picker-grid > button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+  padding: 0;
+  text-align: left;
+}
+.picker-grid img {
+  height: 95px;
+  width: 100%;
+  object-fit: contain;
+  background: var(--stage);
+}
+.picker-grid span {
+  display: block;
+  padding: 10px;
+  font-size: 13px;
+}

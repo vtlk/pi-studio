@@ -1,0 +1,324 @@
+.scene-page {
+  margin: 0 auto;
+}
+.scene-choices {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.scene-choices .ui-select-trigger {
+  width: 245px;
+  font-size: 14px;
+  padding: 6px;
+}
+.choice-divider {
+  width: 1px;
+  height: 20px;
+  background: #ddd;
+  margin: 0 5px;
+}
+.scene-notes {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.scene-notes h3 {
+  margin: 10px 0;
+}
+.scene-notes p {
+  margin-bottom: 23px;
+}
+.scene-notes .text-button {
+  display: block;
+  margin-bottom: 10px;
+}
+.preview-shell {
+  overflow: hidden;
+}
+.stage-image {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: #19323e;
+  overflow: hidden;
+}
+.background-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.stage-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 60%, #071a2540);
+}
+.stage-character {
+  position: absolute;
+  height: 43%;
+  left: 36%;
+  bottom: 10%;
+}
+.wooden-box {
+  position: absolute;
+  bottom: 9%;
+  left: 53%;
+  width: 8%;
+  height: 11%;
+  background: repeating-linear-gradient(0deg, #90704b 0, #90704b 10px, #705c43 10px, #705c43 11px);
+  border: 1px solid #6e573b;
+}
+.wooden-box > span {
+  position: absolute;
+  inset: 0 auto 0 10%;
+  width: 8%;
+  background: #b19364;
+}
+.wooden-box > span:last-child {
+  left: 80%;
+}
+.subtitle {
+  position: absolute;
+  bottom: 7%;
+  left: 10%;
+  right: 10%;
+  width: fit-content;
+  max-width: 80%;
+  margin: auto;
+  padding: 5px 10px;
+  border-radius: 3px;
+  text-align: center;
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 8px;
+  background: #fff;
+}
+.player-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  padding: 5px;
+}
+.player-controls .icon-button {
+  width: 23px;
+  height: 24px;
+}
+.player-time {
+  font-size: 12px;
+  color: #666;
+  margin: 0 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.player-time > span {
+  color: #aaa;
+}
+.scrubber {
+  flex: 1;
+  min-width: 30px;
+}
+.player-ratio {
+  font-size: 12px;
+  color: #999;
+  margin: 0 4px;
+}
+.simple-prompt {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 17px;
+}
+.simple-prompt textarea {
+  min-height: 65px;
+  resize: vertical;
+}
+.simple-prompt > .button {
+  align-self: stretch;
+  min-width: 110px;
+}
+.timeline {
+  border: 1px solid #e5e5e5;
+  border-radius: 9px;
+  padding-bottom: 10px;
+  margin-top: 15px;
+  position: relative;
+  overflow: hidden;
+}
+.timeline-head {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid #eee;
+  color: #777;
+}
+.timeline-head strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.timeline-head .text-button {
+  font-size: 12px;
+}
+.ruler {
+  display: flex;
+  font-size: 12px;
+  color: #aaa;
+  padding: 10px 12px;
+}
+.ruler > span {
+  width: 116px;
+  flex-shrink: 0;
+}
+.ruler > div {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+}
+.track {
+  display: flex;
+  align-items: center;
+  padding: 3px 12px;
+  height: 28px;
+}
+.track-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 116px;
+  width: 116px;
+  text-align: left;
+  font-size: 12px;
+  color: #888;
+  padding: 0 9px 0 0;
+}
+.track-label span {
+  flex: 1;
+}
+.track-content {
+  flex: 1;
+  min-width: 0;
+  height: 23px;
+  background: #fafafa;
+}
+.clip {
+  position: relative;
+  height: 23px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+}
+.clip-1 {
+  background: #e8eded;
+}
+.clip-2 {
+  background: #f0eae1;
+}
+.clip-3 {
+  background: #ece8ef;
+}
+.clip > span:last-child {
+  position: relative;
+}
+.waveform {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  opacity: 0.15;
+}
+.waveform i {
+  width: 2px;
+  background: currentColor;
+}
+.track-muted {
+  opacity: 0.3;
+}
+.playhead {
+  position: absolute;
+  top: 45px;
+  bottom: 10px;
+  width: 1px;
+  background: #b39b76;
+  pointer-events: none;
+}
+.voice-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #eee;
+}
+.voice-row:last-child {
+  border: 0;
+}
+.audio-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  height: 32px;
+  width: 32px;
+  color: #777;
+  flex-shrink: 0;
+}
+.voice-row > div:nth-child(2) {
+  flex: 1;
+}
+.voice-speaker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #888;
+}
+.voice-speaker small {
+  font-size: 12px;
+  color: #aaa;
+}
+.voice-row p {
+  margin: 10px 0;
+}
+.voice-actions {
+  display: flex;
+  gap: 5px;
+}
+.assembly-list > button:not(.button) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 5px;
+  width: 100%;
+  text-align: left;
+}
+.export-layout {
+  display: grid;
+  gap: 24px;
+}
+.export-settings {
+  align-self: start;
+}
+.export-settings > h3 {
+  margin-bottom: 12px;
+}
+@media (max-width: 1100px) {
+  .scene-page {
+    padding: 20px 23px;
+  }
+  .scene-notes p {
+    font-size: 13px;
+  }
+  .export-layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+  }
+}

@@ -1,0 +1,123 @@
+import { LibraryAssetViewer } from './LibraryAssetViewer';
+import { AddArea } from '@/shared/ui/AddArea';
+import { Select } from '@/shared/ui/Select';
+import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useLibrary } from '../model/Library';
+import { useNotice } from '@/shared/model/Notice';
+import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
+import { useLaunch } from '@/features/launch/model/Launch';
+import { cx } from '@/shared/ui';
+
+export function LibraryView() {
+  const { characters, locations, removeAsset, restoreAsset } = useLibrary();
+  const { demo } = useNotice();
+  const [tab, setTab] = useState('Персонажи');
+  const [search, setSearch] = useState('');
+  const [selectedId, setSelectedId] = useState(characters[0]?.id ?? '');
+  const [category, setCategory] = useState('Все');
+  const { setDialog } = useLaunch();
+  const collection = tab === 'Персонажи' ? characters : locations;
+  const filtered = collection.filter(
+    (item) =>
+      item.title.toLowerCase().includes(search.toLowerCase()) &&
+      (category === 'Все' || item.category === category),
+  );
+  const selected = filtered.find((item) => item.id === selectedId) ?? filtered[0] ?? collection[0];
+  const isCharacter = tab === 'Персонажи';
+  return (
+    <div className="page-body">
+      <div className="library-toolbar">
+        <div className="segmented">
+          {['Персонажи', 'Локации'].map((label) => (
+            <button
+              className={cx(tab === label && 'active')}
+              key={label}
+              onClick={() => {
+                setTab(label);
+                setSearch('');
+                setCategory('Все');
+              }}
+            >
+              {label}
+              <small>{label === 'Персонажи' ? characters.length : locations.length}</small>
+            </button>
+          ))}
+        </div>
+
+        {isCharacter && (
+          <div className="library-category">
+            <Select
+              label="Категория библиотеки"
+              value={category}
+              onValueChange={setCategory}
+              options={[
+                { value: 'Все', label: 'Все категории' },
+                { value: 'men', label: 'Парни' },
+                { value: 'women', label: 'Девушки' },
+                { value: 'winter', label: 'Зимние' },
+              ]}
+            />
+          </div>
+        )}
+        <label className="search-field">
+          <Search size={16} />
+          <input
+            aria-label="Поиск в библиотеке"
+            placeholder="Найти…"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </label>
+      </div>
+      <div className="asset-strip">
+        <AddArea
+          className={cx('asset-thumb', 'asset-create-thumb', !isCharacter && 'location-thumb')}
+          label={isCharacter ? 'Создать персонажа' : 'Создать локацию'}
+          onClick={() =>
+            setDialog({
+              title: isCharacter ? 'Новый персонаж' : 'Новая локация',
+              kind: 'new-asset',
+              agentId: isCharacter ? 'characters' : 'scenes',
+              assetType: isCharacter ? 'characters' : 'scenes',
+            })
+          }
+        />
+        {filtered.map((item) => (
+          <div
+            className={cx('asset-thumb-wrap', !isCharacter && 'location-wrap')}
+            key={item.id}
+            data-removable
+          >
+            <button
+              className={cx(
+                'asset-thumb',
+                !isCharacter && 'location-thumb',
+                selected.id === item.id && 'active',
+              )}
+              onClick={() => setSelectedId(item.id)}
+            >
+              <img src={item.image} alt="" />
+              <span>{item.title}</span>
+            </button>
+            <HoverDeleteButton
+              label={`Удалить ${item.title}`}
+              onDelete={() => {
+                removeAsset(item.id);
+                demo(`«${item.title}» убран из библиотеки прототипа.`, {
+                  label: 'Вернуть',
+                  onClick: () => restoreAsset(item.id),
+                });
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        <p className="no-results">Ничего не найдено.</p>
+      ) : (
+        <LibraryAssetViewer key={tab} asset={selected} character={isCharacter} />
+      )}
+    </div>
+  );
+}
