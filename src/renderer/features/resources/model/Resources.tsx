@@ -1,5 +1,7 @@
-import { useStoredState } from '@/shared/storage/Storage';
-import { useContext, type ReactNode } from 'react';
+import { useStorage, useStoredState } from '@/shared/storage/Storage';
+import { useContext, useEffect, useRef, type ReactNode } from 'react';
+import { useConfirm } from '@/shared/model/Confirm';
+import { useNotice } from '@/shared/model/Notice';
 import type { CapabilityKind, Agent } from '@/entities/studio/types';
 import { allSkills, allMcps, allPlugins } from '@/fixtures/agents';
 import { ResourcesContext } from './Resources.context';
@@ -27,7 +29,7 @@ const descriptions: Record<string, string> = {
   'Музыка и звуковые эффекты': 'Получение музыки и звуков для сцен.',
   'Поиск референсов': 'Поиск визуальных материалов и источников.',
 };
-const initialResources: Resource[] = (
+export const exampleResources: Resource[] = (
   [
     ['skills', allSkills],
     ['mcps', allMcps],
@@ -50,7 +52,42 @@ const initialResources: Resource[] = (
 );
 
 function useResourcesState() {
-  const [resources, setResources] = useStoredState('resources', initialResources);
+  const { isDesktop } = useStorage();
+  const [resources, setResources] = useStoredState<Resource[]>(
+    'resources',
+    isDesktop ? [] : exampleResources,
+  );
+  const { confirm } = useConfirm();
+  const { demo } = useNotice();
+  const reviewed = useRef(false);
+  useEffect(() => {
+    if (!isDesktop || reviewed.current) return;
+    reviewed.current = true;
+    const legacy = resources.filter(
+      (resource) =>
+        resource.createdAt === 0 &&
+        resource.kind === 'skills' &&
+        resource.source.includes('/.pistudio/packages/pi-studio-library/skills/'),
+    );
+    if (!legacy.length) return;
+    confirm({
+      title: 'Убрать прежние предустановленные шаблоны?',
+      description: `Предыдущая сборка добавила в каталог: ${legacy.map((item) => item.name).join(', ')}. Убрать эти записи? Проекты и пользовательские файлы сохранятся. Новые студии будут пустыми.`,
+      confirmLabel: 'Убрать шаблоны',
+      onConfirm: () => {
+        const ids = new Set(legacy.map((item) => item.id));
+        setResources((current) => current.filter((item) => !ids.has(item.id)));
+        demo('Предустановленные шаблоны убраны из каталога.', {
+          label: 'Вернуть',
+          onClick: () =>
+            setResources((current) => [
+              ...current,
+              ...legacy.filter((item) => !current.some((value) => value.id === item.id)),
+            ]),
+        });
+      },
+    });
+  }, [isDesktop, resources, confirm, setResources, demo]);
   return {
     resources,
     saveResource: (resource: Resource) =>

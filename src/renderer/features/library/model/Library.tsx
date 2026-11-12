@@ -1,16 +1,21 @@
-import { useStoredState } from '@/shared/storage/Storage';
+import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { LibraryContext } from './Library.context';
 import { useContext, type ReactNode } from 'react';
 import { characters as initialCharacters, locations as initialLocations } from '@/fixtures/studio';
 
 function useLibraryState() {
+  const { isDesktop } = useStorage();
   const [removedIds, setRemovedIds] = useStoredState<string[]>('hiddenLibraryIds', []);
   const removeAsset = (id: string) => setRemovedIds((previous) => [...previous, id]);
   const restoreAsset = (id: string) =>
     setRemovedIds((previous) => previous.filter((value) => value !== id));
   return {
-    characters: [...initialCharacters].reverse().filter((item) => !removedIds.includes(item.id)),
-    locations: [...initialLocations].reverse().filter((item) => !removedIds.includes(item.id)),
+    characters: isDesktop
+      ? []
+      : [...initialCharacters].reverse().filter((item) => !removedIds.includes(item.id)),
+    locations: isDesktop
+      ? []
+      : [...initialLocations].reverse().filter((item) => !removedIds.includes(item.id)),
     removeAsset,
     restoreAsset,
   };

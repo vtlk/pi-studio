@@ -1,3 +1,5 @@
+import { type ReactNode } from 'react';
+import { useStorage } from '@/shared/storage/Storage';
 import { StorageProvider } from '@/shared/storage/Storage';
 import { ConfirmProvider } from '@/shared/model/Confirm';
 import { LibraryProvider } from '@/features/library/model/Library';
@@ -19,6 +21,7 @@ import { WorkspaceProvider } from '@/features/project/model/Workspace';
 import { ConnectionsProvider } from '@/features/connections/model/Connections';
 import { EditorProvider } from '@/features/editor/model/Editor';
 import { ResourcesProvider } from '@/features/resources/model/Resources';
+import { StartupGate } from '@/features/startup/StartupGate';
 
 const pages = {
   project: ProjectView,
@@ -42,36 +45,45 @@ function StudioShell() {
     </div>
   );
 }
+function PrototypeProviders({ children }: { children: ReactNode }) {
+  const { isDesktop } = useStorage();
+  if (isDesktop) return children;
+  return (
+    <EditorProvider>
+      <ProjectProvider>
+        <PlaybackProvider>{children}</PlaybackProvider>
+      </ProjectProvider>
+    </EditorProvider>
+  );
+}
 export default function App() {
   return (
-    <StorageProvider>
-      <TooltipProvider>
-        <NavigationProvider>
-          <NoticeProvider>
-            <ConfirmProvider>
-              <ConnectionsProvider>
-                <ResourcesProvider>
-                  <AgentProfilesProvider>
-                    <WorkspaceProvider>
-                      <EditorProvider>
-                        <ProjectProvider>
-                          <PlaybackProvider>
-                            <LibraryProvider>
-                              <LaunchProvider>
-                                <StudioShell />
-                              </LaunchProvider>
-                            </LibraryProvider>
-                          </PlaybackProvider>
-                        </ProjectProvider>
-                      </EditorProvider>
-                    </WorkspaceProvider>
-                  </AgentProfilesProvider>
-                </ResourcesProvider>
-              </ConnectionsProvider>
-            </ConfirmProvider>
-          </NoticeProvider>
-        </NavigationProvider>
-      </TooltipProvider>
-    </StorageProvider>
+    <StartupGate>
+      <StorageProvider>
+        <TooltipProvider>
+          <NavigationProvider>
+            <NoticeProvider>
+              <ConfirmProvider>
+                <ConnectionsProvider>
+                  <ResourcesProvider>
+                    <AgentProfilesProvider>
+                      <WorkspaceProvider>
+                        <PrototypeProviders>
+                          <LibraryProvider>
+                            <LaunchProvider>
+                              <StudioShell />
+                            </LaunchProvider>
+                          </LibraryProvider>
+                        </PrototypeProviders>
+                      </WorkspaceProvider>
+                    </AgentProfilesProvider>
+                  </ResourcesProvider>
+                </ConnectionsProvider>
+              </ConfirmProvider>
+            </NoticeProvider>
+          </NavigationProvider>
+        </TooltipProvider>
+      </StorageProvider>
+    </StartupGate>
   );
 }

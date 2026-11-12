@@ -8,7 +8,6 @@ import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { useNotice } from '@/shared/model/Notice';
 import { useResources, type Resource } from '../model/Resources';
 import { ResourceEditor } from './ResourceEditor';
-import { libraryStandards } from '../../../../shared/libraryStandards';
 
 export function ResourceCatalog({
   kind,
@@ -94,15 +93,11 @@ export function ResourceCatalog({
               <div className="resource-heading">
                 <strong>{resource.name}</strong>
                 <small>
-                  {window.studio &&
-                  kind === 'skills' &&
-                  Object.values(libraryStandards).some((item) => item.id === resource.id)
-                    ? 'Файлы установлены · Pi не подключён'
-                    : resource.localSkill
-                      ? 'Локальный skill · Pi не подключён'
-                      : kind === 'mcps'
-                        ? 'Не подключён'
-                        : 'Не установлен'}
+                  {resource.localSkill
+                    ? 'Локальный skill · Pi не подключён'
+                    : kind === 'mcps'
+                      ? 'Не подключён'
+                      : 'Не установлен'}
                 </small>
               </div>
               <p>{resource.description}</p>
@@ -119,23 +114,19 @@ export function ResourceCatalog({
                 {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
               </Button>
             )}
-            {!onPick &&
-              !(
-                kind === 'skills' &&
-                Object.values(libraryStandards).some((item) => item.id === resource.id)
-              ) && (
-                <HoverDeleteButton
-                  label={`Удалить ресурс ${resource.name}`}
-                  description={usage(resource)}
-                  onDelete={() => {
-                    removeResource(kind, resource.id);
-                    demo('Ресурс убран из каталога. Исходные файлы сохранены.', {
-                      label: 'Вернуть',
-                      onClick: () => saveResource(resource),
-                    });
-                  }}
-                />
-              )}
+            {!onPick && (
+              <HoverDeleteButton
+                label={`Удалить ресурс ${resource.name}`}
+                description={usage(resource)}
+                onDelete={() => {
+                  removeResource(kind, resource.id);
+                  demo('Ресурс убран из каталога. Исходные файлы сохранены.', {
+                    label: 'Вернуть',
+                    onClick: () => saveResource(resource),
+                  });
+                }}
+              />
+            )}
           </div>
         ))}
       {edit && <ResourceEditor key={edit.id} resource={edit} onClose={() => setEdit(null)} />}

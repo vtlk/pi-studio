@@ -5,10 +5,10 @@ import { Button } from '@/shared/ui';
 import { useLaunch } from '../../model/Launch';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useProject } from '@/features/project/model/Project';
-export function PromptDialog() {
+import { useStorage } from '@/shared/storage/Storage';
+function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {
   const { setDialog } = useLaunch();
   const { selectedAgent } = useAgentProfiles();
-  const { baseInstruction } = useProject();
   const text = [
     baseInstruction,
     `ОБЩИЕ ИНСТРУМЕНТЫ: ${coreTools.map((tool) => tool.name).join(', ')}`,
@@ -32,4 +32,12 @@ export function PromptDialog() {
       />
     </Modal>
   );
+}
+function LegacyPrompt() {
+  const { baseInstruction } = useProject();
+  return <CompiledPrompt baseInstruction={baseInstruction} />;
+}
+export function PromptDialog() {
+  const { isDesktop } = useStorage();
+  return isDesktop ? <CompiledPrompt /> : <LegacyPrompt />;
 }

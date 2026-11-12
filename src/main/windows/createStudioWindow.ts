@@ -13,7 +13,7 @@ export function createStudioWindow(): BrowserWindow {
     minWidth: 1080,
     minHeight: 720,
     title: 'Pi Studio',
-    backgroundColor: '#f6f5f1',
+    backgroundColor: '#08090b',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 20, y: 20 },
     webPreferences: {

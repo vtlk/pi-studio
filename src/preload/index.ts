@@ -12,13 +12,18 @@ const desktopApi: DesktopApi = {
   readOutput: (request) => ipcRenderer.invoke(desktopChannels.readOutput, request),
   revealOutput: (request) => ipcRenderer.invoke(desktopChannels.revealOutput, request),
   checkPi: (path) => ipcRenderer.invoke(desktopChannels.checkPi, path),
-  readStandard: (skill, file) => ipcRenderer.invoke(desktopChannels.readStandard, skill, file),
-  saveStandard: (skill, file, content) =>
-    ipcRenderer.invoke(desktopChannels.saveStandard, skill, file, content),
-  resetStandard: (skill, file) => ipcRenderer.invoke(desktopChannels.resetStandard, skill, file),
   getProviderStatus: (provider) => ipcRenderer.invoke(desktopChannels.getProviderStatus, provider),
   openProviderLogin: (provider) => ipcRenderer.invoke(desktopChannels.openProviderLogin, provider),
   chooseSkill: () => ipcRenderer.invoke(desktopChannels.chooseSkill),
   readSkill: (id) => ipcRenderer.invoke(desktopChannels.readSkill, id),
+  beginCodexLogin: () => ipcRenderer.invoke(desktopChannels.beginCodexLogin),
+  readAuthLogin: (id) => ipcRenderer.invoke(desktopChannels.readAuthLogin, id),
+  cancelAuthLogin: (id) => ipcRenderer.invoke(desktopChannels.cancelAuthLogin, id),
+  answerAuthLogin: (id, promptId, answer) =>
+    ipcRenderer.invoke(desktopChannels.answerAuthLogin, id, promptId, answer),
+  getStartup: () => ipcRenderer.invoke(desktopChannels.getStartup),
+  retryStartup: () => ipcRenderer.invoke(desktopChannels.retryStartup),
+  skipStartup: () => ipcRenderer.invoke(desktopChannels.skipStartup),
+  chooseStartupPi: () => ipcRenderer.invoke(desktopChannels.chooseStartupPi),
 };
 contextBridge.exposeInMainWorld('studio', desktopApi);

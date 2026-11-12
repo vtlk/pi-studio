@@ -10,6 +10,7 @@ import {
 import type { StorageSection, StudioBootstrap } from '../../../shared/storage';
 import { StorageContext } from './Storage.context';
 import { Button } from '../ui';
+import { StartupScreen } from '../ui/StartupScreen';
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
@@ -120,14 +121,9 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           {children}
         </div>
       ) : (
-        <div className="page-body" role="status">
-          <h1>Pi Studio</h1>
-          <p>{error ? 'Не удалось открыть папку студии.' : 'Открываем студию…'}</p>
+        <StartupScreen message={error || 'Открываем студию…'} error={!!error}>
           {error && (
             <>
-              <p role="alert" className="error-message">
-                {error}
-              </p>
               <div className="settings-field-row">
                 <label className="field-label">
                   Другая папка студии
@@ -148,7 +144,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
               <Button onClick={() => void changeStudio()}>Выбрать папку</Button>
             </>
           )}
-        </div>
+        </StartupScreen>
       )}
       {ready && error && (
         <div className="storage-error" role="alert">

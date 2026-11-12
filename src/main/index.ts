@@ -1,4 +1,5 @@
 import { app, protocol } from 'electron';
+import { join } from 'node:path';
 import { createStudioWindow } from './windows/createStudioWindow';
 import { registerDesktopHandlers } from './ipc/registerDesktopHandlers';
 import { mediaResponse } from './storage/media';
@@ -17,6 +18,14 @@ if (process.platform !== 'darwin') {
 } else if (!app.requestSingleInstanceLock()) app.quit();
 else
   app.whenReady().then(() => {
+    app.dock?.setIcon(
+      join(
+        __dirname,
+        process.env.ELECTRON_RENDERER_URL
+          ? '../../public/branding/pi-studio-icon.png'
+          : '../renderer/branding/pi-studio-icon.png',
+      ),
+    );
     const service = registerDesktopHandlers();
     protocol.handle('studio-media', async (request) => {
       try {

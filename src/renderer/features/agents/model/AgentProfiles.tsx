@@ -1,11 +1,12 @@
-import { useStoredState } from '@/shared/storage/Storage';
+import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
 import { initialAgents, type Agent, type Instruction } from '@/fixtures/studio';
 
 function useProfilesState() {
-  const [agents, setAgents] = useStoredState('agents', initialAgents);
-  const [agentId, setAgentId] = useState(initialAgents[0].id);
+  const { isDesktop } = useStorage();
+  const [agents, setAgents] = useStoredState<Agent[]>('agents', isDesktop ? [] : initialAgents);
+  const [agentId, setAgentId] = useState(agents[0]?.id ?? '');
   const [agentTab, setAgentTab] = useState('Инструкции');
   const selectedAgent = agents.find((a) => a.id === agentId) ?? agents[0];
   const addAgent = () => {

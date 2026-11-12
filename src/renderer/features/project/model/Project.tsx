@@ -1,4 +1,4 @@
-import { useStoredState } from '@/shared/storage/Storage';
+import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { ProjectContext } from './Project.context';
 import { initialPlan } from '@/fixtures/plan';
 import { useContext, useReducer, useState, type ReactNode, type SetStateAction } from 'react';
@@ -6,6 +6,7 @@ import { locations, scenes } from '@/fixtures/studio';
 import { approvalReducer, initialApproval, isFilmAccepted } from './approval';
 
 function useProjectState() {
+  const { isDesktop } = useStorage();
   const [projectRemoved, setProjectRemoved] = useState(false);
   const [step, setStep] = useState(4);
   const [plan, setPlan] = useState(initialPlan);
@@ -29,7 +30,9 @@ function useProjectState() {
     });
   const [baseInstruction, setBaseInstruction] = useStoredState(
     'baseInstruction',
-    'Сохраняй единый стиль проекта: геометрическая 2D-графика, приглушённые цвета, выразительные персонажи. Результаты передавай файлами и описанием созданных материалов.',
+    isDesktop
+      ? ''
+      : 'Сохраняй единый стиль проекта: геометрическая 2D-графика, приглушённые цвета, выразительные персонажи. Результаты передавай файлами и описанием созданных материалов.',
   );
   const [script, setScript] = useState(
     'Механик возвращается домой после длинного дня. У подъезда стоит незнакомый деревянный ящик. Изнутри раздаётся тихий стук.\n\nМЕХАНИК\nЭто ещё что такое?\n\nОн наклоняется к ящику и прислушивается. Наверху загорается окно. Соседка выглядывает во двор.\n\nСОСЕДКА\nЯ бы на твоём месте не открывала.',

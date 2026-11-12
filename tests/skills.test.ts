@@ -47,13 +47,11 @@ test('local imports keep stable path identity, reject name collisions and store 
   await rm(join(folder, 'SKILL.md'));
   await assert.rejects(inspectSkill(imported.source), { code: 'ENOENT' });
 });
-test('import rejects arbitrary filenames, reserved built-in skills and binary files without executing anything', async (t) => {
+test('import rejects arbitrary filenames and binary files without executing anything', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-skill-invalid-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(join(root, 'script.js'), source());
   await assert.rejects(inspectSkill(join(root, 'script.js')), /SKILL.md/);
-  await writeFile(join(root, 'SKILL.md'), source('create-library-character'));
-  await assert.rejects(importSkill(root, []), /поставляется/);
   await writeFile(join(root, 'SKILL.md'), Buffer.from([0, 1, 2]));
   await assert.rejects(inspectSkill(root), /Бинарный/);
 });

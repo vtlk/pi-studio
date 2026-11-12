@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import type { PiCheck } from '../../shared/contracts.ts';
 
 const execute = promisify(execFile);
+export class PiNotFoundError extends Error {}
 async function candidates(requested: string) {
   if (requested.trim()) {
     if (!isAbsolute(requested.trim()))
@@ -20,6 +21,7 @@ async function candidates(requested: string) {
     '/opt/homebrew/bin',
     '/usr/local/bin',
     join(homedir(), '.local/bin'),
+    join(homedir(), '.pi/agent/bin'),
   ];
   for (const root of [
     join(homedir(), '.nvm/versions/node'),
@@ -68,7 +70,7 @@ export async function checkPi(requested: string): Promise<PiCheck> {
       exactSessions: help.includes('--session <path|id>') && help.includes('--fork <path|id>'),
     };
   }
-  throw new Error(
+  throw new PiNotFoundError(
     'Pi не найден. Установите @earendil-works/pi-coding-agent и укажите полный путь.',
   );
 }

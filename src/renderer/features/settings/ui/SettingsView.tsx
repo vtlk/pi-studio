@@ -12,9 +12,22 @@ import type { CapabilityKind } from '@/entities/studio/types';
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import type { PiCheck } from '../../../../shared/contracts';
 
+function LegacyRules() {
+  const { baseInstruction, setBaseInstruction } = useProject();
+  return (
+    <>
+      <h2>Общие инструкции</h2>
+      <textarea
+        aria-label="Общие инструкции проекта"
+        value={baseInstruction}
+        onChange={(event) => setBaseInstruction(event.target.value)}
+      />
+      <p>Изменения только в памяти веб-макета.</p>
+    </>
+  );
+}
 export function SettingsView() {
   const { demo } = useNotice();
-  const { baseInstruction, setBaseInstruction } = useProject();
   const [section, setSection] = useState('workspace');
   const { bootstrap, isDesktop, openStudio, chooseStudio, saving } = useStorage();
   const [folder, setFolder] = useState(bootstrap?.folder ?? '');
@@ -32,7 +45,7 @@ export function SettingsView() {
           { id: 'skills', label: 'Каталог Skills' },
           { id: 'mcps', label: 'MCP-серверы' },
           { id: 'plugins', label: 'Пакеты Pi' },
-          { id: 'rules', label: 'Общие инструкции' },
+          ...(!isDesktop ? [{ id: 'rules', label: 'Общие инструкции' }] : []),
         ]}
         selected={section}
         onSelect={setSection}
@@ -133,23 +146,7 @@ export function SettingsView() {
         ) : section === 'connections' ? (
           <ConnectionsPanel />
         ) : section === 'rules' ? (
-          <>
-            <h2>Общие инструкции</h2>
-            <textarea
-              aria-label="Общие инструкции проекта"
-              value={baseInstruction}
-              onChange={(event) => setBaseInstruction(event.target.value)}
-            />
-            <p>
-              {isDesktop
-                ? 'Изменения сохраняются автоматически.'
-                : 'Изменения только в памяти веб-макета.'}
-            </p>
-            <p>
-              Перед перерисовкой персонажа, анимацией SVG-превью и финальным рендером требуется
-              явное одобрение человека.
-            </p>
-          </>
+          <LegacyRules />
         ) : (
           <>
             <h2>

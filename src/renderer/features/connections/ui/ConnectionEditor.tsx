@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
 import { Select } from '@/shared/ui/Select';
 import { useNotice } from '@/shared/model/Notice';
 import { useConnections, type Connection } from '../model/Connections';
 import type { ProviderStatus } from '../../../../shared/contracts';
+import type { AuthLoginState } from '../../../../shared/auth';
 export function ConnectionEditor({
   connection,
   onClose,
@@ -17,6 +18,45 @@ export function ConnectionEditor({
   const { demo } = useNotice();
   const [status, setStatus] = useState<ProviderStatus>();
   const [busy, setBusy] = useState(false);
+  const [auth, setAuth] = useState<AuthLoginState>();
+  const [answer, setAnswer] = useState('');
+  const authActive = !!auth && ['opening', 'waiting', 'verifying'].includes(auth.phase);
+  useEffect(() => {
+    if (!auth?.id || !authActive) return;
+    const id = auth.id;
+    let active = true;
+    const timer = setInterval(() => {
+      void window.studio!.readAuthLogin(id).then(
+        (next) => {
+          if (!active) return;
+          setAuth(next);
+          if (next.phase === 'ready') {
+            const result: ProviderStatus = { provider: 'openai-codex', status: 'ready' };
+            setStatus(result);
+            setProviderStatus(result);
+          }
+        },
+        () => {
+          if (active)
+            setAuth({ id, phase: 'error', message: 'Не удалось проверить состояние входа.' });
+        },
+      );
+    }, 500);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [auth?.id, authActive, setProviderStatus]);
+  useEffect(() => {
+    const id = auth?.id;
+    return () => {
+      if (id) void window.studio?.cancelAuthLogin(id);
+    };
+  }, [auth?.id]);
+  const close = () => {
+    if (authActive && auth) void window.studio?.cancelAuthLogin(auth.id);
+    onClose();
+  };
   const login = async () => {
     if (!window.studio) {
       demo('Вход Pi доступен в приложении macOS.');
@@ -24,6 +64,10 @@ export function ConnectionEditor({
     }
     setBusy(true);
     try {
+      if (draft.purpose === 'codex') {
+        setAuth(await window.studio.beginCodexLogin());
+        return;
+      }
       await window.studio.openProviderLogin(draft.providerId);
       demo('Открыт штатный вход Pi в Terminal. Завершите вход там и проверьте подключение.');
     } catch (error) {
@@ -35,13 +79,13 @@ export function ConnectionEditor({
   return (
     <Modal
       title={connection.name || 'Добавить подключение'}
-      onClose={onClose}
+      onClose={close}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button onClick={close}>Отмена</Button>
           <Button
             kind="primary"
-            disabled={!draft.name.trim() || !draft.providerId.trim()}
+            disabled={authActive || busy || !draft.name.trim() || !draft.providerId.trim()}
             onClick={() => {
               saveConnection(draft);
               onClose();
@@ -92,9 +136,51 @@ export function ConnectionEditor({
       {draft.purpose === 'codex' ? (
         <>
           <p>Вход через ChatGPT · лимиты подписки</p>
-          <Button kind="primary" disabled={busy} onClick={() => void login()}>
+          <Button kind="primary" disabled={busy || authActive} onClick={() => void login()}>
             Войти через ChatGPT
           </Button>
+          {auth && (
+            <p
+              role={auth.phase === 'error' ? 'alert' : 'status'}
+              className={auth.phase === 'error' ? 'error-message' : ''}
+            >
+              {auth.message}
+            </p>
+          )}
+          {auth?.prompt && (
+            <label className="field-label">
+              Ответ браузера
+              <input
+                type={auth.prompt.secret ? 'password' : 'text'}
+                autoComplete="off"
+                value={answer}
+                onChange={(event) => setAnswer(event.target.value)}
+                placeholder="Адрес возврата или код из окна входа"
+              />
+              <Button
+                disabled={!answer.trim()}
+                onClick={async () => {
+                  try {
+                    await window.studio!.answerAuthLogin(auth.id, auth.prompt!.id, answer);
+                    setAnswer('');
+                  } catch {
+                    setAuth({
+                      id: auth.id,
+                      phase: 'error',
+                      message: 'Ответ не принят. Повторите вход.',
+                    });
+                  }
+                }}
+              >
+                Продолжить вход
+              </Button>
+            </label>
+          )}
+          {authActive && auth && (
+            <Button onClick={() => void window.studio!.cancelAuthLogin(auth.id)}>
+              Отменить вход
+            </Button>
+          )}
         </>
       ) : draft.purpose === 'images' ? (
         <>

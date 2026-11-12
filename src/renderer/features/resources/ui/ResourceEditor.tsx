@@ -4,8 +4,6 @@ import { Modal } from '@/shared/ui/Modal';
 import { Select } from '@/shared/ui/Select';
 import { useNotice } from '@/shared/model/Notice';
 import { useResources, type Resource } from '../model/Resources';
-import { LibraryStandardEditor } from './LibraryStandardEditor';
-import { libraryStandards, type LibraryStandard } from '../../../../shared/libraryStandards';
 import { LocalSkillInfo } from './LocalSkillInfo';
 
 export function ResourceEditor({ resource, onClose }: { resource: Resource; onClose: () => void }) {
@@ -25,11 +23,6 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
   const existingSkill =
     resource.kind === 'skills' &&
     resources.some((item) => item.kind === 'skills' && item.id === resource.id);
-  const bundled = (Object.keys(libraryStandards) as LibraryStandard[]).find(
-    (key) => libraryStandards[key].id === resource.id,
-  );
-  if (window.studio && resource.kind === 'skills' && bundled)
-    return <LibraryStandardEditor skill={bundled} onClose={onClose} />;
   if (window.studio && resource.kind === 'skills' && resource.localSkill)
     return <LocalSkillInfo id={resource.id} name={resource.name} onClose={onClose} />;
   if (existingSkill)

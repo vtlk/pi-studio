@@ -1,4 +1,4 @@
-import { useStoredState } from '@/shared/storage/Storage';
+import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { useContext, useState, type ReactNode } from 'react';
 import type { ProviderStatus } from '../../../../shared/contracts';
 import { ConnectionsContext } from './Connections.context';
@@ -11,7 +11,7 @@ export interface Connection {
   account: string;
   createdAt: number;
 }
-const examples: Connection[] = [
+export const exampleConnections: Connection[] = [
   {
     id: 'codex-subscription',
     name: 'Codex — подписка',
@@ -32,7 +32,11 @@ const examples: Connection[] = [
   },
 ];
 function useConnectionsState() {
-  const [connections, setConnections] = useStoredState('connections', examples);
+  const { isDesktop } = useStorage();
+  const [connections, setConnections] = useStoredState<Connection[]>(
+    'connections',
+    isDesktop ? [] : exampleConnections,
+  );
   const [imageTool, setImageTool] = useStoredState('imageTool', { connectionId: '', modelId: '' });
   const [providerStatuses, setProviderStatuses] = useState<
     Record<string, ProviderStatus['status']>

@@ -1,3 +1,4 @@
+import { useStorage } from '@/shared/storage/Storage';
 import { useState } from 'react';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
@@ -7,6 +8,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { ReferenceAttachments, type ReferenceAttachment } from '@/shared/ui/ReferenceAttachments';
 
 export function AgentActionDialog({ request }: { request: NonNullable<Dialog> }) {
+  const { isDesktop } = useStorage();
   const { setDialog } = useLaunch();
   const { agents } = useAgentProfiles();
   const { demo } = useNotice();
@@ -51,7 +53,9 @@ export function AgentActionDialog({ request }: { request: NonNullable<Dialog> })
       <p>
         {agent
           ? `Агент: ${agent.name}. Основной промпт и инструменты заданы в конструкторе.`
-          : 'Запрошенный агент отсутствует. Выберите или создайте профиль в конструкторе.'}
+          : creating && isDesktop
+            ? 'Создание материалов через Pi ещё не подключено.'
+            : 'Запрошенный агент отсутствует. Выберите или создайте профиль в конструкторе.'}
       </p>
       {agent && !agent.enabled && <p>Агент выключен.</p>}
     </Modal>

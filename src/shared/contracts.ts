@@ -6,8 +6,9 @@ import type {
   StorageSection,
   StudioBootstrap,
 } from './storage';
-import type { LibraryStandard, StandardFile, StandardDocument } from './libraryStandards';
 import type { Resource, SkillDocument } from './resources';
+import type { AuthLoginState } from './auth';
+import type { StartupState } from './startup';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -27,17 +28,18 @@ export interface DesktopApi {
   readOutput(request: FileRequest): Promise<OutputFile>;
   revealOutput(request: FileRequest): Promise<void>;
   checkPi(path: string): Promise<PiCheck>;
-  readStandard(skill: LibraryStandard, file: StandardFile): Promise<StandardDocument>;
-  saveStandard(
-    skill: LibraryStandard,
-    file: StandardFile,
-    content: string,
-  ): Promise<StandardDocument>;
-  resetStandard(skill: LibraryStandard, file: StandardFile): Promise<StandardDocument>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
   openProviderLogin(provider: string): Promise<void>;
   chooseSkill(): Promise<Resource | null>;
   readSkill(resourceId: string): Promise<SkillDocument>;
+  beginCodexLogin(): Promise<AuthLoginState>;
+  readAuthLogin(id: string): Promise<AuthLoginState>;
+  cancelAuthLogin(id: string): Promise<void>;
+  answerAuthLogin(id: string, promptId: string, answer: string): Promise<void>;
+  getStartup(): Promise<StartupState>;
+  retryStartup(): Promise<StartupState>;
+  skipStartup(): Promise<StartupState>;
+  chooseStartupPi(): Promise<StartupState | null>;
 }
 
 export interface ProviderStatus {
@@ -64,11 +66,16 @@ export const desktopChannels = {
   readOutput: 'studio:read-output',
   revealOutput: 'studio:reveal-output',
   checkPi: 'studio:check-pi',
-  readStandard: 'studio:read-standard',
-  saveStandard: 'studio:save-standard',
-  resetStandard: 'studio:reset-standard',
   getProviderStatus: 'studio:provider-status',
   openProviderLogin: 'studio:provider-login',
   chooseSkill: 'studio:choose-skill',
   readSkill: 'studio:read-skill',
+  beginCodexLogin: 'studio:codex-login',
+  readAuthLogin: 'studio:auth-state',
+  cancelAuthLogin: 'studio:auth-cancel',
+  answerAuthLogin: 'studio:auth-answer',
+  getStartup: 'studio:startup',
+  retryStartup: 'studio:startup-retry',
+  skipStartup: 'studio:startup-skip',
+  chooseStartupPi: 'studio:startup-choose',
 } as const;

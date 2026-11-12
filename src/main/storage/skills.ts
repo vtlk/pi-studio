@@ -4,7 +4,6 @@ import { createHash } from 'node:crypto';
 import { parseDocument } from 'yaml';
 import { readText } from './files.ts';
 import { record } from './validation.ts';
-import { libraryStandards } from '../../shared/libraryStandards.ts';
 import type { Resource, SkillDocument } from '../../shared/resources.ts';
 
 export function parseSkill(content: string) {
@@ -44,8 +43,6 @@ export async function inspectSkill(source: string): Promise<SkillDocument> {
 }
 export async function importSkill(source: string, existing: Resource[]): Promise<Resource> {
   const skill = await inspectSkill(source);
-  if (Object.hasOwn(libraryStandards, skill.name))
-    throw new Error('Этот стандарт уже поставляется со Studio. Откройте его в каталоге Skills.');
   const previous = existing.find(
     (resource) => resource.kind === 'skills' && resource.source === skill.source,
   );

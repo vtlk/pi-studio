@@ -6,25 +6,37 @@ import { StudioService } from '../storage/StudioStore';
 import { loadOutput } from '../storage/outputs';
 import { safePath, withReadDeadline } from '../storage/files';
 import { checkPi } from '../pi/checkPi';
-import { readStandard, writeStandard } from '../storage/standards';
-import type { LibraryStandard, StandardFile } from '../../shared/libraryStandards';
-import { readFile } from 'node:fs/promises';
 import { getProviderStatus, openProviderLogin } from '../pi/provider';
 import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
+import { BrowserAuth } from '../pi/BrowserAuth';
+import { Startup } from '../pi/Startup';
 
 export function registerDesktopHandlers(): StudioService {
-  const bundled = join(
-    __dirname,
-    app.isPackaged
-      ? '../../bundled/pi-studio-library'
-      : '../../technical-spec/bundled/pi-studio-library',
-  );
   const service = new StudioService(
     join(app.getPath('userData'), 'workspace.json'),
     join(app.getPath('videos'), 'Pi Studio'),
-    bundled,
   );
+  const browserAuth = new BrowserAuth(join(__dirname, '../../bundled/pi-bridge/login.mjs'), (url) =>
+    shell.openExternal(url),
+  );
+  const startup = new Startup({
+    root: join(app.getPath('userData'), 'runtime/pi'),
+    bundled: join(__dirname, '../../bundled/pi-runtime'),
+    configuredPath: async () => {
+      try {
+        return await service.serialize(async () =>
+          String((await service.load()).bootstrap().sections.piPath ?? ''),
+        );
+      } catch {
+        return '';
+      }
+    },
+  });
+  app.on('before-quit', () => {
+    browserAuth.close();
+    startup.close();
+  });
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (!window || event.senderFrame !== window.webContents.mainFrame) {
@@ -41,6 +53,28 @@ export function registerDesktopHandlers(): StudioService {
       return service.serialize(() => Promise.resolve(action(event, ...(args as never[]))));
     });
   }
+  ipcMain.handle(desktopChannels.beginCodexLogin, async (event) => {
+    caller(event);
+    const path = await service.serialize(async () =>
+      String((await service.load()).bootstrap().sections.piPath ?? ''),
+    );
+    return browserAuth.start(path || startup.path);
+  });
+  ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
+    caller(event);
+    return browserAuth.read(id);
+  });
+  ipcMain.handle(desktopChannels.cancelAuthLogin, (event, id: string) => {
+    caller(event);
+    browserAuth.cancel(id);
+  });
+  ipcMain.handle(
+    desktopChannels.answerAuthLogin,
+    (event, id: string, promptId: string, answer: string) => {
+      caller(event);
+      browserAuth.answer(id, promptId, answer);
+    },
+  );
   handle(
     desktopChannels.getInfo,
     () =>
@@ -50,7 +84,31 @@ export function registerDesktopHandlers(): StudioService {
         runtimeConnected: false,
       }) satisfies DesktopInfo,
   );
-  handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path));
+  ipcMain.handle(desktopChannels.getStartup, (event) => {
+    caller(event);
+    return startup.read();
+  });
+  ipcMain.handle(desktopChannels.retryStartup, (event) => {
+    caller(event);
+    return startup.retry();
+  });
+  ipcMain.handle(desktopChannels.skipStartup, (event) => {
+    caller(event);
+    return startup.skip();
+  });
+  ipcMain.handle(desktopChannels.chooseStartupPi, async (event) => {
+    const result = await dialog.showOpenDialog(caller(event), {
+      title: 'Выберите установленный Pi',
+      properties: ['openFile'],
+    });
+    if (result.canceled || !result.filePaths[0]) return null;
+    const state = await startup.choose(result.filePaths[0]);
+    await service.serialize(async () =>
+      (await service.load()).saveSection('piPath', state.pi!.path),
+    );
+    return state;
+  });
+  handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path || startup.path));
   handle(desktopChannels.chooseSkill, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Папка skill или SKILL.md',
@@ -77,37 +135,19 @@ export function registerDesktopHandlers(): StudioService {
   });
   handle(desktopChannels.getProviderStatus, async (_event, provider: string) => {
     const store = await service.load();
-    return getProviderStatus(String(store.bootstrap().sections.piPath ?? ''), provider);
+    return getProviderStatus(
+      String(store.bootstrap().sections.piPath ?? '') || startup.path,
+      provider,
+    );
   });
   handle(desktopChannels.openProviderLogin, async (_event, provider: string) => {
     const store = await service.load();
     await openProviderLogin(
-      String(store.bootstrap().sections.piPath ?? ''),
+      String(store.bootstrap().sections.piPath ?? '') || startup.path,
       provider,
       store.folder,
     );
   });
-  handle(desktopChannels.readStandard, async (_event, skill: LibraryStandard, file: StandardFile) =>
-    readStandard((await service.load()).folder, skill, file),
-  );
-  handle(
-    desktopChannels.saveStandard,
-    async (_event, skill: LibraryStandard, file: StandardFile, content: string) =>
-      writeStandard((await service.load()).folder, skill, file, content),
-  );
-  handle(
-    desktopChannels.resetStandard,
-    async (_event, skill: LibraryStandard, file: StandardFile) => {
-      const root = (await service.load()).folder;
-      await readStandard(root, skill, file); // Validate the allowlisted skill and relative file before reading bundled text.
-      return writeStandard(
-        root,
-        skill,
-        file,
-        await readFile(join(bundled, 'skills', skill, file), 'utf8'),
-      );
-    },
-  );
   handle(desktopChannels.loadStudio, async () => (await service.load()).bootstrap());
   handle(desktopChannels.openStudio, (_event, folder: string) => service.open(folder));
   handle(desktopChannels.chooseStudio, async (event) => {

@@ -40,6 +40,10 @@ async function fixture(t: TestContext) {
 test('new studio is empty; current constructor, instructions and settings survive a restart', async (t) => {
   const { store } = await fixture(t);
   assert.deepEqual(store.bootstrap().projects, []);
+  assert.deepEqual(store.bootstrap().sections.agents, []);
+  assert.deepEqual(store.bootstrap().sections.connections, []);
+  assert.deepEqual(store.bootstrap().sections.resources, []);
+  assert.equal(store.bootstrap().sections.baseInstruction, '');
   await store.saveSection('agents', [agent()]);
   await store.saveSection('baseInstruction', 'Общее правило');
   await store.saveSection('hiddenLibraryIds', ['character-1']);

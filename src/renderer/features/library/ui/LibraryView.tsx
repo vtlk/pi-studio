@@ -7,9 +7,11 @@ import { useLibrary } from '../model/Library';
 import { useNotice } from '@/shared/model/Notice';
 import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { useLaunch } from '@/features/launch/model/Launch';
+import { useStorage } from '@/shared/storage/Storage';
 import { cx } from '@/shared/ui';
 
 export function LibraryView() {
+  const { isDesktop } = useStorage();
   const { characters, locations, removeAsset, restoreAsset } = useLibrary();
   const { demo } = useNotice();
   const [tab, setTab] = useState('Персонажи');
@@ -45,7 +47,7 @@ export function LibraryView() {
           ))}
         </div>
 
-        {isCharacter && (
+        {isCharacter && !isDesktop && (
           <div className="library-category">
             <Select
               label="Категория библиотеки"
@@ -78,7 +80,7 @@ export function LibraryView() {
             setDialog({
               title: isCharacter ? 'Новый персонаж' : 'Новая локация',
               kind: 'new-asset',
-              agentId: isCharacter ? 'characters' : 'scenes',
+              agentId: isDesktop ? undefined : isCharacter ? 'characters' : 'scenes',
               assetType: isCharacter ? 'characters' : 'scenes',
             })
           }
@@ -114,7 +116,13 @@ export function LibraryView() {
         ))}
       </div>
       {filtered.length === 0 ? (
-        <p className="no-results">Ничего не найдено.</p>
+        <p className="no-results">
+          {collection.length
+            ? 'Ничего не найдено.'
+            : isCharacter
+              ? 'Персонажей пока нет.'
+              : 'Локаций пока нет.'}
+        </p>
       ) : (
         <LibraryAssetViewer key={tab} asset={selected} character={isCharacter} />
       )}

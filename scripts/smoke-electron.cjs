@@ -46,6 +46,23 @@ const deadline = setTimeout(() => {
   assert.equal(await js(`typeof window.studio.readOutput`), 'function');
   assert.equal(await js(`typeof window.require`), 'undefined');
   assert.equal(await js(`document.body.innerText.includes('Посылка с характером')`), false);
+  const empty = await js(`window.studio.loadStudio()`);
+  assert.deepEqual(empty.sections.agents, []);
+  assert.deepEqual(empty.sections.connections, []);
+  assert.deepEqual(empty.sections.resources, []);
+  await js(
+    `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Библиотека').click()`,
+  );
+  assert.equal(await js(`document.querySelectorAll('.asset-thumb-wrap').length`), 0);
+  await js(
+    `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Агенты').click()`,
+  );
+  await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);
+  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await until(`!!document.querySelector('[aria-label="Название агента"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Проекты').click()`,
+  );
   await js(`document.querySelector('[aria-label="Создать проект"]').click()`);
   await until(`!!document.querySelector('[aria-label="Название проекта"]')`);
   await js(`(() => { const input = document.querySelector('[aria-label="Название проекта"]');
@@ -59,7 +76,7 @@ const deadline = setTimeout(() => {
   assert.equal(first.projects.length, 1);
   const project = first.projects[0];
   assert.equal(project.name, 'Desktop smoke');
-  assert.equal(project.agents.length, 6);
+  assert.equal(project.agents.length, 1);
   const agentId = project.agents[0].profile.id;
   const output = join(first.folder, 'projects/Desktop smoke/agents', agentId, 'output');
   await writeFile(
@@ -112,25 +129,6 @@ const deadline = setTimeout(() => {
   await js(
     `Array.from(document.querySelectorAll('.section-menu-item')).find(button => button.textContent.trim() === 'Каталог Skills').click()`,
   );
-  await until(`!!document.querySelector('.resource-row button')`);
-  await js(`document.querySelector('.resource-row button').click()`);
-  await until(`!!document.querySelector('[aria-label="Текст SKILL.md"]')`);
-  await js(`(() => { const textarea = document.querySelector('[aria-label="Текст SKILL.md"]');
-    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(textarea, textarea.value + ${JSON.stringify('\n\nSmoke test current text.')});
-    textarea.dispatchEvent(new Event('input', {bubbles:true})); })()`);
-  await js(
-    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent.trim() === 'Сохранить').click()`,
-  );
-  await until(
-    `Array.from(document.querySelectorAll('.dialog-footer button')).some(button => button.textContent.trim() === 'Сохранить' && button.disabled)`,
-  );
-  assert.match(
-    (await js(`window.studio.readStandard('create-library-character','SKILL.md')`)).content,
-    /Smoke test current text/,
-  );
-  await js(
-    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent.trim() === 'Закрыть').click()`,
-  );
   const skillFolder = join(temporary, 'local-skill');
   await mkdir(skillFolder);
   await writeFile(
@@ -177,11 +175,11 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const reopened = await js(`window.studio.loadStudio()`);
   assert.deepEqual(reopened.sections.agents, []);
-  assert.equal(reopened.projects[0].agents.length, 6);
+  assert.equal(reopened.projects[0].agents.length, 1);
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/desktop-smoke.png'), (await window.capturePage()).toPNG());
   console.log(
-    `Desktop smoke passed: preload, native create, real Markdown, script isolation, Finder action, Pi detection, native media, provider readiness, standard editing, native skill import, UI autosave, snapshot isolation, saved-state reload. Pi ${check.version}.`,
+    `Desktop smoke passed: preload, native create, real Markdown, script isolation, Finder action, Pi detection, native media, provider readiness, empty native defaults, native skill import, UI autosave, snapshot isolation, saved-state reload. Pi ${check.version}.`,
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

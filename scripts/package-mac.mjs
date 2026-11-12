@@ -22,18 +22,25 @@ await cp(join(root, 'node_modules/electron/dist/Electron.app'), bundle, {
 });
 await rename(join(bundle, 'Contents/MacOS/Electron'), join(bundle, 'Contents/MacOS/Pi Studio'));
 const resources = join(bundle, 'Contents/Resources');
+execFileSync(process.execPath, [join(root, 'scripts/build-icon.mjs')]);
+await cp(join(root, 'build/PiStudio.icns'), join(resources, 'PiStudio.icns'));
 await rm(join(resources, 'default_app.asar'), { force: true });
 const application = join(resources, 'app');
 await mkdir(application, { recursive: true });
-await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
+await cp(join(root, 'out'), join(application, 'out'), {
+  recursive: true,
+  filter: (source) =>
+    !['characters', 'scenes', 'library-runtime', 'source.json'].includes(source.split('/').at(-1)),
+});
 await cp(join(root, 'node_modules/yaml'), join(application, 'node_modules/yaml'), {
   recursive: true,
 });
-await cp(
-  join(root, 'technical-spec/bundled/pi-studio-library'),
-  join(application, 'bundled/pi-studio-library'),
-  { recursive: true },
-);
+await cp(join(root, 'bundled/pi-bridge'), join(application, 'bundled/pi-bridge'), {
+  recursive: true,
+});
+await cp(join(root, 'bundled/pi-runtime'), join(application, 'bundled/pi-runtime'), {
+  recursive: true,
+});
 await writeFile(
   join(application, 'package.json'),
   `${JSON.stringify(
@@ -53,6 +60,7 @@ for (const [key, value] of Object.entries({
   CFBundleName: 'Pi Studio',
   CFBundleIdentifier: 'studio.pi.desktop',
   CFBundleExecutable: 'Pi Studio',
+  CFBundleIconFile: 'PiStudio.icns',
   CFBundleShortVersionString: metadata.version.split('-')[0],
   CFBundleVersion: metadata.version.split('-')[0],
   NSHumanReadableCopyright: 'Pi Studio',
