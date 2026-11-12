@@ -3,6 +3,7 @@ const { mkdir, readFile, writeFile, rm } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const { mkdtempSync, mkdirSync } = require('node:fs');
 
 // Exercise the built main/preload/renderer in a real, isolated macOS Electron process.
@@ -176,10 +177,53 @@ const deadline = setTimeout(() => {
   const reopened = await js(`window.studio.loadStudio()`);
   assert.deepEqual(reopened.sections.agents, []);
   assert.equal(reopened.projects[0].agents.length, 1);
+  // Migrate saved prototype defaults only after confirmation; custom profiles/project snapshots survive.
+  const legacy = JSON.parse(
+    execFileSync(
+      'node',
+      [
+        '--experimental-strip-types',
+        '--input-type=module',
+        '-e',
+        "import {initialAgents} from './src/renderer/fixtures/agents.ts'; console.log(JSON.stringify(initialAgents));",
+      ],
+      { cwd: resolve(__dirname, '..'), encoding: 'utf8' },
+    ),
+  );
+  await js(
+    `window.studio.saveSection('agents', ${JSON.stringify([...legacy, edited.sections.agents[0]])})`,
+  );
+  window.webContents.reload();
+  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  await until(`document.querySelector('.dialog-body')?.innerText.includes('агенты — 6')`);
+  assert.equal((await js(`window.studio.loadStudio()`)).sections.agents.length, 7);
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent === 'Отмена').click()`,
+  );
+  assert.equal((await js(`window.studio.loadStudio()`)).sections.agents.length, 7);
+  window.webContents.reload();
+  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  await until(`document.querySelector('.dialog-body')?.innerText.includes('агенты — 6')`);
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent === 'Убрать шаблоны').click()`,
+  );
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  const cleaned = await js(`window.studio.loadStudio()`);
+  assert.deepEqual(cleaned.sections.agents, edited.sections.agents);
+  assert.deepEqual(cleaned.projects, reopened.projects);
+  await js(
+    `Array.from(document.querySelectorAll('button')).find(button => button.textContent === 'Вернуть').click()`,
+  );
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  const restored = await js(`window.studio.loadStudio()`);
+  assert.deepEqual(
+    restored.sections.agents.map((item) => item.id),
+    [...legacy, ...edited.sections.agents].map((item) => item.id),
+  );
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/desktop-smoke.png'), (await window.capturePage()).toPNG());
   console.log(
-    `Desktop smoke passed: preload, native create, real Markdown, script isolation, Finder action, Pi detection, native media, provider readiness, empty native defaults, native skill import, UI autosave, snapshot isolation, saved-state reload. Pi ${check.version}.`,
+    `Desktop smoke passed: preload, native create, real Markdown, script isolation, Finder action, Pi detection, native media, provider readiness, empty native defaults, native skill import, UI autosave, snapshot isolation, saved-state reload, legacy confirmation/cancel/undo preserving custom profiles and projects. Pi ${check.version}.`,
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

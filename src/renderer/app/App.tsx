@@ -22,6 +22,7 @@ import { ConnectionsProvider } from '@/features/connections/model/Connections';
 import { EditorProvider } from '@/features/editor/model/Editor';
 import { ResourcesProvider } from '@/features/resources/model/Resources';
 import { StartupGate } from '@/features/startup/StartupGate';
+import { LegacyTemplateCleanup } from '@/features/settings/ui/LegacyTemplateCleanup';
 
 const pages = {
   project: ProjectView,
@@ -35,6 +36,7 @@ function StudioShell() {
   const Page = pages[page];
   return (
     <div className="app-shell">
+      <LegacyTemplateCleanup />
       <main className="main-shell">
         <Topbar />
         <div className="main-scroll">
