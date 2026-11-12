@@ -26,16 +26,34 @@ export async function atomicText(file: string, value: string) {
   }
 }
 
-export async function readJson(file: string): Promise<unknown> {
-  const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
-  try {
-    const stat = await handle.stat();
-    if (!stat.isFile() || stat.size > 16 * 1024 * 1024)
-      throw new Error('Некорректный размер файла настроек.');
-    return JSON.parse(await handle.readFile('utf8'));
-  } finally {
-    await handle.close();
-  }
+/** Bound read-only work: cloud placeholders or disconnected volumes must not lock the IPC queue. */
+export function withReadDeadline<T>(action: () => Promise<T>, milliseconds = 10_000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return new Promise<T>((resolve, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new Error(
+            'Чтение папки или файла не завершилось за 10 секунд. Проверьте доступность диска или выберите другую папку студии.',
+          ),
+        ),
+      milliseconds,
+    );
+    action().then(resolve, reject);
+  }).finally(() => clearTimeout(timer));
+}
+export function readJson(file: string): Promise<unknown> {
+  return withReadDeadline(async () => {
+    const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+    try {
+      const stat = await handle.stat();
+      if (!stat.isFile() || stat.size > 16 * 1024 * 1024)
+        throw new Error('Некорректный размер файла настроек.');
+      return JSON.parse(await handle.readFile('utf8'));
+    } finally {
+      await handle.close();
+    }
+  });
 }
 
 export function isMissing(error: unknown) {
@@ -83,16 +101,18 @@ export function folderLabel(value: unknown) {
     throw new Error('Название: 1–100 символов, без слешей, двоеточий и точки в начале.');
   return name;
 }
-export async function readText(file: string, limit = 2 * 1024 * 1024) {
-  const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
-  try {
-    const stat = await handle.stat();
-    if (!stat.isFile() || stat.size > limit)
-      throw new Error('Файл слишком большой для текстового просмотра (максимум 2 МБ).');
-    const bytes = await handle.readFile();
-    if (bytes.includes(0)) throw new Error('Бинарный файл: текстовый просмотр недоступен.');
-    return bytes.toString('utf8');
-  } finally {
-    await handle.close();
-  }
+export function readText(file: string, limit = 2 * 1024 * 1024) {
+  return withReadDeadline(async () => {
+    const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+    try {
+      const stat = await handle.stat();
+      if (!stat.isFile() || stat.size > limit)
+        throw new Error('Файл слишком большой для текстового просмотра (максимум 2 МБ).');
+      const bytes = await handle.readFile();
+      if (bytes.includes(0)) throw new Error('Бинарный файл: текстовый просмотр недоступен.');
+      return bytes.toString('utf8');
+    } finally {
+      await handle.close();
+    }
+  });
 }

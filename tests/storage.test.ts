@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os';
 import { StudioStore, StudioService } from '../src/main/storage/StudioStore.ts';
 import { loadOutput } from '../src/main/storage/outputs.ts';
 import { mediaResponse } from '../src/main/storage/media.ts';
-import { safePath } from '../src/main/storage/files.ts';
+import { safePath, withReadDeadline } from '../src/main/storage/files.ts';
 import type { Agent } from '../src/shared/studio.ts';
 
 const agent = (id = 'writer'): Agent => ({
@@ -294,4 +294,23 @@ test('serialized saves preserve independent sections and remember the chosen stu
   assert.equal(store.folder, await realpath(join(root, 'chosen')));
   assert.equal(store.bootstrap().sections.piPath, 'piPath');
   assert.equal(store.bootstrap().sections.baseInstruction, 'baseInstruction');
+});
+
+test('the first default studio is remembered even if a later application version changes its default', async (t) => {
+  const { root } = await fixture(t);
+  const preferences = join(root, 'last-workspace.json');
+  const original = new StudioService(preferences, join(root, 'original-default'));
+  const first = await original.load();
+  const updated = new StudioService(preferences, join(root, 'new-default'));
+  assert.equal((await updated.load()).folder, first.folder);
+});
+
+test('a stalled read times out and releases the queue for recovery actions', async (t) => {
+  const { root } = await fixture(t);
+  const service = new StudioService(join(root, 'preferences.json'), join(root, 'studio'));
+  const stalled = service.serialize(() => withReadDeadline(() => new Promise<never>(() => {}), 10));
+  const recovery = service.serialize(async () => 'can choose another folder');
+  const [failure, success] = await Promise.allSettled([stalled, recovery]);
+  assert.equal(failure.status, 'rejected');
+  assert.deepEqual(success, { status: 'fulfilled', value: 'can choose another folder' });
 });

@@ -4,7 +4,7 @@ import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
 import type { FileRequest, ProjectCommand, StorageSection } from '../../shared/storage';
 import { StudioService } from '../storage/StudioStore';
 import { loadOutput } from '../storage/outputs';
-import { safePath } from '../storage/files';
+import { safePath, withReadDeadline } from '../storage/files';
 import { checkPi } from '../pi/checkPi';
 import { readStandard, writeStandard } from '../storage/standards';
 import type { LibraryStandard, StandardFile } from '../../shared/libraryStandards';
@@ -22,7 +22,7 @@ export function registerDesktopHandlers(): StudioService {
   );
   const service = new StudioService(
     join(app.getPath('userData'), 'workspace.json'),
-    join(app.getPath('documents'), 'Pi Studio'),
+    join(app.getPath('videos'), 'Pi Studio'),
     bundled,
   );
   function caller(event: IpcMainInvokeEvent) {
@@ -132,12 +132,11 @@ export function registerDesktopHandlers(): StudioService {
     (await service.load()).command(command),
   );
   handle(desktopChannels.readProject, async (_event, id: string) =>
-    (await service.load()).projects.read(id),
+    withReadDeadline(async () => (await service.load()).projects.read(id)),
   );
   handle(desktopChannels.readOutput, async (_event, request: FileRequest) => {
-    const file = await loadOutput(
-      await (await service.load()).projects.directory(request.projectId),
-      request.path,
+    const file = await withReadDeadline(async () =>
+      loadOutput(await (await service.load()).projects.directory(request.projectId), request.path),
     );
     if (['image', 'audio', 'video'].includes(file.format))
       file.src = `studio-media://output/${encodeURIComponent(request.projectId)}/${request.path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(file.fingerprint ?? '')}`;

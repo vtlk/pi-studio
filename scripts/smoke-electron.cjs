@@ -18,6 +18,7 @@ const deadline = setTimeout(() => {
   mkdirSync(documents);
   mkdirSync(userData);
   app.setPath('documents', documents);
+  app.setPath('videos', documents);
   app.setPath('userData', userData);
   const loaded = new Promise((resolve, reject) =>
     app.once('browser-window-created', (_event, window) => {

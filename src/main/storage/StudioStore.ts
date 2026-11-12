@@ -126,7 +126,9 @@ export class StudioService {
     } catch (error) {
       if (!isMissing(error)) throw error;
     }
-    this.current = await StudioStore.open(folder, this.bundled);
+    const next = await StudioStore.open(folder, this.bundled);
+    await atomicJson(this.preferencesFile, { folder: next.folder });
+    this.current = next;
     return this.current;
   }
   async open(folder: string) {
