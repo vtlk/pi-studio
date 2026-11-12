@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { homedir } from 'node:os';
@@ -20,6 +20,7 @@ await cp(join(root, 'node_modules/electron/dist/Electron.app'), bundle, {
   recursive: true,
   verbatimSymlinks: true,
 });
+await rename(join(bundle, 'Contents/MacOS/Electron'), join(bundle, 'Contents/MacOS/Pi Studio'));
 const resources = join(bundle, 'Contents/Resources');
 await rm(join(resources, 'default_app.asar'), { force: true });
 const application = join(resources, 'app');
@@ -48,6 +49,7 @@ for (const [key, value] of Object.entries({
   CFBundleDisplayName: 'Pi Studio',
   CFBundleName: 'Pi Studio',
   CFBundleIdentifier: 'studio.pi.desktop',
+  CFBundleExecutable: 'Pi Studio',
   CFBundleShortVersionString: metadata.version.split('-')[0],
   CFBundleVersion: metadata.version.split('-')[0],
   NSHumanReadableCopyright: 'Pi Studio',
