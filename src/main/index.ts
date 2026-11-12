@@ -1,12 +1,41 @@
-import { app } from 'electron';
+import { app, protocol } from 'electron';
 import { createStudioWindow } from './windows/createStudioWindow';
 import { registerDesktopHandlers } from './ipc/registerDesktopHandlers';
+import { mediaResponse } from './storage/media';
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'studio-media',
+    privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true },
+  },
+]);
 
 app.setName('Pi Studio');
-app.whenReady().then(() => {
-  registerDesktopHandlers();
-  createStudioWindow();
-  app.on('activate', createStudioWindow);
+if (process.platform !== 'darwin') {
+  console.error('Pi Studio supports macOS only.');
+  app.quit();
+} else if (!app.requestSingleInstanceLock()) app.quit();
+else
+  app.whenReady().then(() => {
+    const service = registerDesktopHandlers();
+    protocol.handle('studio-media', async (request) => {
+      try {
+        const url = new URL(request.url);
+        if (url.hostname !== 'output') return new Response(null, { status: 403 });
+        const [projectId, ...parts] = url.pathname.slice(1).split('/').map(decodeURIComponent);
+        const root = await service.serialize(async () =>
+          (await service.load()).projects.directory(projectId),
+        );
+        return await mediaResponse(root, parts.join('/'), request);
+      } catch {
+        return new Response(null, { status: 404 });
+      }
+    });
+    createStudioWindow();
+    app.on('activate', createStudioWindow);
+  });
+app.on('second-instance', () => {
+  if (app.isReady()) createStudioWindow().focus();
 });
 app.on('window-all-closed', () => {
   // macOS keeps the application alive after its last window closes.

@@ -2,9 +2,12 @@ import type { OutputFile, ProjectAgent } from '../model/workspace.types';
 import { useWorkspace } from '../model/Workspace';
 import { Button } from '@/shared/ui';
 import { Disclosure } from '@/shared/ui/Disclosure';
+import { useStorage } from '@/shared/storage/Storage';
 export function OutputReview({ file }: { file: OutputFile; agent: ProjectAgent }) {
   const { selectedProject, reviewFile } = useWorkspace();
+  const { isDesktop } = useStorage();
   if (
+    isDesktop ||
     !selectedProject ||
     file.name.endsWith('.pistudio.json') ||
     file.format === 'audio' ||

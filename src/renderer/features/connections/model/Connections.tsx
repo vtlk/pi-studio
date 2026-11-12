@@ -1,4 +1,6 @@
+import { useStoredState } from '@/shared/storage/Storage';
 import { useContext, useState, type ReactNode } from 'react';
+import type { ProviderStatus } from '../../../../shared/contracts';
 import { ConnectionsContext } from './Connections.context';
 export interface Connection {
   id: string;
@@ -30,12 +32,18 @@ const examples: Connection[] = [
   },
 ];
 function useConnectionsState() {
-  const [connections, setConnections] = useState(examples);
-  const [imageTool, setImageTool] = useState({ connectionId: '', modelId: '' });
+  const [connections, setConnections] = useStoredState('connections', examples);
+  const [imageTool, setImageTool] = useStoredState('imageTool', { connectionId: '', modelId: '' });
+  const [providerStatuses, setProviderStatuses] = useState<
+    Record<string, ProviderStatus['status']>
+  >({});
   return {
     connections,
     imageTool,
     setImageTool,
+    providerStatuses,
+    setProviderStatus: (result: ProviderStatus) =>
+      setProviderStatuses((previous) => ({ ...previous, [result.provider]: result.status })),
     saveConnection: (connection: Connection) =>
       setConnections((previous) =>
         [connection, ...previous.filter((item) => item.id !== connection.id)].sort(

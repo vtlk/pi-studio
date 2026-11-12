@@ -4,6 +4,7 @@ import { useWorkspace } from '../model/Workspace';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
 import { useNotice } from '@/shared/model/Notice';
+import { useStorage } from '@/shared/storage/Storage';
 
 export function ProjectNameDialog({
   project,
@@ -15,25 +16,37 @@ export function ProjectNameDialog({
   onClose: () => void;
 }) {
   const [name, setName] = useState(mode === 'clone' ? `${project.name} — копия` : project.name);
-  const { cloneProject, renameProject } = useWorkspace();
+  const { cloneProject, renameProject, busy } = useWorkspace();
+  const { isDesktop } = useStorage();
   const { demo } = useNotice();
   return (
     <Modal
       title={mode === 'clone' ? 'Клонировать проект' : 'Переименовать проект'}
-      onClose={onClose}
+      onClose={() => {
+        if (!busy) onClose();
+      }}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button disabled={busy} onClick={onClose}>
+            Отмена
+          </Button>
           <Button
             kind="primary"
-            disabled={!name.trim() || /[/\\]/.test(name)}
-            onClick={() => {
-              if (mode === 'clone') cloneProject(project, name);
-              else renameProject(project.id, name);
-              demo(
+            disabled={busy || !name.trim() || /[/\\]/.test(name)}
+            onClick={async () => {
+              const result =
                 mode === 'clone'
-                  ? 'Создана независимая копия снимка и примеров файлов в памяти. Папка на диске не копировалась.'
-                  : 'Название и пример пути изменены в памяти. Физическая папка не переименовывалась.',
+                  ? await cloneProject(project, name)
+                  : await renameProject(project.id, name);
+              if (result === false) return;
+              demo(
+                isDesktop
+                  ? mode === 'clone'
+                    ? 'Проект и все его файлы скопированы в отдельную папку.'
+                    : 'Название проекта и его папка изменены.'
+                  : mode === 'clone'
+                    ? 'Создана независимая копия снимка и примеров файлов в памяти. Папка на диске не копировалась.'
+                    : 'Название и пример пути изменены в памяти. Физическая папка не переименовывалась.',
               );
               onClose();
             }}
@@ -52,9 +65,7 @@ export function ProjectNameDialog({
           ? 'Копия получает новый ID и собственные снимок агентов и файлы. Текущие глобальные агенты не подмешиваются.'
           : 'ID проекта, ID агентов и относительные пути результатов сохраняются.'}
       </p>
-      <p className="subtle">
-        Операция показана на данных прототипа. Файловое хранилище не подключено.
-      </p>
+      {!isDesktop && <p className="subtle">Операция показана на данных веб-макета.</p>}
     </Modal>
   );
 }

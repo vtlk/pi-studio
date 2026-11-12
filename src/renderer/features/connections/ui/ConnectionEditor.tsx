@@ -4,6 +4,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { Select } from '@/shared/ui/Select';
 import { useNotice } from '@/shared/model/Notice';
 import { useConnections, type Connection } from '../model/Connections';
+import type { ProviderStatus } from '../../../../shared/contracts';
 export function ConnectionEditor({
   connection,
   onClose,
@@ -12,8 +13,25 @@ export function ConnectionEditor({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(connection);
-  const { saveConnection } = useConnections();
+  const { saveConnection, setProviderStatus } = useConnections();
   const { demo } = useNotice();
+  const [status, setStatus] = useState<ProviderStatus>();
+  const [busy, setBusy] = useState(false);
+  const login = async () => {
+    if (!window.studio) {
+      demo('Вход Pi доступен в приложении macOS.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await window.studio.openProviderLogin(draft.providerId);
+      demo('Открыт штатный вход Pi в Terminal. Завершите вход там и проверьте подключение.');
+    } catch (error) {
+      demo(error instanceof Error ? error.message : 'Не удалось открыть вход Pi.');
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <Modal
       title={connection.name || 'Добавить подключение'}
@@ -29,7 +47,7 @@ export function ConnectionEditor({
               onClose();
             }}
           >
-            Сохранить в макете
+            Сохранить
           </Button>
         </>
       }
@@ -74,14 +92,7 @@ export function ConnectionEditor({
       {draft.purpose === 'codex' ? (
         <>
           <p>Вход через ChatGPT · лимиты подписки</p>
-          <Button
-            kind="primary"
-            onClick={() =>
-              demo(
-                'Браузерный вход не подключён. Авторизация в открытом приложении Codex не переносится автоматически.',
-              )
-            }
-          >
+          <Button kind="primary" disabled={busy} onClick={() => void login()}>
             Войти через ChatGPT
           </Button>
         </>
@@ -131,18 +142,52 @@ export function ConnectionEditor({
           >
             Загрузить каталог Pi
           </Button>
+          {window.studio && (
+            <Button disabled={busy || !draft.providerId.trim()} onClick={() => void login()}>
+              Войти через Pi
+            </Button>
+          )}
         </>
       )}
       <div className="action-row">
         <Button
-          onClick={() =>
-            demo('Проверка не выполнялась. Генерация и платные запросы не запускались.')
+          disabled={
+            busy ||
+            !draft.providerId.trim() ||
+            draft.purpose === 'images' ||
+            draft.purpose === 'compatible' ||
+            draft.purpose === 'local'
           }
+          onClick={async () => {
+            if (!window.studio) {
+              demo('Проверка доступна в приложении macOS.');
+              return;
+            }
+            setBusy(true);
+            setStatus(undefined);
+            try {
+              const result = await window.studio.getProviderStatus(draft.providerId);
+              setStatus(result);
+              setProviderStatus(result);
+            } catch (error) {
+              demo(error instanceof Error ? error.message : 'Проверка не выполнена.');
+            } finally {
+              setBusy(false);
+            }
+          }}
         >
           Проверить подключение
         </Button>
       </div>
-      <p>Статус: не настроено. Сохранение этой формы не подтверждает доступ аккаунта.</p>
+      <p role="status">
+        {status
+          ? status.status === 'ready'
+            ? `Pi: авторизация ${status.provider} доступна. Проверка генерации не выполнялась.`
+            : status.status === 'invalid'
+              ? 'Pi: некорректная авторизация или провайдер.'
+              : 'Pi: требуется вход или обновление авторизации.'
+          : 'Авторизация ещё не проверена. Сохранение формы не подтверждает доступ аккаунта.'}
+      </p>
       <p className="subtle">
         При отказе или исчерпании лимита подключение не меняется автоматически. Секреты не входят в
         проект и его снимки.

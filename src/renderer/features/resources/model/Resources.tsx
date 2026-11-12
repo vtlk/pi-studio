@@ -1,4 +1,5 @@
-import { useContext, useState, type ReactNode } from 'react';
+import { useStoredState } from '@/shared/storage/Storage';
+import { useContext, type ReactNode } from 'react';
 import type { CapabilityKind, Agent } from '@/entities/studio/types';
 import { allSkills, allMcps, allPlugins } from '@/fixtures/agents';
 import { ResourcesContext } from './Resources.context';
@@ -60,7 +61,7 @@ const initialResources: Resource[] = (
 );
 
 function useResourcesState() {
-  const [resources, setResources] = useState(initialResources);
+  const [resources, setResources] = useStoredState('resources', initialResources);
   return {
     resources,
     saveResource: (resource: Resource) =>

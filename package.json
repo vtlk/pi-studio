@@ -1,14 +1,16 @@
 {
   "name": "pi-video-studio",
-  "version": "0.1.0",
+  "version": "0.2.0-alpha.1",
   "private": true,
-  "description": "Локальная студия мультфильмов с Pi — интерфейсный прототип",
+  "description": "Pi Studio для macOS — локальные проекты и конструктор агентов",
   "type": "module",
   "main": "out/main/index.cjs",
   "scripts": {
     "dev": "electron-vite dev",
     "dev:web": "vite --config vite.config.ts --host 127.0.0.1 --port 5173 --strictPort",
     "build": "npm run typecheck && electron-vite build",
+    "package:mac": "npm run build && node scripts/package-mac.mjs",
+    "test:desktop": "npm run build && electron scripts/smoke-electron.cjs",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",

@@ -28,7 +28,7 @@ export function AgentToolbar({
   previewKind?: PreviewKind;
 }) {
   const { demo } = useNotice();
-  const { setAutoContinue } = useWorkspace();
+  const { setAutoContinue, selectedProject } = useWorkspace();
   const { agents } = useAgentProfiles();
   const [startOpen, setStartOpen] = useState(false);
   const [continueAfterRun, setContinueAfterRun] = useState(false);
@@ -70,11 +70,23 @@ export function AgentToolbar({
         {revealInFinder && (
           <IconButton
             title="Показать в Finder"
-            onClick={() =>
-              demo(
-                `Файл «${file.name}» будет выделен в Finder. Доступ к проектным файлам пока не подключён.`,
-              )
-            }
+            onClick={async () => {
+              if (window.studio && selectedProject && file.diskPath) {
+                try {
+                  await window.studio.revealOutput({
+                    projectId: selectedProject.id,
+                    path: file.diskPath,
+                  });
+                } catch (error) {
+                  demo(
+                    error instanceof Error ? error.message : 'Не удалось показать файл в Finder.',
+                  );
+                }
+              } else
+                demo(
+                  `Файл «${file.name}» будет выделен в Finder. Доступ к проектным файлам пока не подключён.`,
+                );
+            }}
           >
             <FolderOpen size={19} />
           </IconButton>

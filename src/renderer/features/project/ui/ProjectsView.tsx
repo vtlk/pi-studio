@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Copy, Pencil } from 'lucide-react';
-import { IconButton } from '@/shared/ui';
+import { Button, IconButton } from '@/shared/ui';
+import { Disclosure } from '@/shared/ui/Disclosure';
+import { useStorage } from '@/shared/storage/Storage';
 import { ProjectNameDialog } from './ProjectNameDialog';
 import type { WorkspaceProject } from '../model/workspace.types';
 import { AddArea } from '@/shared/ui/AddArea';
@@ -16,7 +18,9 @@ export function ProjectsView() {
     null,
   );
   const { navigate } = useNavigation();
-  const { projects, setProjectId, removeProject, restoreProject } = useWorkspace();
+  const { projects, trashProjects, busy, setProjectId, removeProject, restoreProject } =
+    useWorkspace();
+  const { isDesktop } = useStorage();
   const { setDialog } = useLaunch();
   const { demo } = useNotice();
   return (
@@ -60,17 +64,34 @@ export function ProjectsView() {
             </div>
             <HoverDeleteButton
               label={`Удалить проект «${project.name}»`}
-              onDelete={() => {
-                removeProject(project.id);
-                demo('Проект удалён из списка прототипа.', {
-                  label: 'Вернуть',
-                  onClick: () => restoreProject(project),
-                });
+              onDelete={async () => {
+                if ((await removeProject(project.id)) === false) return;
+                demo(
+                  isDesktop
+                    ? 'Проект перемещён в корзину студии. Все файлы сохранены.'
+                    : 'Проект удалён из списка прототипа.',
+                  {
+                    label: 'Вернуть',
+                    onClick: () => restoreProject(project),
+                  },
+                );
               }}
             />
           </div>
         ))}
       </div>
+      {trashProjects.length > 0 && (
+        <Disclosure label={`Корзина студии · ${trashProjects.length}`}>
+          {trashProjects.map((project) => (
+            <div className="version-row" key={project.id}>
+              <span>{project.name}</span>
+              <Button disabled={busy} onClick={() => void restoreProject(project)}>
+                Восстановить
+              </Button>
+            </div>
+          ))}
+        </Disclosure>
+      )}
       {edit && <ProjectNameDialog {...edit} onClose={() => setEdit(null)} />}
     </div>
   );

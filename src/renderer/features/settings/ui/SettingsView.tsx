@@ -9,13 +9,18 @@ import { coreTools } from '@/entities/studio/tools';
 import { ConnectionsPanel } from '@/features/connections/ui/ConnectionsPanel';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import type { CapabilityKind } from '@/entities/studio/types';
+import { useStorage, useStoredState } from '@/shared/storage/Storage';
+import type { PiCheck } from '../../../../shared/contracts';
 
 export function SettingsView() {
   const { demo } = useNotice();
   const { baseInstruction, setBaseInstruction } = useProject();
   const [section, setSection] = useState('workspace');
-  const [folder, setFolder] = useState('');
-  const [pi, setPi] = useState('');
+  const { bootstrap, isDesktop, openStudio, chooseStudio, saving } = useStorage();
+  const [folder, setFolder] = useState(bootstrap?.folder ?? '');
+  const [pi, setPi] = useStoredState('piPath', '');
+  const [piCheck, setPiCheck] = useState<PiCheck>();
+  const [checking, setChecking] = useState(false);
   return (
     <div className="page-body settings-layout">
       <SectionMenu
@@ -36,7 +41,11 @@ export function SettingsView() {
         {section === 'workspace' ? (
           <>
             <h2>Рабочее пространство</h2>
-            <p>Прототип: настройки в памяти, файлы на диске не создаются.</p>
+            <p>
+              {isDesktop
+                ? 'Настройки и проекты сохраняются в выбранной папке. Существующая студия открывается при выборе папки.'
+                : 'Веб-макет: настройки в памяти.'}
+            </p>
             <div className="settings-field-row">
               <label className="field-label">
                 Папка студии
@@ -44,13 +53,17 @@ export function SettingsView() {
                   placeholder="/Users/…/Pi Studio"
                   value={folder}
                   onChange={(event) => setFolder(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && isDesktop) void openStudio(folder.trim());
+                  }}
                 />
               </label>
               <Button
+                disabled={saving}
                 onClick={() =>
-                  demo(
-                    'Системный выбор папки и чтение существующей студии будут подключены после утверждения интерфейса.',
-                  )
+                  isDesktop
+                    ? void chooseStudio()
+                    : demo('Системный выбор папки доступен в приложении macOS.')
                 }
               >
                 Выбрать папку
@@ -76,13 +89,37 @@ export function SettingsView() {
                 />
               </label>
               <Button
-                onClick={() =>
-                  demo('Pi не запускался. Проверка исполняемого файла ещё не подключена.')
-                }
+                disabled={checking}
+                onClick={async () => {
+                  if (!window.studio) {
+                    demo('Проверка Pi доступна в приложении macOS.');
+                    return;
+                  }
+                  setChecking(true);
+                  setPiCheck(undefined);
+                  try {
+                    const result = await window.studio.checkPi(pi);
+                    setPiCheck(result);
+                    setPi(result.path);
+                  } catch (error) {
+                    demo(error instanceof Error ? error.message : 'Ошибка проверки Pi.');
+                  } finally {
+                    setChecking(false);
+                  }
+                }}
               >
-                Проверить Pi
+                {checking ? 'Проверяем…' : 'Проверить Pi'}
               </Button>
             </div>
+            {piCheck && (
+              <p role="status">
+                Pi {piCheck.version} ·{' '}
+                {piCheck.supported ? 'поддерживаемая версия' : 'версия ещё не проверена со Studio'}{' '}
+                · MCP: {piCheck.nativeMcp ? 'встроенный' : 'не найден'} · точные сессии:{' '}
+                {piCheck.exactSessions ? 'поддерживаются' : 'не подтверждены'}. Проверка не
+                запускает генерацию.
+              </p>
+            )}
             <p className="section-space">
               Общие инструменты всех агентов:{' '}
               {coreTools.map((tool) => `${tool.name} — ${tool.status.toLowerCase()}`).join(', ')}.
@@ -103,9 +140,11 @@ export function SettingsView() {
               value={baseInstruction}
               onChange={(event) => setBaseInstruction(event.target.value)}
             />
-            <Button kind="primary" onClick={() => demo('Инструкции изменены в памяти прототипа.')}>
-              Сохранить в макете
-            </Button>
+            <p>
+              {isDesktop
+                ? 'Изменения сохраняются автоматически.'
+                : 'Изменения только в памяти веб-макета.'}
+            </p>
             <p>
               Перед перерисовкой персонажа, анимацией SVG-превью и финальным рендером требуется
               явное одобрение человека.

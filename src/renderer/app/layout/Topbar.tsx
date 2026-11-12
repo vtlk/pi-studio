@@ -1,6 +1,7 @@
 import { Settings2 } from 'lucide-react';
 import { useNavigation, type Page } from '@/shared/model/Navigation';
 import { IconButton } from '@/shared/ui';
+import { useStorage } from '@/shared/storage/Storage';
 
 const sections: { page: Page; label: string }[] = [
   { page: 'projects', label: 'Проекты' },
@@ -9,6 +10,7 @@ const sections: { page: Page; label: string }[] = [
 ];
 export function Topbar() {
   const { page, navigate } = useNavigation();
+  const { isDesktop, saving, error } = useStorage();
   return (
     <header className="topbar">
       <nav aria-label="Главное меню">
@@ -26,7 +28,15 @@ export function Topbar() {
           </button>
         ))}
       </nav>
-      <span className="prototype-label">Прототип · без сохранения</span>
+      <span className="prototype-label" role="status">
+        {isDesktop
+          ? error
+            ? 'Требуется внимание'
+            : saving
+              ? 'Сохраняем…'
+              : 'Сохранено · Pi не подключён'
+          : 'Веб-макет · без сохранения'}
+      </span>
       <IconButton
         title="Настройки"
         className="settings-button"

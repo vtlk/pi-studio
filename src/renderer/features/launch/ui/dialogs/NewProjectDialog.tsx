@@ -8,20 +8,24 @@ import { useNavigation } from '@/shared/model/Navigation';
 export function NewProjectDialog() {
   const [name, setName] = useState('');
   const { setDialog } = useLaunch();
-  const { createProject } = useWorkspace();
+  const { createProject, busy } = useWorkspace();
   const { navigate } = useNavigation();
   return (
     <Modal
       title="Создать проект"
-      onClose={() => setDialog(null)}
+      onClose={() => {
+        if (!busy) setDialog(null);
+      }}
       footer={
         <>
-          <Button onClick={() => setDialog(null)}>Отмена</Button>
+          <Button disabled={busy} onClick={() => setDialog(null)}>
+            Отмена
+          </Button>
           <Button
             kind="primary"
-            disabled={!name.trim()}
-            onClick={() => {
-              createProject(name);
+            disabled={busy || !name.trim()}
+            onClick={async () => {
+              if ((await createProject(name)) === false) return;
               setDialog(null);
               navigate('project');
             }}

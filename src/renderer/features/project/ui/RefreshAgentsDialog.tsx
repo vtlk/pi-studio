@@ -6,9 +6,11 @@ import { Button } from '@/shared/ui';
 import { Switch } from '@/shared/ui/SelectionControls';
 import { useWorkspace } from '../model/Workspace';
 import { compareAgents } from '../model/snapshot';
+import { useStorage } from '@/shared/storage/Storage';
 
 export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
-  const { selectedProject, refreshAgents } = useWorkspace();
+  const { selectedProject, refreshAgents, busy } = useWorkspace();
+  const { isDesktop } = useStorage();
   const { agents } = useAgentProfiles();
   const { demo } = useNotice();
   const [updateExisting, setUpdateExisting] = useState(false);
@@ -18,16 +20,24 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
   return (
     <Modal
       title="Перечитать агентов"
-      onClose={onClose}
+      onClose={() => {
+        if (!busy) onClose();
+      }}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button disabled={busy} onClick={onClose}>
+            Отмена
+          </Button>
           <Button
             kind="primary"
-            disabled={!hasChanges}
-            onClick={() => {
-              refreshAgents(updateExisting);
-              demo('Снимок агентов обновлён в памяти прототипа. Выходные файлы сохранены.');
+            disabled={busy || !hasChanges}
+            onClick={async () => {
+              if ((await refreshAgents(updateExisting)) === false) return;
+              demo(
+                isDesktop
+                  ? 'Снимок агентов сохранён. Выходные файлы сохранены.'
+                  : 'Снимок агентов обновлён в памяти прототипа.',
+              );
               onClose();
             }}
           >

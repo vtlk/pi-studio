@@ -1,0 +1,196 @@
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
+import type { StorageSection, StudioBootstrap } from '../../../shared/storage';
+import { StorageContext } from './Storage.context';
+import { Button } from '../ui';
+
+const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
+/** Hydration completes before feature providers mount, so defaults cannot overwrite saved data. */
+export function StorageProvider({ children }: { children: ReactNode }) {
+  const [bootstrap, setBootstrap] = useState<StudioBootstrap | null>(null);
+  const [ready, setReady] = useState(!window.studio);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const pending = useRef(new Map<StorageSection, unknown>());
+  const writing = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [draftFolder, setDraftFolder] = useState('');
+
+  const load = useCallback(async () => {
+    try {
+      const data = await window.studio!.loadStudio();
+      setBootstrap(data);
+      setReady(true);
+      setError('');
+    } catch (error) {
+      setError(message(error));
+    }
+  }, []);
+  useEffect(() => {
+    if (window.studio) void load();
+  }, [load]);
+
+  const flush = useCallback(async () => {
+    if (!window.studio || writing.current || !pending.current.size) return;
+    writing.current = true;
+    setSaving(true);
+    try {
+      while (pending.current.size) {
+        const [key, value] = pending.current.entries().next().value!;
+        await window.studio.saveSection(key, value);
+        if (pending.current.get(key) === value) pending.current.delete(key);
+      }
+      setError('');
+    } catch (error) {
+      setError(`Не сохранено: ${message(error)}`);
+    } finally {
+      writing.current = false;
+      setSaving(pending.current.size > 0);
+    }
+  }, []);
+  const save = useCallback(
+    (key: StorageSection, value: unknown) => {
+      if (!window.studio) return;
+      pending.current.set(key, value);
+      setSaving(true);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => void flush(), 250);
+    },
+    [flush],
+  );
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!pending.current.size) return;
+      event.preventDefault();
+      event.returnValue = '';
+      void flush();
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [flush]);
+
+  const changeStudio = async (folder?: string) => {
+    if (!window.studio) return;
+    await flush();
+    if (pending.current.size || writing.current) {
+      setError('Дождитесь сохранения текущей студии перед сменой папки.');
+      return;
+    }
+    try {
+      const data =
+        folder === undefined
+          ? await window.studio.chooseStudio()
+          : await window.studio.openStudio(folder);
+      if (!data) return;
+      setBootstrap(data);
+      setReady(true);
+      setError('');
+      setRevision((value) => value + 1);
+    } catch (error) {
+      setError(message(error));
+    }
+  };
+  return (
+    <StorageContext.Provider
+      value={{
+        bootstrap,
+        isDesktop: !!window.studio,
+        saving,
+        error,
+        chooseStudio: () => changeStudio(),
+        openStudio: (folder) => changeStudio(folder),
+        save,
+        retry: () => {
+          if (ready) void flush();
+          else void load();
+        },
+      }}
+    >
+      {ready ? (
+        <div className="studio-root" key={revision}>
+          {children}
+        </div>
+      ) : (
+        <div className="page-body" role="status">
+          <h1>Pi Studio</h1>
+          <p>{error ? 'Не удалось открыть папку студии.' : 'Открываем студию…'}</p>
+          {error && (
+            <>
+              <p role="alert" className="error-message">
+                {error}
+              </p>
+              <div className="settings-field-row">
+                <label className="field-label">
+                  Другая папка студии
+                  <input
+                    value={draftFolder}
+                    onChange={(event) => setDraftFolder(event.target.value)}
+                    placeholder="/Users/…/Pi Studio"
+                  />
+                </label>
+                <Button
+                  disabled={!draftFolder.trim()}
+                  onClick={() => void changeStudio(draftFolder)}
+                >
+                  Открыть
+                </Button>
+              </div>
+              <Button onClick={() => void load()}>Повторить</Button>
+              <Button onClick={() => void changeStudio()}>Выбрать папку</Button>
+            </>
+          )}
+        </div>
+      )}
+      {ready && error && (
+        <div className="storage-error" role="alert">
+          <span>{error}</span>
+          {pending.current.size ? (
+            <Button onClick={() => void flush()}>Повторить сохранение</Button>
+          ) : (
+            <Button onClick={() => setError('')}>Закрыть</Button>
+          )}
+        </div>
+      )}
+      {ready && bootstrap?.warnings.length ? (
+        <div className="storage-warning" role="status">
+          Не прочитаны некоторые проекты: {bootstrap.warnings.join('; ')}
+        </div>
+      ) : null}
+    </StorageContext.Provider>
+  );
+}
+export function useStorage() {
+  const value = useContext(StorageContext);
+  if (!value) throw new Error('StorageProvider is missing');
+  return value;
+}
+/** Each feature still owns its state. Only the current value goes to the shared disk writer. */
+export function useStoredState<T>(key: StorageSection, initial: T | (() => T)) {
+  const { bootstrap, save } = useStorage();
+  const [value, update] = useState<T>(
+    () =>
+      (bootstrap?.sections[key] as T | undefined) ??
+      (typeof initial === 'function' ? (initial as () => T)() : initial),
+  );
+  const latest = useRef(value);
+  const setValue = useCallback(
+    (action: SetStateAction<T>) => {
+      const next =
+        typeof action === 'function' ? (action as (previous: T) => T)(latest.current) : action;
+      latest.current = next;
+      update(next);
+      save(key, next);
+    },
+    [key, save],
+  );
+  return [value, setValue] as const;
+}

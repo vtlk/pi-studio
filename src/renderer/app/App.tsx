@@ -1,3 +1,4 @@
+import { StorageProvider } from '@/shared/storage/Storage';
 import { ConfirmProvider } from '@/shared/model/Confirm';
 import { LibraryProvider } from '@/features/library/model/Library';
 import { NavigationProvider, useNavigation } from '@/shared/model/Navigation';
@@ -43,32 +44,34 @@ function StudioShell() {
 }
 export default function App() {
   return (
-    <TooltipProvider>
-      <NavigationProvider>
-        <NoticeProvider>
-          <ConfirmProvider>
-            <ConnectionsProvider>
-              <ResourcesProvider>
-                <AgentProfilesProvider>
-                  <WorkspaceProvider>
-                    <EditorProvider>
-                      <ProjectProvider>
-                        <PlaybackProvider>
-                          <LibraryProvider>
-                            <LaunchProvider>
-                              <StudioShell />
-                            </LaunchProvider>
-                          </LibraryProvider>
-                        </PlaybackProvider>
-                      </ProjectProvider>
-                    </EditorProvider>
-                  </WorkspaceProvider>
-                </AgentProfilesProvider>
-              </ResourcesProvider>
-            </ConnectionsProvider>
-          </ConfirmProvider>
-        </NoticeProvider>
-      </NavigationProvider>
-    </TooltipProvider>
+    <StorageProvider>
+      <TooltipProvider>
+        <NavigationProvider>
+          <NoticeProvider>
+            <ConfirmProvider>
+              <ConnectionsProvider>
+                <ResourcesProvider>
+                  <AgentProfilesProvider>
+                    <WorkspaceProvider>
+                      <EditorProvider>
+                        <ProjectProvider>
+                          <PlaybackProvider>
+                            <LibraryProvider>
+                              <LaunchProvider>
+                                <StudioShell />
+                              </LaunchProvider>
+                            </LibraryProvider>
+                          </PlaybackProvider>
+                        </ProjectProvider>
+                      </EditorProvider>
+                    </WorkspaceProvider>
+                  </AgentProfilesProvider>
+                </ResourcesProvider>
+              </ConnectionsProvider>
+            </ConfirmProvider>
+          </NoticeProvider>
+        </NavigationProvider>
+      </TooltipProvider>
+    </StorageProvider>
   );
 }

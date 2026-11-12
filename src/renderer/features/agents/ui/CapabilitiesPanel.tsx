@@ -9,6 +9,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useResources } from '@/features/resources/model/Resources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
+import { libraryStandards } from '../../../../shared/libraryStandards';
 
 export function CapabilitiesPanel() {
   const { agentTab, selectedAgent, updateAgent } = useAgentProfiles();
@@ -50,7 +51,7 @@ export function CapabilitiesPanel() {
                   onDelete={() => {
                     const saved = [...selectedAgent[field]];
                     updateAgent({ [field]: saved.filter((item) => item !== id) });
-                    demo('Связь убрана в прототипе.', {
+                    demo('Связь с ресурсом убрана.', {
                       label: 'Вернуть',
                       onClick: () => updateAgent({ [field]: saved }),
                     });
@@ -64,7 +65,7 @@ export function CapabilitiesPanel() {
               </p>
               <p className="subtle">
                 {resource
-                  ? `${resource.version} · ${field === 'mcps' ? 'Не подключён' : 'Не установлен'}`
+                  ? `${resource.version} · ${window.studio && field === 'skills' && Object.values(libraryStandards).some((item) => item.id === id) ? 'Файлы установлены · Pi не подключён' : field === 'mcps' ? 'Не подключён' : 'Не установлен'}`
                   : 'Недоступен'}
               </p>
             </Disclosure>

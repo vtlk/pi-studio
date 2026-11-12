@@ -1,3 +1,4 @@
+import { useStoredState } from '@/shared/storage/Storage';
 import { ProjectContext } from './Project.context';
 import { initialPlan } from '@/fixtures/plan';
 import { useContext, useReducer, useState, type ReactNode, type SetStateAction } from 'react';
@@ -26,7 +27,8 @@ function useProjectState() {
       type: 'set-scenes',
       scenes: typeof update === 'function' ? update(sceneApproved) : update,
     });
-  const [baseInstruction, setBaseInstruction] = useState(
+  const [baseInstruction, setBaseInstruction] = useStoredState(
+    'baseInstruction',
     'Сохраняй единый стиль проекта: геометрическая 2D-графика, приглушённые цвета, выразительные персонажи. Результаты передавай файлами и описанием созданных материалов.',
   );
   const [script, setScript] = useState(

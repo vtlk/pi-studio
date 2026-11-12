@@ -11,6 +11,8 @@ import { ArtifactPreview } from './ArtifactPreview';
 import { OutputReview } from './OutputReview';
 import { AgentToolbar } from './AgentToolbar';
 import { inspectManifest } from '@/features/editor/model/manifest';
+import { useOutputFile } from '../model/useOutputFile';
+import { useStorage } from '@/shared/storage/Storage';
 
 export function AgentOutputsView({
   agent,
@@ -22,20 +24,23 @@ export function AgentOutputsView({
   onTreeWidthChange: (value: number) => void;
 }) {
   const { selectedProject } = useWorkspace();
+  const { isDesktop } = useStorage();
   const { ref, width } = useElementWidth();
   const files = listOutputFiles(agent.entries);
   const [fileId, setFileId] = useState('');
   const selected = files.find(({ file }) => file.id === fileId) ?? files[0];
-  const selectedFile = selected?.file;
   const projectId = selectedProject?.id;
+  const { file: loadedFile, loading, error } = useOutputFile(projectId, selected?.file);
+  const selectedFile = loadedFile ?? selected?.file;
   const previewKind = useMemo(
     () =>
+      !isDesktop &&
       projectId &&
       selectedFile?.name.endsWith('.pistudio.json') &&
       inspectManifest(selectedFile, agent.entries).ok
         ? 'montage'
         : undefined,
-    [projectId, selectedFile, agent.entries],
+    [projectId, selectedFile, agent.entries, isDesktop],
   );
   const max = Math.max(140, (width || 600) - 240);
   const actualWidth = Math.min(treeWidth, max);
@@ -65,9 +70,17 @@ export function AgentOutputsView({
           filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
         />
         <div className="output-browser-content">
-          {selected ? (
+          {loading ? (
+            <p className="output-empty" role="status">
+              Читаем файл…
+            </p>
+          ) : error ? (
+            <p className="error-message" role="alert">
+              {error}
+            </p>
+          ) : selected && selectedFile ? (
             <div className="output-file-preview">
-              {selected.file.name.endsWith('.pistudio.json') && selectedProject ? (
+              {!isDesktop && selected.file.name.endsWith('.pistudio.json') && selectedProject ? (
                 <MontageCard
                   key={selected.file.id}
                   file={selected.file}
@@ -80,7 +93,10 @@ export function AgentOutputsView({
                   {selected.file.artifact ? (
                     <ArtifactPreview file={selected.file} agent={agent} />
                   ) : (
-                    <OutputPreview key={selected.file.id} file={selected.file} />
+                    <OutputPreview
+                      key={`${selectedFile.id}:${selectedFile.fingerprint}`}
+                      file={selectedFile}
+                    />
                   )}
                   <OutputReview file={selected.file} agent={agent} />
                 </>

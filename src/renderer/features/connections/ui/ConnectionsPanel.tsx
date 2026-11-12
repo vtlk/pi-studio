@@ -9,7 +9,8 @@ import { useConnections, type Connection } from '../model/Connections';
 import { ConnectionEditor } from './ConnectionEditor';
 import { ImageToolSettings } from './ImageToolSettings';
 export function ConnectionsPanel() {
-  const { connections, saveConnection, removeConnection, imageTool } = useConnections();
+  const { connections, saveConnection, removeConnection, imageTool, providerStatuses } =
+    useConnections();
   const { agents } = useAgentProfiles();
   const { projects } = useWorkspace();
   const { demo } = useNotice();
@@ -55,7 +56,15 @@ export function ConnectionsPanel() {
                       ? 'Оплачиваемый API'
                       : 'Способ входа из Pi'}
                 </p>
-                <small>Не настроено</small>
+                <small>
+                  {providerStatuses[connection.providerId] === 'ready'
+                    ? 'Pi: авторизация доступна'
+                    : providerStatuses[connection.providerId] === 'not_ready'
+                      ? 'Pi: требуется вход'
+                      : providerStatuses[connection.providerId] === 'invalid'
+                        ? 'Pi: ошибка авторизации'
+                        : 'Авторизация не проверена'}
+                </small>
               </div>
               <Button onClick={() => setEdit(connection)}>Настроить</Button>
               <HoverDeleteButton
