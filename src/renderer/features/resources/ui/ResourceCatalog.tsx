@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { CapabilityKind } from '@/entities/studio/types';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useWorkspace } from '@/features/project/model/Workspace';
@@ -25,6 +25,38 @@ export function ResourceCatalog({
   const { demo } = useNotice();
   const [edit, setEdit] = useState<Resource | null>(null);
   const [query, setQuery] = useState('');
+  const importing = useRef(false);
+  const add = async () => {
+    if (window.studio && kind === 'skills') {
+      if (importing.current) return;
+      importing.current = true;
+      try {
+        const resource = await window.studio.chooseSkill();
+        if (resource) {
+          saveResource(resource);
+          demo('Локальный skill добавлен. Подключение к Pi-сессии ещё не выполнялось.');
+        }
+      } catch (error) {
+        demo(error instanceof Error ? error.message : 'Не удалось импортировать skill.');
+      } finally {
+        importing.current = false;
+      }
+      return;
+    }
+    setEdit({
+      id: crypto.randomUUID(),
+      name: '',
+      kind,
+      source: '',
+      version: '',
+      description: '',
+      transport: 'HTTP',
+      args: '',
+      credential: '',
+      contents: '',
+      createdAt: Date.now(),
+    });
+  };
   const usage = (resource: Resource) => {
     const users = agents
       .filter((agent) => agent[kind].includes(resource.id))
@@ -46,21 +78,7 @@ export function ResourceCatalog({
               ? 'Добавить MCP-сервер'
               : 'Добавить пакет Pi'
         }
-        onClick={() =>
-          setEdit({
-            id: crypto.randomUUID(),
-            name: '',
-            kind,
-            source: '',
-            version: '',
-            description: '',
-            transport: 'HTTP',
-            args: '',
-            credential: '',
-            contents: '',
-            createdAt: Date.now(),
-          })
-        }
+        onClick={() => void add()}
       />
       <label className="field-label">
         Поиск в каталоге
@@ -80,9 +98,11 @@ export function ResourceCatalog({
                   kind === 'skills' &&
                   Object.values(libraryStandards).some((item) => item.id === resource.id)
                     ? 'Файлы установлены · Pi не подключён'
-                    : kind === 'mcps'
-                      ? 'Не подключён'
-                      : 'Не установлен'}
+                    : resource.localSkill
+                      ? 'Локальный skill · Pi не подключён'
+                      : kind === 'mcps'
+                        ? 'Не подключён'
+                        : 'Не установлен'}
                 </small>
               </div>
               <p>{resource.description}</p>
@@ -109,7 +129,7 @@ export function ResourceCatalog({
                   description={usage(resource)}
                   onDelete={() => {
                     removeResource(kind, resource.id);
-                    demo('Ресурс убран из каталога прототипа.', {
+                    demo('Ресурс убран из каталога. Исходные файлы сохранены.', {
                       label: 'Вернуть',
                       onClick: () => saveResource(resource),
                     });

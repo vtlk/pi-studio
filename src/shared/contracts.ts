@@ -7,6 +7,7 @@ import type {
   StudioBootstrap,
 } from './storage';
 import type { LibraryStandard, StandardFile, StandardDocument } from './libraryStandards';
+import type { Resource, SkillDocument } from './resources';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -35,6 +36,8 @@ export interface DesktopApi {
   resetStandard(skill: LibraryStandard, file: StandardFile): Promise<StandardDocument>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
   openProviderLogin(provider: string): Promise<void>;
+  chooseSkill(): Promise<Resource | null>;
+  readSkill(resourceId: string): Promise<SkillDocument>;
 }
 
 export interface ProviderStatus {
@@ -66,4 +69,6 @@ export const desktopChannels = {
   resetStandard: 'studio:reset-standard',
   getProviderStatus: 'studio:provider-status',
   openProviderLogin: 'studio:provider-login',
+  chooseSkill: 'studio:choose-skill',
+  readSkill: 'studio:read-skill',
 } as const;

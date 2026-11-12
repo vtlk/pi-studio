@@ -4,19 +4,8 @@ import type { CapabilityKind, Agent } from '@/entities/studio/types';
 import { allSkills, allMcps, allPlugins } from '@/fixtures/agents';
 import { ResourcesContext } from './Resources.context';
 
-export interface Resource {
-  id: string;
-  name: string;
-  kind: CapabilityKind;
-  source: string;
-  version: string;
-  description: string;
-  transport: string;
-  args: string;
-  credential: string;
-  contents: string;
-  createdAt: number;
-}
+import type { Resource } from '../../../../shared/resources';
+export type { Resource } from '../../../../shared/resources';
 export const resourceLabels: Record<CapabilityKind, string> = {
   skills: 'Skills',
   mcps: 'MCP',

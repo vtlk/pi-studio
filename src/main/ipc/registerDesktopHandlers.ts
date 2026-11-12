@@ -10,6 +10,8 @@ import { readStandard, writeStandard } from '../storage/standards';
 import type { LibraryStandard, StandardFile } from '../../shared/libraryStandards';
 import { readFile } from 'node:fs/promises';
 import { getProviderStatus, openProviderLogin } from '../pi/provider';
+import { importSkill, inspectSkill } from '../storage/skills';
+import type { Resource } from '../../shared/resources';
 
 export function registerDesktopHandlers(): StudioService {
   const bundled = join(
@@ -49,6 +51,30 @@ export function registerDesktopHandlers(): StudioService {
       }) satisfies DesktopInfo,
   );
   handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path));
+  handle(desktopChannels.chooseSkill, async (event) => {
+    const result = await dialog.showOpenDialog(caller(event), {
+      title: 'Папка skill или SKILL.md',
+      properties: ['openDirectory', 'openFile'],
+    });
+    if (result.canceled || !result.filePaths[0]) return null;
+    const store = await service.load();
+    const existing = (store.bootstrap().sections.resources ?? []) as Resource[];
+    const skill = await importSkill(result.filePaths[0], existing);
+    await store.saveSection('resources', [
+      skill,
+      ...existing.filter((item) => item.id !== skill.id),
+    ]);
+    return skill;
+  });
+  handle(desktopChannels.readSkill, async (_event, id: string) => {
+    const resources = (await service.load()).bootstrap().sections.resources as
+      Resource[] | undefined;
+    const resource = resources?.find(
+      (item) => item.id === id && item.kind === 'skills' && item.localSkill,
+    );
+    if (!resource) throw new Error('Локальный skill не найден в каталоге.');
+    return inspectSkill(resource.source);
+  });
   handle(desktopChannels.getProviderStatus, async (_event, provider: string) => {
     const store = await service.load();
     return getProviderStatus(String(store.bootstrap().sections.piPath ?? ''), provider);

@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const { mkdir, readFile, writeFile, rm } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
@@ -130,6 +130,33 @@ const deadline = setTimeout(() => {
   await js(
     `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent.trim() === 'Закрыть').click()`,
   );
+  const skillFolder = join(temporary, 'local-skill');
+  await mkdir(skillFolder);
+  await writeFile(
+    join(skillFolder, 'SKILL.md'),
+    '---\nname: smoke-local-skill\ndescription: Native imported skill\n---\n\nCurrent skill body.',
+  );
+  const originalPicker = dialog.showOpenDialog;
+  dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [skillFolder] });
+  await js(`document.querySelector('[aria-label="Импортировать skill"]').click()`);
+  await until(
+    `Array.from(document.querySelectorAll('.resource-row strong')).some(item => item.textContent === 'smoke-local-skill')`,
+  );
+  dialog.showOpenDialog = originalPicker;
+  const importedState = await js(`window.studio.loadStudio()`);
+  const importedSkill = importedState.sections.resources.find(
+    (item) => item.name === 'smoke-local-skill',
+  );
+  assert.equal(importedSkill.localSkill, true);
+  assert.equal('content' in importedSkill, false);
+  await js(
+    `Array.from(document.querySelectorAll('.resource-row')).find(row => row.textContent.includes('smoke-local-skill')).querySelector('button').click()`,
+  );
+  await until(`document.querySelector('.dialog-body')?.innerText.includes('Файл прочитан')`);
+  assert.equal(await js(`document.querySelector('.dialog-body textarea')`), null);
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent.trim() === 'Закрыть').click()`,
+  );
   // Edit through React, then verify automatic saving and hydration rather than only the IPC writer.
   await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Агенты').click()`,
@@ -153,7 +180,7 @@ const deadline = setTimeout(() => {
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/desktop-smoke.png'), (await window.capturePage()).toPNG());
   console.log(
-    `Desktop smoke passed: preload, native create, real Markdown, script isolation, Finder action, Pi detection, native media, provider readiness, standard editing, UI autosave, snapshot isolation, saved-state reload. Pi ${check.version}.`,
+    `Desktop smoke passed: preload, native create, real Markdown, script isolation, Finder action, Pi detection, native media, provider readiness, standard editing, native skill import, UI autosave, snapshot isolation, saved-state reload. Pi ${check.version}.`,
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

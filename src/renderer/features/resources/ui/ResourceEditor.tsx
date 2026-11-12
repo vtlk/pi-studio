@@ -6,6 +6,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useResources, type Resource } from '../model/Resources';
 import { LibraryStandardEditor } from './LibraryStandardEditor';
 import { libraryStandards, type LibraryStandard } from '../../../../shared/libraryStandards';
+import { LocalSkillInfo } from './LocalSkillInfo';
 
 export function ResourceEditor({ resource, onClose }: { resource: Resource; onClose: () => void }) {
   const [draft, setDraft] = useState(resource);
@@ -29,6 +30,8 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
   );
   if (window.studio && resource.kind === 'skills' && bundled)
     return <LibraryStandardEditor skill={bundled} onClose={onClose} />;
+  if (window.studio && resource.kind === 'skills' && resource.localSkill)
+    return <LocalSkillInfo id={resource.id} name={resource.name} onClose={onClose} />;
   if (existingSkill)
     return (
       <Modal

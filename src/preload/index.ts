@@ -18,5 +18,7 @@ const desktopApi: DesktopApi = {
   resetStandard: (skill, file) => ipcRenderer.invoke(desktopChannels.resetStandard, skill, file),
   getProviderStatus: (provider) => ipcRenderer.invoke(desktopChannels.getProviderStatus, provider),
   openProviderLogin: (provider) => ipcRenderer.invoke(desktopChannels.openProviderLogin, provider),
+  chooseSkill: () => ipcRenderer.invoke(desktopChannels.chooseSkill),
+  readSkill: (id) => ipcRenderer.invoke(desktopChannels.readSkill, id),
 };
 contextBridge.exposeInMainWorld('studio', desktopApi);

@@ -26,6 +26,9 @@ await rm(join(resources, 'default_app.asar'), { force: true });
 const application = join(resources, 'app');
 await mkdir(application, { recursive: true });
 await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
+await cp(join(root, 'node_modules/yaml'), join(application, 'node_modules/yaml'), {
+  recursive: true,
+});
 await cp(
   join(root, 'technical-spec/bundled/pi-studio-library'),
   join(application, 'bundled/pi-studio-library'),

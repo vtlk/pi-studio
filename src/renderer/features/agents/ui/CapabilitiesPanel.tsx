@@ -65,7 +65,7 @@ export function CapabilitiesPanel() {
               </p>
               <p className="subtle">
                 {resource
-                  ? `${resource.version} · ${window.studio && field === 'skills' && Object.values(libraryStandards).some((item) => item.id === id) ? 'Файлы установлены · Pi не подключён' : field === 'mcps' ? 'Не подключён' : 'Не установлен'}`
+                  ? `${resource.version} · ${window.studio && field === 'skills' && Object.values(libraryStandards).some((item) => item.id === id) ? 'Файлы установлены · Pi не подключён' : resource.localSkill ? 'Локальный skill · Pi не подключён' : field === 'mcps' ? 'Не подключён' : 'Не установлен'}`
                   : 'Недоступен'}
               </p>
             </Disclosure>

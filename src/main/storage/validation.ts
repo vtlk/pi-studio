@@ -186,6 +186,7 @@ export function parseSection(section: unknown, value: unknown): unknown {
       args: text(item.args, 10_000),
       credential,
       contents: text(item.contents),
+      ...(item.localSkill === true ? { localSkill: true } : {}),
     };
   });
 }
