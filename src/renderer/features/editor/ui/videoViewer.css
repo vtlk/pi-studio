@@ -21,12 +21,13 @@
   overflow-wrap: anywhere;
 }
 .native-video-viewer .editor-inspector .data-list {
-  grid-template-columns: minmax(0, 1fr) max-content;
-  column-gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px 0;
   font-size: 13px;
 }
 .native-video-viewer .editor-inspector .data-list dd {
   white-space: nowrap;
+  margin-bottom: 8px;
 }
 .native-video-viewer .editor-clip {
   min-width: 2px;
