@@ -83,7 +83,11 @@ export class RunHost {
       if (run.agent.session && request.firstMessage !== undefined)
         throw new Error('У агента уже есть диалог. Продолжение не отправляет сообщение.');
       const message = automaticMessage ?? request.firstMessage;
-      if (!run.agent.session && (!message?.trim() || message.length > 200_000))
+      if (
+        !this.dependencies.serviceAgent &&
+        !run.agent.session &&
+        (!message?.trim() || message.length > 200_000)
+      )
         throw new Error('Введите первое сообщение.');
       const pi = await checkPi(piPath);
       if (!pi.supported) throw new Error('Для запуска требуется поддерживаемый Pi 1.5.2.');
@@ -133,9 +137,11 @@ export class RunHost {
           sessionPath,
           fork: run.agent.session?.needsFork,
           firstMessage: message,
+          serviceAgent: this.dependencies.serviceAgent,
         },
         (event) => this.lifecycle.event(live, event),
         (name, args) => this.lifecycle.tool(live, name, args),
+        this.dependencies.tools,
       );
       await mkdir(this.dependencies.bootstraps, { recursive: true, mode: 0o700 });
       const bootstrap = join(this.dependencies.bootstraps, `${run.record.runId}.json`);

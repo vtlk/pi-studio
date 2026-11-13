@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 try {
-  const { ModelRuntime } = await import(pathToFileURL(process.argv[2]).href);
+  const { ModelRuntime, SettingsManager } = await import(pathToFileURL(process.argv[2]).href);
   const runtime = await ModelRuntime.create({ allowModelNetwork: false, refreshOnCreate: true });
   const providers = runtime.getProviders().map((provider) => ({
     id: provider.id,
@@ -15,7 +15,16 @@ try {
     reasoning: model.reasoning === true,
     imageInput: model.input?.includes('image') === true,
   }));
-  process.stdout.write(JSON.stringify({ providers, models }));
+  const settings = SettingsManager.create(process.argv[3] || process.cwd());
+  const provider = settings.getDefaultProvider(),
+    id = settings.getDefaultModel();
+  process.stdout.write(
+    JSON.stringify({
+      providers,
+      models,
+      ...(provider && id ? { nativeDefault: { provider, id } } : {}),
+    }),
+  );
 } catch {
   process.stderr.write('Pi model catalog is unavailable.\n');
   process.exitCode = 1;

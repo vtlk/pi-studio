@@ -14,4 +14,5 @@ export interface PiProviderSummary {
 export interface PiModelCatalog {
   providers: PiProviderSummary[];
   models: PiModelSummary[];
+  nativeDefault?: { provider: string; id: string };
 }

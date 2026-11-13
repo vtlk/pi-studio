@@ -14,6 +14,8 @@ import { Startup } from '../pi/Startup';
 import { readPiCatalog } from '../pi/catalog';
 import { createStudioRunHost } from '../pi/createStudioRunHost';
 import type { LaunchAgentRequest } from '../../shared/runtime';
+import { createSetupAssistant } from '../pi/createSetupAssistant';
+import type { Agent } from '../../shared/studio';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -42,10 +44,17 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
   });
+  const setup = createSetupAssistant(service, {
+    bootstraps: join(app.getPath('userData'), 'setup-bootstraps'),
+    bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
+    catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
+    piPath: () => startup.path,
+  });
   app.on('before-quit', () => {
     browserAuth.close();
     startup.close();
     runs.close();
+    setup.close();
   });
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);
@@ -73,6 +82,10 @@ export function registerDesktopHandlers(): StudioService {
   ipcMain.handle(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);
     return runs.launch(request);
+  });
+  ipcMain.handle(desktopChannels.openSetupAssistant, async (event) => {
+    caller(event);
+    await setup.launch({ projectId: 'pi-setup-assistant', agentId: 'setup', autoContinue: false });
   });
   ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
     caller(event);
@@ -128,6 +141,7 @@ export function registerDesktopHandlers(): StudioService {
     return readPiCatalog(
       String(store.bootstrap().sections.piPath ?? '') || startup.path,
       join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
+      store.folder,
     );
   });
   handle(desktopChannels.chooseSkill, async (event) => {
@@ -197,7 +211,14 @@ export function registerDesktopHandlers(): StudioService {
     caller(event);
     if (command.kind === 'remove-agent') await runs.stopAgent(command.projectId, command.agentId);
     else if ('projectId' in command) runs.assertIdle(command.projectId);
-    return service.serialize(async () => (await service.load()).command(command));
+    return service.serialize(async () => {
+      const store = await service.load();
+      return store.command(
+        command.kind === 'create'
+          ? { ...command, agents: store.bootstrap().sections.agents as Agent[] }
+          : command,
+      );
+    });
   });
   handle(desktopChannels.readProject, async (_event, id: string) =>
     withReadDeadline(async () => (await service.load()).projects.read(id)),

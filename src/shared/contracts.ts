@@ -44,6 +44,7 @@ export interface DesktopApi {
   chooseStartupPi(): Promise<StartupState | null>;
   getModelCatalog(): Promise<PiModelCatalog>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
+  openSetupAssistant(): Promise<void>;
 }
 
 export interface ProviderStatus {
@@ -84,4 +85,5 @@ export const desktopChannels = {
   chooseStartupPi: 'studio:startup-choose',
   getModelCatalog: 'studio:model-catalog',
   launchAgent: 'studio:launch-agent',
+  openSetupAssistant: 'studio:setup-assistant',
 } as const;

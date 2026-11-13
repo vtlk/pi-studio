@@ -4,6 +4,7 @@ import { atomicJson, safePath } from '../storage/files.ts';
 import { validateCompletedOutputs } from './completeStage.ts';
 import type { ChannelEvent } from './RunChannel.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
+import { searchWeb } from './webSearch.ts';
 
 export class RunLifecycle {
   private readonly dependencies: RunDependencies;
@@ -49,6 +50,8 @@ export class RunLifecycle {
       };
       const project = await this.dependencies.update(live.run, live.status, live.bound);
       live.ready({ runId: live.run.record.runId, project });
+    } else if (event.type === 'opened' && this.dependencies.serviceAgent) {
+      live.ready({ runId: live.run.record.runId, project: await this.dependencies.read(live.run) });
     } else if (event.type === 'request') {
       await this.dependencies.beforeRequest?.(live.run);
       live.sequence++;
@@ -125,6 +128,7 @@ export class RunLifecycle {
     }
   }
   async tool(live: LiveRun, name: string, args: Record<string, unknown>) {
+    if (name === 'web_search') return searchWeb(args.query);
     if (name === 'get_run_context') return live.run.record;
     if (name === 'report_blocked') {
       live.blocked = true;
@@ -144,6 +148,7 @@ export class RunLifecycle {
         humanApproval: false,
       };
     }
+    if (this.dependencies.tool) return this.dependencies.tool(live.run, name, args);
     throw new Error('Tool unavailable');
   }
 }

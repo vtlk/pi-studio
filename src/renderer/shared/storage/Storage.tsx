@@ -23,8 +23,11 @@ export function StorageProvider({ children }: { children: ReactNode }) {
   const [revision, setRevision] = useState(0);
   const pending = useRef(new Map<StorageSection, unknown>());
   const writing = useRef(false);
+  const writeTask = useRef<Promise<void> | null>(null);
+  const refreshing = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [draftFolder, setDraftFolder] = useState('');
+  const isPending = useCallback((section: StorageSection) => pending.current.has(section), []);
 
   const load = useCallback(async () => {
     try {
@@ -40,24 +43,61 @@ export function StorageProvider({ children }: { children: ReactNode }) {
     if (window.studio) void load();
   }, [load]);
 
-  const flush = useCallback(async () => {
-    if (!window.studio || writing.current || !pending.current.size) return;
-    writing.current = true;
-    setSaving(true);
-    try {
-      while (pending.current.size) {
-        const [key, value] = pending.current.entries().next().value!;
-        await window.studio.saveSection(key, value);
-        if (pending.current.get(key) === value) pending.current.delete(key);
+  const flush = useCallback((): Promise<void> => {
+    if (writeTask.current) return writeTask.current;
+    if (!window.studio || !pending.current.size) return Promise.resolve();
+    const task = (async () => {
+      writing.current = true;
+      setSaving(true);
+      try {
+        while (pending.current.size) {
+          const [key, value] = pending.current.entries().next().value!;
+          await window.studio!.saveSection(key, value);
+          if (pending.current.get(key) === value) pending.current.delete(key);
+        }
+        setError('');
+      } catch (error) {
+        setError(`Не сохранено: ${message(error)}`);
+      } finally {
+        writing.current = false;
+        setSaving(pending.current.size > 0);
       }
-      setError('');
-    } catch (error) {
-      setError(`Не сохранено: ${message(error)}`);
-    } finally {
-      writing.current = false;
-      setSaving(pending.current.size > 0);
-    }
+    })().finally(() => {
+      writeTask.current = null;
+    });
+    writeTask.current = task;
+    return task;
   }, []);
+  const folder = bootstrap?.folder;
+  useEffect(() => {
+    if (!window.studio || !ready || !folder) return;
+    const refresh = async () => {
+      if (refreshing.current || writing.current || pending.current.size) return;
+      refreshing.current = true;
+      try {
+        const data = await window.studio!.loadStudio();
+        if (data.folder !== folder || writing.current || pending.current.size) return;
+        setBootstrap((previous) =>
+          previous && JSON.stringify(previous.sections) !== JSON.stringify(data.sections)
+            ? { ...previous, sections: data.sections }
+            : previous,
+        );
+      } catch {
+        /* Existing explicit load/save errors remain visible; background reads are retried. */
+      } finally {
+        refreshing.current = false;
+      }
+    };
+    const timer = setInterval(() => {
+      if (!document.hidden) void refresh();
+    }, 2000);
+    const focus = () => void refresh();
+    window.addEventListener('focus', focus);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', focus);
+    };
+  }, [ready, folder]);
   const save = useCallback(
     (key: StorageSection, value: unknown) => {
       if (!window.studio) return;
@@ -114,6 +154,11 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           if (ready) void flush();
           else void load();
         },
+        saveNow: async () => {
+          await flush();
+          return !pending.current.size && !writing.current;
+        },
+        isPending,
       }}
     >
       {ready ? (
@@ -171,13 +216,28 @@ export function useStorage() {
 }
 /** Each feature still owns its state. Only the current value goes to the shared disk writer. */
 export function useStoredState<T>(key: StorageSection, initial: T | (() => T)) {
-  const { bootstrap, save } = useStorage();
+  const { bootstrap, save, isPending } = useStorage();
   const [value, update] = useState<T>(
     () =>
       (bootstrap?.sections[key] as T | undefined) ??
       (typeof initial === 'function' ? (initial as () => T)() : initial),
   );
   const latest = useRef(value);
+  const external = bootstrap?.sections[key] as T | undefined;
+  useEffect(() => {
+    if (
+      external === undefined ||
+      isPending(key) ||
+      JSON.stringify(external) === JSON.stringify(latest.current)
+    )
+      return;
+    queueMicrotask(() => {
+      if (!isPending(key)) {
+        latest.current = external;
+        update(external);
+      }
+    });
+  }, [external, key, isPending]);
   const setValue = useCallback(
     (action: SetStateAction<T>) => {
       const next =

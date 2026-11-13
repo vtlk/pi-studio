@@ -214,6 +214,15 @@ const deadline = setTimeout(() => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Сохранённый агент');
     input.dispatchEvent(new Event('input', {bubbles:true})); })()`);
   await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  const externalBefore = await js(`window.studio.loadStudio()`);
+  await js(
+    `window.studio.saveSection('agents',${JSON.stringify(externalBefore.sections.agents.map((agent, index) => (index === 0 ? { ...agent, name: 'Изменён помощником' } : agent)))})`,
+  );
+  await until(
+    `document.querySelector('[aria-label="Название агента"]')?.value==='Изменён помощником'`,
+  );
+  await nameAgent('Сохранённый агент');
+  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
   const edited = await js(`window.studio.loadStudio()`);
   assert.equal(edited.sections.agents[0].name, 'Сохранённый агент');
   assert.notEqual(edited.projects[0].agents[0].profile.name, 'Сохранённый агент');

@@ -50,7 +50,12 @@ export async function buildRunContext(
     previousOutputs: project.agents
       .slice(0, project.agents.indexOf(agent))
       .map((item) => ({ agentId: item.profile.id, path: join(projectRoot, item.outputPath) })),
-    model: { provider: model.provider, id: model.id, reasoning: model.reasoning },
+    model: {
+      connectionId: model.connectionId,
+      provider: model.provider,
+      id: model.id,
+      reasoning: model.reasoning,
+    },
     resourceIds: {
       skills: resources.skills.map((item) => item.id),
       mcps: agent.profile.mcps.filter(

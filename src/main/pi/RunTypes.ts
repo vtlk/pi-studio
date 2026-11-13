@@ -3,6 +3,7 @@ import type { AgentRunStatus, SessionBinding, WorkspaceProject } from '../../sha
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { validateCompletedOutputs } from './completeStage.ts';
 import type { openSessionTerminal } from './terminal.ts';
+import type { SessionTool } from './RunChannel.ts';
 
 export interface RunDependencies {
   bootstraps: string;
@@ -17,6 +18,9 @@ export interface RunDependencies {
   openTerminal?: typeof openSessionTerminal;
   headless?: boolean;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
+  tools?: readonly SessionTool[];
+  tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
+  serviceAgent?: boolean;
   completed?: (
     run: PreparedRun,
     outputs: Awaited<ReturnType<typeof validateCompletedOutputs>>,

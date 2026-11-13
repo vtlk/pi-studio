@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StartAgentDialog } from './StartAgentDialog';
 import { ProjectAgentDeleteButton } from './ProjectAgentDeleteButton';
+import { useStorage } from '@/shared/storage/Storage';
 import { FolderOpen, MessageSquare, Play } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
 import { SplitButton } from '@/shared/ui/SplitButton';
@@ -29,6 +30,7 @@ export function AgentToolbar({
   previewKind?: PreviewKind;
 }) {
   const { demo } = useNotice();
+  const { saveNow } = useStorage();
   const { setAutoContinue, selectedProject, busy } = useWorkspace();
   const { agents } = useAgentProfiles();
   const [startOpen, setStartOpen] = useState(false);
@@ -53,6 +55,10 @@ export function AgentToolbar({
     }
     if (window.studio && selectedProject) {
       try {
+        if (!(await saveNow())) {
+          demo('Сначала сохраните текущие изменения настроек.');
+          return;
+        }
         await window.studio.launchAgent({
           projectId: selectedProject.id,
           agentId: agent.profile.id,

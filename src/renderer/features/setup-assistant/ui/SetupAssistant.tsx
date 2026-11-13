@@ -1,8 +1,13 @@
-import { Button, EmptyIntegration } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import { useNotice } from '@/shared/model/Notice';
+import { useState } from 'react';
+import { useStorage } from '@/shared/storage/Storage';
 
 export function SetupAssistant() {
   const { demo } = useNotice();
+  const { saveNow } = useStorage();
+  const [opening, setOpening] = useState(false);
+  const [error, setError] = useState('');
   return (
     <>
       <h2>Помощник подключения</h2>
@@ -12,17 +17,27 @@ export function SetupAssistant() {
       </p>
       <Button
         kind="primary"
-        onClick={() =>
-          demo(
-            'Диалог помощника будет открыт в Pi через macOS Terminal. Запуск Pi пока не подключён.',
-          )
-        }
+        disabled={opening}
+        onClick={async () => {
+          if (!window.studio) {
+            demo('Помощник доступен в приложении macOS.');
+            return;
+          }
+          setOpening(true);
+          setError('');
+          try {
+            if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
+            await window.studio.openSetupAssistant();
+          } catch (error) {
+            setError(error instanceof Error ? error.message : 'Не удалось открыть помощника.');
+          } finally {
+            setOpening(false);
+          }
+        }}
       >
-        Открыть помощника в Pi
+        {opening ? 'Открываем Pi…' : 'Открыть помощника в Pi'}
       </Button>
-      <EmptyIntegration>
-        Веб-поиск — общий инструмент всех агентов, включая помощника. Пока не подключён.
-      </EmptyIntegration>
+      {error && <p role="alert">{error}</p>}
     </>
   );
 }

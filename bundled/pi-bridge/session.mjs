@@ -186,7 +186,9 @@ export async function runSession(bootstrapPath) {
           additionalExtensionPaths: envelope.resources.plugins.map((item) => item.source),
           additionalSkillPaths: envelope.resources.skills.map((item) => item.path),
           appendSystemPrompt: [
-            `You are the selected Pi Studio project agent. Use this current role instruction:\n${envelope.instructions}\n\nWorking directory: ${envelope.record.cwd}\nWrite all deliverables under: ${envelope.record.output}\nEarlier agents' outputs: ${JSON.stringify(envelope.record.previousOutputs)}\nCall mcp__pi_studio__complete_stage with relative output filenames only after completing the user's task. If questions, required approvals or inputs are missing, call report_blocked and ask the user. A normal reply is not task completion. Do not modify application code or another project's files. Final rendering and SVG redraw/animation require human acceptance.`,
+            envelope.serviceAgent
+              ? envelope.instructions
+              : `You are the selected Pi Studio project agent. Use this current role instruction:\n${envelope.instructions}\n\nWorking directory: ${envelope.record.cwd}\nWrite all deliverables under: ${envelope.record.output}\nEarlier agents' outputs: ${JSON.stringify(envelope.record.previousOutputs)}\nCall mcp__pi_studio__complete_stage with relative output filenames only after completing the user's task. If questions, required approvals or inputs are missing, call report_blocked and ask the user. A normal reply is not task completion. Do not modify application code or another project's files. Final rendering and SVG redraw/animation require human acceptance.`,
           ],
           extensionFactories: [
             control,
@@ -261,6 +263,7 @@ export async function runSession(bootstrapPath) {
     if (bootstrap.headless) {
       await runtime.session.bindExtensions({});
       await waitForMcp(statuses, requiredServers);
+      await event({ type: 'opened' });
       await bindWrittenSession();
       if (envelope.firstMessage) await runtime.session.prompt(envelope.firstMessage);
     } else {
@@ -270,6 +273,7 @@ export async function runSession(bootstrapPath) {
       });
       await mode.init();
       await waitForMcp(statuses, requiredServers);
+      await event({ type: 'opened' });
       await bindWrittenSession();
       await mode.run();
     }

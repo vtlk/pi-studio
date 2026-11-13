@@ -6,7 +6,7 @@ import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useNotice } from '@/shared/model/Notice';
 
 export function useNativeWorkspaceState() {
-  const { bootstrap, isDesktop } = useStorage();
+  const { bootstrap, isDesktop, saveNow } = useStorage();
   const { agents } = useAgentProfiles();
   const { demo } = useNotice();
   const [projects, setProjects] = useState(bootstrap?.projects ?? []);
@@ -20,6 +20,11 @@ export function useNativeWorkspaceState() {
   const selectedProject = projects.find((project) => project.id === projectId);
   const openAgent = async (agentId: string, message?: string, autoContinue = false) => {
     if (!window.studio || mutating.current) return undefined;
+    if (!(await saveNow())) {
+      demo('Сначала сохраните текущие изменения настроек.');
+      return undefined;
+    }
+    if (mutating.current) return undefined;
     mutating.current = true;
     setBusy(true);
     generation.current++;
@@ -108,7 +113,8 @@ export function useNativeWorkspaceState() {
     selectedProject,
     setProjectId,
     busy,
-    createProject: (name: string) => command({ kind: 'create', name, agents }),
+    createProject: async (name: string) =>
+      (await saveNow()) ? command({ kind: 'create', name, agents }) : false,
     refreshAgents: (updateExisting: boolean) =>
       command({ kind: 'update-agents', projectId, agents, updateExisting }),
     removeProjectAgent: (projectId: string, agentId: string) =>

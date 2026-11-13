@@ -20,7 +20,7 @@ export interface RunContextRecord {
   output: string;
   sessionDirectory: string;
   previousOutputs: { agentId: string; path: string }[];
-  model: { provider: string; id: string; reasoning: string };
+  model: { connectionId: string; provider: string; id: string; reasoning: string };
   resourceIds: { skills: string[]; mcps: string[]; plugins: string[] };
   instructionIds: string[];
 }
