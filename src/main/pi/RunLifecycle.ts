@@ -5,6 +5,8 @@ import { validateCompletedOutputs } from './completeStage.ts';
 import type { ChannelEvent } from './RunChannel.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { searchWeb } from './webSearch.ts';
+import { videoContract } from '../video/contract.ts';
+import { readVideoProject } from '../video/readVideoProject.ts';
 
 export class RunLifecycle {
   private readonly dependencies: RunDependencies;
@@ -130,6 +132,24 @@ export class RunLifecycle {
   async tool(live: LiveRun, name: string, args: Record<string, unknown>) {
     if (name === 'web_search') return searchWeb(args.query);
     if (name === 'get_run_context') return live.run.record;
+    if (name === 'get_video_contract') return videoContract;
+    if (name === 'validate_video_project') {
+      if (typeof args.manifest !== 'string')
+        throw new Error('Нужен путь манифеста относительно output.');
+      const document = await readVideoProject(
+        live.run.projectRoot,
+        live.run.record.projectId,
+        `agents/${live.run.record.agentId}/output/${args.manifest}`,
+      );
+      return {
+        validated: true,
+        revision: document.revision,
+        manifest: args.manifest,
+        scope: document.manifest.scope,
+        humanApproval: false,
+        assets: document.assets.map(({ id, sha256, size }) => ({ id, sha256, size })),
+      };
+    }
     if (name === 'report_blocked') {
       live.blocked = true;
       await this.dependencies.update(live.run, 'waiting');

@@ -16,6 +16,7 @@ import { createStudioRunHost } from '../pi/createStudioRunHost';
 import type { LaunchAgentRequest } from '../../shared/runtime';
 import { createSetupAssistant } from '../pi/createSetupAssistant';
 import type { Agent } from '../../shared/studio';
+import { readVideoProject } from '../video/readVideoProject';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -230,6 +231,22 @@ export function registerDesktopHandlers(): StudioService {
     if (['image', 'audio', 'video'].includes(file.format))
       file.src = `studio-media://output/${encodeURIComponent(request.projectId)}/${request.path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(file.fingerprint ?? '')}`;
     return file;
+  });
+  handle(desktopChannels.inspectVideoProject, async (_event, request: FileRequest) => {
+    try {
+      const root = await (await service.load()).projects.directory(request.projectId);
+      return {
+        ok: true,
+        document: await withReadDeadline(() =>
+          readVideoProject(root, request.projectId, request.path),
+        ),
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : 'Не удалось прочитать монтаж.',
+      };
+    }
   });
   handle(desktopChannels.revealOutput, async (_event, request: FileRequest) => {
     const root = await (await service.load()).projects.directory(request.projectId);

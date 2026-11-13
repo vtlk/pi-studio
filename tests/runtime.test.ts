@@ -134,7 +134,14 @@ test('loopback MCP requires a session capability and never exposes admin tools t
   const listed = await response.json();
   assert.deepEqual(
     listed.result.tools.map((tool: { name: string }) => tool.name),
-    ['web_search', 'get_run_context', 'complete_stage', 'report_blocked'],
+    [
+      'web_search',
+      'get_run_context',
+      'get_video_contract',
+      'validate_video_project',
+      'complete_stage',
+      'report_blocked',
+    ],
   );
   const unavailable = await fetch(`${lease.url}/mcp`, {
     method: 'POST',

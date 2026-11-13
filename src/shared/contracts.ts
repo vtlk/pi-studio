@@ -11,6 +11,7 @@ import type { AuthLoginState } from './auth';
 import type { StartupState } from './startup';
 import type { PiModelCatalog } from './models';
 import type { LaunchAgentRequest, LaunchAgentResult } from './runtime';
+import type { VideoProjectInspection } from './video';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -28,6 +29,7 @@ export interface DesktopApi {
   projectCommand(command: ProjectCommand): Promise<ProjectCommandResult>;
   readProject(projectId: string): Promise<WorkspaceProject>;
   readOutput(request: FileRequest): Promise<OutputFile>;
+  inspectVideoProject(request: FileRequest): Promise<VideoProjectInspection>;
   revealOutput(request: FileRequest): Promise<void>;
   checkPi(path: string): Promise<PiCheck>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
@@ -69,6 +71,7 @@ export const desktopChannels = {
   projectCommand: 'studio:project-command',
   readProject: 'studio:read-project',
   readOutput: 'studio:read-output',
+  inspectVideoProject: 'studio:inspect-video-project',
   revealOutput: 'studio:reveal-output',
   checkPi: 'studio:check-pi',
   getProviderStatus: 'studio:provider-status',

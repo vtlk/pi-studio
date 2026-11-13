@@ -7,7 +7,13 @@ import { mediaResponse } from './storage/media';
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'studio-media',
-    privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true },
+    privileges: {
+      standard: true,
+      secure: true,
+      stream: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
   },
 ]);
 

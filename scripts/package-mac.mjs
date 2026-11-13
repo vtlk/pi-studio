@@ -29,6 +29,27 @@ await cp(join(root, 'build/PiStudio.icns'), join(resources, 'PiStudio.icns'));
 await rm(join(resources, 'default_app.asar'), { force: true });
 const application = join(resources, 'app');
 await mkdir(application, { recursive: true });
+const licenses = join(application, 'licenses');
+await mkdir(licenses, { recursive: true });
+for (const [source, name] of [
+  ['@remotion/player/LICENSE.md', 'Remotion-LICENSE.md'],
+  ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
+  ['zod/LICENSE', 'Zod-LICENSE.txt'],
+])
+  await cp(join(root, 'node_modules', source), join(licenses, name));
+await writeFile(
+  join(licenses, 'README.txt'),
+  [
+    'Pi Studio bundled montage preview dependencies (unmodified upstream code):',
+    'remotion, @remotion/player, @remotion/media 4.0.543: Remotion License; see Remotion-LICENSE.md.',
+    'Source: https://github.com/remotion-dev/remotion/tree/v4.0.543',
+    'Mediabunny 1.64.0: MPL-2.0; see Mediabunny-LICENSE.txt.',
+    'Corresponding source: https://registry.npmjs.org/mediabunny/-/mediabunny-1.64.0.tgz (includes src/).',
+    'Zod 4.6.7: MIT; see Zod-LICENSE.txt. Source: https://github.com/colinhacks/zod',
+    'Editor Starter and Remotion Timeline are not included.',
+    '',
+  ].join('\n'),
+);
 await cp(join(root, 'out'), join(application, 'out'), {
   recursive: true,
   filter: (source) =>

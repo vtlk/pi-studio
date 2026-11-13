@@ -41,6 +41,7 @@ export async function mediaResponse(root: string, relative: string, request: Req
       'Content-Type': type,
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'no-store',
+      'Access-Control-Allow-Origin': '*',
       'X-Content-Type-Options': 'nosniff',
       'Content-Security-Policy': "default-src 'none'; sandbox",
     });

@@ -13,6 +13,8 @@ import { AgentToolbar } from './AgentToolbar';
 import { inspectManifest } from '@/features/editor/model/manifest';
 import { useOutputFile } from '../model/useOutputFile';
 import { useStorage } from '@/shared/storage/Storage';
+import { useVideoInspection } from '@/features/editor/model/useVideoInspection';
+import { NativeMontageCard } from '@/features/editor/ui/NativeMontageCard';
 
 export function AgentOutputsView({
   agent,
@@ -32,15 +34,20 @@ export function AgentOutputsView({
   const projectId = selectedProject?.id;
   const { file: loadedFile, loading, error } = useOutputFile(projectId, selected?.file);
   const selectedFile = loadedFile ?? selected?.file;
+  const nativeManifestPath =
+    isDesktop && selectedFile?.name.endsWith('.pistudio.json') ? selectedFile.diskPath : undefined;
+  const filesVersion = files.map(({ file }) => `${file.diskPath}:${file.fingerprint}`).join('|');
+  const nativeVideo = useVideoInspection(projectId, nativeManifestPath, filesVersion);
   const previewKind = useMemo(
     () =>
-      !isDesktop &&
-      projectId &&
-      selectedFile?.name.endsWith('.pistudio.json') &&
-      inspectManifest(selectedFile, agent.entries).ok
+      nativeVideo?.ok ||
+      (!isDesktop &&
+        projectId &&
+        selectedFile?.name.endsWith('.pistudio.json') &&
+        inspectManifest(selectedFile, agent.entries).ok)
         ? 'montage'
         : undefined,
-    [projectId, selectedFile, agent.entries, isDesktop],
+    [projectId, selectedFile, agent.entries, isDesktop, nativeVideo],
   );
   const max = Math.max(140, (width || 600) - 240);
   const actualWidth = Math.min(treeWidth, max);
@@ -80,7 +87,13 @@ export function AgentOutputsView({
             </p>
           ) : selected && selectedFile ? (
             <div className="output-file-preview">
-              {!isDesktop && selected.file.name.endsWith('.pistudio.json') && selectedProject ? (
+              {nativeManifestPath && projectId ? (
+                <NativeMontageCard
+                  key={`${projectId}:${nativeManifestPath}`}
+                  result={nativeVideo}
+                  documentKey={`${projectId}:${nativeManifestPath}`}
+                />
+              ) : !isDesktop && selected.file.name.endsWith('.pistudio.json') && selectedProject ? (
                 <MontageCard
                   key={selected.file.id}
                   file={selected.file}

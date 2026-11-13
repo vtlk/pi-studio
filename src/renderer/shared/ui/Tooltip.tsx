@@ -9,9 +9,17 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function Tooltip({ label, children }: { label: string; children: ReactElement }) {
+export function Tooltip({
+  label,
+  children,
+  open,
+}: {
+  label: string;
+  children: ReactElement;
+  open?: boolean;
+}) {
   return (
-    <TooltipPrimitive.Root>
+    <TooltipPrimitive.Root open={open}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content className="ui-tooltip" sideOffset={6} collisionPadding={8}>
