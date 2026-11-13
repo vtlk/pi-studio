@@ -23,6 +23,8 @@ import { createSetupAssistant } from '../pi/createSetupAssistant';
 import type { Agent } from '../../shared/studio';
 import { readVideoProject } from '../video/readVideoProject';
 import { StudioResources } from '../pi/StudioResources';
+import type { SystemAgent } from '../../shared/systemAgents';
+import packageInfo from '../../../package.json';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -101,7 +103,13 @@ export function registerDesktopHandlers(): StudioService {
   });
   ipcMain.handle(desktopChannels.openSetupAssistant, async (event) => {
     caller(event);
-    await setup.launch({ projectId: 'pi-setup-assistant', agentId: 'setup', autoContinue: false });
+    const id = await service.serialize(
+      async () =>
+        ((await service.load()).bootstrap().sections.systemAgents as SystemAgent[]).find(
+          (agent) => agent.systemRole === 'assistant',
+        )!.id,
+    );
+    await setup.launch({ projectId: 'pi-setup-assistant', agentId: id, autoContinue: false });
   });
   ipcMain.handle(desktopChannels.checkResource, (event, id: string) => {
     caller(event);
@@ -135,7 +143,7 @@ export function registerDesktopHandlers(): StudioService {
     () =>
       ({
         platform: 'darwin',
-        version: app.getVersion(),
+        version: packageInfo.version,
         runtimeConnected: runs.connected,
       }) satisfies DesktopInfo,
   );

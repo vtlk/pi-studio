@@ -4,6 +4,7 @@ import { createStudioWindow } from './windows/createStudioWindow';
 import { registerDesktopHandlers } from './ipc/registerDesktopHandlers';
 import { mediaResponse, streamMedia } from './storage/media';
 import { libraryKind } from './library/manifest';
+import packageInfo from '../../package.json';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -25,6 +26,11 @@ if (process.platform !== 'darwin') {
 } else if (!app.requestSingleInstanceLock()) app.quit();
 else
   app.whenReady().then(() => {
+    app.setAboutPanelOptions({
+      applicationName: 'Pi Studio',
+      applicationVersion: packageInfo.version,
+      version: packageInfo.version,
+    });
     app.dock?.setIcon(
       join(
         __dirname,

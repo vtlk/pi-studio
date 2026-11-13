@@ -73,18 +73,24 @@ const deadline = setTimeout(() => {
   );
   await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
-  await until(`!!document.querySelector('[aria-label="Название агента"]')`);
+  await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
   async function nameAgent(name) {
     await js(
       `(() => { const input=document.querySelector('[aria-label="Название агента"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(name)});input.dispatchEvent(new Event('input',{bubbles:true})); })()`,
     );
   }
-  await nameAgent('Третий пользовательский агент');
+  await nameAgent('Первый пользовательский агент');
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
   await nameAgent('Выключенный пользовательский агент');
   await js(`document.querySelector('[role="switch"][aria-label="Агент включён"]').click()`);
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
-  await nameAgent('Первый пользовательский агент');
+  await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
+  await nameAgent('Третий пользовательский агент');
+  await js(`document.querySelector('.agent-list-item').click()`);
+  await until(
+    `document.querySelector('[aria-label="Название агента"]')?.value==='Первый пользовательский агент'`,
+  );
   await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   const constructorBeforeCreate = (await js(`window.studio.loadStudio()`)).sections.agents;
   await js(

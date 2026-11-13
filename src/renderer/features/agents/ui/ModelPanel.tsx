@@ -6,7 +6,7 @@ import { useAgentProfiles } from '../model/AgentProfiles';
 import { usePiCatalog } from '@/features/connections/model/usePiCatalog';
 
 export function ModelPanel() {
-  const { selectedAgent, updateAgent } = useAgentProfiles();
+  const { selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
   const { connections } = useConnections();
   const { catalog, loading, error, reload } = usePiCatalog();
   if (!selectedAgent) return null;
@@ -45,6 +45,7 @@ export function ModelPanel() {
       <p>
         Общие инструменты:{' '}
         {coreTools
+          .filter((tool) => selectedSystemRole !== 'assistant' || tool.id === 'web-search')
           .map((tool) => `${tool.name} · ${coreToolStatus(tool.id, !!window.studio).toLowerCase()}`)
           .join(', ')}
         .

@@ -59,7 +59,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'configure_agent',
     description:
-      'Create an agent only when the user requests it, or update named fields of an existing constructor profile by stable ID. Does not change any existing project snapshot or launch work. New agents prepend; no templates are seeded.',
+      'Create a project agent only when requested (append after current project profiles), or update named fields of an existing project/system profile by stable ID. Exactly three built-in system roles exist; never create another system agent. Does not change existing project snapshots or launch work. Built-in MCP connections are pinned and are not external resource assignments.',
     inputSchema: object({
       id: string,
       name: string,

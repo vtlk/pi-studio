@@ -12,6 +12,9 @@ import { atomicJson, isMissing, readJson, safePath } from './files.ts';
 import { parseSection, parseStudio } from './validation.ts';
 import { ProjectStore } from './ProjectStore.ts';
 import { LibraryStore } from '../library/LibraryStore.ts';
+import { randomUUID } from 'node:crypto';
+import { createSystemAgents, type SystemAgent } from '../../shared/systemAgents.ts';
+import type { Agent } from '../../shared/studio.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
@@ -44,6 +47,7 @@ export class StudioStore {
     store.warnings = await store.projects.initialize();
     for (const [key, value] of [
       ['agents', []],
+      ['systemAgents', createSystemAgents(randomUUID)],
       ['connections', []],
       ['resources', []],
       ['baseInstruction', ''],
@@ -63,6 +67,23 @@ export class StudioStore {
   }
   async saveSection(section: StorageSection, value: unknown) {
     const validated = parseSection(section, value);
+    const systems = this.sections.systemAgents as SystemAgent[] | undefined;
+    if (section === 'systemAgents' && systems) {
+      const next = validated as SystemAgent[];
+      if (
+        systems.some(
+          (agent) =>
+            !next.some((item) => item.systemRole === agent.systemRole && item.id === agent.id),
+        )
+      )
+        throw new Error('Системные профили нельзя удалять, заменять или создавать вручную.');
+    }
+    if (
+      section === 'agents' &&
+      systems &&
+      (validated as Agent[]).some((agent) => systems.some((system) => system.id === agent.id))
+    )
+      throw new Error('Системные профили не являются шаблонами для проектов.');
     const sections = { ...this.sections, [section]: validated };
     await atomicJson(await safePath(this.folder, '.pistudio/studio.json'), {
       schemaVersion: 1,
@@ -87,7 +108,14 @@ export class StudioStore {
     await this.saveSection(section, local);
     return { saved: true, value: structuredClone(local) };
   }
-  command(command: ProjectCommand) {
+  async command(command: ProjectCommand) {
+    if (
+      (command.kind === 'create' || command.kind === 'update-agents') &&
+      command.agents.some((agent) =>
+        (this.sections.systemAgents as SystemAgent[]).some((system) => system.id === agent.id),
+      )
+    )
+      throw new Error('Системные агенты не включаются в проектные снимки.');
     return this.projects.command(command);
   }
 }

@@ -10,9 +10,11 @@ import { useResources } from '@/features/resources/model/Resources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { resourceStatus } from '@/features/resources/model/resourceStatus';
+import { systemAgentDefinitions } from '../../../../shared/systemAgents';
+import { LockKeyhole } from 'lucide-react';
 
 export function CapabilitiesPanel() {
-  const { agentTab, selectedAgent, updateAgent } = useAgentProfiles();
+  const { agentTab, selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
   const { resources } = useResources();
   const { demo } = useNotice();
   const [catalog, setCatalog] = useState(false);
@@ -21,7 +23,25 @@ export function CapabilitiesPanel() {
   return (
     <div className="agent-settings-content">
       <AddArea label={`Добавить ${agentTab}`} onClick={() => setCatalog(true)} />
-      {!selectedAgent[field].length && <p>Ресурсы не добавлены. Выберите их из общего каталога.</p>}
+      {field === 'mcps' && selectedSystemRole && (
+        <div className="resource-binding" data-builtin-mcp>
+          <Disclosure
+            label={systemAgentDefinitions[selectedSystemRole].mcp}
+            leading={<LockKeyhole size={16} aria-hidden="true" />}
+          >
+            <p>{systemAgentDefinitions[selectedSystemRole].description}</p>
+            <p className="subtle">Встроенный обязательный MCP. Отключение и удаление недоступны.</p>
+            <p className="subtle">
+              {selectedSystemRole === 'assistant'
+                ? 'Подключается при запуске помощника.'
+                : 'Запуск библиотечного генератора ещё подключается.'}
+            </p>
+          </Disclosure>
+        </div>
+      )}
+      {!selectedAgent[field].length && !(field === 'mcps' && selectedSystemRole) && (
+        <p>Ресурсы не добавлены. Выберите их из общего каталога.</p>
+      )}
       {selectedAgent[field].map((id) => {
         const key = `${field}:${id}`;
         const resource = resources.find((item) => item.kind === field && item.id === id);

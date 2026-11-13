@@ -2,6 +2,7 @@ import type { Agent } from '../../shared/studio.ts';
 import type { WorkspaceProject, ProjectAgent } from '../../shared/project.ts';
 import { storageSections, type StorageSection, type StudioSections } from '../../shared/storage.ts';
 import { agentDirectory, agentFolderSlug } from '../../shared/agentPaths.ts';
+import { systemAgentRoles, type SystemAgent } from '../../shared/systemAgents.ts';
 
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -81,6 +82,21 @@ export function parseAgents(value: unknown): Agent[] {
   if (new Set(agents.map((agent) => agent.id)).size !== agents.length)
     throw new Error('Повторяющиеся ID агентов.');
   return agents;
+}
+export function parseSystemAgents(value: unknown): SystemAgent[] {
+  const profiles = list(value).map((value) => {
+    const item = record(value);
+    if (!systemAgentRoles.includes(item.systemRole as SystemAgent['systemRole']))
+      throw new Error('Неизвестный системный агент.');
+    return { ...parseAgent(item), systemRole: item.systemRole as SystemAgent['systemRole'] };
+  });
+  if (
+    profiles.length !== systemAgentRoles.length ||
+    new Set(profiles.map((item) => item.systemRole)).size !== systemAgentRoles.length ||
+    new Set(profiles.map((item) => item.id)).size !== profiles.length
+  )
+    throw new Error('Три встроенных системных агента нельзя удалять или добавлять вручную.');
+  return profiles;
 }
 export function snapshotAgent(agent: Agent): ProjectAgent {
   const {
@@ -187,6 +203,7 @@ export function parseSection(section: unknown, value: unknown): unknown {
   if (!storageSections.includes(section as StorageSection))
     throw new Error('Неизвестный раздел настроек.');
   if (section === 'agents') return parseAgents(value);
+  if (section === 'systemAgents') return parseSystemAgents(value);
   if (section === 'baseInstruction' || section === 'piPath') return text(value);
   if (section === 'hiddenLibraryIds') return strings(value);
   if (section === 'imageTool') {

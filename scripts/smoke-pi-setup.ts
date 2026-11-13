@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdtemp, readFile, rm, mkdir, writeFile, realpath } from 'node:fs/promises';
+import { join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
@@ -8,11 +9,47 @@ import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { Resource } from '../src/shared/resources.ts';
+import type { SystemAgent } from '../src/shared/systemAgents.ts';
+import { resolvePiSdk } from '../src/main/pi/BrowserAuth.ts';
 
 // Opt-in: a real service-agent request through native Pi MCP in an empty isolated studio.
 const root = await mkdtemp(join(tmpdir(), 'pistudio-live-setup-'));
 const service = new StudioService(join(root, 'preferences.json'), join(root, 'Studio'));
 const pi = await checkPi('');
+const store = await service.load();
+const connectionId = 'qa-configured-account';
+await store.saveSection('connections', [
+  {
+    id: connectionId,
+    name: 'QA subscription',
+    purpose: 'codex',
+    providerId: 'openai-codex',
+    endpoint: '',
+    account: '',
+    createdAt: 1,
+  },
+]);
+const systems = store.bootstrap().sections.systemAgents as SystemAgent[];
+const helperProfile = systems.find((agent) => agent.systemRole === 'assistant')!;
+const roleProof = 'QA_CURRENT_EDITED_SERVICE_ROLE';
+await store.saveSection(
+  'systemAgents',
+  systems.map((agent) =>
+    agent.id === helperProfile.id
+      ? {
+          ...agent,
+          mainInstruction: agent.mainInstruction + `\nЗаверши ответ строкой ${roleProof}.`,
+          model: {
+            connectionId,
+            provider: 'openai-codex',
+            id: 'gpt-6.1-sol',
+            reasoning: 'Низкий',
+            temperature: '',
+          },
+        }
+      : agent,
+  ),
+);
 const localPackage = join(root, 'qa-package');
 await mkdir(join(localPackage, 'qa-setup-skill'), { recursive: true });
 await writeFile(
@@ -48,10 +85,14 @@ const helper = createSetupAssistant(service, {
   },
 });
 try {
-  const request = { projectId: 'pi-setup-assistant', agentId: 'setup', autoContinue: false };
+  const request = {
+    projectId: 'pi-setup-assistant',
+    agentId: helperProfile.id,
+    autoContinue: false,
+  };
   await helper.launch(
     request,
-    `Use only the Pi Studio MCP tools. Read list_configuration, register exactly one connection named "QA subscription" for provider openai-codex, then create exactly one constructor agent named "QA configured agent" using that connection, model gpt-6.1-sol, reasoning Низкий, mainInstruction "QA current instruction". Install exactly the existing local Pi package at ${JSON.stringify(localPackage)} through install_package with name "QA local package", assign it to that one agent as kind plugins, then check_resource. Do not use bash or write files directly. Create no projects or extra profiles/resources. Do not ask questions. Finish with a short confirmation.`,
+    `Use only the Pi Studio MCP tools. Read list_configuration and use the existing connection named "QA subscription" for provider openai-codex. Create exactly one project constructor agent named "QA configured agent" using that connection, model gpt-6.1-sol, reasoning Низкий, mainInstruction "QA current instruction". Install exactly the existing local Pi package at ${JSON.stringify(localPackage)} through install_package with name "QA local package", assign it to that one agent as kind plugins, then check_resource. Do not use bash or write files directly. Create no projects, connections or extra profiles/resources. Do not ask questions. Finish with a short confirmation.`,
   );
   assert.equal(await children[0], 0);
   const state = (await service.load()).bootstrap();
@@ -73,6 +114,10 @@ try {
   const directory = join(state.folder, '.pistudio/setup-assistant');
   const binding = JSON.parse(await readFile(join(directory, 'state.json'), 'utf8')).session;
   const transcript = await readFile(join(directory, binding.path), 'utf8');
+  assert.ok(
+    transcript.includes(roleProof),
+    'The actual response must reflect the edited current system role.',
+  );
   assert.ok(transcript.includes('mcp__pi_studio__configure_agent'));
   assert.ok(transcript.includes('mcp__pi_studio__install_package'));
   assert.ok(transcript.includes('mcp__pi_studio__check_resource'));
@@ -80,8 +125,47 @@ try {
   assert.equal(await children[1], 0);
   assert.equal(await readFile(join(directory, binding.path), 'utf8'), transcript);
   assert.equal(((await service.load()).bootstrap().sections.agents as Agent[]).length, 1);
+  // Reproduce the previous helper's real SDK cwd/layout, without editing or fabricating JSONL.
+  const sdk = await import(pathToFileURL(await resolvePiSdk(await realpath(pi.path))).href);
+  const legacyCwd = join(directory, 'agents/setup'),
+    legacySessions = join(legacyCwd, 'sessions');
+  await mkdir(legacySessions, { recursive: true });
+  await mkdir(join(legacyCwd, 'output'), { recursive: true });
+  const legacy = sdk.SessionManager.forkFrom(
+    join(directory, binding.path),
+    legacyCwd,
+    legacySessions,
+  );
+  const legacyFile = legacy.getSessionFile();
+  assert.ok(legacyFile);
+  const legacyBytes = await readFile(legacyFile, 'utf8');
+  await writeFile(
+    join(directory, 'state.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      session: {
+        id: legacy.getSessionId(),
+        path: relative(directory, legacyFile),
+        createdAt: 1,
+        title: 'Old helper',
+      },
+    }),
+  );
+  const current = (await service.load()).bootstrap().sections.systemAgents as SystemAgent[];
+  await store.saveSection(
+    'systemAgents',
+    current.map((agent) =>
+      agent.id === helperProfile.id ? { ...agent, name: 'Renamed helper' } : agent,
+    ),
+  );
+  await helper.launch(request);
+  assert.equal(await children[2], 0);
+  assert.equal(await readFile(legacyFile, 'utf8'), legacyBytes);
+  const legacyState = JSON.parse(await readFile(join(directory, 'state.json'), 'utf8'));
+  assert.equal(legacyState.session.path, relative(directory, legacyFile));
+  assert.equal(legacyState.outputPath, 'agents/setup/output');
   console.log(
-    'Real setup assistant passed: requested connection/profile/model, native package install/check and assignment through administrative MCP, no extra profiles/resources/projects, exact idle resume.',
+    'Real setup assistant passed: edited system role and explicit model, native package install/check/assignment, no extra profiles/resources/projects, exact idle resume and preserved legacy setup cwd/dialogue after rename.',
   );
 } finally {
   helper.close();

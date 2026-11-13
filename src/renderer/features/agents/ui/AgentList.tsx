@@ -16,10 +16,20 @@ import { AddArea } from '@/shared/ui/AddArea';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { AgentListItem } from './AgentListItem';
 import { useNotice } from '@/shared/model/Notice';
+import { Tooltip } from '@/shared/ui/Tooltip';
+import { cx } from '@/shared/ui';
 
 export function AgentList() {
-  const { agents, selectedAgent, setAgentId, addAgent, moveAgent, removeAgent, restoreAgent } =
-    useAgentProfiles();
+  const {
+    agents,
+    systemAgents,
+    selectedAgent,
+    setAgentId,
+    addAgent,
+    moveAgent,
+    removeAgent,
+    restoreAgent,
+  } = useAgentProfiles();
   const { demo } = useNotice();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -30,7 +40,6 @@ export function AgentList() {
   };
   return (
     <nav className="section-menu" aria-label="Конструктор агентов">
-      <AddArea label="Добавить агента" onClick={addAgent} />
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -61,6 +70,27 @@ export function AgentList() {
           ))}
         </SortableContext>
       </DndContext>
+      <AddArea label="Добавить агента" onClick={addAgent} />
+      <h2 className="system-agents-heading">Системные</h2>
+      {systemAgents.map((agent) => (
+        <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
+          <Tooltip label={agent.name || 'Без названия'}>
+            <button
+              type="button"
+              className={cx(
+                'section-menu-item',
+                'agent-list-item',
+                selectedAgent?.id === agent.id && 'active',
+              )}
+              data-enabled={agent.enabled}
+              aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
+              onClick={() => setAgentId(agent.id)}
+            >
+              <span>{agent.name || 'Без названия'}</span>
+            </button>
+          </Tooltip>
+        </div>
+      ))}
     </nav>
   );
 }

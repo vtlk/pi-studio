@@ -9,6 +9,7 @@ import type { PreparedRun } from './ContextBuilder.ts';
 import { join } from 'node:path';
 import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
+import type { SystemAgent } from '../../shared/systemAgents.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
@@ -83,6 +84,7 @@ export class SetupAdministration {
         );
       const sections = store.bootstrap().sections;
       const agents = (sections.agents ?? []) as Agent[];
+      const systems = (sections.systemAgents ?? []) as SystemAgent[];
       const resources = (sections.resources ?? []) as Resource[];
       const connections = (sections.connections ?? []) as {
         id: string;
@@ -99,6 +101,12 @@ export class SetupAdministration {
           agents: agents.map(({ mainInstruction: _text, instructions, ...profile }) => ({
             ...profile,
             instructions: instructions.map(({ content: _content, ...block }) => block),
+          })),
+          systemAgents: systems.map(({ mainInstruction: _text, instructions, ...profile }) => ({
+            ...profile,
+            instructions: instructions.map(({ content: _content, ...block }) => block),
+            deletable: false,
+            builtinMcp: 'pinned',
           })),
           resources,
           connections,
@@ -142,7 +150,10 @@ export class SetupAdministration {
       }
       if (name === 'configure_agent') {
         const old =
-          typeof args.id === 'string' ? agents.find((agent) => agent.id === args.id) : undefined;
+          typeof args.id === 'string'
+            ? [...agents, ...systems].find((agent) => agent.id === args.id)
+            : undefined;
+        const system = systems.find((agent) => agent.id === old?.id);
         if (args.id && !old)
           throw new Error('Запрошенный профиль отсутствует; другой агент не подставляется.');
         const draft: Record<string, unknown> = {
@@ -190,10 +201,18 @@ export class SetupAdministration {
           draft.model = { ...model, temperature: '' };
         }
         const agent = parseAgent(draft);
-        await store.saveSection(
-          'agents',
-          old ? agents.map((item) => (item.id === agent.id ? agent : item)) : [agent, ...agents],
-        );
+        if (system)
+          await store.saveSection(
+            'systemAgents',
+            systems.map((item) =>
+              item.id === agent.id ? { ...agent, systemRole: system.systemRole } : item,
+            ),
+          );
+        else
+          await store.saveSection(
+            'agents',
+            old ? agents.map((item) => (item.id === agent.id ? agent : item)) : [...agents, agent],
+          );
         return { agentId: agent.id, name: agent.name, updatedProjectSnapshots: false };
       }
       if (name === 'reorder_agents') {
@@ -211,7 +230,7 @@ export class SetupAdministration {
         return { updated: true, updatedProjectSnapshots: false };
       }
       if (name === 'assign_resource') {
-        const agent = agents.find((item) => item.id === stableId(args.agentId));
+        const agent = [...agents, ...systems].find((item) => item.id === stableId(args.agentId));
         if (!agent) throw new Error('Агент отсутствует.');
         if (!['skills', 'mcps', 'plugins'].includes(String(args.kind)))
           throw new Error('Некорректный вид ресурса.');
@@ -228,10 +247,19 @@ export class SetupAdministration {
             [`${kind}:${resource.id}`]: { enabled: args.enabled !== false },
           },
         };
-        await store.saveSection(
-          'agents',
-          agents.map((item) => (item.id === agent.id ? updated : item)),
-        );
+        const system = systems.find((item) => item.id === agent.id);
+        if (system)
+          await store.saveSection(
+            'systemAgents',
+            systems.map((item) =>
+              item.id === agent.id ? { ...updated, systemRole: system.systemRole } : item,
+            ),
+          );
+        else
+          await store.saveSection(
+            'agents',
+            agents.map((item) => (item.id === agent.id ? updated : item)),
+          );
         return {
           agentId: agent.id,
           resourceId: resource.id,

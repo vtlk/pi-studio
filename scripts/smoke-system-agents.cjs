@@ -1,0 +1,149 @@
+const { app, BrowserWindow } = require('electron');
+const { mkdtempSync, mkdirSync } = require('node:fs');
+const { rm, mkdir, writeFile } = require('node:fs/promises');
+const { join, resolve } = require('node:path');
+const { tmpdir } = require('node:os');
+const assert = require('node:assert/strict');
+let temporary;
+const deadline = setTimeout(() => {
+  console.error('System agents smoke timed out');
+  app.exit(1);
+}, 60000);
+(async () => {
+  temporary = mkdtempSync(join(tmpdir(), 'pistudio-systems-desktop-'));
+  const videos = join(temporary, 'Videos'),
+    userData = join(temporary, 'UserData');
+  mkdirSync(videos);
+  mkdirSync(userData);
+  app.setPath('videos', videos);
+  app.setPath('userData', userData);
+  const loaded = new Promise((resolve) =>
+    app.once('browser-window-created', (_event, window) =>
+      window.webContents.once('did-finish-load', () => resolve(window)),
+    ),
+  );
+  require('../out/main/index.cjs');
+  const window = await loaded,
+    js = (code) =>
+      window.webContents.executeJavaScript(code, true).catch((error) => {
+        console.error('Failed system expression', code.slice(0, 180));
+        throw error;
+      });
+  const until = async (code) => {
+    for (let i = 0; i < 100; i++) {
+      if (await js(code)) return;
+      await new Promise((resolve) => setTimeout(resolve, 75));
+    }
+    console.error(await js('document.body.innerText.slice(-1500)'));
+    throw new Error('Timed out: ' + code);
+  };
+  const click = (text) =>
+    js(
+      `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)}).click()`,
+    );
+  const field = async (label, value) =>
+    js(
+      `(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]') ?? Array.from(document.querySelectorAll('label')).find(element=>element.textContent.trim().startsWith(${JSON.stringify(label)}))?.querySelector('input,textarea');Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+    );
+  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
+  const initial = await js('window.studio.loadStudio()');
+  assert.deepEqual(initial.sections.agents, []);
+  assert.deepEqual(
+    initial.sections.systemAgents.map((agent) => agent.systemRole),
+    ['character', 'location', 'assistant'],
+  );
+  await click('Агенты');
+  await until(`document.querySelectorAll('[data-system-role]').length===3`);
+  assert.equal(await js(`document.querySelectorAll('[data-system-role] .hover-delete').length`), 0);
+  const ordered = () =>
+    js(
+      `(()=>{const plus=document.querySelector('[aria-label="Добавить агента"]'),system=document.querySelector('[data-system-role]');return !!(plus.compareDocumentPosition(system)&Node.DOCUMENT_POSITION_FOLLOWING) && Array.from(document.querySelectorAll('.agent-list-entry:not([data-system-role])')).every(row=>!!(row.compareDocumentPosition(plus)&Node.DOCUMENT_POSITION_FOLLOWING));})()`,
+    );
+  assert.equal(await ordered(), true);
+  await field('Название агента', 'QA character creator');
+  await field('Основной промпт агента', 'QA current system role');
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  let state = await js('window.studio.loadStudio()');
+  assert.equal(state.sections.systemAgents[0].name, 'QA character creator');
+  assert.equal(state.sections.systemAgents[0].mainInstruction, 'QA current system role');
+  assert.deepEqual(state.sections.agents, []);
+  await click('MCP');
+  await until(`!!document.querySelector('[data-builtin-mcp]')`);
+  assert.equal(
+    await js(
+      `document.querySelectorAll('[data-builtin-mcp] [role="switch"], [data-builtin-mcp] .hover-delete').length`,
+    ),
+    0,
+  );
+  await click('Pi Studio · Библиотека');
+  assert.equal(
+    await js(
+      `document.querySelector('[data-builtin-mcp]').innerText.includes('Отключение и удаление недоступны')`,
+    ),
+    true,
+  );
+  const rejected = await js(
+    `window.studio.saveSection('systemAgents',${JSON.stringify(state.sections.systemAgents.slice(1))},${JSON.stringify({ folder: state.folder, base: state.sections.systemAgents })}).then(()=>false,()=>true)`,
+  );
+  assert.equal(rejected, true);
+  assert.equal((await js('window.studio.loadStudio()')).sections.systemAgents.length, 3);
+  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
+  await field('Название агента', 'First project role');
+  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
+  await field('Название агента', 'Second project role');
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  state = await js('window.studio.loadStudio()');
+  assert.deepEqual(
+    state.sections.agents.map((agent) => agent.name),
+    ['First project role', 'Second project role'],
+  );
+  assert.equal(await ordered(), true);
+  const created = await js(
+    `window.studio.projectCommand({kind:'create',name:'System exclusion',agents:${JSON.stringify(state.sections.systemAgents)}})`,
+  );
+  assert.deepEqual(
+    created.projects[0].agents.map((agent) => agent.profile.id),
+    state.sections.agents.map((agent) => agent.id),
+  );
+  assert.equal(created.projects[0].agents.length, 2);
+  await js(`document.querySelector('[data-system-role="character"] button').click()`);
+  await click('Инструкции');
+  await until(
+    `document.querySelector('[aria-label="Название агента"]')?.value==='QA character creator'`,
+  );
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await click('Итоговое задание');
+  await until(
+    `document.querySelector('textarea[aria-label="Итоговые инструкции"]')?.value.includes('Pi Studio · Библиотека (встроенный, закреплён)')`,
+  );
+  await click('Закрыть');
+  await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+  await writeFile(
+    resolve('artifacts/system-agents-smoke.png'),
+    (await window.capturePage()).toPNG(),
+  );
+  window.webContents.reload();
+  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
+  const reopened = await js('window.studio.loadStudio()');
+  assert.deepEqual(reopened.sections.systemAgents, state.sections.systemAgents);
+  assert.deepEqual(reopened.sections.agents, state.sections.agents);
+  console.log(
+    'System agents Electron passed: fixed separate service group, shared instruction editor and persistence, pinned MCP without disable/delete, backend deletion rejection, appended project profiles with plus before services, project snapshots exclude system profiles.',
+  );
+  clearTimeout(deadline);
+  for (const window of BrowserWindow.getAllWindows()) window.destroy();
+  await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  app.exit(0);
+})().catch(async (error) => {
+  console.error(error);
+  clearTimeout(deadline);
+  for (const window of BrowserWindow.getAllWindows()) window.destroy();
+  if (temporary)
+    await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }).catch(
+      () => {},
+    );
+  app.exit(1);
+});

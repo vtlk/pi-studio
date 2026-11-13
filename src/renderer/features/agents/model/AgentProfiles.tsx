@@ -2,13 +2,24 @@ import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
 import { initialAgents, type Agent, type Instruction } from '@/fixtures/studio';
+import { createSystemAgents, type SystemAgent } from '../../../../shared/systemAgents';
 
 function useProfilesState() {
   const { isDesktop } = useStorage();
   const [agents, setAgents] = useStoredState<Agent[]>('agents', isDesktop ? [] : initialAgents);
+  const [systemAgents, setSystemAgents] = useStoredState<SystemAgent[]>('systemAgents', () =>
+    createSystemAgents(() => crypto.randomUUID()),
+  );
   const [agentId, setAgentId] = useState(agents[0]?.id ?? '');
   const [agentTab, setAgentTab] = useState('Инструкции');
-  const selectedAgent = agents.find((a) => a.id === agentId) ?? agents[0];
+  const selectedAgent =
+    agents.find((a) => a.id === agentId) ??
+    systemAgents.find((a) => a.id === agentId) ??
+    agents[0] ??
+    systemAgents[0];
+  const selectedSystemRole = systemAgents.find(
+    (agent) => agent.id === selectedAgent?.id,
+  )?.systemRole;
   const addAgent = () => {
     const agent: Agent = {
       id: crypto.randomUUID(),
@@ -19,7 +30,7 @@ function useProfilesState() {
       mcps: [],
       plugins: [],
     };
-    setAgents((previous) => [agent, ...previous]);
+    setAgents((previous) => [...previous, agent]);
     setAgentId(agent.id);
     setAgentTab('Инструкции');
   };
@@ -34,6 +45,7 @@ function useProfilesState() {
       return next;
     });
   const removeAgent = (id: string) => {
+    if (!agents.some((agent) => agent.id === id)) return;
     const position = agents.findIndex((agent) => agent.id === id);
     setAgents((previous) => previous.filter((agent) => agent.id !== id));
     if (selectedAgent?.id === id)
@@ -50,7 +62,18 @@ function useProfilesState() {
   };
   const updateAgent = (update: Partial<Agent>) => {
     if (!selectedAgent) return;
-    setAgents((prev) => prev.map((a) => (a.id === selectedAgent.id ? { ...a, ...update } : a)));
+    if (selectedSystemRole) {
+      setSystemAgents((previous) =>
+        previous.map((agent) =>
+          agent.id === selectedAgent.id
+            ? { ...agent, ...update, id: agent.id, systemRole: agent.systemRole }
+            : agent,
+        ),
+      );
+    } else
+      setAgents((prev) =>
+        prev.map((a) => (a.id === selectedAgent.id ? { ...a, ...update, id: a.id } : a)),
+      );
   };
   const updateInstruction = (id: string, update: Partial<Instruction>) => {
     if (!selectedAgent) return;
@@ -60,6 +83,8 @@ function useProfilesState() {
   };
   return {
     agents,
+    systemAgents,
+    selectedSystemRole,
     agentId,
     setAgentId,
     agentTab,
