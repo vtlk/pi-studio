@@ -6,7 +6,7 @@ import type {
   StorageSection,
   StudioBootstrap,
 } from './storage';
-import type { Resource, SkillDocument } from './resources';
+import type { Resource, ResourceCheck, SkillDocument } from './resources';
 import type { AuthLoginState } from './auth';
 import type { StartupState } from './startup';
 import type { PiModelCatalog } from './models';
@@ -47,6 +47,11 @@ export interface DesktopApi {
   getModelCatalog(): Promise<PiModelCatalog>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
   openSetupAssistant(): Promise<void>;
+  checkResource(resourceId: string): Promise<ResourceCheck>;
+  installResource(resourceId: string): Promise<Resource>;
+  openResourceLogin(
+    resourceId: string,
+  ): Promise<{ opened: boolean; authorized: boolean; next: string }>;
 }
 
 export interface ProviderStatus {
@@ -89,4 +94,7 @@ export const desktopChannels = {
   getModelCatalog: 'studio:model-catalog',
   launchAgent: 'studio:launch-agent',
   openSetupAssistant: 'studio:setup-assistant',
+  checkResource: 'studio:resource-check',
+  installResource: 'studio:resource-install',
+  openResourceLogin: 'studio:resource-login',
 } as const;

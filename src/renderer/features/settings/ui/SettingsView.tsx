@@ -5,7 +5,7 @@ import { Button, EmptyIntegration } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { SetupAssistant } from '@/features/setup-assistant/ui/SetupAssistant';
-import { coreTools } from '@/entities/studio/tools';
+import { coreTools, coreToolStatus } from '@/entities/studio/tools';
 import { ConnectionsPanel } from '@/features/connections/ui/ConnectionsPanel';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import type { CapabilityKind } from '@/entities/studio/types';
@@ -135,7 +135,10 @@ export function SettingsView() {
             )}
             <p className="section-space">
               Общие инструменты всех агентов:{' '}
-              {coreTools.map((tool) => `${tool.name} — ${tool.status.toLowerCase()}`).join(', ')}.
+              {coreTools
+                .map((tool) => `${tool.name} — ${coreToolStatus(tool.id, isDesktop).toLowerCase()}`)
+                .join(', ')}
+              .
             </p>
             <EmptyIntegration>
               Только macOS. Авторизация провайдеров и секреты — отдельно от файлов проектов.

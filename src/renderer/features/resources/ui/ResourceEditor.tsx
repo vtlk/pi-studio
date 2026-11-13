@@ -57,7 +57,15 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
             kind="primary"
             disabled={!draft.name.trim()}
             onClick={() => {
-              saveResource(draft);
+              saveResource({
+                ...draft,
+                check:
+                  draft.source === resource.source &&
+                  draft.args === resource.args &&
+                  draft.credential === resource.credential
+                    ? resource.check
+                    : undefined,
+              });
               onClose();
             }}
           >
@@ -92,30 +100,34 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           )}
           {draft.transport === 'stdio' &&
             field('args', 'Аргументы запуска', 'Отдельный массив аргументов JSON')}
-          {field(
-            'credential',
-            'Ссылка на учётные данные',
-            'Например: keychain:heygen — без токена',
+          {!window.studio &&
+            field(
+              'credential',
+              'Ссылка на учётные данные',
+              'Например: keychain:heygen — без токена',
+            )}
+          {!window.studio && (
+            <div className="action-row">
+              <Button
+                onClick={() =>
+                  demo(
+                    'Авторизация MCP не выполнялась. В рабочей версии откроется вход в выбранный сервис.',
+                  )
+                }
+              >
+                Авторизовать
+              </Button>
+              <Button
+                onClick={() => demo('Проверка подключения не выполнялась. MCP пока не подключён.')}
+              >
+                Проверить подключение
+              </Button>
+            </div>
           )}
-          <div className="action-row">
-            <Button
-              onClick={() =>
-                demo(
-                  'Авторизация MCP не выполнялась. В рабочей версии откроется вход в выбранный сервис.',
-                )
-              }
-            >
-              Авторизовать
-            </Button>
-            <Button
-              onClick={() => demo('Проверка подключения не выполнялась. MCP пока не подключён.')}
-            >
-              Проверить подключение
-            </Button>
-          </div>
           <p className="subtle">
-            Статус: не подключён. Секреты хранятся отдельно от профилей и проектов; в макете секреты
-            не вводятся.
+            {window.studio
+              ? 'Для OAuth и других способов авторизации подключите сервер через помощника как ресурс Pi. После сохранения проверка и вход доступны в каталоге.'
+              : 'Пример: MCP не подключён, секреты не вводятся.'}
           </p>
         </>
       ) : (
@@ -126,7 +138,13 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
               ? 'Папка навыка / SKILL.md'
               : 'Источник пакета npm / git / локальная папка',
           )}
-          {draft.kind === 'plugins' && field('version', 'Закреплённая версия')}
+          {draft.kind === 'plugins' && !window.studio && field('version', 'Закреплённая версия')}
+          {draft.kind === 'plugins' && window.studio && (
+            <p className="subtle">
+              Установленная версия: {resource.version || 'Не определена'}. Версия пакета задаётся в
+              источнике, например npm:package@1.2.3.
+            </p>
+          )}
           {draft.kind === 'plugins' && (
             <label className="field-label">
               Состав пакета
@@ -136,18 +154,24 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
               />
             </label>
           )}
-          <Button
-            onClick={() =>
-              demo(
-                draft.kind === 'skills'
-                  ? 'Импорт файлов пока не подключён. Путь сохраняется только как настройка макета.'
-                  : 'Установка пакетов пока не подключена. Источник и версия сохраняются только в макете.',
-              )
-            }
-          >
-            {draft.kind === 'skills' ? 'Импортировать из папки' : 'Установить пакет'}
-          </Button>
-          <p className="subtle">Статус: не установлен.</p>
+          {!window.studio && (
+            <Button
+              onClick={() =>
+                demo(
+                  draft.kind === 'skills'
+                    ? 'Импорт файлов пока не подключён. Путь сохраняется только как настройка макета.'
+                    : 'Установка пакетов пока не подключена. Источник и версия сохраняются только в макете.',
+                )
+              }
+            >
+              {draft.kind === 'skills' ? 'Импортировать из папки' : 'Установить пакет'}
+            </Button>
+          )}
+          <p className="subtle">
+            {window.studio
+              ? 'После сохранения пакет можно установить и проверить в каталоге.'
+              : 'Пример: не установлен.'}
+          </p>
         </>
       )}
       <EmptyIntegration>

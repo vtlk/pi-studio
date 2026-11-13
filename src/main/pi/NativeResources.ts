@@ -1,0 +1,107 @@
+import { spawn } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { realpath } from 'node:fs/promises';
+import { checkPi } from './checkPi.ts';
+import { resolvePiSdk } from './BrowserAuth.ts';
+
+export interface NativeResourceRequest {
+  action: 'list-mcp' | 'configure-mcp' | 'check-mcp' | 'install-package' | 'check-package';
+  cwd: string;
+  name?: string;
+  config?: Record<string, unknown>;
+  replace?: boolean;
+  source?: string;
+}
+export interface NativeResourceResult {
+  status?: 'available' | 'needs_auth' | 'unavailable' | 'disabled';
+  name?: string;
+  transport?: string;
+  description?: string;
+  version?: string;
+  contents?: string;
+  count?: number;
+  enabled?: boolean;
+  toolCount?: number;
+  servers?: { name: string; transport: string; description: string; enabled: boolean }[];
+  invalidEntries?: number;
+}
+/** Delegate installations, validation, transport and OAuth storage to the pinned native Pi SDK. */
+export async function nativeResourceOperation(
+  piPath: string,
+  script: string,
+  request: NativeResourceRequest,
+): Promise<NativeResourceResult> {
+  const pi = await checkPi(piPath);
+  if (!pi.supported) throw new Error('Требуется поддерживаемый Pi 1.5.2.');
+  const sdk = await resolvePiSdk(await realpath(pi.path));
+  return new Promise((resolve, reject) => {
+    const child = spawn(join(dirname(pi.path), 'node'), [script, sdk], {
+      cwd: request.cwd,
+      stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
+      detached: true,
+      env: {
+        ...process.env,
+        PATH: `${dirname(pi.path)}:/opt/homebrew/bin:/usr/local/bin:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        PI_TELEMETRY: '0',
+      },
+    });
+    let output = '',
+      finished = false;
+    let forceKill: ReturnType<typeof setTimeout> | undefined;
+    function stop() {
+      child.kill('SIGTERM');
+      forceKill = setTimeout(() => {
+        try {
+          if (child.pid) process.kill(-child.pid, 'SIGKILL');
+        } catch {
+          /* Already closed. */
+        }
+      }, 2000);
+      forceKill.unref();
+    }
+    const timeout = setTimeout(
+      () => {
+        stop();
+        finish(
+          new Error(
+            'Pi не завершил операцию с ресурсом за отведённое время. Проверьте источник, сеть и вход.',
+          ),
+        );
+      },
+      request.action === 'install-package' ? 180000 : 45000,
+    );
+    function finish(error?: Error, value?: NativeResourceResult) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeout);
+      if (error) reject(error);
+      else resolve(value!);
+    }
+    child.once('error', () =>
+      finish(new Error('Не удалось запустить штатный адаптер ресурсов Pi.')),
+    );
+    child.stdio[3]!.on('data', (data: Buffer) => {
+      output += data.toString('utf8');
+      if (output.length > 500000) {
+        stop();
+        finish(new Error('Pi вернул слишком большой ответ ресурса.'));
+      }
+    });
+    child.once('close', (code) => {
+      clearTimeout(forceKill);
+      try {
+        const message = JSON.parse(output) as { ok: boolean; result: NativeResourceResult };
+        if (code !== 0 || !message.ok || !message.result) throw new Error();
+        finish(undefined, message.result);
+      } catch {
+        finish(
+          new Error(
+            'Pi не смог выполнить операцию. Проверьте параметры, имя и доступность ресурса; секреты в сообщении не выводятся.',
+          ),
+        );
+      }
+    });
+    child.stdin!.on('error', () => {});
+    child.stdin!.end(JSON.stringify(request));
+  });
+}

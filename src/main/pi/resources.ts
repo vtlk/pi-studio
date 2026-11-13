@@ -83,8 +83,8 @@ export async function resolveResources(
               `MCP «${resource.name}»: настройте секрет через штатный Pi и используйте ссылку pi:имя.`,
             );
           config = /^https?:\/\//.test(resource.source)
-            ? { url: resource.source }
-            : { command: resource.source, args: args(resource.args) };
+            ? { url: resource.source, exposure: 'direct' }
+            : { command: resource.source, args: args(resource.args), exposure: 'direct' };
         }
         if (
           result.mcpServers.some(
@@ -94,7 +94,7 @@ export async function resolveResources(
           throw new Error(`Повторяющееся имя MCP: ${name}.`);
         result.mcpServers.push({
           name,
-          config: { ...config, exposure: 'direct', enabled: true },
+          config: { ...config, enabled: true },
           source: 'Pi Studio assignment',
           scope: 'extension',
         });

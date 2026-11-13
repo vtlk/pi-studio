@@ -1,4 +1,4 @@
-import { coreTools } from '@/entities/studio/tools';
+import { coreTools, coreToolStatus } from '@/entities/studio/tools';
 import { Button } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
 import { useConnections } from '@/features/connections/model/Connections';
@@ -44,7 +44,10 @@ export function ModelPanel() {
     <div className="agent-settings-content">
       <p>
         Общие инструменты:{' '}
-        {coreTools.map((tool) => `${tool.name} · ${tool.status.toLowerCase()}`).join(', ')}.
+        {coreTools
+          .map((tool) => `${tool.name} · ${coreToolStatus(tool.id, !!window.studio).toLowerCase()}`)
+          .join(', ')}
+        .
       </p>
       <label className="field-label">
         Подключение модели

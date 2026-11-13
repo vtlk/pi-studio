@@ -9,6 +9,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useResources } from '@/features/resources/model/Resources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
+import { resourceStatus } from '@/features/resources/model/resourceStatus';
 
 export function CapabilitiesPanel() {
   const { agentTab, selectedAgent, updateAgent } = useAgentProfiles();
@@ -64,7 +65,7 @@ export function CapabilitiesPanel() {
               </p>
               <p className="subtle">
                 {resource
-                  ? `${resource.version} · ${resource.localSkill ? 'Локальный skill · Pi не подключён' : field === 'mcps' ? 'Не подключён' : 'Не установлен'}`
+                  ? `${resource.version ? `${resource.version} · ` : ''}${resourceStatus(resource, !!window.studio)}`
                   : 'Недоступен'}
               </p>
             </Disclosure>

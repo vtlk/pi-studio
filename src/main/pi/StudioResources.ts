@@ -1,0 +1,247 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, realpath } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import type { StudioService } from '../storage/StudioStore.ts';
+import type { Resource, ResourceCheck } from '../../shared/resources.ts';
+import { inspectSkill } from '../storage/skills.ts';
+import { atomicText } from '../storage/files.ts';
+import { shellQuote } from './provider.ts';
+import { checkPi } from './checkPi.ts';
+import {
+  nativeResourceOperation,
+  type NativeResourceRequest,
+  type NativeResourceResult,
+} from './NativeResources.ts';
+import { assertCredentialReferences, packageSource } from './resourceConfig.ts';
+
+interface Options {
+  script: string;
+  logins: string;
+  piPath: () => string;
+  operation?: typeof nativeResourceOperation;
+}
+const signature = (resource: Resource) =>
+  JSON.stringify([resource.kind, resource.source, resource.args, resource.credential]);
+export class StudioResources {
+  private readonly service: StudioService;
+  private readonly options: Options;
+  constructor(service: StudioService, options: Options) {
+    this.service = service;
+    this.options = options;
+  }
+  private async scope(expected?: string) {
+    return this.service.serialize(async () => {
+      const store = await this.service.load();
+      if (expected && store.folder !== expected)
+        throw new Error('Папка студии изменилась. Откройте помощника заново.');
+      return {
+        folder: store.folder,
+        piPath: String(store.bootstrap().sections.piPath ?? '') || this.options.piPath(),
+        resources: (store.bootstrap().sections.resources ?? []) as Resource[],
+      };
+    });
+  }
+  private call(path: string, request: NativeResourceRequest) {
+    return (this.options.operation ?? nativeResourceOperation)(path, this.options.script, request);
+  }
+  async listNative(folder: string) {
+    const scope = await this.scope(folder);
+    return this.call(scope.piPath, { action: 'list-mcp', cwd: folder });
+  }
+  private async publish(folder: string, resource: Resource, replaceName = false) {
+    return this.service.serialize(async () => {
+      const store = await this.service.load();
+      if (store.folder !== folder)
+        throw new Error('Студия сменилась; ресурс не добавлен в другой каталог.');
+      const current = (store.bootstrap().sections.resources ?? []) as Resource[];
+      const old = current.find(
+        (item) => item.kind === resource.kind && item.source === resource.source,
+      );
+      const saved = {
+        ...resource,
+        name: old && !replaceName ? old.name : resource.name,
+        description: resource.description || old?.description || '',
+        version: resource.version || old?.version || '',
+        ...(old ? { id: old.id, createdAt: old.createdAt } : {}),
+      };
+      await store.saveSection('resources', [
+        saved,
+        ...current.filter((item) => item.id !== saved.id),
+      ]);
+      return saved;
+    });
+  }
+  async configureMcp(folder: string, args: Record<string, unknown>) {
+    if (
+      typeof args.name !== 'string' ||
+      !/^[a-zA-Z0-9_-]+$/.test(args.name) ||
+      args.name.replaceAll('-', '_') === 'pi_studio'
+    )
+      throw new Error('Укажите имя native MCP; pi_studio зарезервировано.');
+    if (!args.config || typeof args.config !== 'object' || Array.isArray(args.config))
+      throw new Error('Нужна конфигурация сервера в формате native Pi.');
+    const config = args.config as Record<string, unknown>;
+    assertCredentialReferences(config);
+    const scope = await this.scope(folder);
+    const result = await this.call(scope.piPath, {
+      action: 'configure-mcp',
+      cwd: folder,
+      name: args.name,
+      config,
+      replace: args.replace === true,
+    });
+    return this.importMcp(
+      folder,
+      args.name,
+      typeof args.displayName === 'string' ? args.displayName : undefined,
+      result,
+    );
+  }
+  async importMcp(
+    folder: string,
+    name: string,
+    displayName?: string,
+    metadata?: NativeResourceResult,
+  ) {
+    if (!/^[a-zA-Z0-9_-]+$/.test(name) || name.replaceAll('-', '_') === 'pi_studio')
+      throw new Error('Некорректное имя native MCP.');
+    if (!metadata) {
+      const listed = await this.listNative(folder);
+      metadata = listed.servers?.find((server) => server.name === name);
+    }
+    if (!metadata) throw new Error('Такой сервер не найден в native Pi.');
+    const source = `pi:${name}`;
+    return this.publish(
+      folder,
+      {
+        id: createHash('sha256').update(`mcp:${name}`).digest('hex').slice(0, 32),
+        name: displayName?.trim() || name,
+        kind: 'mcps',
+        source,
+        description: metadata.description ?? '',
+        transport: metadata.transport ?? '',
+        version: '',
+        args: '',
+        credential: '',
+        contents: '',
+        createdAt: Date.now(),
+      },
+      !!displayName?.trim(),
+    );
+  }
+  async installPackage(folder: string, sourceValue: unknown, displayName?: string) {
+    const source = packageSource(sourceValue);
+    const scope = await this.scope(folder);
+    const result = await this.call(scope.piPath, {
+      action: 'install-package',
+      cwd: folder,
+      source,
+    });
+    return this.publish(
+      folder,
+      {
+        id: createHash('sha256').update(`package:${source}`).digest('hex').slice(0, 32),
+        name: displayName?.trim() || source,
+        kind: 'plugins',
+        source,
+        version: result.version ?? '',
+        description: '',
+        transport: '',
+        args: '',
+        credential: '',
+        contents: result.contents ?? '',
+        createdAt: Date.now(),
+        check: { status: result.status ?? 'unavailable', checkedAt: Date.now() },
+      },
+      !!displayName?.trim(),
+    );
+  }
+  async check(id: string, expectedFolder?: string): Promise<ResourceCheck> {
+    const scope = await this.scope(expectedFolder);
+    const resource = scope.resources.find((item) => item.id === id);
+    if (!resource) throw new Error('Ресурс отсутствует в текущем каталоге.');
+    let result: NativeResourceResult;
+    if (resource.kind === 'skills') {
+      await inspectSkill(resource.source);
+      result = { status: 'available' };
+    } else if (resource.kind === 'plugins')
+      result = await this.call(scope.piPath, {
+        action: 'check-package',
+        cwd: scope.folder,
+        source: packageSource(resource.source),
+      });
+    else if (resource.source.startsWith('pi:'))
+      result = await this.call(scope.piPath, {
+        action: 'check-mcp',
+        cwd: scope.folder,
+        name: resource.source.slice(3),
+      });
+    else {
+      if (resource.credential)
+        throw new Error('Для авторизации используйте native Pi и ссылку pi:имя.');
+      const config = /^https?:\/\//.test(resource.source)
+        ? { url: resource.source }
+        : { command: resource.source, args: JSON.parse(resource.args || '[]') as unknown };
+      assertCredentialReferences(config);
+      result = await this.call(scope.piPath, {
+        action: 'check-mcp',
+        cwd: scope.folder,
+        name: `studio_${resource.id.replace(/[^a-zA-Z0-9_]/g, '_')}`,
+        config,
+      });
+    }
+    const check: ResourceCheck = {
+      status: result.status ?? 'unavailable',
+      checkedAt: Date.now(),
+      ...(result.toolCount === undefined ? {} : { toolCount: result.toolCount }),
+    };
+    await this.service.serialize(async () => {
+      const store = await this.service.load();
+      const current = (store.bootstrap().sections.resources ?? []) as Resource[];
+      const selected = current.find((item) => item.id === id);
+      if (store.folder !== scope.folder || !selected || signature(selected) !== signature(resource))
+        throw new Error('Настройки ресурса изменились во время проверки. Повторите её.');
+      await store.saveSection(
+        'resources',
+        current.map((item) => (item.id === id ? { ...item, check } : item)),
+      );
+    });
+    return check;
+  }
+  async install(id: string) {
+    const scope = await this.scope();
+    const resource = scope.resources.find((item) => item.id === id && item.kind === 'plugins');
+    if (!resource) throw new Error('Пакет отсутствует.');
+    return this.installPackage(scope.folder, resource.source, resource.name);
+  }
+  async login(id: string, expectedFolder?: string) {
+    const scope = await this.scope(expectedFolder);
+    const resource = scope.resources.find((item) => item.id === id && item.kind === 'mcps');
+    if (!resource?.source.startsWith('pi:'))
+      throw new Error('Сначала настройте сервер через помощника как native Pi MCP (pi:имя).');
+    const name = resource.source.slice(3);
+    if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Некорректное имя MCP.');
+    const pi = await checkPi(scope.piPath);
+    if (!pi.supported) throw new Error('Требуется поддерживаемый Pi.');
+    await mkdir(this.options.logins, { recursive: true });
+    const launcher = join(this.options.logins, `${randomUUID()}.command`);
+    const path = `${dirname(pi.path)}:${dirname(await realpath(pi.path))}:/opt/homebrew/bin:/usr/local/bin`;
+    await atomicText(
+      launcher,
+      `#!/bin/zsh\n/bin/rm -- "$0"\nexport PATH=${shellQuote(path)}:"$PATH"\ncd ${shellQuote(scope.folder)}\nexec ${shellQuote(pi.path)} mcp login ${shellQuote(name)} --timeout 300\n`,
+    );
+    const { chmod } = await import('node:fs/promises');
+    await chmod(launcher, 0o700);
+    await promisify(execFile)('/usr/bin/open', ['-a', 'Terminal', launcher], {
+      timeout: 10000,
+      maxBuffer: 1000,
+    });
+    return {
+      opened: true,
+      authorized: false,
+      next: 'Complete native Pi/browser sign-in, then check_resource.',
+    };
+  }
+}

@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
+import { resolveAssignedPackages } from './packages.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -76,6 +77,7 @@ export async function runSession(bootstrapPath) {
         url: `${bootstrap.url}/mcp`,
         headers: { Authorization: `Bearer ${bootstrap.token}` },
         exposure: 'direct',
+        timeout: 240,
       },
     },
   ];
@@ -176,6 +178,12 @@ export async function runSession(bootstrapPath) {
         sessionManager.getSessionFile() !== sessions.getSessionFile()
       )
         throw new Error('Studio owns the single bound dialogue');
+      const packages = await resolveAssignedPackages(
+        sdk,
+        cwd,
+        settings,
+        envelope.resources.plugins,
+      );
       const services = await createAgentSessionServices({
         cwd,
         settingsManager: settings,
@@ -183,9 +191,15 @@ export async function runSession(bootstrapPath) {
           noExtensions: true,
           noSkills: true,
           noPromptTemplates: true,
+          noThemes: true,
           noContextFiles: true,
-          additionalExtensionPaths: envelope.resources.plugins.map((item) => item.source),
-          additionalSkillPaths: envelope.resources.skills.map((item) => item.path),
+          additionalExtensionPaths: packages.extensions,
+          additionalSkillPaths: [
+            ...packages.skills,
+            ...envelope.resources.skills.map((item) => item.path),
+          ],
+          additionalPromptTemplatePaths: packages.prompts,
+          additionalThemePaths: packages.themes,
           appendSystemPrompt: [sessionSystemPrompt(envelope)],
           extensionFactories: [
             control,

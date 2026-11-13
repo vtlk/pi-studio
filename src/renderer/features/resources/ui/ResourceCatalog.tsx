@@ -8,6 +8,8 @@ import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { useNotice } from '@/shared/model/Notice';
 import { useResources, type Resource } from '../model/Resources';
 import { ResourceEditor } from './ResourceEditor';
+import { ResourceActions } from './ResourceActions';
+import { resourceStatus } from '../model/resourceStatus';
 
 export function ResourceCatalog({
   kind,
@@ -92,15 +94,10 @@ export function ResourceCatalog({
             <div>
               <div className="resource-heading">
                 <strong>{resource.name}</strong>
-                <small>
-                  {resource.localSkill
-                    ? 'Локальный skill · Pi не подключён'
-                    : kind === 'mcps'
-                      ? 'Не подключён'
-                      : 'Не установлен'}
-                </small>
+                <small>{resourceStatus(resource, !!window.studio)}</small>
               </div>
               <p>{resource.description}</p>
+              <ResourceActions resource={resource} />
             </div>
             <Button onClick={() => setEdit(resource)}>
               {kind === 'skills' ? 'Сведения' : 'Настроить'}

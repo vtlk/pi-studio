@@ -1,4 +1,9 @@
 import type { CapabilityKind } from './studio';
+export interface ResourceCheck {
+  status: 'available' | 'needs_auth' | 'unavailable' | 'disabled';
+  checkedAt: number;
+  toolCount?: number;
+}
 export interface Resource {
   id: string;
   name: string;
@@ -12,6 +17,7 @@ export interface Resource {
   contents: string;
   createdAt: number;
   localSkill?: boolean;
+  check?: ResourceCheck;
 }
 export interface SkillDocument {
   name: string;

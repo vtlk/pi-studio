@@ -198,7 +198,17 @@ const deadline = setTimeout(() => {
   assert.equal(importedSkill.localSkill, true);
   assert.equal('content' in importedSkill, false);
   await js(
-    `Array.from(document.querySelectorAll('.resource-row')).find(row => row.textContent.includes('smoke-local-skill')).querySelector('button').click()`,
+    `Array.from(document.querySelectorAll('.resource-row')).find(row=>row.textContent.includes('smoke-local-skill')).querySelector('.resource-native-actions button').click()`,
+  );
+  await until(
+    `Array.from(document.querySelectorAll('.resource-row')).find(row=>row.textContent.includes('smoke-local-skill'))?.textContent.includes('Доступен')`,
+  );
+  const checkedSkill = (await js('window.studio.loadStudio()')).sections.resources.find(
+    (item) => item.id === importedSkill.id,
+  );
+  assert.equal(checkedSkill.check.status, 'available');
+  await js(
+    `(() => { const row=Array.from(document.querySelectorAll('.resource-row')).find(row=>row.textContent.includes('smoke-local-skill')); Array.from(row.querySelectorAll('button')).find(button=>button.textContent==='Сведения').click(); })()`,
   );
   await until(`document.querySelector('.dialog-body')?.innerText.includes('Файл прочитан')`);
   assert.equal(await js(`document.querySelector('.dialog-body textarea')`), null);

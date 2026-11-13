@@ -115,6 +115,40 @@ test('resource resolution rejects missing enabled assignments and ignores disabl
   assert.deepEqual((await resolveResources(profile, [])).skills, []);
   await assert.rejects(resolveResources({ ...profile, capabilitySettings: {} }, []), /отсутствует/);
 });
+test('native MCP assignment preserves tool exposure and authentication options instead of broadening access', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-native-exposure-'));
+  const before = process.env.PI_CODING_AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = root;
+  t.after(async () => {
+    if (before === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = before;
+    await rm(root, { recursive: true, force: true });
+  });
+  const config = {
+    url: 'https://example.test/mcp',
+    exposure: 'hidden',
+    toolExposure: { list: 'direct', write: 'hidden' },
+    oauth: { clientId: 'public', clientSecret: '${CLIENT_SECRET}' },
+    timeout: 12,
+  };
+  await writeFile(join(root, 'mcp.json'), JSON.stringify({ mcpServers: { safe: config } }));
+  const resolved = await resolveResources({ ...agent, mcps: ['selected'] }, [
+    {
+      id: 'selected',
+      name: 'Selected',
+      kind: 'mcps',
+      source: 'pi:safe',
+      version: '',
+      description: '',
+      transport: 'HTTP',
+      args: '',
+      credential: '',
+      contents: '',
+      createdAt: 1,
+    },
+  ]);
+  assert.deepEqual(resolved.mcpServers[0].config, { ...config, enabled: true });
+});
 test('loopback MCP requires a session capability and never exposes admin tools to production', async (t) => {
   const channel = new RunChannel();
   t.after(() => channel.close());

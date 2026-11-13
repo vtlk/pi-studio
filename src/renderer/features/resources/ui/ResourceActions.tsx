@@ -1,0 +1,88 @@
+import { useState } from 'react';
+import type { Resource } from '../../../../shared/resources';
+import { useStorage } from '@/shared/storage/Storage';
+import { Button } from '@/shared/ui';
+
+export function ResourceActions({ resource }: { resource: Resource }) {
+  const { saveNow } = useStorage();
+  const [busy, setBusy] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  if (!window.studio) return null;
+  const action = async (kind: 'check' | 'install' | 'login') => {
+    if (busy) return;
+    setBusy(kind);
+    setError('');
+    setMessage('');
+    try {
+      if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
+      if (kind === 'login') {
+        await window.studio!.openResourceLogin(resource.id);
+        setMessage('Завершите вход в Pi/браузере, затем проверьте подключение.');
+      } else if (kind === 'install') {
+        await window.studio!.installResource(resource.id);
+        setMessage('Пакет доступен в Pi. Назначенные агенты загрузят его при следующем открытии.');
+      } else {
+        const checked = await window.studio!.checkResource(resource.id);
+        setMessage(
+          {
+            available: 'Ресурс доступен. Назначенный агент загрузит его при следующем открытии.',
+            needs_auth: 'Сервер требует входа через Pi.',
+            unavailable: 'Ресурс недоступен. Проверьте настройки через помощника.',
+            disabled: 'Сервер выключен в Pi.',
+          }[checked.status],
+        );
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Не удалось выполнить операцию с ресурсом.',
+      );
+    } finally {
+      setBusy('');
+    }
+  };
+  return (
+    <div className="resource-native-actions">
+      <div className="action-row">
+        <Button
+          disabled={!!busy}
+          onClick={() => {
+            void action('check');
+          }}
+        >
+          {busy === 'check' ? 'Проверяем…' : 'Проверить'}
+        </Button>
+        {resource.kind === 'plugins' && (
+          <Button
+            disabled={!!busy}
+            onClick={() => {
+              void action('install');
+            }}
+          >
+            {busy === 'install' ? 'Устанавливаем…' : 'Установить пакет'}
+          </Button>
+        )}
+        {resource.kind === 'mcps' && resource.source.startsWith('pi:') && (
+          <Button
+            disabled={!!busy}
+            onClick={() => {
+              void action('login');
+            }}
+          >
+            Войти через Pi
+          </Button>
+        )}
+      </div>
+      {message && (
+        <p role="status" className="subtle">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="error-message">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

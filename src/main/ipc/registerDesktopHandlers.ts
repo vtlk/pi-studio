@@ -17,6 +17,7 @@ import type { LaunchAgentRequest } from '../../shared/runtime';
 import { createSetupAssistant } from '../pi/createSetupAssistant';
 import type { Agent } from '../../shared/studio';
 import { readVideoProject } from '../video/readVideoProject';
+import { StudioResources } from '../pi/StudioResources';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -45,11 +46,17 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
   });
+  const resources = new StudioResources(service, {
+    script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
+    logins: join(app.getPath('userData'), 'resource-logins'),
+    piPath: () => startup.path,
+  });
   const setup = createSetupAssistant(service, {
     bootstraps: join(app.getPath('userData'), 'setup-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
+    resources,
   });
   app.on('before-quit', () => {
     browserAuth.close();
@@ -87,6 +94,18 @@ export function registerDesktopHandlers(): StudioService {
   ipcMain.handle(desktopChannels.openSetupAssistant, async (event) => {
     caller(event);
     await setup.launch({ projectId: 'pi-setup-assistant', agentId: 'setup', autoContinue: false });
+  });
+  ipcMain.handle(desktopChannels.checkResource, (event, id: string) => {
+    caller(event);
+    return resources.check(id);
+  });
+  ipcMain.handle(desktopChannels.installResource, (event, id: string) => {
+    caller(event);
+    return resources.install(id);
+  });
+  ipcMain.handle(desktopChannels.openResourceLogin, (event, id: string) => {
+    caller(event);
+    return resources.login(id);
   });
   ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
     caller(event);

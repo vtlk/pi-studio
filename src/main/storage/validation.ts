@@ -209,6 +209,30 @@ export function parseSection(section: unknown, value: unknown): unknown {
       credential,
       contents: text(item.contents),
       ...(item.localSkill === true ? { localSkill: true } : {}),
+      ...(item.check === undefined
+        ? {}
+        : {
+            check: (() => {
+              const check = record(item.check);
+              if (
+                !['available', 'needs_auth', 'unavailable', 'disabled'].includes(
+                  String(check.status),
+                )
+              )
+                throw new Error('Некорректный статус проверки ресурса.');
+              const toolCount = check.toolCount;
+              if (
+                toolCount !== undefined &&
+                (typeof toolCount !== 'number' || !Number.isSafeInteger(toolCount) || toolCount < 0)
+              )
+                throw new Error('Некорректное число инструментов.');
+              return {
+                status: check.status,
+                checkedAt: timestamp(check.checkedAt),
+                ...(toolCount === undefined ? {} : { toolCount }),
+              };
+            })(),
+          }),
     };
   });
 }

@@ -7,15 +7,73 @@ import type { Resource } from '../../shared/resources.ts';
 import type { PiModelCatalog } from '../../shared/models.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { join } from 'node:path';
+import type { StudioResources } from './StudioResources.ts';
+import type { NativeResourceResult } from './NativeResources.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
   private readonly catalog: () => Promise<PiModelCatalog>;
-  constructor(service: StudioService, catalog: () => Promise<PiModelCatalog>) {
+  private readonly native?: StudioResources;
+  constructor(
+    service: StudioService,
+    catalog: () => Promise<PiModelCatalog>,
+    native?: StudioResources,
+  ) {
     this.service = service;
     this.catalog = catalog;
+    this.native = native;
   }
   async call(run: PreparedRun, name: string, args: Record<string, unknown>) {
+    const resourceTools = [
+      'configure_mcp',
+      'import_mcp',
+      'install_package',
+      'check_resource',
+      'authenticate_mcp',
+    ];
+    let nativeMcp: NativeResourceResult | undefined;
+    if (this.native && (resourceTools.includes(name) || name === 'list_configuration')) {
+      const folder = await this.service.serialize(async () => {
+        const store = await this.service.load();
+        if (join(store.folder, '.pistudio/setup-assistant') !== run.projectRoot)
+          throw new Error(
+            'Этот помощник относится к другой папке студии. Откройте помощника заново.',
+          );
+        return store.folder;
+      });
+      if (name === 'configure_mcp')
+        return {
+          resource: await this.native.configureMcp(folder, args),
+          loadedInAgentSession: false,
+        };
+      if (name === 'import_mcp') {
+        if (typeof args.name !== 'string') throw new Error('Нужно имя native MCP.');
+        return {
+          resource: await this.native.importMcp(
+            folder,
+            args.name,
+            typeof args.displayName === 'string' ? args.displayName : undefined,
+          ),
+          loadedInAgentSession: false,
+        };
+      }
+      if (name === 'install_package')
+        return {
+          resource: await this.native.installPackage(
+            folder,
+            args.source,
+            typeof args.name === 'string' ? args.name : undefined,
+          ),
+          loadedInAgentSession: false,
+        };
+      if (name === 'check_resource' || name === 'authenticate_mcp') {
+        if (typeof args.resourceId !== 'string') throw new Error('Нужен ID ресурса.');
+        return name === 'check_resource'
+          ? this.native.check(args.resourceId, folder)
+          : this.native.login(args.resourceId, folder);
+      }
+      nativeMcp = await this.native.listNative(folder);
+    }
     const models = await this.catalog();
     return this.service.serialize(async () => {
       const store = await this.service.load();
@@ -45,6 +103,7 @@ export class SetupAdministration {
           resources,
           connections,
           models,
+          ...(nativeMcp ? { nativeMcp } : {}),
         };
       if (name === 'register_connection') {
         if (

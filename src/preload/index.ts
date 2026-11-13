@@ -30,5 +30,8 @@ const desktopApi: DesktopApi = {
   getModelCatalog: () => ipcRenderer.invoke(desktopChannels.getModelCatalog),
   launchAgent: (request) => ipcRenderer.invoke(desktopChannels.launchAgent, request),
   openSetupAssistant: () => ipcRenderer.invoke(desktopChannels.openSetupAssistant),
+  checkResource: (id) => ipcRenderer.invoke(desktopChannels.checkResource, id),
+  installResource: (id) => ipcRenderer.invoke(desktopChannels.installResource, id),
+  openResourceLogin: (id) => ipcRenderer.invoke(desktopChannels.openResourceLogin, id),
 };
 contextBridge.exposeInMainWorld('studio', desktopApi);
