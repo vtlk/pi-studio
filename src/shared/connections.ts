@@ -6,6 +6,7 @@ export interface Connection {
   endpoint: string;
   account: string;
   createdAt: number;
+  authScope?: 'native' | 'connection';
 }
 
 export interface ImageConnectionStatus {
@@ -19,4 +20,17 @@ export interface ImageConnectionStatus {
 export interface ImageConnectionRequest {
   folder: string;
   connectionId: string;
+}
+
+export interface ModelConnectionRequest {
+  folder: string;
+  connectionId: string;
+}
+export interface ModelConnectionStatus {
+  connectionId: string;
+  provider: string;
+  status: 'ready' | 'not_ready' | 'invalid';
+}
+export interface ModelLoginRequest extends ModelConnectionRequest {
+  method: 'oauth' | 'api_key';
 }

@@ -13,12 +13,10 @@ import { loadOutput } from '../storage/outputs';
 import { registerProjectActions } from '../storage/registerProjectActions';
 import { withReadDeadline } from '../storage/files';
 import { checkPi } from '../pi/checkPi';
-import { getProviderStatus, openProviderLogin } from '../pi/provider';
 import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
 import { BrowserAuth } from '../pi/BrowserAuth';
 import { Startup } from '../pi/Startup';
-import { readPiCatalog } from '../pi/catalog';
 import { createStudioRunHost } from '../pi/createStudioRunHost';
 import type { LaunchAgentRequest } from '../../shared/runtime';
 import { createSetupAssistant } from '../pi/createSetupAssistant';
@@ -32,6 +30,7 @@ import { referenceImage } from '../pi/referenceImage';
 import { createLibraryRunHost } from '../pi/createLibraryRunHost';
 import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
 import { createImageServices, registerImageHandlers } from '../images/registerImageHandlers';
+import { registerModelConnectionHandlers } from '../pi/registerModelConnectionHandlers';
 import { registerMcpSecretHandlers } from '../pi/registerMcpSecretHandlers';
 
 export function registerDesktopHandlers(): StudioService {
@@ -55,6 +54,14 @@ export function registerDesktopHandlers(): StudioService {
       }
     },
   });
+  registerModelConnectionHandlers(
+    service,
+    join(app.getPath('userData'), 'model-auth'),
+    join(__dirname, '../../bundled/pi-bridge'),
+    () => startup.path,
+    browserAuth,
+    caller,
+  );
   const references = new ReferenceFiles(referenceImage);
   const mcpSecrets = registerMcpSecretHandlers(service, caller, () => startup.path);
   const { connections: imageConnections, images } = createImageServices(service);
@@ -111,13 +118,6 @@ export function registerDesktopHandlers(): StudioService {
   }
   registerLibraryHandlers(service, references, generators, caller);
   registerImageHandlers(imageConnections, caller);
-  ipcMain.handle(desktopChannels.beginCodexLogin, async (event) => {
-    caller(event);
-    const path = await service.serialize(async () =>
-      String((await service.load()).bootstrap().sections.piPath ?? ''),
-    );
-    return browserAuth.start(path || startup.path);
-  });
   ipcMain.handle(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);
     return runs.launch(request);
@@ -193,17 +193,6 @@ export function registerDesktopHandlers(): StudioService {
     return state;
   });
   handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path || startup.path));
-  ipcMain.handle(desktopChannels.getModelCatalog, async (event) => {
-    caller(event);
-    const { path, folder } = await service.serialize(async () => {
-      const store = await service.load();
-      return {
-        path: String(store.bootstrap().sections.piPath ?? '') || startup.path,
-        folder: store.folder,
-      };
-    });
-    return readPiCatalog(path, join(__dirname, '../../bundled/pi-bridge/catalog.mjs'), folder);
-  });
   handle(desktopChannels.chooseSkill, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Папка skill или SKILL.md',
@@ -227,21 +216,6 @@ export function registerDesktopHandlers(): StudioService {
     );
     if (!resource) throw new Error('Локальный skill не найден в каталоге.');
     return inspectSkill(resource.source);
-  });
-  ipcMain.handle(desktopChannels.getProviderStatus, async (event, provider: string) => {
-    caller(event);
-    const path = await service.serialize(
-      async () => String((await service.load()).bootstrap().sections.piPath ?? '') || startup.path,
-    );
-    return getProviderStatus(path, provider);
-  });
-  handle(desktopChannels.openProviderLogin, async (_event, provider: string) => {
-    const store = await service.load();
-    await openProviderLogin(
-      String(store.bootstrap().sections.piPath ?? '') || startup.path,
-      provider,
-      store.folder,
-    );
   });
   handle(desktopChannels.loadStudio, async () => (await service.load()).bootstrap());
   handle(desktopChannels.openStudio, (_event, folder: string) => {

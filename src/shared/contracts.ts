@@ -18,7 +18,13 @@ import type { LibraryListing } from './library';
 import type { LibraryKind } from './library';
 import type { ReferenceFile } from './attachments';
 import type { LibraryCharacter } from './characterRig';
-import type { ImageConnectionRequest, ImageConnectionStatus } from './connections';
+import type {
+  ModelConnectionRequest,
+  ModelConnectionStatus,
+  ModelLoginRequest,
+  ImageConnectionRequest,
+  ImageConnectionStatus,
+} from './connections';
 import type { McpSecretRequest, McpSecretEdit, McpSecretStatus } from './mcpSecrets';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
@@ -55,6 +61,9 @@ export interface DesktopApi {
   revealAgentOutput(request: { projectId: string; agentId: string }): Promise<void>;
   checkPi(path: string): Promise<PiCheck>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
+  getConnectionStatus(request: ModelConnectionRequest): Promise<ModelConnectionStatus>;
+  beginConnectionLogin(request: ModelLoginRequest): Promise<AuthLoginState>;
+  removeConnectionLogin(request: ModelConnectionRequest): Promise<void>;
   openProviderLogin(provider: string): Promise<void>;
   chooseSkill(): Promise<Resource | null>;
   readSkill(resourceId: string): Promise<SkillDocument>;
@@ -66,7 +75,7 @@ export interface DesktopApi {
   retryStartup(): Promise<StartupState>;
   skipStartup(): Promise<StartupState>;
   chooseStartupPi(): Promise<StartupState | null>;
-  getModelCatalog(): Promise<PiModelCatalog>;
+  getModelCatalog(request?: ModelConnectionRequest): Promise<PiModelCatalog>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
   openSetupAssistant(): Promise<void>;
   listLibrary(): Promise<LibraryListing>;
@@ -122,6 +131,9 @@ export const desktopChannels = {
   revealAgentOutput: 'studio:reveal-agent-output',
   checkPi: 'studio:check-pi',
   getProviderStatus: 'studio:provider-status',
+  getConnectionStatus: 'studio:connection-status',
+  beginConnectionLogin: 'studio:connection-login',
+  removeConnectionLogin: 'studio:connection-logout',
   openProviderLogin: 'studio:provider-login',
   chooseSkill: 'studio:choose-skill',
   readSkill: 'studio:read-skill',

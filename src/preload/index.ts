@@ -31,6 +31,12 @@ const desktopApi: DesktopApi = {
   revealAgentOutput: (request) => ipcRenderer.invoke(desktopChannels.revealAgentOutput, request),
   revealOutput: (request) => ipcRenderer.invoke(desktopChannels.revealOutput, request),
   checkPi: (path) => ipcRenderer.invoke(desktopChannels.checkPi, path),
+  getConnectionStatus: (request) =>
+    ipcRenderer.invoke(desktopChannels.getConnectionStatus, request),
+  beginConnectionLogin: (request) =>
+    ipcRenderer.invoke(desktopChannels.beginConnectionLogin, request),
+  removeConnectionLogin: (request) =>
+    ipcRenderer.invoke(desktopChannels.removeConnectionLogin, request),
   getProviderStatus: (provider) => ipcRenderer.invoke(desktopChannels.getProviderStatus, provider),
   openProviderLogin: (provider) => ipcRenderer.invoke(desktopChannels.openProviderLogin, provider),
   chooseSkill: () => ipcRenderer.invoke(desktopChannels.chooseSkill),
@@ -44,7 +50,7 @@ const desktopApi: DesktopApi = {
   retryStartup: () => ipcRenderer.invoke(desktopChannels.retryStartup),
   skipStartup: () => ipcRenderer.invoke(desktopChannels.skipStartup),
   chooseStartupPi: () => ipcRenderer.invoke(desktopChannels.chooseStartupPi),
-  getModelCatalog: () => ipcRenderer.invoke(desktopChannels.getModelCatalog),
+  getModelCatalog: (request) => ipcRenderer.invoke(desktopChannels.getModelCatalog, request),
   launchAgent: (request) => ipcRenderer.invoke(desktopChannels.launchAgent, request),
   openSetupAssistant: () => ipcRenderer.invoke(desktopChannels.openSetupAssistant),
   checkResource: (id) => ipcRenderer.invoke(desktopChannels.checkResource, id),

@@ -219,6 +219,7 @@ export class RunHost {
         run.record.runId,
         {
           record: run.record,
+          modelAuth: run.modelAuth,
           instructions: run.instructions,
           resources: run.resources,
           sessionPath,

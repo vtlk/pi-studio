@@ -1,5 +1,5 @@
 import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LibraryKind } from '../../shared/library.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
@@ -13,7 +13,8 @@ import { RunHost } from './RunHost.ts';
 import { productionTools } from './RunChannel.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { readPiCatalog } from './catalog.ts';
-import { getProviderStatus } from './provider.ts';
+import { connectionAuthScope, getModelProviderStatus } from './modelAuth.ts';
+import type { Connection } from '../../shared/connections.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
 import type { openSessionTerminal } from './terminal.ts';
@@ -62,11 +63,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
             'Библиотечный агент отсутствует или выключен. Включите его в конструкторе.',
           );
         const model = agent.model;
-        const connections = (sections.connections ?? []) as {
-          id: string;
-          providerId: string;
-          purpose: string;
-        }[];
+        const connections = (sections.connections ?? []) as Connection[];
         if (
           !model?.id ||
           !model.provider ||
@@ -80,14 +77,28 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         )
           throw new Error('Выберите подключение и модель системного агента на странице «Агенты».');
         const path = String(sections.piPath ?? '') || options.piPath();
-        const catalog = await readPiCatalog(path, options.catalog, store.folder);
+        const modelAuth = await connectionAuthScope(
+          join(dirname(options.bootstraps), 'model-auth'),
+          store.folder,
+          connections.find((item) => item.id === model.connectionId)!,
+        );
+        const catalog = await readPiCatalog(path, options.catalog, store.folder, modelAuth);
         const selected = catalog.models.find(
           (item) => item.provider === model.provider && item.id === model.id,
         );
         if (!selected)
           throw new Error('Выбранная модель отсутствует в Pi. Автоматической подмены нет.');
         options.references.validate(input.attachments, store.folder, selected.imageInput);
-        if ((await getProviderStatus(path, model.provider)).status !== 'ready')
+        if (
+          (
+            await getModelProviderStatus(
+              path,
+              join(dirname(options.catalog), 'model-auth.mjs'),
+              model.provider,
+              modelAuth,
+            )
+          ).status !== 'ready'
+        )
           throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
         const root = await safePath(
           store.folder,
@@ -122,6 +133,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         await options.references.attach(run, input.attachments, store.folder, selected.imageInput);
         options.images?.bind(run, store.folder, selected);
         await atomicJson(join(root, 'state.json'), { schemaVersion: 1, kind: input.kind, project });
+        run.modelAuth = modelAuth;
         return { run, piPath: path };
       }),
     update: (run, status, session) =>

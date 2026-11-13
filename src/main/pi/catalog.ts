@@ -4,13 +4,21 @@ import { realpath } from 'node:fs/promises';
 import { promisify } from 'node:util';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
+import { modelAuthOperation, type ModelAuthScope } from './modelAuth.ts';
 import type { PiModelCatalog } from '../../shared/models.ts';
 
 export async function readPiCatalog(
   path: string,
   script: string,
   cwd?: string,
+  scope?: ModelAuthScope,
 ): Promise<PiModelCatalog> {
+  if (scope)
+    return modelAuthOperation(path, join(dirname(script), 'model-auth.mjs'), {
+      action: 'catalog',
+      scope,
+      cwd,
+    });
   const pi = await checkPi(path);
   if (!pi.supported) throw new Error('Для каталога моделей требуется поддерживаемый Pi 1.5.2.');
   const sdk = await resolvePiSdk(await realpath(pi.path));

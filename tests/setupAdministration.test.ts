@@ -26,7 +26,8 @@ test('setup tools change only current constructor/catalog links and never snapsh
   const result = (await admin.call(run, 'register_connection', {
     name: 'My subscription',
     provider: 'provider',
-  })) as { connection: { id: string } };
+  })) as { connection: { id: string; authScope: string } };
+  assert.equal(result.connection.authScope, 'connection');
   const created = (await admin.call(run, 'configure_agent', {
     name: 'My role',
     mainInstruction: 'Current role only',

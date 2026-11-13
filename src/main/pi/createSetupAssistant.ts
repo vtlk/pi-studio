@@ -3,7 +3,8 @@ import { join, dirname } from 'node:path';
 import { RunHost } from './RunHost.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { readPiCatalog } from './catalog.ts';
-import { getProviderStatus } from './provider.ts';
+import { connectionAuthScope, getModelProviderStatus } from './modelAuth.ts';
+import type { Connection } from '../../shared/connections.ts';
 import { SetupAdministration } from './SetupAdministration.ts';
 import { setupTools } from './setupTools.ts';
 import { atomicJson, readJson, isMissing, safePath } from '../storage/files.ts';
@@ -74,11 +75,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           throw new Error('Системный помощник выключен. Включите его в конструкторе.');
         const path = String(sections.piPath ?? '') || options.piPath();
         const model = agent.model;
-        const connections = (sections.connections ?? []) as {
-          id: string;
-          providerId: string;
-          purpose: string;
-        }[];
+        const connections = (sections.connections ?? []) as Connection[];
         if (
           !model?.id ||
           !model.provider ||
@@ -93,12 +90,26 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           throw new Error(
             'Выберите подключение и модель системного помощника на странице «Агенты».',
           );
-        const models = await readPiCatalog(path, options.catalog, store.folder);
+        const modelAuth = await connectionAuthScope(
+          join(dirname(options.bootstraps), 'model-auth'),
+          store.folder,
+          connections.find((item) => item.id === model.connectionId)!,
+        );
+        const models = await readPiCatalog(path, options.catalog, store.folder, modelAuth);
         if (!models.models.some((item) => item.provider === model.provider && item.id === model.id))
           throw new Error(
             'Выбранная модель помощника отсутствует в каталоге Pi. Автоматической подмены нет.',
           );
-        if ((await getProviderStatus(path, model.provider)).status !== 'ready')
+        if (
+          (
+            await getModelProviderStatus(
+              path,
+              join(dirname(options.catalog), 'model-auth.mjs'),
+              model.provider,
+              modelAuth,
+            )
+          ).status !== 'ready'
+        )
           throw new Error(
             'Завершите вход в выбранный аккаунт Pi. Модель помощника не подменялась.',
           );
@@ -138,17 +149,16 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           await mkdir(await safePath(root, `${agentDirectory(outputPath)}/${sub}`, true), {
             recursive: true,
           });
-        return {
-          run: await buildRunContext(
-            root,
-            project,
-            agent.id,
-            [agent],
-            (sections.resources ?? []) as Resource[],
-            options.mcpSecrets?.resolver(store.folder, path),
-          ),
-          piPath: path,
-        };
+        const run = await buildRunContext(
+          root,
+          project,
+          agent.id,
+          [agent],
+          (sections.resources ?? []) as Resource[],
+          options.mcpSecrets?.resolver(store.folder, path),
+        );
+        run.modelAuth = modelAuth;
+        return { run, piPath: path };
       }),
     update: async (run, status, session) => {
       if (session) {

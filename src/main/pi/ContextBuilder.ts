@@ -10,7 +10,10 @@ import { resolveResources, type ResolvedResources, type McpConfigResolver } from
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 
+import type { ModelAuthScope } from './modelAuth.ts';
+
 export interface PreparedRun {
+  modelAuth?: ModelAuthScope;
   requestSequence?: number;
   record: RunContextRecord;
   instructions: string;
