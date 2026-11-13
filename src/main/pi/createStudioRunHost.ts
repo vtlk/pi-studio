@@ -7,6 +7,8 @@ import type { StudioService } from '../storage/StudioStore.ts';
 import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { nextEnabledStage, nextStageMessage } from './stageChain.ts';
+import { productionTools } from './RunChannel.ts';
+import { libraryTools, libraryTool } from '../library/tools.ts';
 
 interface Options {
   bootstraps: string;
@@ -16,6 +18,8 @@ interface Options {
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
+    tools: [...productionTools, ...libraryTools],
+    tool: (run, name, args) => libraryTool(service, run, name, args),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     prepare: (request) =>

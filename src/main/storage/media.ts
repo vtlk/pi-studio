@@ -24,9 +24,13 @@ const mime: Record<string, string> = {
 };
 /** Local media stays streamed in main; the renderer receives no file:// access. */
 export async function mediaResponse(root: string, relative: string, request: Request) {
-  if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405 });
   if (!/^agents\/[a-zA-Z0-9_-]+\/output\/.+/.test(relative))
     return new Response(null, { status: 403 });
+  return streamMedia(root, relative, request);
+}
+/** Callers validate their own output/library scope before using the common byte-range transport. */
+export async function streamMedia(root: string, relative: string, request: Request) {
+  if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405 });
   const type = mime[extname(relative).toLowerCase()];
   if (!type) return new Response(null, { status: 415 });
   const path = await safePath(root, relative);

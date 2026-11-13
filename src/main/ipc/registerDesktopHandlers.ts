@@ -85,6 +85,9 @@ export function registerDesktopHandlers(): StudioService {
       return service.serialize(() => Promise.resolve(action(event, ...(args as never[]))));
     });
   }
+  handle(desktopChannels.listLibrary, async () =>
+    withReadDeadline(async () => (await service.load()).library.list()),
+  );
   ipcMain.handle(desktopChannels.beginCodexLogin, async (event) => {
     caller(event);
     const path = await service.serialize(async () =>

@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 
 const desktopApi: DesktopApi = {
+  listLibrary: () => ipcRenderer.invoke(desktopChannels.listLibrary),
   getInfo: () => ipcRenderer.invoke(desktopChannels.getInfo),
   loadStudio: () => ipcRenderer.invoke(desktopChannels.loadStudio),
   chooseStudio: () => ipcRenderer.invoke(desktopChannels.chooseStudio),

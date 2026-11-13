@@ -12,7 +12,7 @@ import { cx } from '@/shared/ui';
 
 export function LibraryView() {
   const { isDesktop } = useStorage();
-  const { characters, locations, removeAsset, restoreAsset } = useLibrary();
+  const { characters, locations, removeAsset, restoreAsset, error, warnings } = useLibrary();
   const { demo } = useNotice();
   const [tab, setTab] = useState('Персонажи');
   const [search, setSearch] = useState('');
@@ -27,6 +27,9 @@ export function LibraryView() {
   );
   const selected = filtered.find((item) => item.id === selectedId) ?? filtered[0] ?? collection[0];
   const isCharacter = tab === 'Персонажи';
+  const categories = [
+    ...new Set(collection.map((item) => item.category).filter((value): value is string => !!value)),
+  ];
   return (
     <div className="page-body">
       <div className="library-toolbar">
@@ -47,7 +50,7 @@ export function LibraryView() {
           ))}
         </div>
 
-        {isCharacter && !isDesktop && (
+        {categories.length > 0 && (
           <div className="library-category">
             <Select
               label="Категория библиотеки"
@@ -55,9 +58,13 @@ export function LibraryView() {
               onValueChange={setCategory}
               options={[
                 { value: 'Все', label: 'Все категории' },
-                { value: 'men', label: 'Парни' },
-                { value: 'women', label: 'Девушки' },
-                { value: 'winter', label: 'Зимние' },
+                ...categories.map((value) => ({
+                  value,
+                  label:
+                    (
+                      { men: 'Парни', women: 'Девушки', winter: 'Зимние' } as Record<string, string>
+                    )[value] ?? value,
+                })),
               ]}
             />
           </div>
@@ -106,7 +113,7 @@ export function LibraryView() {
               label={`Удалить ${item.title}`}
               onDelete={() => {
                 removeAsset(item.id);
-                demo(`«${item.title}» убран из библиотеки прототипа.`, {
+                demo(`«${item.title}» убран из библиотеки.`, {
                   label: 'Вернуть',
                   onClick: () => restoreAsset(item.id),
                 });
@@ -115,6 +122,16 @@ export function LibraryView() {
           </div>
         ))}
       </div>
+      {error && (
+        <p role="alert" className="error-message">
+          {error}
+        </p>
+      )}
+      {warnings.length > 0 && (
+        <p role="alert" className="error-message">
+          Не прочитаны материалы: {warnings.join('; ')}
+        </p>
+      )}
       {filtered.length === 0 ? (
         <p className="no-results">
           {collection.length

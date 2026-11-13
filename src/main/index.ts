@@ -2,7 +2,8 @@ import { app, protocol } from 'electron';
 import { join } from 'node:path';
 import { createStudioWindow } from './windows/createStudioWindow';
 import { registerDesktopHandlers } from './ipc/registerDesktopHandlers';
-import { mediaResponse } from './storage/media';
+import { mediaResponse, streamMedia } from './storage/media';
+import { libraryKind } from './library/manifest';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -36,6 +37,22 @@ else
     protocol.handle('studio-media', async (request) => {
       try {
         const url = new URL(request.url);
+        if (url.hostname === 'library') {
+          const [scope, kind, id, version, ...parts] = url.pathname
+            .slice(1)
+            .split('/')
+            .map(decodeURIComponent);
+          const media = await service.serialize(async () =>
+            (await service.load()).library.media(
+              scope,
+              libraryKind(kind),
+              id,
+              Number(version),
+              parts.join('/'),
+            ),
+          );
+          return streamMedia(media.root, media.path, request);
+        }
         if (url.hostname !== 'output') return new Response(null, { status: 403 });
         const [projectId, ...parts] = url.pathname.slice(1).split('/').map(decodeURIComponent);
         const root = await service.serialize(async () =>

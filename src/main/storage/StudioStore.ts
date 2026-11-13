@@ -11,15 +11,18 @@ import type {
 import { atomicJson, isMissing, readJson, safePath } from './files.ts';
 import { parseSection, parseStudio } from './validation.ts';
 import { ProjectStore } from './ProjectStore.ts';
+import { LibraryStore } from '../library/LibraryStore.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
   readonly projects: ProjectStore;
+  readonly library: LibraryStore;
   private warnings: string[] = [];
   readonly folder: string;
   private constructor(folder: string) {
     this.folder = folder;
     this.projects = new ProjectStore(folder);
+    this.library = new LibraryStore(folder);
   }
   static async open(folder: string) {
     if (typeof folder !== 'string' || !isAbsolute(folder) || folder.includes('\0'))

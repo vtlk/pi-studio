@@ -105,11 +105,13 @@ export function CharacterControls({
   onChange,
   onBlink,
   disabled,
+  disabledNote = 'Для анимации выберите SVG.',
 }: {
   value: CharacterPreviewOptions;
   onChange: (update: Partial<CharacterPreviewOptions>) => void;
   onBlink: () => void;
   disabled: boolean;
+  disabledNote?: string;
 }) {
   return (
     <div className="character-controls" role="group" aria-label="Анимация персонажа">
@@ -193,7 +195,7 @@ export function CharacterControls({
           Моргнуть
         </Button>
       </div>
-      {disabled && <p className="subtle">Для анимации выберите SVG.</p>}
+      {disabled && <p className="subtle">{disabledNote}</p>}
     </div>
   );
 }

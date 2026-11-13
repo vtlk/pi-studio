@@ -7,10 +7,12 @@ import { CharacterControls } from './CharacterControls';
 import { LocationPreview } from './LocationPreview';
 
 export function LibraryAssetViewer({ asset, character }: { asset: Asset; character: boolean }) {
-  const [view, setView] = useState('SVG');
+  const [requestedView, setView] = useState('SVG');
+  const view = asset.library && !asset.vector ? 'PNG-эталон' : requestedView;
   const [options, setOptions] = useState(defaultCharacterPreview);
   const [blinkRequest, setBlinkRequest] = useState(0);
   const svg = view === 'SVG';
+  const staticCharacter = character && !!asset.library && !asset.library.animated;
   const source = (svg ? (asset.vector ?? asset.image) : asset.reference) ?? asset.image;
   const update = (change: Partial<CharacterPreviewOptions>) =>
     setOptions((previous) => ({ ...previous, ...change }));
@@ -23,13 +25,15 @@ export function LibraryAssetViewer({ asset, character }: { asset: Asset; charact
         <div className="library-format-layout">
           <SectionMenu
             label="Формат просмотра"
-            items={['SVG', 'PNG-эталон'].map((label) => ({ id: label, label }))}
+            items={(asset.library && !asset.vector ? ['PNG-эталон'] : ['SVG', 'PNG-эталон']).map(
+              (label) => ({ id: label, label }),
+            )}
             selected={view}
             onSelect={setView}
           />
           {character ? (
             <div className="library-art">
-              {svg ? (
+              {svg && !staticCharacter ? (
                 <AnimatedCharacter
                   key={asset.id}
                   asset={asset}
@@ -50,7 +54,12 @@ export function LibraryAssetViewer({ asset, character }: { asset: Asset; charact
           <CharacterControls
             value={options}
             onChange={update}
-            disabled={!svg}
+            disabled={!svg || staticCharacter}
+            disabledNote={
+              staticCharacter
+                ? 'Статичный материал. Совместимый анимационный риг ещё не подключён.'
+                : undefined
+            }
             onBlink={() => {
               setBlinkRequest((previous) => previous + 1);
             }}

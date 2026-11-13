@@ -5,7 +5,10 @@ import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { StudioStore } from '../src/main/storage/StudioStore.ts';
+import { StudioService } from '../src/main/storage/StudioStore.ts';
+import { productionTools } from '../src/main/pi/RunChannel.ts';
+import { libraryTools, libraryTool } from '../src/main/library/tools.ts';
+import { libraryPng } from './fixtures/library.mjs';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
 import { RunHost } from '../src/main/pi/RunHost.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
@@ -15,6 +18,8 @@ import type { Resource } from '../src/shared/resources.ts';
 
 // Opt-in integration: one short real subscription request in an isolated studio, then exact resume.
 const temporary = await mkdtemp(join(tmpdir(), 'pistudio-live-session-'));
+const checkLibrary = process.argv.includes('--library');
+const service = new StudioService(join(temporary, 'preferences.json'), join(temporary, 'Studio'));
 const pi = await checkPi('');
 assert.equal((await getProviderStatus(pi.path, 'openai-codex')).status, 'ready');
 const agent: Agent = {
@@ -35,7 +40,7 @@ const agent: Agent = {
     temperature: '',
   },
 };
-const store = await StudioStore.open(join(temporary, 'Studio'));
+const store = await service.load();
 const earlier = { ...agent, id: 'previous', name: 'Earlier agent' };
 const constructor = [earlier, agent];
 await store.saveSection('agents', constructor);
@@ -144,6 +149,8 @@ const resources: Resource[] = [
 await store.saveSection('resources', resources);
 const children: Promise<number | null>[] = [];
 const host = new RunHost({
+  tools: [...productionTools, ...libraryTools],
+  tool: (run, name, args) => libraryTool(service, run, name, args),
   bootstraps: join(temporary, 'bootstraps'),
   bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   headless: true,
@@ -175,11 +182,22 @@ const host = new RunHost({
   },
 });
 try {
+  const pngInput = join(temporary, 'qa-library-reference.png');
+  if (checkLibrary) await writeFile(pngInput, libraryPng());
+  const libraryRequest = checkLibrary
+    ? ` Also check the library publication pipeline: read library_get_contract, then library_prepare_asset for kind locations with title QA location. In the returned stagingDirectory, use native bash to copy the provided PNG ${JSON.stringify(pngInput)} to reference.png and preview.png; write a simple safe static scene.svg with a circle, and add files.vector="scene.svg" in the prepared asset.json without changing id/kind/version/createdAt. Call library_validate_asset and library_publish_asset with that preparation token. Use native bash to write the returned manifest id and version into output/library-result.json as {"id":"...","version":1}. Do not create extra assets.`
+    : '';
+  const outputs = [
+    'hello.txt',
+    'project-root.txt',
+    'resources.json',
+    ...(checkLibrary ? ['library-result.json'] : []),
+  ];
   const started = await host.launch({
     projectId,
     agentId: agent.id,
     autoContinue: false,
-    firstMessage: `Use the Pi Studio internal MCP list_project_files tool to list ${earlierOutput}, then its read_project_file tool to read ${earlierOutput}/brief.md. That file contains one token. Call the assigned package tool qa_package_value and the assigned external MCP tool external_value. Read the assigned qa-resource skill to get its skill test token. Use native bash (not write/edit) to create output/resources.json with exactly {"package":"<package token>","mcp":"<external MCP token>","skill":"<skill test token>"}, and output/hello.txt with exactly the brief token and a newline. Also use bash to write the absolute Project directory stated in your system prompt to output/project-root.txt with a newline. Call Pi Studio complete_stage with outputs ["hello.txt", "project-root.txt", "resources.json"]. Do not do anything else.`,
+    firstMessage: `Use the Pi Studio internal MCP list_project_files tool to list ${earlierOutput}, then its read_project_file tool to read ${earlierOutput}/brief.md. That file contains one token. Call the assigned package tool qa_package_value and the assigned external MCP tool external_value. Read the assigned qa-resource skill to get its skill test token. Use native bash (not write/edit) to create output/resources.json with exactly {"package":"<package token>","mcp":"<external MCP token>","skill":"<skill test token>"}, and output/hello.txt with exactly the brief token and a newline. Also use bash to write the absolute Project directory stated in your system prompt to output/project-root.txt with a newline.${libraryRequest} Finally call Pi Studio complete_stage with outputs ${JSON.stringify(outputs)}. Perform only these checks.`,
   });
   assert.ok(started.project.agents.find((item) => item.profile.id === agent.id)?.session);
   const firstExit = await children[0];
@@ -190,6 +208,18 @@ try {
   assert.equal(await readFile(join(root, agentOutput, 'hello.txt'), 'utf8'), `${token}\n`);
   assert.equal(await readFile(join(root, agentOutput, 'project-root.txt'), 'utf8'), `${root}\n`);
   const transcript = await readFile(join(root, binding.path), 'utf8');
+  if (checkLibrary) {
+    const listing = await store.library.list();
+    assert.equal(listing.assets.length, 1);
+    const saved = JSON.parse(
+      await readFile(join(root, agentOutput, 'library-result.json'), 'utf8'),
+    );
+    assert.equal(saved.id, listing.assets[0].id);
+    assert.equal(saved.version, 1);
+    assert.equal(listing.assets[0].library.kind, 'locations');
+    const asset = await store.library.get('locations', saved.id, 1);
+    assert.deepEqual(await readFile(join(asset.directory, 'reference.png')), libraryPng());
+  }
   assert.deepEqual(JSON.parse(await readFile(join(root, agentOutput, 'resources.json'), 'utf8')), {
     package: packageToken,
     mcp: mcpToken,
@@ -206,6 +236,27 @@ try {
       ? message.content.filter((block: { type: string }) => block.type === 'toolCall')
       : [],
   );
+  if (checkLibrary)
+    for (const name of [
+      'library_get_contract',
+      'library_prepare_asset',
+      'library_validate_asset',
+      'library_publish_asset',
+    ]) {
+      assert.ok(
+        calls.some((call) => call.name === `mcp__pi_studio__${name}`),
+        `Pi must actually invoke ${name}`,
+      );
+      assert.ok(
+        messages.some(
+          (message) =>
+            message.role === 'toolResult' &&
+            message.toolName === `mcp__pi_studio__${name}` &&
+            !message.isError,
+        ),
+        `${name} must actually succeed`,
+      );
+    }
   assert.ok(
     calls.some((call) => call.name === 'bash'),
     'Native bash must actually be called',
@@ -248,6 +299,10 @@ try {
   console.log(
     'Real Pi session passed: assigned package tool + packaged skill + external MCP in the same session, native bash, internal project file access, explicit project root, validated completion and exact empty resume without instruction copies.',
   );
+  if (checkLibrary)
+    console.log(
+      'Real Pi library passed: native bash writes prepared PNG/SVG data, MCP validates/publishes one asset, pinned version is readable and exact resume does not publish again.',
+    );
 } finally {
   host.close();
   await Promise.allSettled(children);

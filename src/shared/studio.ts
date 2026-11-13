@@ -9,6 +9,7 @@ export interface Asset {
   type: string;
   actions?: string[];
   emotions?: string[];
+  library?: { kind: 'characters' | 'locations'; version: number; animated: boolean };
 }
 export interface Instruction {
   id: string;
