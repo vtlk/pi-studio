@@ -6,6 +6,7 @@ import { readPiCatalog } from './catalog.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
+import { nextEnabledStage, nextStageMessage } from './stageChain.ts';
 
 interface Options {
   bootstraps: string;
@@ -14,7 +15,7 @@ interface Options {
   piPath: () => string;
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
-  return new RunHost({
+  const host: RunHost = new RunHost({
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     prepare: (request) =>
@@ -75,5 +76,25 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       }),
     read: (run) =>
       service.serialize(async () => (await service.load()).projects.read(run.project.id)),
+    completed: async (run, outputs, message) => {
+      if (run.agent.profile.requiresSceneApproval)
+        throw new Error('Требуется согласование результата человеком.');
+      const project = await service.serialize(async () =>
+        (await service.load()).projects.read(run.project.id),
+      );
+      const next = nextEnabledStage(project, run.agent.profile.id);
+      if (!next) return;
+      const input = nextStageMessage(run, outputs, message);
+      await host.launch(
+        {
+          projectId: project.id,
+          agentId: next.profile.id,
+          autoContinue: true,
+          ...(!next.session ? { firstMessage: input } : {}),
+        },
+        next.session ? input : undefined,
+      );
+    },
   });
+  return host;
 }

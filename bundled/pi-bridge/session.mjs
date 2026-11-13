@@ -136,7 +136,15 @@ export async function runSession(bootstrapPath) {
           await event({ type: 'error' });
           return { action: 'handled' };
         }
-        await event({ type: 'request' });
+        try {
+          await event({ type: 'request', message: input.text });
+        } catch {
+          ctx.ui.notify(
+            'Другой этап проекта ещё работает или связь со Studio недоступна. Запрос не отправлен. Повторите после его завершения.',
+            'error',
+          );
+          return { action: 'handled' };
+        }
         return { action: 'continue' };
       });
       pi.on('agent_start', async () => {
