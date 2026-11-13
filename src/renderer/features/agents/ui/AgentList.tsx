@@ -74,7 +74,7 @@ export function AgentList() {
       <h2 className="system-agents-heading">Системные</h2>
       {systemAgents.map((agent) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
-          <Tooltip label={agent.name || 'Без названия'}>
+          <Tooltip label={agent.name || 'Без названия'} onlyWhenTruncated overflowSelector="span">
             <button
               type="button"
               className={cx(

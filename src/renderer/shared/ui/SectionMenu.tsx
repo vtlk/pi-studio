@@ -8,7 +8,6 @@ interface MenuItem<T> {
   suffix?: ReactNode;
   onRemove?: () => void;
   muted?: boolean;
-  tooltip?: string;
 }
 interface SectionMenuProps<T> {
   items: MenuItem<T>[];
@@ -47,19 +46,9 @@ export function SectionMenu<T extends string | number>({
               if (event.key === 'Escape') setFocused(null);
             }}
           >
-            {item.tooltip ? (
-              <Tooltip
-                label={item.tooltip}
-                open={focused === item.id}
-                onOpenChange={(open) =>
-                  setFocused((current) => (open ? item.id : current === item.id ? null : current))
-                }
-              >
-                <span>{item.label}</span>
-              </Tooltip>
-            ) : (
+            <Tooltip label={item.label} onlyWhenTruncated open={focused === item.id || undefined}>
               <span>{item.label}</span>
-            )}
+            </Tooltip>
             {item.suffix}
           </button>
         );

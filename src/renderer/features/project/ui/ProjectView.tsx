@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useWorkspace } from '../model/Workspace';
 import type { WorkspaceProject } from '../model/workspace.types';
-import { agentStatusLabels, getAgentDisplayStatus } from '../model/agentActivity';
+import { getAgentDisplayStatus } from '../model/agentActivity';
 import { AgentStatusIcon } from './AgentStatusIcon';
 import { AgentOutputsView } from './AgentOutputsView';
 import { RefreshAgentsDialog } from './RefreshAgentsDialog';
@@ -58,7 +58,6 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
               id: agent.profile.id,
               label: `${index + 1}. ${agent.profile.name || 'Без названия'}`,
               muted: !agent.profile.enabled,
-              tooltip: `${agent.profile.name || 'Без названия'} · ${agentStatusLabels[getAgentDisplayStatus(agent)]}${project.id === 'demo-project' ? ' (пример статуса)' : ''}`,
               suffix: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
             }))}
             selected={selectedAgent?.profile.id ?? ''}

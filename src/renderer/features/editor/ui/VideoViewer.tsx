@@ -154,14 +154,14 @@ export function VideoViewer({
               const layout = timelineLanes(track.items);
               return (
                 <div className="editor-track" key={track.id}>
-                  <Tooltip label={track.name}>
+                  <Tooltip label={track.name} onlyWhenTruncated overflowSelector="span">
                     <div className="editor-track-name">
                       <span>{track.name}</span>
                     </div>
                   </Tooltip>
                   <div className="editor-track-clips" style={{ height: layout.count * 40 }}>
                     {track.items.map((item) => (
-                      <Tooltip key={item.id} label={item.name}>
+                      <Tooltip key={item.id} label={item.name} onlyWhenTruncated>
                         <button
                           className={`editor-clip${view.selected === item.id ? ' selected' : ''}`}
                           aria-label={`Клип ${item.name}`}

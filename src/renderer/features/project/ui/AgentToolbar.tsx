@@ -99,7 +99,7 @@ export function AgentToolbar({
       aria-label="Инструменты выбранного агента"
     >
       {file && (
-        <Tooltip label={filePath ?? file.name}>
+        <Tooltip label={filePath ?? file.name} onlyWhenTruncated>
           <code className="project-active-file">{filePath ?? file.name}</code>
         </Tooltip>
       )}

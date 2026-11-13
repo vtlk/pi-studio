@@ -29,7 +29,7 @@ export function AgentListItem({
       data-dragging={isDragging || undefined}
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
-      <Tooltip label={agent.name || 'Без названия'}>
+      <Tooltip label={agent.name || 'Без названия'} onlyWhenTruncated overflowSelector="span">
         <button
           type="button"
           className={cx('section-menu-item', 'agent-list-item', selected && 'active')}

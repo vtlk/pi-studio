@@ -41,7 +41,7 @@ function TreeItem({
     const Icon = open ? FolderOpen : Folder;
     return (
       <li>
-        <Tooltip label={entry.name}>
+        <Tooltip label={entry.name} onlyWhenTruncated overflowSelector="span">
           <button
             className="file-tree-item file-tree-folder"
             aria-expanded={open}
@@ -70,7 +70,7 @@ function TreeItem({
   const Icon = icons[entry.format];
   return (
     <li>
-      <Tooltip label={entry.name}>
+      <Tooltip label={entry.name} onlyWhenTruncated overflowSelector="span">
         <button
           className={cx('file-tree-item', selectedFileId === entry.id && 'active')}
           aria-current={selectedFileId === entry.id ? 'true' : undefined}

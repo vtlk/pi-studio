@@ -101,7 +101,7 @@ export function ReferenceAttachments({
                 <AttachmentThumbnail attachment={attachment} />
               </div>
               <div className="reference-file-info">
-                <Tooltip label={attachment.name}>
+                <Tooltip label={attachment.name} onlyWhenTruncated>
                   <span className="reference-file-name">{attachment.name}</span>
                 </Tooltip>
                 <small>
