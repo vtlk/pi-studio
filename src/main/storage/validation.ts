@@ -1,6 +1,7 @@
 import type { Agent } from '../../shared/studio.ts';
 import type { WorkspaceProject, ProjectAgent } from '../../shared/project.ts';
 import { storageSections, type StorageSection, type StudioSections } from '../../shared/storage.ts';
+import { agentDirectory, agentFolderSlug } from '../../shared/agentPaths.ts';
 
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -87,7 +88,19 @@ export function snapshotAgent(agent: Agent): ProjectAgent {
     mainInstruction: _mainInstruction,
     ...profile
   } = parseAgent(agent);
-  return { profile, outputPath: `agents/${profile.id}/output`, entries: [] };
+  return { profile, outputPath: `agents/${agentFolderSlug(profile.name)}/output`, entries: [] };
+}
+
+export function snapshotProjectAgents(agents: Agent[], reserved: string[] = []) {
+  const used = new Set(reserved.map((name) => name.toLowerCase()));
+  return agents.map((agent) => {
+    const snapshot = snapshotAgent(agent);
+    const slug = agentFolderSlug(agent.name);
+    let folder = slug;
+    for (let suffix = 2; used.has(folder.toLowerCase()); suffix++) folder = `${slug}-${suffix}`;
+    used.add(folder.toLowerCase());
+    return { ...snapshot, outputPath: `agents/${folder}/output` };
+  });
 }
 
 function parseProjectAgent(value: unknown): ProjectAgent {
@@ -96,12 +109,13 @@ function parseProjectAgent(value: unknown): ProjectAgent {
   if ('instructions' in profile || 'mainInstruction' in profile)
     throw new Error('Проект не должен хранить копии инструкций.');
   const agent = snapshotAgent(parseAgent({ ...profile, instructions: [] }));
-  if (saved.outputPath !== agent.outputPath) throw new Error('Некорректный путь выходов агента.');
+  agent.outputPath = text(saved.outputPath, 500);
+  const directory = agentDirectory(agent.outputPath);
   if (saved.session !== undefined) {
     const binding = record(saved.session);
     const path = text(binding.path, 1000);
     if (
-      !path.startsWith(`agents/${agent.profile.id}/sessions/`) ||
+      !path.startsWith(`${directory}/sessions/`) ||
       path.includes('..') ||
       !path.endsWith('.jsonl')
     )
@@ -123,7 +137,7 @@ export function parseProject(value: unknown): WorkspaceProject {
   const agents = list(item.agents).map(parseProjectAgent);
   if (new Set(agents.map((agent) => agent.profile.id)).size !== agents.length)
     throw new Error('Повторяющиеся ID снимка.');
-  return {
+  const project: WorkspaceProject = {
     id: stableId(item.id),
     name: text(item.name, 500),
     createdAt: timestamp(item.createdAt),
@@ -144,6 +158,10 @@ export function parseProject(value: unknown): WorkspaceProject {
           }),
         }),
   };
+  const all = [...project.agents, ...(project.archivedAgents ?? []).map((item) => item.agent)];
+  if (new Set(all.map((agent) => agent.outputPath.toLowerCase())).size !== all.length)
+    throw new Error('Повторяющиеся папки агентов.');
+  return project;
 }
 export function projectDocument(project: WorkspaceProject) {
   return {

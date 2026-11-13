@@ -50,7 +50,7 @@ test('new projects copy exactly the current constructor IDs/order/enabled/model/
   );
   assert.deepEqual(
     first.agents.map((agent) => agent.outputPath),
-    constructor.map((agent) => `agents/${agent.id}/output`),
+    constructor.map((agent) => `agents/${agent.name.toLowerCase().replaceAll(' ', '-')}/output`),
   );
   const changed = [
     {
@@ -91,9 +91,9 @@ test('removing a project agent is persistent and reversible; output/session byte
   await store.saveSection('agents', constructor);
   const project = (await store.command({ kind: 'create', name: 'Movie', agents: constructor }))
     .projects[0];
-  const output = join(root, 'projects/Movie/agents/b/output/result.txt');
+  const output = join(root, 'projects/Movie/agents/custom-b/output/result.txt');
   await writeFile(output, 'Real output preserved');
-  const sessionPath = 'agents/b/sessions/dialogue.jsonl';
+  const sessionPath = 'agents/custom-b/sessions/dialogue.jsonl';
   await writeFile(join(root, 'projects/Movie', sessionPath), 'canonical Pi history');
   await store.projects.updateRuntime(project.id, 'b', 'waiting', {
     id: 'dialogue',

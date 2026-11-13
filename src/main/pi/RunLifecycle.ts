@@ -31,10 +31,10 @@ export class RunLifecycle {
       )
         throw new Error('Invalid Pi binding');
       const path = relative(live.run.projectRoot, event.sessionFile).split('\\').join('/');
-      if (
-        !path.startsWith(`agents/${live.run.record.agentId}/sessions/`) ||
-        !path.endsWith('.jsonl')
-      )
+      const sessions = relative(live.run.projectRoot, live.run.record.sessionDirectory)
+        .split('\\')
+        .join('/');
+      if (!path.startsWith(`${sessions}/`) || !path.endsWith('.jsonl'))
         throw new Error('Pi session is outside the agent session directory');
       await safePath(live.run.projectRoot, path);
       if (!(await stat(event.sessionFile)).isFile())
@@ -142,7 +142,7 @@ export class RunLifecycle {
       const document = await readVideoProject(
         live.run.projectRoot,
         live.run.record.projectId,
-        `agents/${live.run.record.agentId}/output/${args.manifest}`,
+        `${live.run.agent.outputPath}/${args.manifest}`,
       );
       return {
         validated: true,

@@ -46,8 +46,15 @@ const created = await store.command({
 });
 const projectId = created.selectedId!;
 const root = await store.projects.directory(projectId);
+const earlierOutput = created.projects[0].agents.find(
+  (item) => item.profile.id === earlier.id,
+)!.outputPath;
+const agentOutput = created.projects[0].agents.find(
+  (item) => item.profile.id === agent.id,
+)!.outputPath;
+const agentSessions = agentOutput.replace(/\/output$/, '/sessions');
 const token = `PISTUDIO_REAL_SESSION_${randomUUID()}`;
-await writeFile(join(root, 'agents/previous/output/brief.md'), `${token}\n`);
+await writeFile(join(root, earlierOutput, 'brief.md'), `${token}\n`);
 const packageToken = randomUUID(),
   skillToken = randomUUID(),
   mcpToken = randomUUID();
@@ -172,8 +179,7 @@ try {
     projectId,
     agentId: agent.id,
     autoContinue: false,
-    firstMessage:
-      'Use the Pi Studio internal MCP list_project_files tool to list agents/previous/output, then its read_project_file tool to read agents/previous/output/brief.md. That file contains one token. Call the assigned package tool qa_package_value and the assigned external MCP tool external_value. Read the assigned qa-resource skill to get its skill test token. Use native bash (not write/edit) to create output/resources.json with exactly {"package":"<package token>","mcp":"<external MCP token>","skill":"<skill test token>"}, and output/hello.txt with exactly the brief token and a newline. Also use bash to write the absolute Project directory stated in your system prompt to output/project-root.txt with a newline. Call Pi Studio complete_stage with outputs ["hello.txt", "project-root.txt", "resources.json"]. Do not do anything else.',
+    firstMessage: `Use the Pi Studio internal MCP list_project_files tool to list ${earlierOutput}, then its read_project_file tool to read ${earlierOutput}/brief.md. That file contains one token. Call the assigned package tool qa_package_value and the assigned external MCP tool external_value. Read the assigned qa-resource skill to get its skill test token. Use native bash (not write/edit) to create output/resources.json with exactly {"package":"<package token>","mcp":"<external MCP token>","skill":"<skill test token>"}, and output/hello.txt with exactly the brief token and a newline. Also use bash to write the absolute Project directory stated in your system prompt to output/project-root.txt with a newline. Call Pi Studio complete_stage with outputs ["hello.txt", "project-root.txt", "resources.json"]. Do not do anything else.`,
   });
   assert.ok(started.project.agents.find((item) => item.profile.id === agent.id)?.session);
   const firstExit = await children[0];
@@ -181,19 +187,14 @@ try {
   const finished = await store.projects.read(projectId);
   assert.equal(finished.agents.find((item) => item.profile.id === agent.id)?.runStatus, 'ready');
   const binding = finished.agents.find((item) => item.profile.id === agent.id)!.session!;
-  assert.equal(
-    await readFile(join(root, 'agents/qa-agent/output/hello.txt'), 'utf8'),
-    `${token}\n`,
-  );
-  assert.equal(
-    await readFile(join(root, 'agents/qa-agent/output/project-root.txt'), 'utf8'),
-    `${root}\n`,
-  );
+  assert.equal(await readFile(join(root, agentOutput, 'hello.txt'), 'utf8'), `${token}\n`);
+  assert.equal(await readFile(join(root, agentOutput, 'project-root.txt'), 'utf8'), `${root}\n`);
   const transcript = await readFile(join(root, binding.path), 'utf8');
-  assert.deepEqual(
-    JSON.parse(await readFile(join(root, 'agents/qa-agent/output/resources.json'), 'utf8')),
-    { package: packageToken, mcp: mcpToken, skill: skillToken },
-  );
+  assert.deepEqual(JSON.parse(await readFile(join(root, agentOutput, 'resources.json'), 'utf8')), {
+    package: packageToken,
+    mcp: mcpToken,
+    skill: skillToken,
+  });
   const messages = transcript
     .trim()
     .split('\n')
@@ -225,7 +226,7 @@ try {
     ),
     'Native bash must succeed',
   );
-  const beforeFiles = await readdir(join(root, 'agents/qa-agent/sessions'));
+  const beforeFiles = await readdir(join(root, agentSessions));
   const resumed = await host.launch({ projectId, agentId: agent.id, autoContinue: false });
   assert.equal(
     resumed.project.agents.find((item) => item.profile.id === agent.id)?.session?.path,
@@ -237,7 +238,7 @@ try {
     transcript,
     'Resume must not add any user message or replay generation',
   );
-  assert.deepEqual(await readdir(join(root, 'agents/qa-agent/sessions')), beforeFiles);
+  assert.deepEqual(await readdir(join(root, agentSessions)), beforeFiles);
   for (const id of [started.runId, resumed.runId]) {
     const context = await readFile(join(root, '.pistudio/context', id, 'context.json'), 'utf8');
     assert.equal(context.includes(agent.mainInstruction!), false);

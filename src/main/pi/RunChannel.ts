@@ -65,7 +65,7 @@ export const productionTools: SessionTool[] = [
   {
     name: 'read_project_file',
     description:
-      'Read any regular file in this session project, including another project agent output, without executing or modifying it. path is relative to the project root, e.g. agents/<previous-id>/output/script.md. Bounded byte windows; nextOffset continues reading. auto detects UTF-8 versus base64 binary. For visual image/PDF/media inspection or shell processing, use Pi native read/bash.',
+      'Read any regular file in this session project, including another project agent output, without executing or modifying it. path is relative to the project root, e.g. agents/<folder-slug>/output/script.md; get_run_context gives the exact agent names and paths. Bounded byte windows; nextOffset continues reading. auto detects UTF-8 versus base64 binary. For visual image/PDF/media inspection or shell processing, use Pi native read/bash.',
     inputSchema: {
       type: 'object',
       properties: {

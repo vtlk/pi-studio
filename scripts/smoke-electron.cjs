@@ -109,8 +109,9 @@ const deadline = setTimeout(() => {
     constructorBeforeCreate.map(({ instructions, mainInstruction, ...profile }) => profile),
   );
   assert.equal(project.agents[1].profile.enabled, false);
-  const agentId = project.agents[0].profile.id;
-  const output = join(first.folder, 'projects/Desktop smoke/agents', agentId, 'output');
+  const outputPath = project.agents[0].outputPath;
+  assert.equal(outputPath, 'agents/pervyy-polzovatelskiy-agent/output');
+  const output = join(first.folder, 'projects/Desktop smoke', outputPath);
   await writeFile(
     join(output, 'проверка.md'),
     '# Файловый просмотр\n\n**Жирный текст** и обычный текст.\n\n<script>window.INJECTED=true</script>',
@@ -125,7 +126,7 @@ const deadline = setTimeout(() => {
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/desktop-project.png'), (await window.capturePage()).toPNG());
   const apiRead = await js(
-    `window.studio.readOutput({projectId:${JSON.stringify(project.id)},path:${JSON.stringify(`agents/${agentId}/output/проверка.md`)}})`,
+    `window.studio.readOutput({projectId:${JSON.stringify(project.id)},path:${JSON.stringify(`${outputPath}/проверка.md`)}})`,
   );
   assert.match(apiRead.content, /Файловый просмотр/);
   const projectJson = JSON.parse(
@@ -135,7 +136,7 @@ const deadline = setTimeout(() => {
   const check = await js(`window.studio.checkPi('')`);
   assert.equal(check.nativeMcp, true);
   assert.equal(check.exactSessions, true);
-  const imagePath = `agents/${agentId}/output/pixel.png`;
+  const imagePath = `${outputPath}/pixel.png`;
   await writeFile(
     join(output, 'pixel.png'),
     Buffer.from(
@@ -156,6 +157,7 @@ const deadline = setTimeout(() => {
   assert.deepEqual(Object.keys(provider).sort(), ['provider', 'status']);
   // The project toolbar deletion is confirmed before mutation and restores its original position.
   window.focus();
+  await until('document.hasFocus()');
   await js(
     `document.activeElement?.blur(); document.querySelector('[aria-label="Удалить агента из проекта"]').focus()`,
   );

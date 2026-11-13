@@ -56,9 +56,12 @@ const deadline = setTimeout(() => {
   await js(`window.studio.projectCommand({kind:'create',name:'Видео smoke',agents:[]})`);
   const studio = await js('window.studio.loadStudio()'),
     project = studio.projects[0];
-  const output = join(studio.folder, 'projects', project.folderName, 'agents/viewer/output');
+  const output = join(studio.folder, 'projects', project.folderName, project.agents[0].outputPath);
   await writeVideoFixture(output);
-  const request = { projectId: project.id, path: 'agents/viewer/output/film.pistudio.json' };
+  const request = {
+    projectId: project.id,
+    path: `${project.agents[0].outputPath}/film.pistudio.json`,
+  };
   const inspected = await js(`window.studio.inspectVideoProject(${JSON.stringify(request)})`);
   assert.equal(inspected.ok, true, inspected.error);
   window.webContents.reload();

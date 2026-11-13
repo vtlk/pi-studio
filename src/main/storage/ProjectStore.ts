@@ -8,10 +8,12 @@ import {
   parseProject,
   projectDocument,
   snapshotAgent,
+  snapshotProjectAgents,
   stableId,
 } from './validation.ts';
 import { scanOutputs } from './outputs.ts';
 import { archiveProjectAgent, restoreProjectAgent } from '../../shared/projectAgents.ts';
+import { agentDirectory } from '../../shared/agentPaths.ts';
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -108,9 +110,10 @@ export class ProjectStore {
     await atomicJson(await safePath(root, 'project.json', true), projectDocument(project));
   }
   private async ensureAgents(project: WorkspaceProject, root: string) {
+    await mkdir(await safePath(root, 'agents', true), { recursive: true });
     for (const agent of project.agents) {
       for (const sub of ['output', 'sessions'])
-        await mkdir(await safePath(root, `agents/${agent.profile.id}/${sub}`, true), {
+        await mkdir(await safePath(root, `${agentDirectory(agent.outputPath)}/${sub}`, true), {
           recursive: true,
         });
     }
@@ -176,7 +179,7 @@ export class ProjectStore {
             folderName: name,
             createdAt: Date.now(),
             autoContinue: false,
-            agents: parseAgents(command.agents).map(snapshotAgent),
+            agents: snapshotProjectAgents(parseAgents(command.agents)),
           };
         }
         await this.ensureAgents(project, staging);
@@ -246,13 +249,17 @@ export class ProjectStore {
         const next = {
           ...project,
           agents: [
-            ...current
-              .filter(
+            ...snapshotProjectAgents(
+              current.filter(
                 (agent) =>
                   !existing.has(agent.id) &&
                   !project.archivedAgents?.some((item) => item.agent.profile.id === agent.id),
-              )
-              .map(snapshotAgent),
+              ),
+              await readdir(await safePath(root, 'agents', true)).catch((error) => {
+                if (isMissing(error)) return [];
+                throw error;
+              }),
+            ),
             ...project.agents.map((agent) => {
               const profile = current.find((item) => item.id === agent.profile.id);
               return command.updateExisting && profile

@@ -61,13 +61,13 @@ test('project creates stable output/session directories without instruction text
   });
   const project = projects[0];
   const root = await store.projects.directory(project.id);
-  assert.ok((await stat(join(root, 'agents/writer/output'))).isDirectory());
-  assert.ok((await stat(join(root, 'agents/writer/sessions'))).isDirectory());
+  assert.ok((await stat(join(root, 'agents/scenarist/output'))).isDirectory());
+  assert.ok((await stat(join(root, 'agents/scenarist/sessions'))).isDirectory());
   const raw = await readFile(join(root, 'project.json'), 'utf8');
   assert.equal(raw.includes('mainInstruction'), false);
   assert.equal(raw.includes('instructions'), false);
   assert.equal(raw.includes('Только текущий текст'), false);
-  assert.deepEqual(await readdir(join(root, 'agents/writer/sessions')), []);
+  assert.deepEqual(await readdir(join(root, 'agents/scenarist/sessions')), []);
   assert.deepEqual((await store.projects.read(project.id)).agents[0].entries, []);
 });
 test('clone copies every project file into an independent folder and preserves the source snapshot', async (t) => {
@@ -77,7 +77,7 @@ test('clone copies every project file into an independent folder and preserves t
   const sourceRoot = await store.projects.directory(source.id);
   await mkdir(join(sourceRoot, 'extra'));
   await writeFile(join(sourceRoot, 'extra/binary.dat'), Buffer.from([0, 2, 3, 255]));
-  await writeFile(join(sourceRoot, 'agents/writer/output/сценарий.md'), '# Сценарий');
+  await writeFile(join(sourceRoot, 'agents/scenarist/output/сценарий.md'), '# Сценарий');
   await store.saveSection('agents', [agent('new-global-agent')]);
   const cloned = await store.command({ kind: 'clone', projectId: source.id, name: 'Копия' });
   const copy = cloned.projects.find((project) => project.id === cloned.selectedId)!;
@@ -89,9 +89,9 @@ test('clone copies every project file into an independent folder and preserves t
   );
   const copyRoot = await store.projects.directory(copy.id);
   assert.deepEqual(await readFile(join(copyRoot, 'extra/binary.dat')), Buffer.from([0, 2, 3, 255]));
-  await writeFile(join(copyRoot, 'agents/writer/output/сценарий.md'), 'Изменённая копия');
+  await writeFile(join(copyRoot, 'agents/scenarist/output/сценарий.md'), 'Изменённая копия');
   assert.equal(
-    await readFile(join(sourceRoot, 'agents/writer/output/сценарий.md'), 'utf8'),
+    await readFile(join(sourceRoot, 'agents/scenarist/output/сценарий.md'), 'utf8'),
     '# Сценарий',
   );
 });
@@ -100,7 +100,7 @@ test('rename changes the physical folder but preserves IDs, dates and relative f
   const project = (await store.command({ kind: 'create', name: 'До', agents: [agent()] }))
     .projects[0];
   const root = await store.projects.directory(project.id);
-  await writeFile(join(root, 'agents/writer/output/file.txt'), 'данные');
+  await writeFile(join(root, 'agents/scenarist/output/file.txt'), 'данные');
   await store.command({ kind: 'rename', projectId: project.id, name: 'После' });
   await assert.rejects(stat(root), { code: 'ENOENT' });
   const reopened = await StudioStore.open(store.folder);
@@ -110,7 +110,7 @@ test('rename changes the physical folder but preserves IDs, dates and relative f
   assert.equal(saved.name, 'После');
   assert.equal(saved.agents[0].profile.id, 'writer');
   assert.equal(
-    (await loadOutput(await reopened.projects.directory(saved.id), 'agents/writer/output/file.txt'))
+    (await loadOutput(await reopened.projects.directory(saved.id), 'agents/scenarist/output/file.txt'))
       .content,
     'данные',
   );
@@ -136,7 +136,7 @@ test('delete is reversible after restart and never erases any source project fil
   const project = (await store.command({ kind: 'create', name: 'Вернуть', agents: [agent()] }))
     .projects[0];
   const directory = await store.projects.directory(project.id);
-  await writeFile(join(directory, 'agents/writer/output/result.txt'), 'сохранить');
+  await writeFile(join(directory, 'agents/scenarist/output/result.txt'), 'сохранить');
   await store.command({ kind: 'remove', projectId: project.id });
   const reopened = await StudioStore.open(store.folder);
   assert.equal(reopened.bootstrap().projects.length, 0);
@@ -146,7 +146,7 @@ test('delete is reversible after restart and never erases any source project fil
     (
       await loadOutput(
         await reopened.projects.directory(project.id),
-        'agents/writer/output/result.txt',
+        'agents/scenarist/output/result.txt',
       )
     ).content,
     'сохранить',
@@ -168,7 +168,7 @@ test('refresh stable IDs adds only once, preserves orphan agents and files, and 
     await store.command({ kind: 'create', name: 'Снимок', agents: [agent(), agent('orphan')] })
   ).projects[0];
   const root = await store.projects.directory(project.id);
-  await writeFile(join(root, 'agents/writer/output/file.txt'), 'не менять');
+  await writeFile(join(root, 'agents/scenarist/output/file.txt'), 'не менять');
   const changed = { ...agent(), name: 'Изменён' };
   for (let i = 0; i < 2; i++)
     await store.command({
@@ -191,7 +191,7 @@ test('refresh stable IDs adds only once, preserves orphan agents and files, and 
   });
   saved = await store.projects.read(project.id);
   assert.equal(saved.agents[1].profile.name, 'Изменён');
-  assert.equal(await readFile(join(root, 'agents/writer/output/file.txt'), 'utf8'), 'не менять');
+  assert.equal(await readFile(join(root, 'agents/scenarist/output/file.txt'), 'utf8'), 'не менять');
 });
 test('corrupt and future studio versions fail without overwriting the original bytes', async (t) => {
   const { store } = await fixture(t);
@@ -221,23 +221,23 @@ test('output reads reject traversal, symlinks, binary text, huge text and files 
     .projects[0];
   const directory = await store.projects.directory(project.id);
   await writeFile(join(root, 'outside.txt'), 'outside');
-  await symlink(join(root, 'outside.txt'), join(directory, 'agents/writer/output/link.txt'));
-  await writeFile(join(directory, 'agents/writer/output/binary.txt'), Buffer.from([0, 2]));
+  await symlink(join(root, 'outside.txt'), join(directory, 'agents/scenarist/output/link.txt'));
+  await writeFile(join(directory, 'agents/scenarist/output/binary.txt'), Buffer.from([0, 2]));
   await writeFile(
-    join(directory, 'agents/writer/output/large.txt'),
+    join(directory, 'agents/scenarist/output/large.txt'),
     Buffer.alloc(2 * 1024 * 1024 + 1, 65),
   );
   for (const path of [
     '../outside.txt',
     '/etc/passwd',
     'project.json',
-    'agents/writer/output/../../project.json',
-    'agents/writer/output/link.txt',
-    'agents/writer/output/binary.txt',
-    'agents/writer/output/large.txt',
+    'agents/scenarist/output/../../project.json',
+    'agents/scenarist/output/link.txt',
+    'agents/scenarist/output/binary.txt',
+    'agents/scenarist/output/large.txt',
   ])
     await assert.rejects(loadOutput(directory, path));
-  await assert.rejects(safePath(directory, 'agents/writer/output/../sessions'));
+  await assert.rejects(safePath(directory, 'agents/scenarist/output/../sessions'));
   const entries = (await store.projects.read(project.id)).agents[0].entries;
   assert.equal(
     entries.some((entry) => entry.name === 'link.txt'),
@@ -249,7 +249,7 @@ test('media responses stream byte ranges for seeking and reject non-media docume
   const project = (await store.command({ kind: 'create', name: 'Медиа', agents: [agent()] }))
     .projects[0];
   const root = await store.projects.directory(project.id);
-  const path = 'agents/writer/output/video.mp4';
+  const path = 'agents/scenarist/output/video.mp4';
   await writeFile(join(root, path), Buffer.from('0123456789'));
   const response = await mediaResponse(
     root,
@@ -276,7 +276,7 @@ test('media responses stream byte ranges for seeking and reject non-media docume
     416,
   );
   assert.equal(
-    (await mediaResponse(root, 'agents/writer/output/code.html', new Request('https://local/')))
+    (await mediaResponse(root, 'agents/scenarist/output/code.html', new Request('https://local/')))
       .status,
     415,
   );

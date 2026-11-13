@@ -7,6 +7,7 @@ import type { RunContextRecord } from '../../shared/runtime.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { resolveResources, type ResolvedResources } from './resources.ts';
+import { agentDirectory } from '../../shared/agentPaths.ts';
 
 export interface PreparedRun {
   record: RunContextRecord;
@@ -35,9 +36,10 @@ export async function buildRunContext(
     throw new Error(
       'Выберите подключение и модель агента в конструкторе, затем явно перечитайте агента в проекте.',
     );
-  const cwd = await safePath(projectRoot, `agents/${agentId}`);
+  const agentFolder = agentDirectory(agent.outputPath);
+  const cwd = await safePath(projectRoot, agentFolder);
   const output = await safePath(projectRoot, agent.outputPath);
-  const sessionDirectory = await safePath(projectRoot, `agents/${agentId}/sessions`);
+  const sessionDirectory = await safePath(projectRoot, `${agentFolder}/sessions`);
   const resources = await resolveResources(agent.profile, catalog);
   const record: RunContextRecord = {
     schemaVersion: 1,
@@ -51,7 +53,11 @@ export async function buildRunContext(
     sessionDirectory,
     previousOutputs: project.agents
       .slice(0, project.agents.indexOf(agent))
-      .map((item) => ({ agentId: item.profile.id, path: join(projectRoot, item.outputPath) })),
+      .map((item) => ({
+        agentId: item.profile.id,
+        agentName: item.profile.name,
+        path: join(projectRoot, item.outputPath),
+      })),
     model: {
       connectionId: model.connectionId,
       provider: model.provider,
