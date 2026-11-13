@@ -33,10 +33,9 @@ function useConnectionsState() {
   );
   const [imageTool, setImageTool] = useStoredState('imageTool', { connectionId: '', modelId: '' });
   const { providerStatuses, setProviderStatus } = useProviderStatuses(
-    connections
-      .filter((connection) => connection.purpose === 'codex' || connection.purpose === 'pi')
-      .map((connection) => connection.providerId),
+    connections.filter((connection) => connection.purpose !== 'images'),
     `${bootstrap?.folder ?? ''}\n${String(bootstrap?.sections.piPath ?? '')}`,
+    bootstrap?.folder,
   );
   const images = useImageConnections(
     connections

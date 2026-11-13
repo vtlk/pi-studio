@@ -1,7 +1,9 @@
+import { dirname, join } from 'node:path';
 import { RunHost } from './RunHost.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { stableId } from '../storage/validation.ts';
-import { getProviderStatus } from './provider.ts';
+import { connectionAuthScope, getModelProviderStatus } from './modelAuth.ts';
+import type { Connection } from '../../shared/connections.ts';
 import { readPiCatalog } from './catalog.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Agent } from '../../shared/studio.ts';
@@ -65,11 +67,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           throw new Error('Продолжение диалога не отправляет референсы повторно.');
         if (!profile || !hasModelConfiguration(profile.model))
           throw new Error('Выберите подключение, модель и уровень рассуждения проектного агента.');
-        const connections = sections.connections as {
-          id: string;
-          providerId: string;
-          purpose: string;
-        }[];
+        const connections = sections.connections as Connection[];
         const connection = connections.find((item) => item.id === profile?.model?.connectionId);
         if (
           !connection ||
@@ -80,9 +78,23 @@ export function createStudioRunHost(service: StudioService, options: Options) {
             'Подключение агента отсутствует или изменено. Выберите действующее подключение и модель в конструкторе.',
           );
         const piPath = String(sections.piPath ?? '') || options.piPath();
-        if ((await getProviderStatus(piPath, connection.providerId)).status !== 'ready')
+        const modelAuth = await connectionAuthScope(
+          join(dirname(options.bootstraps), 'model-auth'),
+          store.folder,
+          connection,
+        );
+        if (
+          (
+            await getModelProviderStatus(
+              piPath,
+              join(dirname(options.catalog), 'model-auth.mjs'),
+              connection.providerId,
+              modelAuth,
+            )
+          ).status !== 'ready'
+        )
           throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
-        const catalog = await readPiCatalog(piPath, options.catalog, store.folder);
+        const catalog = await readPiCatalog(piPath, options.catalog, store.folder, modelAuth);
         const selectedModel = catalog.models.find(
           (item) => item.provider === profile.model?.provider && item.id === profile.model.id,
         );
@@ -113,6 +125,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           selectedModel.imageInput,
         );
         options.images?.bind(run, store.folder, selectedModel);
+        run.modelAuth = modelAuth;
         return { run, piPath };
       }),
     update: (run, status, session) =>

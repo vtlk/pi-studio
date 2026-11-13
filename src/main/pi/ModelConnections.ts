@@ -1,0 +1,85 @@
+import { join } from 'node:path';
+import { realpath } from 'node:fs/promises';
+import type { StudioService } from '../storage/StudioStore.ts';
+import type {
+  Connection,
+  ModelConnectionRequest,
+  ModelConnectionStatus,
+  ModelLoginRequest,
+} from '../../shared/connections.ts';
+import { stableId } from '../storage/validation.ts';
+import type { BrowserAuth } from './BrowserAuth.ts';
+import { connectionAuthScope, modelAuthOperation } from './modelAuth.ts';
+import { getProviderStatus } from './provider.ts';
+
+export class ModelConnections {
+  constructor(
+    private service: StudioService,
+    private directory: string,
+    private scripts: string,
+    private piPath: () => string,
+    private browserAuth: BrowserAuth,
+  ) {}
+  private async descriptor(request: ModelConnectionRequest) {
+    if (!request || typeof request.folder !== 'string') throw new Error('Выберите папку студии.');
+    stableId(request.connectionId);
+    return this.service.serialize(async () => {
+      const store = await this.service.load();
+      if ((await realpath(request.folder)) !== store.folder)
+        throw new Error('Папка студии изменилась.');
+      const sections = store.bootstrap().sections;
+      const connection = (sections.connections as Connection[]).find(
+        (item) => item.id === request.connectionId,
+      );
+      if (!connection || connection.purpose === 'images')
+        throw new Error('Подключение модели отсутствует.');
+      const path = String(sections.piPath ?? '') || this.piPath();
+      return {
+        connection,
+        path,
+        scope: await connectionAuthScope(this.directory, store.folder, connection),
+        signature: JSON.stringify([connection, path, store.folder]),
+      };
+    });
+  }
+  async status(request: ModelConnectionRequest): Promise<ModelConnectionStatus> {
+    const saved = await this.descriptor(request);
+    const status = saved.scope
+      ? await modelAuthOperation<{ provider: string; status: ModelConnectionStatus['status'] }>(
+          saved.path,
+          join(this.scripts, 'model-auth.mjs'),
+          { action: 'status', provider: saved.connection.providerId, scope: saved.scope },
+        )
+      : await getProviderStatus(saved.path, saved.connection.providerId);
+    if ((await this.descriptor(request)).signature !== saved.signature)
+      throw new Error('Подключение изменилось во время проверки.');
+    if (
+      status.provider !== saved.connection.providerId ||
+      !['ready', 'not_ready', 'invalid'].includes(status.status)
+    )
+      throw new Error('Неподдерживаемый ответ авторизации Pi.');
+    return { ...status, connectionId: request.connectionId };
+  }
+  async login(request: ModelLoginRequest) {
+    if (!['oauth', 'api_key'].includes(request.method)) throw new Error('Выберите способ входа.');
+    const saved = await this.descriptor(request);
+    return this.browserAuth.startProvider(saved.path, {
+      provider: saved.connection.providerId,
+      method: request.method,
+      scope: saved.scope,
+      key: saved.signature,
+      verify: async () => {
+        if ((await this.descriptor(request)).signature !== saved.signature) return false;
+        return (await this.status(request)).status === 'ready';
+      },
+    });
+  }
+  async logout(request: ModelConnectionRequest) {
+    const saved = await this.descriptor(request);
+    await modelAuthOperation(saved.path, join(this.scripts, 'model-auth.mjs'), {
+      action: 'logout',
+      provider: saved.connection.providerId,
+      scope: saved.scope,
+    });
+  }
+}

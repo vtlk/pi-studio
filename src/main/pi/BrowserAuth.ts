@@ -5,6 +5,7 @@ import { createInterface } from 'node:readline';
 import { randomUUID } from 'node:crypto';
 import type { AuthLoginState } from '../../shared/auth.ts';
 import { checkPi } from './checkPi.ts';
+import type { ModelAuthScope } from './modelAuth.ts';
 import { getProviderStatus } from './provider.ts';
 
 export function validateCodexAuthUrl(value: unknown): string {
@@ -73,6 +74,7 @@ export class BrowserAuth {
   async start(path: string): Promise<AuthLoginState> {
     return this.begin(path, {
       key: 'codex',
+      payload: { provider: 'openai-codex', method: 'oauth' },
       script: this.script,
       validateUrl: validateCodexAuthUrl,
       message: 'Открываем вход через ChatGPT…',
@@ -80,6 +82,27 @@ export class BrowserAuth {
       failure: 'Не удалось войти через ChatGPT. Проверьте подключение и повторите вход.',
       verify: async (resolvedPath) =>
         (await getProviderStatus(resolvedPath, 'openai-codex')).status === 'ready',
+    });
+  }
+  startProvider(
+    path: string,
+    request: {
+      provider: string;
+      method: 'oauth' | 'api_key';
+      scope?: ModelAuthScope;
+      key: string;
+      verify: () => Promise<boolean>;
+    },
+  ) {
+    return this.begin(path, {
+      key: `model:${request.key}`,
+      script: this.script,
+      validateUrl: request.provider === 'openai-codex' ? validateCodexAuthUrl : validateMcpAuthUrl,
+      payload: { provider: request.provider, method: request.method, scope: request.scope },
+      verify: request.verify,
+      message: 'Запускаем штатный вход Pi…',
+      success: 'Вход выполнен для выбранного подключения.',
+      failure: 'Не удалось подтвердить вход выбранного подключения. Повторите вход.',
     });
   }
   startMcp(
@@ -167,15 +190,36 @@ export class BrowserAuth {
           login.state = {
             ...login.state,
             phase: 'waiting',
-            message: 'Подтвердите вход в открывшемся браузере.',
+            message:
+              typeof event.deviceCode === 'string' &&
+              /^[a-zA-Z0-9 -]{1,100}$/.test(event.deviceCode)
+                ? `Введите код ${event.deviceCode} в открывшемся браузере.`
+                : 'Подтвердите вход в открывшемся браузере.',
           };
       } else if (event.type === 'prompt' && typeof event.id === 'string') {
         login.state = {
           id: login.state.id,
           phase: 'waiting',
-          message:
-            'Ожидаем подтверждения браузера. Если возврат не сработал, вставьте адрес ответа ниже.',
-          prompt: { id: event.id, secret: event.secret === true },
+          message: 'Завершите вход Pi в форме ниже или в браузере.',
+          prompt: {
+            id: event.id,
+            secret: event.secret === true,
+            ...(typeof event.message === 'string' ? { message: event.message.slice(0, 1000) } : {}),
+            ...(Array.isArray(event.options)
+              ? {
+                  options: event.options
+                    .filter(
+                      (item): item is { id: string; label: string } =>
+                        !!item && typeof item.id === 'string' && typeof item.label === 'string',
+                    )
+                    .slice(0, 50)
+                    .map((item) => ({
+                      id: item.id.slice(0, 200),
+                      label: item.label.slice(0, 500),
+                    })),
+                }
+              : {}),
+          },
         };
       } else if (event.type === 'done') {
         // Mark the transport settled before its process exits, then verify Pi's actual stored auth.
@@ -217,7 +261,7 @@ export class BrowserAuth {
   }
   cancel(id: string) {
     const login = this.logins.get(id);
-    if (!login || !['opening', 'waiting'].includes(login.state.phase)) return;
+    if (!login || !['opening', 'waiting', 'verifying'].includes(login.state.phase)) return;
     login.state = { id, phase: 'cancelled', message: 'Вход отменён.' };
     login.child.stdin.write('{"type":"cancel"}\n');
     login.child.kill();

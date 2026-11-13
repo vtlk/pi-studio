@@ -36,6 +36,7 @@ export function ConnectionsPanel() {
               id: crypto.randomUUID(),
               name: '',
               purpose: 'pi',
+              authScope: 'connection',
               providerId: '',
               endpoint: '',
               account: '',
@@ -61,6 +62,8 @@ export function ConnectionsPanel() {
                     : connection.purpose === 'images'
                       ? 'Оплачиваемый API'
                       : 'Способ входа из Pi'}
+                  {connection.purpose !== 'images' &&
+                    ` · ${connection.authScope === 'connection' ? 'Отдельный вход' : 'Общий вход Pi'}`}
                 </p>
                 <small>
                   {connection.purpose === 'images'
@@ -73,15 +76,15 @@ export function ConnectionsPanel() {
                           : imageStatuses[connection.id]?.keyStored
                             ? 'Ключ сохранён · авторизация не проверена'
                             : 'API-ключ не сохранён'
-                    : providerStatuses[connection.providerId] === 'ready'
+                    : providerStatuses[connection.id] === 'ready'
                       ? 'Подключено'
-                      : providerStatuses[connection.providerId] === 'not_ready'
+                      : providerStatuses[connection.id] === 'not_ready'
                         ? 'Pi: требуется вход'
-                        : providerStatuses[connection.providerId] === 'invalid'
+                        : providerStatuses[connection.id] === 'invalid'
                           ? 'Pi: ошибка авторизации'
-                          : providerStatuses[connection.providerId] === 'checking'
+                          : providerStatuses[connection.id] === 'checking'
                             ? 'Проверяем подключение…'
-                            : providerStatuses[connection.providerId] === 'unavailable'
+                            : providerStatuses[connection.id] === 'unavailable'
                               ? 'Не удалось проверить подключение'
                               : 'Авторизация не проверена'}
                 </small>

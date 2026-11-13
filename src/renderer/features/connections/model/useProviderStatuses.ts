@@ -1,25 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { ProviderStatus } from '../../../../shared/contracts';
+import type { Connection, ModelConnectionStatus } from '../../../../shared/connections';
 
-export function useProviderStatuses(providerIds: string[], scope: string) {
-  const key = JSON.stringify([...new Set(providerIds.filter(Boolean))].sort());
+export function useProviderStatuses(connections: Connection[], scope: string, folder?: string) {
+  const key = JSON.stringify(
+    connections
+      .map((item) => [item.id, item.providerId, item.authScope, item.endpoint])
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+  );
   const [providerStatuses, setStatuses] = useState<
-    Record<string, ProviderStatus['status'] | 'checking' | 'unavailable'>
+    Record<string, ModelConnectionStatus['status'] | 'checking' | 'unavailable'>
   >({});
   const setProviderStatus = useCallback(
-    (result: ProviderStatus) =>
+    (result: ModelConnectionStatus) =>
       setStatuses((previous) =>
-        previous[result.provider] === result.status
+        previous[result.connectionId] === result.status
           ? previous
-          : { ...previous, [result.provider]: result.status },
+          : { ...previous, [result.connectionId]: result.status },
       ),
     [],
   );
   useEffect(() => {
-    if (!window.studio) return;
+    if (!window.studio || !folder) return;
     let active = true,
       busy = false;
-    const ids = JSON.parse(key) as string[];
+    const ids = (JSON.parse(key) as string[][]).map((item) => item[0]);
     setStatuses(Object.fromEntries(ids.map((id) => [id, 'checking'])));
     const refresh = async () => {
       if (busy) return;
@@ -28,7 +32,7 @@ export function useProviderStatuses(providerIds: string[], scope: string) {
         await Promise.all(
           ids.map(async (id) => {
             try {
-              const result = await window.studio!.getProviderStatus(id);
+              const result = await window.studio!.getConnectionStatus({ folder, connectionId: id });
               if (active) setProviderStatus(result);
             } catch {
               if (active) setStatuses((previous) => ({ ...previous, [id]: 'unavailable' }));
@@ -50,6 +54,6 @@ export function useProviderStatuses(providerIds: string[], scope: string) {
       clearInterval(timer);
       window.removeEventListener('focus', focus);
     };
-  }, [key, scope, setProviderStatus]);
+  }, [key, scope, folder, setProviderStatus]);
   return { providerStatuses, setProviderStatus };
 }

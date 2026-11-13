@@ -2,6 +2,7 @@ import { readFile, rm, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve, relative, isAbsolute } from 'node:path';
 import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
+import { createConnectionRuntime } from './connection-runtime.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
 
@@ -210,6 +211,7 @@ export async function runSession(bootstrapPath) {
       await event({ type: 'capabilities', executableExtensions: packages.extensions.length > 0 });
       const services = await createAgentSessionServices({
         cwd,
+        ...(envelope.modelAuth ? { modelRuntime: await createConnectionRuntime(sdk, envelope.modelAuth) } : {}),
         settingsManager: settings,
         resourceLoaderOptions: {
           noExtensions: true,

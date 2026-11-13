@@ -216,11 +216,17 @@ export function parseSection(section: unknown, value: unknown): unknown {
       createdAt: timestamp(item.createdAt),
     };
     if (section === 'connections') {
+      if (
+        item.authScope !== undefined &&
+        !['native', 'connection'].includes(String(item.authScope))
+      )
+        throw new Error('Некорректная область авторизации подключения.');
       if (!['codex', 'images', 'pi', 'compatible', 'local'].includes(String(item.purpose)))
         throw new Error('Некорректный тип подключения.');
       return {
         ...base,
         purpose: item.purpose,
+        ...(item.authScope === undefined ? {} : { authScope: item.authScope }),
         providerId: text(item.providerId, 500),
         endpoint: text(item.endpoint, 2000),
         account: text(item.account, 500),

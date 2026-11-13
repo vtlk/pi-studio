@@ -3,6 +3,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import type { PreparedRun } from './ContextBuilder.ts';
 
 export interface SessionEnvelope {
+  modelAuth?: PreparedRun['modelAuth'];
   record: PreparedRun['record'];
   instructions: string;
   resources: PreparedRun['resources'];

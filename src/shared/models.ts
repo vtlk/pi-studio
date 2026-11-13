@@ -11,6 +11,8 @@ export interface PiProviderSummary {
   name: string;
   configured: boolean;
   subscription: boolean;
+  isolatedAuth?: boolean;
+  loginMethods?: { id: 'oauth' | 'api_key'; label: string }[];
 }
 export interface PiModelCatalog {
   providers: PiProviderSummary[];

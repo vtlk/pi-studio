@@ -30,6 +30,12 @@ const desktopApi: DesktopApi = {
     ipcRenderer.invoke(desktopChannels.inspectVideoProject, request),
   revealOutput: (request) => ipcRenderer.invoke(desktopChannels.revealOutput, request),
   checkPi: (path) => ipcRenderer.invoke(desktopChannels.checkPi, path),
+  getConnectionStatus: (request) =>
+    ipcRenderer.invoke(desktopChannels.getConnectionStatus, request),
+  beginConnectionLogin: (request) =>
+    ipcRenderer.invoke(desktopChannels.beginConnectionLogin, request),
+  removeConnectionLogin: (request) =>
+    ipcRenderer.invoke(desktopChannels.removeConnectionLogin, request),
   getProviderStatus: (provider) => ipcRenderer.invoke(desktopChannels.getProviderStatus, provider),
   openProviderLogin: (provider) => ipcRenderer.invoke(desktopChannels.openProviderLogin, provider),
   chooseSkill: () => ipcRenderer.invoke(desktopChannels.chooseSkill),
