@@ -10,7 +10,8 @@ import type {
 import { StudioService, type StudioStore } from '../storage/StudioStore';
 import { snapshotAgent } from '../storage/validation';
 import { loadOutput } from '../storage/outputs';
-import { safePath, withReadDeadline } from '../storage/files';
+import { registerProjectActions } from '../storage/registerProjectActions';
+import { withReadDeadline } from '../storage/files';
 import { checkPi } from '../pi/checkPi';
 import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
@@ -329,10 +330,6 @@ export function registerDesktopHandlers(): StudioService {
       };
     }
   });
-  handle(desktopChannels.revealOutput, async (_event, request: FileRequest) => {
-    const root = await (await service.load()).projects.directory(request.projectId);
-    await loadOutput(root, request.path);
-    shell.showItemInFolder(await safePath(root, request.path));
-  });
+  registerProjectActions(service, caller);
   return service;
 }

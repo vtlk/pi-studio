@@ -6,6 +6,7 @@ import { useWorkspace } from '../model/Workspace';
 import type { WorkspaceProject } from '../model/workspace.types';
 import { getAgentDisplayStatus, getAgentStatusLabel } from '../model/agentActivity';
 import { AgentStatusIcon } from './AgentStatusIcon';
+import { AgentActions } from './AgentActions';
 import { AgentOutputsView } from './AgentOutputsView';
 import { RefreshAgentsDialog } from './RefreshAgentsDialog';
 import { ResizeHandle } from '@/shared/ui/ResizeHandle';
@@ -62,6 +63,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
               muted: !agent.profile.enabled,
               icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
               description: getAgentStatusLabel(agent),
+              actions: <AgentActions agent={agent} onLaunch={() => setAgentId(agent.profile.id)} />,
             }))}
             selected={selectedAgent?.profile.id ?? ''}
             onSelect={setAgentId}

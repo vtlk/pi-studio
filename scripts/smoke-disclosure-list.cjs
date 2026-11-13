@@ -35,6 +35,7 @@ const deadline = setTimeout(() => {
         agents: [
           {
             id: 'qa-list-agent',
+            mainInstruction: 'Сохранённый основной промпт',
             name: 'QA агент',
             enabled: true,
             skills: [],
@@ -176,7 +177,25 @@ const deadline = setTimeout(() => {
     'Restoring the final item hides the empty trash',
   );
   await click('Агенты');
+  await until(`!!document.querySelector('.agent-prompt-panel textarea')`);
+  assert.equal(await js(`!!document.querySelector('.instruction-sortable')`), false);
+  assert.equal(
+    await js(`document.querySelector('.agent-prompt-panel textarea').value`),
+    'Сохранённый основной промпт',
+  );
+  await js(
+    `(()=>{const e=document.querySelector('.agent-prompt-panel textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Обновлённый основной промпт');e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('[aria-label="Настройки агента"] .section-menu-label')).slice(0,2).map(e=>e.textContent)`,
+    ),
+    ['Промпт', 'Инструкции'],
+  );
+
+  await click('Инструкции');
   await until(`document.querySelectorAll('.instruction-sortable').length===2`);
+  assert.equal(await js(`!!document.querySelector('.agent-prompt-panel')`), false);
   const instruction = '.instruction-sortable:first-child';
   assert.equal(
     await js(
@@ -276,12 +295,14 @@ const deadline = setTimeout(() => {
   await until(
     `document.querySelector(${JSON.stringify(external)}+' .disclosure-trigger').getAttribute('aria-expanded')==='true'`,
   );
+  await js(`document.activeElement?.blur()`);
   await mouse(pinned + ' .ui-list-row', true);
   await until(`!document.querySelector('.ui-tooltip')`);
   await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await writeFile(resolve('artifacts/disclosure-resources.png'), (await win.capturePage()).toPNG());
   await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   const saved = await js('window.studio.loadStudio()');
+  assert.equal(saved.sections.agents[0].mainInstruction, 'Обновлённый основной промпт');
   assert.deepEqual(
     saved.sections.agents[0].instructions.map((i) => i.id),
     ['second', 'first'],

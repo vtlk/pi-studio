@@ -1,10 +1,12 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
-const { readFile, writeFile, rm, mkdir } = require('node:fs/promises');
+const { readFile, writeFile, rm, mkdir, realpath } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
 let root;
+const revealed = [];
+shell.showItemInFolder = (path) => revealed.push(path);
 const timeout = setTimeout(() => {
   console.error('Projects list QA timed out');
   app.exit(1);
@@ -23,8 +25,8 @@ const timeout = setTimeout(() => {
     ['city', 'Город после дождя', 'gorod-posle-dozhdya', 13, 4, 24],
     ['discoveries', 'Маленькие открытия', 'malenkie-otkrytiya', 12, 3, 18],
     ['morning', 'История одного утра', 'istoriya-odnogo-utra', 10, 5, 42],
-    ['fifth', 'Первый снег', 'pervyy-sneg', 9, 1, 0],
-    ['sixth', 'Туман', 'tuman', 8, 1, 0],
+    ['fifth', 'Проверка снега', 'pervyy-sneg', 9, 1, 0],
+    ['sixth', 'Проверка тумана', 'tuman', 8, 1, 0],
     ['long', longName, longFolder, 6, 3, 0],
   ];
   for (const [id, name, folder, day, agents, files] of [
@@ -193,6 +195,89 @@ const timeout = setTimeout(() => {
   assert.equal(workspaceStyle.refresh, 'rgb(39, 39, 42)');
   assert.equal(workspaceStyle.agentsBg, 'rgb(247, 247, 248)');
   assert.equal(workspaceStyle.filesBg, workspaceStyle.agentsBg);
+  assert.equal(
+    await js(`document.querySelectorAll('.project-file-toolbar button').length`),
+    0,
+    'File header contains no agent actions',
+  );
+  assert.notEqual(
+    await js(
+      `getComputedStyle(document.querySelector('.project-agent-actions .split-button-main')).backgroundColor`,
+    ),
+    'rgb(255, 255, 255)',
+  );
+  assert.equal(
+    await js(
+      `(()=>{const b=document.querySelector('.project-agent-menu .section-menu-item').getBoundingClientRect(),a=document.querySelector('.project-agent-actions').getBoundingClientRect();return Math.abs(a.y+a.height/2-b.y-b.height/2)<1})()`,
+    ),
+    true,
+    'Actions stay on the same row as the agent',
+  );
+  const secondActions = '.project-agent-menu .section-menu-row:nth-child(2) .project-agent-actions';
+  assert.equal(
+    await js(
+      `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-secondary-action')).opacity`,
+    ),
+    '0',
+  );
+  assert.equal(
+    await js(
+      `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .split-button-main')).opacity`,
+    ),
+    '1',
+  );
+  assert.equal(
+    await js(
+      `document.querySelector(${JSON.stringify(secondActions)}+' .split-button-main').textContent`,
+    ),
+    '',
+  );
+  await hover('.project-agent-menu .section-menu-row:nth-child(2)');
+  await until(
+    `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-secondary-action')).opacity==='1'`,
+  );
+  await js(
+    `document.querySelector(${JSON.stringify(secondActions)}+' [aria-label="Показать в Finder"]').click()`,
+  );
+  for (let n = 0; n < 100 && !revealed.length; n++)
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  assert.equal(
+    revealed[0],
+    await realpath(join(studio, 'projects/gorod-posle-dozhdya/agents/agent-1/output')),
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('.project-agent-menu [aria-current="true"] .section-menu-label').textContent`,
+    ),
+    '1. QA 0',
+    'Folder action targets its own row without switching preview',
+  );
+  await js(
+    `document.querySelector(${JSON.stringify(secondActions)}+' [aria-label="Удалить агента из проекта"]').click()`,
+  );
+  await until(`document.querySelector('[role="alertdialog"]')?.textContent.includes('QA 1')`);
+  await click('Отмена');
+  assert.equal(
+    await js(`document.querySelectorAll('.project-agent-menu .section-menu-row').length`),
+    4,
+  );
+  await js(
+    `document.querySelector('[aria-label="Ширина колонки агентов"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}))`,
+  );
+  await until(
+    `document.querySelector('[aria-label="Ширина колонки агентов"]').getAttribute('aria-valuenow')==='200'`,
+  );
+  assert.equal(
+    await js(
+      `(()=>{const e=document.querySelector('.project-agent-menu .section-menu');return e.scrollWidth<=e.clientWidth})()`,
+    ),
+    true,
+    'Actions fit the narrow agent column',
+  );
+  for (let i = 0; i < 12; i++)
+    await js(
+      `document.querySelector('[aria-label="Ширина колонки агентов"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))`,
+    );
   await hover('.agent-status-icon');
   await new Promise((resolve) => setTimeout(resolve, 450));
   assert.equal(await js(`!!document.querySelector('[role="tooltip"]')`), false);
@@ -298,19 +383,16 @@ const timeout = setTimeout(() => {
   const style = await js(
     `(()=>{const get=s=>{const e=document.querySelector(s),v=getComputedStyle(e);return {size:v.fontSize,weight:v.fontWeight,color:v.color,font:v.fontFamily}};return {name:get('.project-list-name'),folder:get('.project-list-folder'),heading:get('.projects-table th'),count:get('.projects-total'),create:get('.project-create-area'),search:get('.projects-search input'),trash:get('.projects-trash .disclosure-trigger')}})()`,
   );
-  await input('[aria-label="Найти проект"]', 'Копия для проверки');
-  assert.equal((await rows()).length, 1);
-  const snapshot = await js('window.studio.loadStudio()');
-  const removeByName = async (name) => {
-    const project = snapshot.projects.find((p) => p.name === name);
-    await js(
-      `window.studio.projectCommand({kind:'remove',projectId:${JSON.stringify(project.id)}})`,
-    );
-  };
-  await removeByName('Первый снег');
-  await removeByName('Туман');
-  win.webContents.reload();
-  await new Promise((resolve) => win.webContents.once('did-finish-load', resolve));
+  await input('[aria-label="Найти проект"]', 'проверк');
+  assert.equal((await rows()).length, 4);
+  for (const name of ['Проверка снега', 'Проверка тумана']) {
+    const selector = `[aria-label="Удалить проект «${name}»"]`;
+    await until(`document.querySelector(${JSON.stringify(selector)})?.disabled===false`);
+    await js(`document.querySelector(${JSON.stringify(selector)}).click()`);
+    await until(`!!document.querySelector('[role="alertdialog"]')`);
+    await click('Удалить');
+    await until(`!document.querySelector('[role="alertdialog"]')`);
+  }
   await until(`document.querySelectorAll('.project-list-item').length===5`);
   assert.equal(await js(`!!document.querySelector('.projects-list-toolbar')`), false);
   let small = await js('window.studio.loadStudio()');

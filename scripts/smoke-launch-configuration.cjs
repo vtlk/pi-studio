@@ -36,7 +36,7 @@ const deadline = setTimeout(() => {
   };
   const click = (text) =>
     js(
-      `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)}).click()`,
+      `(Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)}) || Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row:has([aria-current="true"]) button')).find(button=>button.getAttribute('aria-label')===${JSON.stringify(text)})).click()`,
     );
   const reload = async () => {
     window.webContents.reload();
@@ -102,9 +102,9 @@ const deadline = setTimeout(() => {
       );
     await reload();
     await js(
-      `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.startsWith(${JSON.stringify('Guard ' + field)})&&!button.getAttribute('aria-label')).click()`,
+      `Array.from(document.querySelectorAll('.project-list-row')).find(button=>button.textContent.startsWith(${JSON.stringify('Guard ' + field)})).click()`,
     );
-    await until(`!!document.querySelector('.project-agent-toolbar')`);
+    await until(`!!document.querySelector('.project-agent-actions')`);
     const before = await js(`window.studio.readProject(${JSON.stringify(project.id)})`);
     if (field === 'valid' || field === 'stale-snapshot') {
       await click('Запустить');
@@ -122,7 +122,7 @@ const deadline = setTimeout(() => {
         before,
       );
       await js(
-        `document.querySelector('[aria-label="Другие варианты запуска"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
+        `document.querySelector('.project-agent-menu .section-menu-row:has([aria-current="true"]) [aria-label="Другие варианты запуска"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
       );
       await until(`!!document.querySelector('[role="menuitem"]')`);
       await js(

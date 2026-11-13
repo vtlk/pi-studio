@@ -8,6 +8,7 @@ interface MenuItem<T> {
   icon?: ReactNode;
   description?: string;
   suffix?: ReactNode;
+  actions?: ReactNode;
   onRemove?: () => void;
   muted?: boolean;
 }
@@ -67,6 +68,7 @@ export function SectionMenu<T extends string | number>({
             data-removable={item.onRemove ? true : undefined}
           >
             {control}
+            {item.actions}
             {item.onRemove && (
               <HoverDeleteButton label={`Удалить ${item.label}`} onDelete={item.onRemove} />
             )}

@@ -7,6 +7,8 @@ import { Tooltip } from './Tooltip';
 interface SplitButtonProps {
   label: string;
   icon?: ReactNode;
+  iconOnly?: boolean;
+  kind?: 'primary' | 'secondary';
   disabled?: boolean;
   onClick: () => void;
   menuLabel: string;
@@ -16,6 +18,8 @@ interface SplitButtonProps {
 export function SplitButton({
   label,
   icon,
+  iconOnly = false,
+  kind = 'primary',
   disabled,
   onClick,
   menuLabel,
@@ -25,15 +29,33 @@ export function SplitButton({
   const pendingAction = useRef<(() => void) | null>(null);
   return (
     <DropdownMenu.Root modal={false}>
-      <div className="split-button" role="group" aria-label={label}>
-        <Button kind="primary" disabled={disabled} onClick={onClick}>
-          {icon}
-          {label}
-        </Button>
+      <div
+        className={`split-button${iconOnly ? ' split-button-icon-only' : ''}`}
+        role="group"
+        aria-label={label}
+      >
+        {iconOnly ? (
+          <Tooltip label={label}>
+            <button
+              type="button"
+              className={`button ${kind} split-button-main`}
+              disabled={disabled}
+              onClick={onClick}
+              aria-label={label}
+            >
+              {icon}
+            </button>
+          </Tooltip>
+        ) : (
+          <Button kind={kind} disabled={disabled} onClick={onClick}>
+            {icon}
+            {label}
+          </Button>
+        )}
         <Tooltip label={menuLabel}>
           <DropdownMenu.Trigger
             ref={triggerRef}
-            className="button primary split-button-trigger"
+            className={`button ${kind} split-button-trigger`}
             aria-label={menuLabel}
             disabled={disabled}
           >

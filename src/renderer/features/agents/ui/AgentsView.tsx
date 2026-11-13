@@ -2,6 +2,7 @@ import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { Eye, Pencil } from 'lucide-react';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { useLaunch } from '@/features/launch/model/Launch';
+import { PromptPanel } from './PromptPanel';
 import { InstructionsPanel } from './InstructionsPanel';
 import { CapabilitiesPanel } from './CapabilitiesPanel';
 import { ModelPanel } from './ModelPanel';
@@ -42,15 +43,19 @@ export function AgentsView() {
             <div className="agent-settings-layout">
               <SectionMenu
                 label="Настройки агента"
-                items={['Инструкции', 'Skills', 'MCP', 'Плагины', 'Модель'].map((label) => ({
-                  id: label,
-                  label,
-                }))}
+                items={['Промпт', 'Инструкции', 'Skills', 'MCP', 'Плагины', 'Модель'].map(
+                  (label) => ({
+                    id: label,
+                    label,
+                  }),
+                )}
                 selected={agentTab}
                 onSelect={setAgentTab}
               />
               <div className="agent-settings-body">
-                {agentTab === 'Инструкции' ? (
+                {agentTab === 'Промпт' ? (
+                  <PromptPanel />
+                ) : agentTab === 'Инструкции' ? (
                   <InstructionsPanel />
                 ) : agentTab === 'Модель' ? (
                   <ModelPanel />

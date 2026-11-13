@@ -36,14 +36,6 @@ export function InstructionsPanel() {
   if (!selectedAgent) return null;
   return (
     <div className="instruction-blocks">
-      <label className="field-label">
-        Основной промпт агента
-        <textarea
-          value={selectedAgent.mainInstruction ?? ''}
-          onChange={(event) => updateAgent({ mainInstruction: event.target.value })}
-          placeholder="Задание и правила работы агента"
-        />
-      </label>
       <DndContext
         key={selectedAgent.id}
         sensors={sensors}

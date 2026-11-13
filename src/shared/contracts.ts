@@ -58,6 +58,7 @@ export interface DesktopApi {
   readOutput(request: FileRequest): Promise<OutputFile>;
   inspectVideoProject(request: FileRequest): Promise<VideoProjectInspection>;
   revealOutput(request: FileRequest): Promise<void>;
+  revealAgentOutput(request: { projectId: string; agentId: string }): Promise<void>;
   checkPi(path: string): Promise<PiCheck>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
   getConnectionStatus(request: ModelConnectionRequest): Promise<ModelConnectionStatus>;
@@ -127,6 +128,7 @@ export const desktopChannels = {
   readOutput: 'studio:read-output',
   inspectVideoProject: 'studio:inspect-video-project',
   revealOutput: 'studio:reveal-output',
+  revealAgentOutput: 'studio:reveal-agent-output',
   checkPi: 'studio:check-pi',
   getProviderStatus: 'studio:provider-status',
   getConnectionStatus: 'studio:connection-status',
