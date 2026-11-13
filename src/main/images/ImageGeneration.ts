@@ -9,6 +9,7 @@ import type { ImageConnections } from './ImageConnections.ts';
 import { imageParameters, ImagesApiError } from './ImagesApi.ts';
 import { ImageOperations, type ImageOperation } from './ImageOperations.ts';
 import { imageTools } from './tools.ts';
+import { readImageReferences } from './imageReferences.ts';
 
 interface Binding {
   folder: string;
@@ -107,7 +108,14 @@ export class ImageGeneration {
           throw new Error('Выберите модель GPT Image в общих настройках инструмента.');
         return { connectionId: settings.connectionId, modelId: settings.modelId };
       });
-      const requestHash = hash(JSON.stringify({ ...configuration, ...parameters }));
+      const references = await readImageReferences(run.projectRoot, args.references);
+      const requestHash = hash(
+        JSON.stringify({
+          ...configuration,
+          ...parameters,
+          ...(references.length ? { references: references.map((image) => image.sha256) } : {}),
+        }),
+      );
       const unresolved = operations.find(
         (item) =>
           item.requestId === requestId &&
@@ -164,6 +172,7 @@ export class ImageGeneration {
         requestHash,
         createdAt: Date.now(),
         ...configuration,
+        ...(references.length ? { referenceHashes: references.map((image) => image.sha256) } : {}),
         state: 'pending',
       };
       operations.push(operation);
@@ -173,6 +182,7 @@ export class ImageGeneration {
         configuration.modelId,
         parameters,
         controller.signal,
+        references,
       );
       await this.connections
         .reportAuthorization(

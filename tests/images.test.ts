@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
-import { mkdtemp, readFile, readdir, rm, mkdir, rename, symlink } from 'node:fs/promises';
+import {
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  mkdir,
+  rename,
+  symlink,
+  writeFile,
+  truncate,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
@@ -13,6 +23,8 @@ import { ImageGeneration } from '../src/main/images/ImageGeneration.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import { libraryPng } from '../scripts/fixtures/library.mjs';
+import { readImageReferences } from '../src/main/images/imageReferences.ts';
+import { crc32 } from 'node:zlib';
 
 const KEY = 'QA_SYNTHETIC_KEY_NOT_A_REAL_CREDENTIAL';
 const params = { prompt: 'Draw a blue circle', background: 'transparent' };
@@ -45,6 +57,14 @@ function protector(): StringProtector {
       };
     },
   };
+}
+function referenceVariant(png: Buffer) {
+  const payload = Buffer.from('tEXtComment\0changed reference bytes');
+  const chunk = Buffer.alloc(payload.length + 8);
+  chunk.writeUInt32BE(payload.length - 4);
+  payload.copy(chunk, 4);
+  chunk.writeUInt32BE(crc32(payload), chunk.length - 4);
+  return Buffer.concat([png.subarray(0, -12), chunk, png.subarray(-12)]);
 }
 const imageResponse = () =>
   Response.json({
@@ -492,4 +512,157 @@ test('a stale catalog refusal cannot overwrite a replacement key successful chec
   refuse(Response.json({ error: 'Missing scopes: api.model.read' }, { status: 403 }));
   await assert.rejects(stale, /Ключ изменился/);
   assert.equal((await f.connections.status(f.connection)).authentication, 'ready');
+});
+
+test('reference images use the edits multipart endpoint with exact ordered project bytes and no source mutation', async (t) => {
+  let calls = 0;
+  const png = libraryPng();
+  const f = await fixture(t, async (url, init) => {
+    calls++;
+    assert.equal(url, 'https://api.openai.com/v1/images/edits');
+    assert.equal(init?.redirect, 'error');
+    assert.equal(new Headers(init?.headers).get('Authorization'), `Bearer ${KEY}`);
+    assert.equal(
+      new Headers(init?.headers).has('Content-Type'),
+      false,
+      'Native FormData supplies its boundary',
+    );
+    const wire = new Request(String(url), init);
+    assert.match(wire.headers.get('Content-Type')!, /^multipart\/form-data; boundary=/);
+    const form = await wire.formData();
+    assert.equal(form.get('model'), 'gpt-image-2.5-flare');
+    assert.equal(form.get('prompt'), params.prompt);
+    assert.equal(form.get('n'), '1');
+    assert.equal(form.get('output_format'), 'png');
+    assert.equal(form.get('background'), 'transparent');
+    const files = form.getAll('image[]') as File[];
+    assert.equal(files.length, 2);
+    for (const [index, file] of files.entries()) {
+      assert.equal(file.type, 'image/png');
+      assert.equal(file.name, `reference-${index + 1}.png`);
+      assert.deepEqual(
+        Buffer.from(await file.arrayBuffer()),
+        index === 0 ? png : referenceVariant(png),
+      );
+    }
+    return imageResponse();
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  await mkdir(join(f.run.projectRoot, 'references'));
+  const references = ['references/лицо с пробелом.png', `${f.run.agent.outputPath}/prior.png`];
+  for (const [index, path] of references.entries())
+    await writeFile(join(f.run.projectRoot, path), index === 0 ? png : referenceVariant(png));
+  const result = await f.images.tool(f.run, 'generate_image', { ...params, references });
+  assert.equal(calls, 1);
+  assert.equal(
+    (await f.images.tool(f.run, 'generate_image', { ...params, references })).operationId,
+    result.operationId,
+  );
+  assert.equal(calls, 1, 'An identical call in the same request reuses its result');
+  for (const [index, path] of references.entries())
+    assert.deepEqual(
+      await readFile(join(f.run.projectRoot, path)),
+      index === 0 ? png : referenceVariant(png),
+    );
+  const meta = await readFile(
+    join(f.root, 'operations', (await readdir(join(f.root, 'operations')))[0]),
+    'utf8',
+  );
+  const operation = JSON.parse(meta).operations[0];
+  assert.equal(operation.referenceHashes.length, 2);
+  assert.ok(operation.referenceHashes.every((value: string) => /^[a-f0-9]{64}$/.test(value)));
+  assert.ok(
+    !meta.includes('лицо') &&
+      !meta.includes(png.toString('base64')) &&
+      !meta.includes(params.prompt) &&
+      !meta.includes(KEY),
+  );
+});
+
+test('reference content changes invalidate reuse and a text-only call retains its original endpoint', async (t) => {
+  const endpoints: string[] = [];
+  const f = await fixture(t, async (url) => {
+    endpoints.push(String(url));
+    return imageResponse();
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const path = `${f.run.agent.outputPath}/reference.png`;
+  const png = libraryPng();
+  await writeFile(join(f.run.projectRoot, path), png);
+  const first = await f.images.tool(f.run, 'generate_image', { ...params, references: [path] });
+  await writeFile(join(f.run.projectRoot, path), referenceVariant(png));
+  const second = await f.images.tool(f.run, 'generate_image', { ...params, references: [path] });
+  assert.notEqual(second.operationId, first.operationId);
+  await f.images.tool(f.run, 'generate_image', { ...params, references: [] });
+  assert.deepEqual(endpoints, [
+    'https://api.openai.com/v1/images/edits',
+    'https://api.openai.com/v1/images/edits',
+    'https://api.openai.com/v1/images/generations',
+  ]);
+});
+
+test('invalid, oversized or out-of-project references are rejected before any API request', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return imageResponse();
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  await writeFile(join(f.root, 'outside.png'), libraryPng());
+  await symlink(join(f.root, 'outside.png'), join(f.run.projectRoot, 'linked.png'));
+  await writeFile(join(f.run.projectRoot, 'not-image.png'), 'plain text');
+  await writeFile(join(f.run.projectRoot, 'empty.png'), '');
+  await writeFile(join(f.run.projectRoot, 'oversized.jpg'), '');
+  await truncate(join(f.run.projectRoot, 'oversized.jpg'), 32 * 1024 ** 2 + 1);
+  const invalid = [
+    null,
+    'file.png',
+    ['../outside.png'],
+    [join(f.root, 'outside.png')],
+    ['https://example.com/image.png'],
+    ['data:image/png;base64,abcd'],
+    ['linked.png'],
+    ['not-image.png'],
+    ['empty.png'],
+    ['oversized.jpg'],
+    ['missing.png'],
+    ['a.png', 'a.png'],
+    Array.from({ length: 17 }, (_, i) => `${i}.png`),
+  ];
+  for (const references of invalid)
+    await assert.rejects(f.images.tool(f.run, 'generate_image', { ...params, references }));
+  assert.equal(calls, 0);
+  assert.deepEqual(await readdir(join(f.root, 'operations')).catch(() => []), []);
+  for (let index = 0; index < 3; index++) {
+    await writeFile(join(f.run.projectRoot, `${index}.jpg`), Buffer.from([255, 216, 255, 224]));
+    await truncate(join(f.run.projectRoot, `${index}.jpg`), 24 * 1024 ** 2);
+  }
+  await assert.rejects(
+    readImageReferences(f.run.projectRoot, ['0.jpg', '1.jpg', '2.jpg']),
+    /64 МБ/,
+  );
+});
+
+test('a refused reference edit never falls back to a text generation request', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async (url) => {
+    calls++;
+    assert.equal(url, 'https://api.openai.com/v1/images/edits');
+    return Response.json(
+      { error: { message: 'unsupported reference operation ' + KEY } },
+      { status: 400 },
+    );
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const path = `${f.run.agent.outputPath}/ref.png`;
+  await writeFile(join(f.run.projectRoot, path), libraryPng());
+  await assert.rejects(
+    f.images.tool(f.run, 'generate_image', { ...params, references: [path] }),
+    /Автоматической подмены нет/,
+  );
+  await assert.rejects(
+    f.images.tool(f.run, 'generate_image', { ...params, references: [path] }),
+    /отклонена API/,
+  );
+  assert.equal(calls, 1);
 });

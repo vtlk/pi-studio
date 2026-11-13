@@ -1,4 +1,5 @@
 import { validatePngBytes } from '../storage/png.ts';
+import type { ImageReference } from './imageReferences.ts';
 
 export class ImagesApiError extends Error {
   readonly kind:
@@ -98,7 +99,10 @@ export interface ImageParameters {
 export function imageParameters(value: Record<string, unknown>): ImageParameters {
   if (
     Object.keys(value).some(
-      (key) => !['prompt', 'size', 'quality', 'background', 'retryOperationId'].includes(key),
+      (key) =>
+        !['prompt', 'size', 'quality', 'background', 'retryOperationId', 'references'].includes(
+          key,
+        ),
     )
   )
     throw new Error(
@@ -157,18 +161,42 @@ export class ImagesApi {
       ),
     ].sort();
   }
-  async generate(key: string, model: string, parameters: ImageParameters, signal: AbortSignal) {
+  async generate(
+    key: string,
+    model: string,
+    parameters: ImageParameters,
+    signal: AbortSignal,
+    references: readonly ImageReference[] = [],
+  ) {
     if (!/^gpt-image-[a-zA-Z0-9._-]{1,120}$/.test(model))
       throw new Error('Выберите модель GPT Image в общих настройках инструмента.');
     let response: Response;
+    const payload = { ...parameters, model, n: 1, output_format: 'png' };
+    const multipart = references.length ? new FormData() : undefined;
+    if (multipart) {
+      for (const [name, value] of Object.entries(payload)) multipart.append(name, String(value));
+      references.forEach((image, index) =>
+        multipart.append(
+          'image[]',
+          new Blob([new Uint8Array(image.bytes)], { type: image.mimeType }),
+          `reference-${index + 1}.${image.mimeType === 'image/jpeg' ? 'jpg' : image.mimeType.split('/')[1]}`,
+        ),
+      );
+    }
     try {
-      response = await this.request('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        redirect: 'error',
-        headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...parameters, model, n: 1, output_format: 'png' }),
-        signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
-      });
+      response = await this.request(
+        `https://api.openai.com/v1/images/${multipart ? 'edits' : 'generations'}`,
+        {
+          method: 'POST',
+          redirect: 'error',
+          headers: {
+            Authorization: `Bearer ${key}`,
+            ...(!multipart ? { 'Content-Type': 'application/json' } : {}),
+          },
+          body: multipart ?? JSON.stringify(payload),
+          signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
+        },
+      );
     } catch {
       if (signal.aborted)
         throw new ImagesApiError(

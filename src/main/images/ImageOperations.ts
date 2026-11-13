@@ -9,6 +9,7 @@ export interface ImageOperation {
   createdAt: number;
   connectionId: string;
   modelId: string;
+  referenceHashes?: string[];
   state: 'pending' | 'saved' | 'uncertain' | 'failed' | 'save_failed';
   reason?:
     | 'authentication'

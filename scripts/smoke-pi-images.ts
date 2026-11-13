@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, readdir, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'node:crypto';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { SecretVault } from '../src/main/storage/SecretVault.ts';
 import { ImageConnections } from '../src/main/images/ImageConnections.ts';
@@ -16,6 +16,7 @@ import { libraryPng } from './fixtures/library.mjs';
 
 // Opt-in real subscription request. Images HTTP is a fixture; no paid Images API request occurs.
 const root = await mkdtemp(join(tmpdir(), 'pistudio-live-images-'));
+const referenceMode = process.argv.includes('--references');
 const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
 const store = await service.load(),
   pi = await checkPi('');
@@ -45,13 +46,23 @@ const connections = new ImageConnections(
   service,
   vault,
   new ImagesApi(async (url, init) => {
-    assert.equal(url, 'https://api.openai.com/v1/images/generations');
+    assert.equal(
+      url,
+      `https://api.openai.com/v1/images/${referenceMode ? 'edits' : 'generations'}`,
+    );
     assert.equal(init?.method, 'POST');
     assert.equal(new Headers(init.headers).get('Authorization'), `Bearer ${token}`);
-    const body = JSON.parse(String(init.body));
+    const form = referenceMode ? await new Request(String(url), init).formData() : undefined;
+    const body = form ? Object.fromEntries(form) : JSON.parse(String(init.body));
     assert.equal(body.model, 'gpt-image-2.5-flare');
-    assert.equal(body.n, 1);
+    assert.equal(Number(body.n), 1);
     assert.equal(body.output_format, 'png');
+    if (form) {
+      const files = form.getAll('image[]') as File[];
+      assert.equal(files.length, 1);
+      assert.equal(files[0].type, 'image/png');
+      assert.deepEqual(Buffer.from(await files[0].arrayBuffer()), libraryPng());
+    }
     calls++;
     return Response.json({
       data: [{ b64_json: libraryPng().toString('base64') }],
@@ -151,11 +162,15 @@ const host = createStudioRunHost(service, {
   },
 });
 try {
+  if (referenceMode) {
+    const root = await store.projects.directory(project.id);
+    await mkdir(join(root, 'references'));
+    await writeFile(join(root, 'references/input.png'), libraryPng());
+  }
   const request = { projectId: project.id, agentId: agent.id, autoContinue: false };
   await host.launch({
     ...request,
-    firstMessage:
-      'Isolated integration test. Call generate_image exactly once with prompt "QA image protocol check" and background "transparent". It uses a fixture API; do not call any other generator. Use get_run_context if needed. Read the returned PNG from your output to verify it exists. Then call complete_stage with that output-relative PNG filename. Do not ask questions. Do not expose credentials, use another model or generate any extra files.',
+    firstMessage: `Isolated integration test. Call generate_image exactly once with prompt "QA image protocol check" and background "transparent".${referenceMode ? ' Pass references: ["references/input.png"], relative to the project root, as an image reference to the tool.' : ''} It uses a fixture API; do not call any other generator. Use get_run_context if needed. Read the returned PNG from your output to verify it exists. Then call complete_stage with that output-relative PNG filename. Do not ask questions. Do not expose credentials, use another model or generate any extra files.`,
   });
   assert.equal(await children[0], 0);
   let current = await store.projects.read(project.id);
@@ -176,6 +191,12 @@ try {
   const operationData = await readFile(join(root, 'operations', operationFiles[0]), 'utf8');
   const operation = JSON.parse(operationData).operations[0];
   assert.equal(operation.state, 'saved');
+  if (referenceMode) {
+    assert.deepEqual(operation.referenceHashes, [
+      createHash('sha256').update(libraryPng()).digest('hex'),
+    ]);
+    assert.deepEqual(await readFile(join(directory, 'references/input.png')), libraryPng());
+  }
   assert.equal(operation.path, `${current.agents[0].outputPath}/${files[0]}`);
   assert.equal(transcript.includes(operation.id), true);
   assert.equal(operationData.includes(token), false);
@@ -196,7 +217,7 @@ try {
     messages(transcript),
   );
   console.log(
-    'Real Pi Images MCP passed: selected Codex model calls the session-bound production tool, fixture HTTP produces a validated local PNG in its own output, usage/operation metadata omit keys and prompts, validated completion and exact idle resume work without repeating a request. No paid Images API request was made.',
+    `Real Pi Images MCP passed (${referenceMode ? 'multipart reference edits' : 'text generation'}): selected Codex model calls the session-bound production tool, fixture HTTP produces a validated local PNG in its own output, usage/operation metadata omit keys and prompts, validated completion and exact idle resume work without repeating a request. No paid Images API request was made.`,
   );
 } finally {
   host.close();
