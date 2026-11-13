@@ -69,18 +69,21 @@ export function ResourceCatalog({
       .map((project) => project.name);
     return `Агенты: ${users.join(', ') || 'нет'}. Проекты: ${snapshots.join(', ') || 'нет'}. Их ссылки и результаты сохранятся, ресурс будет отмечен как недоступный. Исходные файлы не удаляются.`;
   };
+  const addArea = (
+    <AddArea
+      label={
+        kind === 'skills'
+          ? 'Импортировать skill'
+          : kind === 'mcps'
+            ? 'Добавить MCP-сервер'
+            : 'Добавить пакет Pi'
+      }
+      onClick={() => void add()}
+    />
+  );
   return (
     <div className="resource-catalog">
-      <AddArea
-        label={
-          kind === 'skills'
-            ? 'Импортировать skill'
-            : kind === 'mcps'
-              ? 'Добавить MCP-сервер'
-              : 'Добавить пакет Pi'
-        }
-        onClick={() => void add()}
-      />
+      {!onPick && addArea}
       <label className="field-label">
         Поиск в каталоге
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -126,6 +129,7 @@ export function ResourceCatalog({
             )}
           </div>
         ))}
+      {onPick && addArea}
       {edit && <ResourceEditor key={edit.id} resource={edit} onClose={() => setEdit(null)} />}
     </div>
   );

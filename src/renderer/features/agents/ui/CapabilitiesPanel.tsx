@@ -22,7 +22,6 @@ export function CapabilitiesPanel() {
   const field = agentTab === 'Skills' ? 'skills' : agentTab === 'MCP' ? 'mcps' : 'plugins';
   return (
     <div className="agent-settings-content">
-      <AddArea label={`Добавить ${agentTab}`} onClick={() => setCatalog(true)} />
       {field === 'mcps' && selectedSystemRole && (
         <div className="resource-binding" data-builtin-mcp>
           <Disclosure
@@ -92,6 +91,7 @@ export function CapabilitiesPanel() {
           </div>
         );
       })}
+      <AddArea label={`Добавить ${agentTab}`} onClick={() => setCatalog(true)} />
       {catalog && (
         <Modal
           title={`Общий каталог · ${agentTab}`}

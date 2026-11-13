@@ -57,6 +57,9 @@ export function InstructionsPanel() {
       >
         <SortableContext items={selectedAgent.instructions} strategy={verticalListSortingStrategy}>
           <div className="instruction-sortable-list">
+            {selectedAgent.instructions.map((item) => (
+              <InstructionBlock key={`${selectedAgent.id}:${item.id}`} item={item} />
+            ))}
             <AddArea
               label="Добавить инструкцию"
               onClick={() =>
@@ -73,9 +76,6 @@ export function InstructionsPanel() {
                 })
               }
             />
-            {selectedAgent.instructions.map((item) => (
-              <InstructionBlock key={`${selectedAgent.id}:${item.id}`} item={item} />
-            ))}
           </div>
         </SortableContext>
       </DndContext>
