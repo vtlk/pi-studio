@@ -1,12 +1,11 @@
 import { dirname, join } from 'node:path';
 import { mkdir, realpath, rm } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
 import { RunChannel } from './RunChannel.ts';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
-import { atomicJson, safePath, readJson, isMissing } from '../storage/files.ts';
+import { atomicJson, safePath } from '../storage/files.ts';
+import { hasLiveSessionLease } from '../storage/sessionLease.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
@@ -16,6 +15,7 @@ export class RunHost {
   private readonly channel = new RunChannel();
   private readonly live = new Map<string, LiveRun>();
   private readonly opening = new Set<string>();
+  private readonly changing = new Set<string>();
   private readonly dependencies: RunDependencies;
   private readonly lifecycle: RunLifecycle;
   private monitor = setInterval(() => {
@@ -26,6 +26,7 @@ export class RunHost {
     this.lifecycle = new RunLifecycle({
       ...dependencies,
       beforeRequest: async (run) => {
+        this.assertUnchanged(run.project.id);
         const own = this.key({ projectId: run.project.id, agentId: run.agent.profile.id });
         if (
           [...this.live.values()].some(
@@ -38,6 +39,7 @@ export class RunHost {
         )
           throw new Error('Другой этап этого проекта ещё работает.');
         await dependencies.beforeRequest?.(run);
+        this.assertUnchanged(run.project.id);
       },
     });
     this.monitor.unref();
@@ -51,6 +53,7 @@ export class RunHost {
     return `${request.projectId}/${request.agentId}`;
   }
   async launch(request: LaunchAgentRequest, automaticMessage?: string): Promise<LaunchAgentResult> {
+    this.assertUnchanged(request.projectId);
     if (
       request.attachments !== undefined &&
       (!Array.isArray(request.attachments) ||
@@ -106,25 +109,8 @@ export class RunHost {
       const pi = await checkPi(piPath);
       if (!pi.supported) throw new Error('Для запуска требуется поддерживаемый Pi 1.5.2.');
       const sdk = await resolvePiSdk(await realpath(pi.path));
-      const lock = join(run.record.cwd, '.pistudio-session-lock.json');
-      try {
-        const lease = (await readJson(lock)) as { pid?: number; runId?: string };
-        if (lease.pid && processAlive(lease.pid)) {
-          const { stdout } = await promisify(execFile)('/bin/ps', [
-            '-p',
-            String(lease.pid),
-            '-o',
-            'command=',
-          ]);
-          if (lease.runId && stdout.includes('/session.mjs') && stdout.includes(lease.runId))
-            throw new Error(
-              'Этот диалог ещё открыт в другом процессе Pi. Закройте его и повторите.',
-            );
-        }
-      } catch (error) {
-        if (!isMissing(error) && error instanceof Error && error.message.startsWith('Этот диалог'))
-          throw error;
-      }
+      if (await hasLiveSessionLease(run.record.cwd))
+        throw new Error('Этот диалог ещё открыт в другом процессе Pi. Закройте его и повторите.');
       let sessionPath: string | undefined;
       if (run.agent.session) sessionPath = await safePath(run.projectRoot, run.agent.session.path);
       const pending = new Promise<LaunchAgentResult>((resolve, reject) => {
@@ -220,6 +206,7 @@ export class RunHost {
   }
   assertIdle(projectId?: string) {
     if (
+      (projectId ? this.changing.has(projectId) : this.changing.size > 0) ||
       this.opening.size ||
       [...this.live.values()].some(
         (live) =>
@@ -229,6 +216,25 @@ export class RunHost {
       throw new Error(
         'Дождитесь завершения или остановите работающий Pi перед изменением папки проекта/студии.',
       );
+  }
+  private assertUnchanged(projectId: string) {
+    if (this.changing.has(projectId))
+      throw new Error(
+        'Файлы проекта сейчас переносятся или копируются. Повторите после завершения.',
+      );
+  }
+  async withProjectChange<T>(projectId: string, stopSessions: boolean, action: () => Promise<T>) {
+    this.assertIdle(projectId);
+    this.changing.add(projectId);
+    try {
+      if (stopSessions)
+        for (const live of [...this.live.values()])
+          if (live.run.project.id === projectId)
+            await this.stopAgent(projectId, live.run.agent.profile.id);
+      return await action();
+    } finally {
+      this.changing.delete(projectId);
+    }
   }
   async stopAgent(projectId: string, agentId: string) {
     const key = this.key({ projectId, agentId });

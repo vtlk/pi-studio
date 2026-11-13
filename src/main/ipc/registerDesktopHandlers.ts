@@ -301,14 +301,18 @@ export function registerDesktopHandlers(): StudioService {
       });
       for (const id of removed) await runs.stopAgent(command.projectId, id);
     }
-    return service.serialize(async () => {
-      const store = await service.load();
-      return store.command(
-        command.kind === 'create' || command.kind === 'update-agents'
-          ? { ...command, agents: templates(store) }
-          : command,
-      );
-    });
+    const apply = () =>
+      service.serialize(async () => {
+        const store = await service.load();
+        return store.command(
+          command.kind === 'create' || command.kind === 'update-agents'
+            ? { ...command, agents: templates(store) }
+            : command,
+        );
+      });
+    return command.kind === 'clone' || command.kind === 'rename' || command.kind === 'remove'
+      ? runs.withProjectChange(command.projectId, command.kind !== 'clone', apply)
+      : apply();
   });
   handle(desktopChannels.readProject, async (_event, id: string) =>
     withReadDeadline(async () => (await service.load()).projects.read(id)),

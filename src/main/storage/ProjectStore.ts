@@ -1,5 +1,6 @@
 import { cp, mkdir, readdir, rename, rm, lstat } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import { join } from 'node:path';
 import type { WorkspaceProject, SessionBinding, AgentRunStatus } from '../../shared/project.ts';
 import type { ProjectCommand, ProjectCommandResult } from '../../shared/storage.ts';
 import { atomicJson, folderLabel, isMissing, readJson, safePath } from './files.ts';
@@ -19,6 +20,7 @@ import {
 } from '../../shared/projectAgents.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import type { Agent } from '../../shared/studio.ts';
+import { hasLiveSessionLease } from './sessionLease.ts';
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -151,6 +153,18 @@ export class ProjectStore {
     }
     throw new Error('Папка с таким названием уже существует. Выберите другое имя.');
   }
+  private async assertSessionsClosed(project: WorkspaceProject, root: string) {
+    for (const agent of [
+      ...project.agents,
+      ...(project.archivedAgents ?? []).map((item) => item.agent),
+    ]) {
+      const cwd = await safePath(root, agentDirectory(agent.outputPath), true);
+      if (await hasLiveSessionLease(cwd))
+        throw new Error(
+          'В проекте ещё открыт другой процесс Pi. Закройте диалог перед переносом папки.',
+        );
+    }
+  }
   async command(command: ProjectCommand): Promise<ProjectCommandResult> {
     let selectedId: string | undefined;
     if (command.kind === 'create' || command.kind === 'clone') {
@@ -161,12 +175,20 @@ export class ProjectStore {
       try {
         if (command.kind === 'clone') {
           const source = this.get(command.projectId);
-          await cp(await this.directory(source.id), staging, {
+          const sourceRoot = await this.directory(source.id);
+          const leases = new Set(
+            [...source.agents, ...(source.archivedAgents ?? []).map((item) => item.agent)].map(
+              (agent) =>
+                join(sourceRoot, agentDirectory(agent.outputPath), '.pistudio-session-lock.json'),
+            ),
+          );
+          await cp(sourceRoot, staging, {
             recursive: true,
             dereference: false,
             errorOnExist: true,
             force: false,
             filter: async (path) => {
+              if (leases.has(path)) return false;
               if ((await lstat(path)).isSymbolicLink())
                 throw new Error(
                   'В проекте есть символическая ссылка. Перенесите материал внутрь проекта перед клонированием.',
@@ -184,12 +206,15 @@ export class ProjectStore {
             agents: source.agents.map((agent) => ({
               ...agent,
               entries: [],
+              runStatus: undefined,
               session: agent.session ? { ...agent.session, needsFork: true } : undefined,
             })),
             archivedAgents: source.archivedAgents?.map(({ agent, position }) => ({
               position,
               agent: {
                 ...agent,
+                entries: [],
+                runStatus: undefined,
                 session: agent.session ? { ...agent.session, needsFork: true } : undefined,
               },
             })),
@@ -230,6 +255,7 @@ export class ProjectStore {
       const project = this.get(command.projectId);
       const root = await this.directory(project.id);
       if (command.kind === 'remove') {
+        await this.assertSessionsClosed(project, root);
         const destination = await safePath(this.root, `.pistudio/trash/${project.id}`, true);
         try {
           await lstat(destination);
@@ -251,13 +277,23 @@ export class ProjectStore {
       } else if (command.kind === 'rename') {
         const name = folderLabel(command.name);
         if (name !== project.folderName) {
-          if (project.agents.some((agent) => agent.session))
-            throw new Error(
-              'Переименование проекта с сессией Pi требует поддержки ветвления. Пока сохраните текущую папку.',
-            );
           const destination = await this.available(name);
+          await this.assertSessionsClosed(project, root);
           await rename(root, destination);
-          const updated = { ...project, name, folderName: name };
+          const moved = (agent: WorkspaceProject['agents'][number]) => ({
+            ...agent,
+            session: agent.session ? { ...agent.session, needsFork: true } : undefined,
+          });
+          const updated = {
+            ...project,
+            name,
+            folderName: name,
+            agents: project.agents.map(moved),
+            archivedAgents: project.archivedAgents?.map((item) => ({
+              ...item,
+              agent: moved(item.agent),
+            })),
+          };
           try {
             await this.save(updated, destination);
           } catch (error) {

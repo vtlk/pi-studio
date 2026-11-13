@@ -61,7 +61,14 @@ export class RunLifecycle {
     } else if (event.type === 'opened' && this.dependencies.serviceAgent) {
       live.ready({ runId: live.run.record.runId, project: await this.dependencies.read(live.run) });
     } else if (event.type === 'request') {
-      await this.dependencies.beforeRequest?.(live.run);
+      const previous = live.status;
+      live.status = 'running';
+      try {
+        await this.dependencies.beforeRequest?.(live.run);
+      } catch (error) {
+        live.status = previous;
+        throw error;
+      }
       live.sequence++;
       live.run.requestSequence = live.sequence;
       live.userMessage =
