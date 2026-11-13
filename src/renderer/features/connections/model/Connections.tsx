@@ -1,7 +1,7 @@
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
-import { useContext, useState, type ReactNode } from 'react';
-import type { ProviderStatus } from '../../../../shared/contracts';
+import { useContext, type ReactNode } from 'react';
 import { ConnectionsContext } from './Connections.context';
+import { useProviderStatuses } from './useProviderStatuses';
 export interface Connection {
   id: string;
   name: string;
@@ -32,22 +32,24 @@ export const exampleConnections: Connection[] = [
   },
 ];
 function useConnectionsState() {
-  const { isDesktop } = useStorage();
+  const { isDesktop, bootstrap } = useStorage();
   const [connections, setConnections] = useStoredState<Connection[]>(
     'connections',
     isDesktop ? [] : exampleConnections,
   );
   const [imageTool, setImageTool] = useStoredState('imageTool', { connectionId: '', modelId: '' });
-  const [providerStatuses, setProviderStatuses] = useState<
-    Record<string, ProviderStatus['status']>
-  >({});
+  const { providerStatuses, setProviderStatus } = useProviderStatuses(
+    connections
+      .filter((connection) => connection.purpose === 'codex' || connection.purpose === 'pi')
+      .map((connection) => connection.providerId),
+    `${bootstrap?.folder ?? ''}\n${String(bootstrap?.sections.piPath ?? '')}`,
+  );
   return {
     connections,
     imageTool,
     setImageTool,
     providerStatuses,
-    setProviderStatus: (result: ProviderStatus) =>
-      setProviderStatuses((previous) => ({ ...previous, [result.provider]: result.status })),
+    setProviderStatus,
     saveConnection: (connection: Connection) =>
       setConnections((previous) =>
         [connection, ...previous.filter((item) => item.id !== connection.id)].sort(

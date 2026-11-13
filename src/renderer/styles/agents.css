@@ -182,3 +182,17 @@
   top: 50%;
   transform: translateY(-50%);
 }
+.agent-model-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+.agent-model-fields > .field-label {
+  min-width: 0;
+  margin: 0;
+}
+.agent-model-fields > .field-label > span {
+  white-space: nowrap;
+  font-size: 12px;
+}

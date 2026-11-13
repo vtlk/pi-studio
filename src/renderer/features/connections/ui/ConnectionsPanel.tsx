@@ -58,12 +58,16 @@ export function ConnectionsPanel() {
                 </p>
                 <small>
                   {providerStatuses[connection.providerId] === 'ready'
-                    ? 'Pi: авторизация доступна'
+                    ? 'Подключено'
                     : providerStatuses[connection.providerId] === 'not_ready'
                       ? 'Pi: требуется вход'
                       : providerStatuses[connection.providerId] === 'invalid'
                         ? 'Pi: ошибка авторизации'
-                        : 'Авторизация не проверена'}
+                        : providerStatuses[connection.providerId] === 'checking'
+                          ? 'Проверяем подключение…'
+                          : providerStatuses[connection.providerId] === 'unavailable'
+                            ? 'Не удалось проверить подключение'
+                            : 'Авторизация не проверена'}
                 </small>
               </div>
               <Button onClick={() => setEdit(connection)}>Настроить</Button>

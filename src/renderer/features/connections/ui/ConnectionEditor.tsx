@@ -21,9 +21,16 @@ export function ConnectionEditor({
     error: catalogError,
     reload: reloadCatalog,
   } = usePiCatalog();
-  const { saveConnection, setProviderStatus } = useConnections();
+  const { saveConnection, setProviderStatus, providerStatuses } = useConnections();
   const { demo } = useNotice();
-  const [status, setStatus] = useState<ProviderStatus>();
+  const [checkedStatus, setStatus] = useState<ProviderStatus>();
+  const currentStatus = providerStatuses[draft.providerId];
+  const status =
+    currentStatus && ['ready', 'not_ready', 'invalid'].includes(currentStatus)
+      ? { provider: draft.providerId, status: currentStatus as ProviderStatus['status'] }
+      : checkedStatus?.provider === draft.providerId
+        ? checkedStatus
+        : undefined;
   const [busy, setBusy] = useState(false);
   const [auth, setAuth] = useState<AuthLoginState>();
   const [answer, setAnswer] = useState('');
@@ -288,11 +295,15 @@ export function ConnectionEditor({
       <p role="status">
         {status
           ? status.status === 'ready'
-            ? `Pi: авторизация ${status.provider} доступна. Проверка генерации не выполнялась.`
+            ? `Подключено через Pi · ${status.provider}.`
             : status.status === 'invalid'
               ? 'Pi: некорректная авторизация или провайдер.'
               : 'Pi: требуется вход или обновление авторизации.'
-          : 'Авторизация ещё не проверена. Сохранение формы не подтверждает доступ аккаунта.'}
+          : currentStatus === 'checking'
+            ? 'Проверяем подключение…'
+            : currentStatus === 'unavailable'
+              ? 'Не удалось проверить подключение. Повторите проверку.'
+              : 'Авторизация ещё не проверена. Сохранение формы не подтверждает доступ аккаунта.'}
       </p>
       <p className="subtle">
         При отказе или исчерпании лимита подключение не меняется автоматически. Секреты не входят в

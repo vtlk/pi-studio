@@ -7,7 +7,7 @@ import { usePiCatalog } from '@/features/connections/model/usePiCatalog';
 
 export function ModelPanel() {
   const { selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
-  const { connections } = useConnections();
+  const { connections, providerStatuses } = useConnections();
   const { catalog, loading, error, reload } = usePiCatalog();
   if (!selectedAgent) return null;
   const model = selectedAgent.model ?? {
@@ -25,7 +25,14 @@ export function ModelPanel() {
     catalog?.models.filter((item) => item.provider === connection?.providerId) ?? [];
   const selectedModel = availableModels.find((item) => item.id === model.id);
   const modelOptions = [
-    { value: 'none', label: loading ? 'Загружаем каталог Pi…' : 'Выберите модель' },
+    {
+      value: 'none',
+      label: !connection
+        ? 'Сначала подключение'
+        : loading
+          ? 'Загружаем каталог Pi…'
+          : 'Выберите модель',
+    },
     ...availableModels.map((item) => ({ value: item.id, label: `${item.name} · ${item.id}` })),
     ...(model.id && !selectedModel
       ? [{ value: model.id, label: `${model.id} · отсутствует в каталоге` }]
@@ -50,59 +57,61 @@ export function ModelPanel() {
           .join(', ')}
         .
       </p>
-      <label className="field-label">
-        Подключение модели
-        <Select
-          label="Подключение модели"
-          value={model.connectionId || 'none'}
-          options={options}
-          onValueChange={(id) => {
-            const next = connections.find((item) => item.id === id);
-            update({
-              connectionId: id === 'none' ? '' : id,
-              provider: next?.providerId ?? '',
-              id: '',
-              reasoning: 'По умолчанию',
-            });
-          }}
-        />
-      </label>
+      <div className="agent-model-fields">
+        <label className="field-label">
+          <span>Подключение</span>
+          <Select
+            label="Подключение модели"
+            value={model.connectionId || 'none'}
+            options={options}
+            onValueChange={(id) => {
+              const next = connections.find((item) => item.id === id);
+              update({
+                connectionId: id === 'none' ? '' : id,
+                provider: next?.providerId ?? '',
+                id: '',
+                reasoning: 'По умолчанию',
+              });
+            }}
+          />
+        </label>
+        <label className="field-label">
+          <span>Модель</span>
+          {window.studio ? (
+            <Select
+              label="Модель агента"
+              value={model.id || 'none'}
+              options={modelOptions}
+              onValueChange={(id) => update({ id: id === 'none' ? '' : id })}
+              disabled={!connection || loading}
+            />
+          ) : (
+            <input
+              placeholder="ID модели из каталога Pi"
+              value={model.id}
+              onChange={(event) => update({ id: event.target.value })}
+            />
+          )}
+        </label>
+        <label className="field-label">
+          <span>Уровень рассуждения</span>
+          <Select
+            label="Уровень рассуждения (effort)"
+            options={
+              selectedModel?.reasoning === false
+                ? ['По умолчанию']
+                : ['По умолчанию', 'Минимальный', 'Низкий', 'Средний', 'Высокий', 'Максимальный']
+            }
+            value={model.reasoning}
+            onValueChange={(reasoning) => update({ reasoning })}
+          />
+        </label>
+      </div>
       <p>
         {connection
-          ? `${connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}`
-          : 'Выберите подключение явно. Автоматической подмены нет.'}
+          ? `${connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}${providerStatuses[connection.providerId] === 'ready' ? ' · Подключено' : ''}`
+          : 'Сначала выберите подключение в первом поле — затем станет доступен список моделей.'}
       </p>
-      <label className="field-label">
-        Модель
-        {window.studio ? (
-          <Select
-            label="Модель агента"
-            value={model.id || 'none'}
-            options={modelOptions}
-            onValueChange={(id) => update({ id: id === 'none' ? '' : id })}
-            disabled={!connection || loading}
-          />
-        ) : (
-          <input
-            placeholder="ID модели из каталога Pi"
-            value={model.id}
-            onChange={(event) => update({ id: event.target.value })}
-          />
-        )}
-      </label>
-      <label className="field-label">
-        Уровень рассуждения (effort)
-        <Select
-          label="Уровень рассуждения (effort)"
-          options={
-            selectedModel?.reasoning === false
-              ? ['По умолчанию']
-              : ['По умолчанию', 'Минимальный', 'Низкий', 'Средний', 'Высокий', 'Максимальный']
-          }
-          value={model.reasoning}
-          onValueChange={(reasoning) => update({ reasoning })}
-        />
-      </label>
       {error && <p role="alert">{error}</p>}
       {window.studio && (
         <Button disabled={loading} onClick={() => void reload()}>
