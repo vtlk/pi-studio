@@ -77,7 +77,7 @@ test('new projects copy exactly the current constructor IDs/order/enabled/model/
     constructor.map(settings),
   );
   assert.equal(
-    (await readFile(join(root, 'projects/One/project.json'), 'utf8')).includes(
+    (await readFile(join(root, 'projects/one/project.json'), 'utf8')).includes(
       'Current constructor instruction',
     ),
     false,
@@ -91,10 +91,10 @@ test('removing a project agent is persistent and reversible; output/session byte
   await store.saveSection('agents', constructor);
   const project = (await store.command({ kind: 'create', name: 'Movie', agents: constructor }))
     .projects[0];
-  const output = join(root, 'projects/Movie/agents/custom-b/output/result.txt');
+  const output = join(root, 'projects/movie/agents/custom-b/output/result.txt');
   await writeFile(output, 'Real output preserved');
   const sessionPath = 'agents/custom-b/sessions/dialogue.jsonl';
-  await writeFile(join(root, 'projects/Movie', sessionPath), 'canonical Pi history');
+  await writeFile(join(root, 'projects/movie', sessionPath), 'canonical Pi history');
   await store.projects.updateRuntime(project.id, 'b', 'waiting', {
     id: 'dialogue',
     title: 'Bound',
@@ -129,7 +129,7 @@ test('removing a project agent is persistent and reversible; output/session byte
   assert.equal(restored.agents[1].session?.path, sessionPath);
   assert.equal(await readFile(output, 'utf8'), 'Real output preserved');
   assert.equal(
-    await readFile(join(root, 'projects/Movie', sessionPath), 'utf8'),
+    await readFile(join(root, 'projects/movie', sessionPath), 'utf8'),
     'canonical Pi history',
   );
   for (const agent of constructor)

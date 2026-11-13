@@ -61,23 +61,23 @@ export function InstructionsPanel() {
             {selectedAgent.instructions.map((item) => (
               <InstructionBlock key={`${selectedAgent.id}:${item.id}`} item={item} />
             ))}
-            <AddArea
-              label="Добавить инструкцию"
-              onClick={() =>
-                updateAgent({
-                  instructions: [
-                    {
-                      id: crypto.randomUUID(),
-                      name: 'Новая инструкция',
-                      content: '',
-                      enabled: true,
-                    },
-                    ...selectedAgent.instructions,
-                  ],
-                })
-              }
-            />
           </DisclosureList>
+          <AddArea
+            label="Добавить инструкцию"
+            onClick={() =>
+              updateAgent({
+                instructions: [
+                  {
+                    id: crypto.randomUUID(),
+                    name: 'Новая инструкция',
+                    content: '',
+                    enabled: true,
+                  },
+                  ...selectedAgent.instructions,
+                ],
+              })
+            }
+          />
         </SortableContext>
       </DndContext>
     </div>

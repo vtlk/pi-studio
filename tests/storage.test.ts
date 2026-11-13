@@ -6,6 +6,7 @@ import {
   readFile,
   writeFile,
   readdir,
+  rename,
   symlink,
   rm,
   stat,
@@ -133,7 +134,9 @@ test('clone refuses symlinks instead of creating a copy that still writes into t
   );
   assert.equal(store.bootstrap().projects.length, 1);
   assert.equal(await readFile(join(root, 'original.txt'), 'utf8'), 'сохранить');
-  await assert.rejects(stat(join(store.folder, 'projects/Небезопасная копия')), { code: 'ENOENT' });
+  await assert.rejects(stat(join(store.folder, 'projects/nebezopasnaya-kopiya')), {
+    code: 'ENOENT',
+  });
 });
 test('delete is reversible after restart and never erases any source project files', async (t) => {
   const { store } = await fixture(t);
@@ -159,12 +162,12 @@ test('delete is reversible after restart and never erases any source project fil
 });
 test('existing folder collision and invalid names never overwrite files or register a project', async (t) => {
   const { store } = await fixture(t);
-  await mkdir(join(store.folder, 'projects/Занято'));
-  await writeFile(join(store.folder, 'projects/Занято/keep.txt'), 'keep');
+  await mkdir(join(store.folder, 'projects/zanyato'));
+  await writeFile(join(store.folder, 'projects/zanyato/keep.txt'), 'keep');
   for (const name of ['Занято', '../escape', '.hidden', 'a/b', 'a\\b', 'a:b', '\0'])
     await assert.rejects(store.command({ kind: 'create', name, agents: [agent()] }));
   assert.equal(store.bootstrap().projects.length, 0);
-  assert.equal(await readFile(join(store.folder, 'projects/Занято/keep.txt'), 'utf8'), 'keep');
+  assert.equal(await readFile(join(store.folder, 'projects/zanyato/keep.txt'), 'utf8'), 'keep');
 });
 test('refresh synchronizes stable IDs/order, archives removed agents, preserves files and updates profiles only by explicit choice', async (t) => {
   const { store } = await fixture(t);
@@ -348,4 +351,66 @@ test('a stalled read times out and releases the queue for recovery actions', asy
   const [failure, success] = await Promise.allSettled([stalled, recovery]);
   assert.equal(failure.status, 'rejected');
   assert.deepEqual(success, { status: 'fulfilled', value: 'can choose another folder' });
+});
+
+test('Russian project names use Latin folder slugs for create, rename, clone and restore without losing history', async (t) => {
+  const { store } = await fixture(t);
+  const created = (
+    await store.command({ kind: 'create', name: 'Мой супер проект', agents: [agent()] })
+  ).projects[0];
+  assert.equal(created.name, 'Мой супер проект');
+  assert.equal(created.folderName, 'moy-super-proekt');
+  const source = await store.projects.directory(created.id);
+  const historyPath = 'agents/scenarist/sessions/history.jsonl';
+  await writeFile(join(source, historyPath), 'canonical history');
+  await store.projects.updateRuntime(created.id, 'writer', 'stopped', {
+    id: 'dialogue',
+    title: 'Same dialogue',
+    path: historyPath,
+    createdAt: 1,
+  });
+  await store.command({ kind: 'rename', projectId: created.id, name: 'МОЙ СУПЕР ПРОЕКТ!' });
+  const displayOnly = store.bootstrap().projects[0];
+  assert.equal(displayOnly.name, 'МОЙ СУПЕР ПРОЕКТ!');
+  assert.equal(displayOnly.folderName, 'moy-super-proekt');
+  assert.equal(
+    displayOnly.agents[0].session?.needsFork,
+    undefined,
+    'Same slug does not fork a dialogue',
+  );
+  assert.equal(await store.projects.directory(created.id), source);
+  // Reopen an older physical Cyrillic folder and repair it through the same-name rename action.
+  const legacy = join(store.folder, 'projects/МОЙ СУПЕР ПРОЕКТ!');
+  await rename(source, legacy);
+  const old = await StudioStore.open(store.folder);
+  assert.equal(old.bootstrap().projects[0].folderName, 'МОЙ СУПЕР ПРОЕКТ!');
+  await old.command({ kind: 'rename', projectId: created.id, name: 'МОЙ СУПЕР ПРОЕКТ!' });
+  const repaired = old.bootstrap().projects[0];
+  assert.equal(repaired.id, created.id);
+  assert.equal(repaired.folderName, 'moy-super-proekt');
+  assert.equal(repaired.agents[0].session?.needsFork, true);
+  assert.equal(
+    await readFile(join(await old.projects.directory(created.id), historyPath), 'utf8'),
+    'canonical history',
+  );
+  const copied = await old.command({ kind: 'clone', projectId: created.id, name: 'Копия проекта' });
+  assert.equal(
+    copied.projects.find((p) => p.id === copied.selectedId)?.folderName,
+    'kopiya-proekta',
+  );
+  await old.command({ kind: 'remove', projectId: created.id });
+  const reopened = await StudioStore.open(store.folder);
+  await reopened.command({ kind: 'restore', projectId: created.id });
+  assert.equal(
+    reopened.bootstrap().projects.find((p) => p.id === created.id)?.folderName,
+    'moy-super-proekt',
+  );
+  assert.equal(
+    await readFile(join(await reopened.projects.directory(created.id), historyPath), 'utf8'),
+    'canonical history',
+  );
+  await assert.rejects(
+    reopened.command({ kind: 'create', name: 'moy-super-proekt', agents: [] }),
+    /уже существует/,
+  );
 });

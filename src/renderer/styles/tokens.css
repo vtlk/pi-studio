@@ -48,13 +48,6 @@ button:disabled {
 button:hover:not(:disabled) {
   background: #f3f3f3;
 }
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: 3px solid #27272a;
-  outline-offset: 3px;
-}
 h1,
 h2,
 h3,
@@ -237,4 +230,10 @@ input[type='range'] {
 }
 .toast .icon-button {
   color: #bbb;
+}
+
+/* User preference: keyboard operation stays enabled, without a separate focus highlight. */
+:focus {
+  outline: none;
+  box-shadow: none;
 }

@@ -23,7 +23,9 @@ const timeout = setTimeout(() => {
     ['city', 'Город после дождя', 'gorod-posle-dozhdya', 13, 4, 24],
     ['discoveries', 'Маленькие открытия', 'malenkie-otkrytiya', 12, 3, 18],
     ['morning', 'История одного утра', 'istoriya-odnogo-utra', 10, 5, 42],
-    ['long', longName, longFolder, 8, 3, 0],
+    ['fifth', 'Первый снег', 'pervyy-sneg', 9, 1, 0],
+    ['sixth', 'Туман', 'tuman', 8, 1, 0],
+    ['long', longName, longFolder, 6, 3, 0],
   ];
   for (const [id, name, folder, day, agents, files] of [
     ...records,
@@ -102,9 +104,9 @@ const timeout = setTimeout(() => {
       ...rect,
     });
   };
-  await until(`document.querySelector('.projects-total')?.textContent==='4 проекта'`);
+  await until(`document.querySelector('.projects-total')?.textContent==='6 проектов'`);
   await until(
-    `Array.from(document.querySelectorAll('.project-list-item .project-number')).map(e=>e.textContent).join(',')==='4,24,3,18,5,42,3,0'`,
+    `Array.from(document.querySelectorAll('.project-list-item .project-number')).map(e=>e.textContent).join(',')==='4,24,3,18,5,42,1,0,1,0,3,0'`,
   );
   let displayed = await rows();
   assert.deepEqual(
@@ -174,14 +176,38 @@ const timeout = setTimeout(() => {
     windowsVirtualKeyCode: 13,
   });
   await until(`document.querySelector('.project-header h1')?.textContent==='Город после дождя'`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.project-column-heading')).map(e=>e.textContent)`,
+    ),
+    ['Агенты проекта', 'Файлы агента'],
+  );
+  const workspaceStyle = await js(
+    `(()=>{const name=document.querySelector('.project-agent-menu .section-menu-label'), icon=document.querySelector('.agent-status-icon svg'),button=document.querySelector('.project-agent-menu .section-menu-item');return {name:getComputedStyle(name).fontSize,weight:getComputedStyle(name).fontWeight,iconWidth:icon.getBoundingClientRect().width,iconBeforeName:icon.getBoundingClientRect().right<name.getBoundingClientRect().left,status:button.querySelector('.section-menu-description').textContent,refresh:getComputedStyle(document.querySelector('.project-header .button')).backgroundColor,agentsBg:getComputedStyle(document.querySelector('.project-agent-menu')).backgroundColor,filesBg:getComputedStyle(document.querySelector('.output-files-pane')).backgroundColor}})()`,
+  );
+  assert.equal(workspaceStyle.name, '17px');
+  assert.equal(workspaceStyle.weight, '600');
+  assert.equal(workspaceStyle.iconWidth, 32);
+  assert.equal(workspaceStyle.iconBeforeName, true);
+  assert.equal(workspaceStyle.status, 'Не запускался');
+  assert.equal(workspaceStyle.refresh, 'rgb(39, 39, 42)');
+  assert.equal(workspaceStyle.agentsBg, 'rgb(247, 247, 248)');
+  assert.equal(workspaceStyle.filesBg, workspaceStyle.agentsBg);
+  await hover('.agent-status-icon');
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  assert.equal(await js(`!!document.querySelector('[role="tooltip"]')`), false);
+  await js(`document.querySelector('.project-agent-menu .section-menu-item').focus()`);
+  assert.equal(await js(`getComputedStyle(document.activeElement).outlineStyle`), 'none');
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await writeFile(resolve('artifacts/project-workspace.png'), (await win.capturePage()).toPNG());
   await click('Проекты');
-  await until(`document.querySelectorAll('.project-list-item').length===4`);
+  await until(`document.querySelectorAll('.project-list-item').length===6`);
   await js(
     `document.querySelectorAll('.project-list-item')[1].querySelector('.project-created').click()`,
   );
   await until(`document.querySelector('.project-header h1')?.textContent==='Маленькие открытия'`);
   await click('Проекты');
-  await until(`document.querySelectorAll('.project-list-item').length===4`);
+  await until(`document.querySelectorAll('.project-list-item').length===6`);
   await hover('.project-list-name');
   await new Promise((resolve) => setTimeout(resolve, 450));
   assert.equal(
@@ -215,11 +241,11 @@ const timeout = setTimeout(() => {
   await click('Переименовать');
   await until(`!document.querySelector('[role="dialog"]')`);
   await until(
-    `document.querySelector('.project-list-folder')?.textContent==='Город после дождя — новая версия'`,
+    `document.querySelector('.project-list-folder')?.textContent==='gorod-posle-dozhdya-novaya-versiya'`,
   );
   assert.equal(
     await readFile(
-      join(studio, 'projects/Город после дождя — новая версия/agents/agent-0/output/file-0.txt'),
+      join(studio, 'projects/gorod-posle-dozhdya-novaya-versiya/agents/agent-0/output/file-0.txt'),
       'utf8',
     ),
     'Fixture result 0',
@@ -230,7 +256,7 @@ const timeout = setTimeout(() => {
   await until(`!!document.querySelector('[role="dialog"]')`);
   await input('.dialog-body input', 'Копия для проверки');
   await click('Клонировать');
-  await until(`document.querySelector('.projects-total')?.textContent==='5 проектов'`);
+  await until(`document.querySelector('.projects-total')?.textContent==='7 проектов'`);
   await until(
     `document.querySelector('.project-list-item .project-number:last-of-type') || document.querySelector('.project-list-name')?.textContent==='Копия для проверки'`,
   );
@@ -238,13 +264,13 @@ const timeout = setTimeout(() => {
   const deleteSelector = '[aria-label="Удалить проект «Копия для проверки»"]';
   await js(`document.querySelector(${JSON.stringify(deleteSelector)}).click()`);
   await until(`!!document.querySelector('[role="alertdialog"]')`);
-  assert.equal((await rows()).length, 5, 'Deletion waits for confirmation');
+  assert.equal((await rows()).length, 7, 'Deletion waits for confirmation');
   await click('Отмена');
-  assert.equal((await rows()).length, 5);
+  assert.equal((await rows()).length, 7);
   await js(`document.querySelector(${JSON.stringify(deleteSelector)}).click()`);
   await until(`!!document.querySelector('[role="alertdialog"]')`);
   await click('Удалить');
-  await until(`document.querySelector('.projects-total')?.textContent==='4 проекта'`);
+  await until(`document.querySelector('.projects-total')?.textContent==='6 проектов'`);
   await until(
     `document.querySelector('.projects-trash .disclosure-trigger')?.textContent.includes('2')`,
   );
@@ -258,19 +284,51 @@ const timeout = setTimeout(() => {
   await js(
     `Array.from(document.querySelectorAll('.projects-trash .disclosure-content .ui-list-row')).find(row=>row.textContent.includes('Копия для проверки')).querySelector('.ui-list-row-actions button').click()`,
   );
-  await until(`document.querySelector('.projects-total')?.textContent==='5 проектов'`);
+  await until(`document.querySelector('.projects-total')?.textContent==='7 проектов'`);
   await until(
     `Array.from(document.querySelectorAll('.project-list-item')).some(row=>row.querySelector('.project-list-name')?.textContent==='Копия для проверки'&&row.querySelectorAll('.project-number')[1]?.textContent==='24')`,
   );
   assert.equal(
     await readFile(
-      join(studio, 'projects/Копия для проверки/agents/agent-0/output/file-0.txt'),
+      join(studio, 'projects/kopiya-dlya-proverki/agents/agent-0/output/file-0.txt'),
       'utf8',
     ),
     'Fixture result 0',
   );
   const style = await js(
     `(()=>{const get=s=>{const e=document.querySelector(s),v=getComputedStyle(e);return {size:v.fontSize,weight:v.fontWeight,color:v.color,font:v.fontFamily}};return {name:get('.project-list-name'),folder:get('.project-list-folder'),heading:get('.projects-table th'),count:get('.projects-total'),create:get('.project-create-area'),search:get('.projects-search input'),trash:get('.projects-trash .disclosure-trigger')}})()`,
+  );
+  await input('[aria-label="Найти проект"]', 'Копия для проверки');
+  assert.equal((await rows()).length, 1);
+  const snapshot = await js('window.studio.loadStudio()');
+  const removeByName = async (name) => {
+    const project = snapshot.projects.find((p) => p.name === name);
+    await js(
+      `window.studio.projectCommand({kind:'remove',projectId:${JSON.stringify(project.id)}})`,
+    );
+  };
+  await removeByName('Первый снег');
+  await removeByName('Туман');
+  win.webContents.reload();
+  await new Promise((resolve) => win.webContents.once('did-finish-load', resolve));
+  await until(`document.querySelectorAll('.project-list-item').length===5`);
+  assert.equal(await js(`!!document.querySelector('.projects-list-toolbar')`), false);
+  let small = await js('window.studio.loadStudio()');
+  for (const project of small.trashProjects)
+    await js(
+      `window.studio.projectCommand({kind:'restore',projectId:${JSON.stringify(project.id)}})`,
+    );
+  win.webContents.reload();
+  await new Promise((resolve) => win.webContents.once('did-finish-load', resolve));
+  await until(`!!document.querySelector('.projects-list-toolbar')`);
+  assert.equal(
+    await js(`!!document.querySelector('.projects-trash')`),
+    false,
+    'Empty trash has no screen element',
+  );
+  assert.equal(
+    await js(`getComputedStyle(document.querySelector('.projects-search')).borderRadius`),
+    '0px',
   );
   console.log(
     JSON.stringify({

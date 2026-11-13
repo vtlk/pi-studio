@@ -106,8 +106,7 @@
   border-bottom: 2px solid transparent;
   cursor: text;
 }
-.agent-name-editor:hover,
-.agent-name-editor:focus-within {
+.agent-name-editor:hover {
   border-bottom-color: var(--menu-active);
 }
 .agent-name-editor .agent-name-input:not([type='range']) {

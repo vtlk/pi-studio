@@ -75,7 +75,7 @@ const deadline = setTimeout(() => {
     `window.studio.projectCommand({kind:'create',name:'Tooltip project',agents:[]})`,
   );
   const project = created.projects[0],
-    output = join(studio, 'projects/Tooltip project', project.agents[0].outputPath);
+    output = join(studio, 'projects/tooltip-project', project.agents[0].outputPath);
   await writeFile(join(output, 'brief.md'), '# Brief');
   const longFile = 'Полное имя файла с результатами работы агента для проверки скрытого текста.md';
   await writeFile(join(output, longFile), '# Long result');
@@ -105,18 +105,18 @@ const deadline = setTimeout(() => {
   await js(`document.querySelector('.project-list-row').click()`);
   await until(`document.querySelectorAll('.project-agent-menu .section-menu-item').length===2`);
   await hover(
-    '.project-agent-menu .section-menu-row:first-child .section-menu-item > span:first-child',
+    '.project-agent-menu .section-menu-row:first-child .section-menu-item .section-menu-label',
   );
   assert.deepEqual(await tooltips(), [], 'Project agent text must not repeat visible name/status');
   await hover(
-    '.project-agent-menu .section-menu-row:nth-child(2) .section-menu-item > span:first-child',
+    '.project-agent-menu .section-menu-row:nth-child(2) .section-menu-item .section-menu-label',
   );
   assert.deepEqual(await tooltips(), ['2. ' + longName]);
   await hover('.project-agent-menu .section-menu-row:first-child .agent-status-icon');
   assert.deepEqual(
     await tooltips(),
-    ['Не запускался'],
-    'Icon-only status explanation must remain available',
+    [],
+    'Visible status text needs no duplicate icon tooltip',
   );
   await hover('.file-tree-item:first-child');
   // Select files by their text, independent of timestamps/platform ordering.
@@ -138,7 +138,7 @@ const deadline = setTimeout(() => {
   window.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'End' });
   await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await hover(
-    '.project-agent-menu .section-menu-row:nth-child(2) .section-menu-item > span:first-child',
+    '.project-agent-menu .section-menu-row:nth-child(2) .section-menu-item .section-menu-label',
   );
   assert.deepEqual(
     await tooltips(),
@@ -148,7 +148,7 @@ const deadline = setTimeout(() => {
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/tooltip-smoke.png'), (await window.capturePage()).toPNG());
   console.log(
-    'Tooltip UI passed: visible project/system/constructor labels have no duplicate; clipped names/files expose full text, keyboard/Escape and resize work; icon status explanation remains.',
+    'Tooltip UI passed: visible project/system/constructor labels have no duplicate; clipped names/files expose full text, keyboard/Escape and resize work; status text is visible with no duplicate tooltip.',
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

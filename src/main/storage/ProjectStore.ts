@@ -19,8 +19,13 @@ import {
   synchronizeProjectAgentList,
 } from '../../shared/projectAgents.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
+import { folderSlug } from '../../shared/folderSlug.ts';
 import type { Agent } from '../../shared/studio.ts';
-import { hasLiveSessionLease } from './sessionLease.ts';
+import { assertProjectSessionsClosed } from './sessionLease.ts';
+
+function withFork(agent: WorkspaceProject['agents'][number]) {
+  return { ...agent, session: agent.session ? { ...agent.session, needsFork: true } : undefined };
+}
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -153,23 +158,12 @@ export class ProjectStore {
     }
     throw new Error('Папка с таким названием уже существует. Выберите другое имя.');
   }
-  private async assertSessionsClosed(project: WorkspaceProject, root: string) {
-    for (const agent of [
-      ...project.agents,
-      ...(project.archivedAgents ?? []).map((item) => item.agent),
-    ]) {
-      const cwd = await safePath(root, agentDirectory(agent.outputPath), true);
-      if (await hasLiveSessionLease(cwd))
-        throw new Error(
-          'В проекте ещё открыт другой процесс Pi. Закройте диалог перед переносом папки.',
-        );
-    }
-  }
   async command(command: ProjectCommand): Promise<ProjectCommandResult> {
     let selectedId: string | undefined;
     if (command.kind === 'create' || command.kind === 'clone') {
       const name = folderLabel(command.name);
-      const destination = await this.available(name);
+      const folderName = folderSlug(name);
+      const destination = await this.available(folderName);
       const staging = await safePath(this.root, `projects/.creating-${randomUUID()}`, true);
       let project: WorkspaceProject;
       try {
@@ -200,7 +194,7 @@ export class ProjectStore {
             ...structuredClone(source),
             id: randomUUID(),
             name,
-            folderName: name,
+            folderName,
             createdAt: Date.now(),
             autoContinue: false,
             agents: source.agents.map((agent) => ({
@@ -224,7 +218,7 @@ export class ProjectStore {
           project = {
             id: randomUUID(),
             name,
-            folderName: name,
+            folderName,
             createdAt: Date.now(),
             autoContinue: false,
             agents: snapshotProjectAgents(parseAgents(command.agents)),
@@ -245,9 +239,25 @@ export class ProjectStore {
       if (this.projects.has(project.id))
         throw new Error('Активный проект уже использует этот ID. Восстановление остановлено.');
       const name = project.name;
-      const destination = await this.available(folderLabel(name));
-      await rename(await safePath(this.root, `.pistudio/trash/${project.folderName}`), destination);
-      const restored = { ...project, folderName: name };
+      const folderName = folderSlug(folderLabel(name));
+      const destination = await this.available(folderName);
+      const source = await safePath(this.root, `.pistudio/trash/${project.folderName}`);
+      await rename(source, destination);
+      const restored = {
+        ...project,
+        folderName,
+        agents: project.agents.map(withFork),
+        archivedAgents: project.archivedAgents?.map((item) => ({
+          ...item,
+          agent: withFork(item.agent),
+        })),
+      };
+      try {
+        await this.save(restored, destination);
+      } catch (error) {
+        await rename(destination, source);
+        throw error;
+      }
       this.projects.set(project.id, restored);
       this.deleted.delete(project.id);
       selectedId = project.id;
@@ -255,7 +265,7 @@ export class ProjectStore {
       const project = this.get(command.projectId);
       const root = await this.directory(project.id);
       if (command.kind === 'remove') {
-        await this.assertSessionsClosed(project, root);
+        await assertProjectSessionsClosed(project, root);
         const destination = await safePath(this.root, `.pistudio/trash/${project.id}`, true);
         try {
           await lstat(destination);
@@ -276,22 +286,19 @@ export class ProjectStore {
         this.projects.set(project.id, updated);
       } else if (command.kind === 'rename') {
         const name = folderLabel(command.name);
-        if (name !== project.folderName) {
-          const destination = await this.available(name);
-          await this.assertSessionsClosed(project, root);
+        const folderName = folderSlug(name);
+        if (folderName !== project.folderName) {
+          const destination = await this.available(folderName);
+          await assertProjectSessionsClosed(project, root);
           await rename(root, destination);
-          const moved = (agent: WorkspaceProject['agents'][number]) => ({
-            ...agent,
-            session: agent.session ? { ...agent.session, needsFork: true } : undefined,
-          });
           const updated = {
             ...project,
             name,
-            folderName: name,
-            agents: project.agents.map(moved),
+            folderName,
+            agents: project.agents.map(withFork),
             archivedAgents: project.archivedAgents?.map((item) => ({
               ...item,
-              agent: moved(item.agent),
+              agent: withFork(item.agent),
             })),
           };
           try {
@@ -300,6 +307,10 @@ export class ProjectStore {
             await rename(destination, root);
             throw error;
           }
+          this.projects.set(project.id, updated);
+        } else if (name !== project.name) {
+          const updated = { ...project, name };
+          await this.save(updated, root);
           this.projects.set(project.id, updated);
         }
       } else if (command.kind === 'update-agents') {

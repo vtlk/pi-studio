@@ -1,3 +1,5 @@
+import type { WorkspaceProject } from '../../shared/project.ts';
+import { agentDirectory } from '../../shared/agentPaths.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { isMissing, readJson, safePath } from './files.ts';
@@ -33,5 +35,18 @@ export async function hasLiveSessionLease(cwd: string) {
     throw new Error('Не удалось проверить, закрыт ли диалог Pi. Повторите операцию.', {
       cause: error,
     });
+  }
+}
+
+export async function assertProjectSessionsClosed(project: WorkspaceProject, root: string) {
+  for (const agent of [
+    ...project.agents,
+    ...(project.archivedAgents ?? []).map((item) => item.agent),
+  ]) {
+    const cwd = await safePath(root, agentDirectory(agent.outputPath), true);
+    if (await hasLiveSessionLease(cwd))
+      throw new Error(
+        'В проекте ещё открыт другой процесс Pi. Закройте диалог перед переносом папки.',
+      );
   }
 }

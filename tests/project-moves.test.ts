@@ -182,10 +182,10 @@ test('rename marks active and archived bindings for native fork while preserving
   await reopened.command({ kind: 'restore-agent', projectId: project.id, agentId: 'two' });
   assert.equal((await reopened.projects.read(project.id)).agents[1].session?.needsFork, true);
   // Collisions/invalid names must leave metadata, folder and histories untouched.
-  await mkdir(join(temporary, 'projects/Occupied'));
+  await mkdir(join(temporary, 'projects/occupied'));
   const metadata = await readFile(join(newRoot, 'project.json'));
   for (const name of ['Occupied', '../escape'])
     await assert.rejects(reopened.command({ kind: 'rename', projectId: project.id, name }));
   assert.deepEqual(await readFile(join(newRoot, 'project.json')), metadata);
-  assert.deepEqual((await readdir(join(temporary, 'projects'))).sort(), ['Again', 'Occupied']);
+  assert.deepEqual((await readdir(join(temporary, 'projects'))).sort(), ['again', 'occupied']);
 });

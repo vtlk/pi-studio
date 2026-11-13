@@ -22,8 +22,7 @@
   color: #27272a;
   background: transparent;
 }
-.ui-list-row:hover,
-.ui-list-row:focus-within {
+.ui-list-row:hover {
   background: #f4f4f5;
 }
 .ui-list-row[data-clickable='true'] {
@@ -54,10 +53,6 @@
 .app-shell .ui-list-row-main:hover:not(:disabled) {
   background: transparent;
   color: inherit;
-}
-.app-shell .ui-list-row-main:focus-visible {
-  outline-offset: 3px;
-  border-radius: 4px;
 }
 .ui-list-row-label {
   flex: 1;

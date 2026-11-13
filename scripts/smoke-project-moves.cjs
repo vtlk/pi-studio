@@ -92,7 +92,7 @@ const deadline = setTimeout(() => {
   assert.equal(renamed.id, project.id);
   assert.equal(renamed.agents[0].session.needsFork, true);
   await assert.rejects(stat(originalRoot), { code: 'ENOENT' });
-  const newRoot = join(studio, 'projects/After');
+  const newRoot = join(studio, 'projects/after');
   assert.equal(await readFile(join(newRoot, path), 'utf8'), history);
   await js(`document.querySelector('[aria-label="Клонировать After"]').click()`);
   await name('Copy');
@@ -105,7 +105,7 @@ const deadline = setTimeout(() => {
   assert.notEqual(copy.id, project.id);
   assert.equal(copy.agents[0].session.needsFork, true);
   assert.equal(copy.autoContinue, false);
-  assert.equal(await readFile(join(studio, 'projects/Copy', path), 'utf8'), history);
+  assert.equal(await readFile(join(studio, 'projects/copy', path), 'utf8'), history);
   assert.equal(
     await readFile(join(newRoot, 'agents/example/output/script.md'), 'utf8'),
     '# Preserved result',

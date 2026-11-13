@@ -117,7 +117,7 @@ const deadline = setTimeout(() => {
   assert.equal(project.agents[1].profile.enabled, false);
   const outputPath = project.agents[0].outputPath;
   assert.equal(outputPath, 'agents/pervyy-polzovatelskiy-agent/output');
-  const output = join(first.folder, 'projects/Desktop smoke', outputPath);
+  const output = join(first.folder, 'projects/desktop-smoke', outputPath);
   await writeFile(
     join(output, 'проверка.md'),
     '# Файловый просмотр\n\n**Жирный текст** и обычный текст.\n\n<script>window.INJECTED=true</script>',
@@ -136,7 +136,7 @@ const deadline = setTimeout(() => {
   );
   assert.match(apiRead.content, /Файловый просмотр/);
   const projectJson = JSON.parse(
-    await readFile(join(first.folder, 'projects/Desktop smoke/project.json'), 'utf8'),
+    await readFile(join(first.folder, 'projects/desktop-smoke/project.json'), 'utf8'),
   );
   assert.equal('mainInstruction' in projectJson.agents[0].profile, false);
   const check = await js(`window.studio.checkPi('')`);
@@ -177,7 +177,7 @@ const deadline = setTimeout(() => {
   await js('new Promise(resolve=>requestAnimationFrame(resolve))');
   window.webContents.sendInputEvent({ type: 'mouseMove', ...statusIcon });
   await until(
-    `Array.from(document.querySelectorAll('[role="tooltip"]')).some(item=>item.textContent==='Не запускался')`,
+    `document.querySelector('.project-agent-menu .section-menu-description')?.textContent==='Не запускался'`,
   );
   window.webContents.sendInputEvent({ type: 'mouseMove', x: 5, y: 5 });
   await js(

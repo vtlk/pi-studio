@@ -1,3 +1,4 @@
+import { folderSlug } from '../../../../shared/folderSlug';
 import { useState } from 'react';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { initialAgents } from '@/fixtures/agents';
@@ -32,6 +33,7 @@ export function useDemoWorkspaceState() {
     const project: WorkspaceProject = {
       id: crypto.randomUUID(),
       name: name.trim(),
+      folderName: folderSlug(name),
       createdAt: Date.now(),
       agents: snapshotAgents(agents),
     };
@@ -139,7 +141,7 @@ export function useDemoWorkspaceState() {
             ? {
                 ...project,
                 name: name.trim(),
-                folderName: name.trim(),
+                folderName: folderSlug(name),
                 agents: project.agents.map((agent) => ({
                   ...agent,
                   session: agent.session ? { ...agent.session, needsFork: true } : undefined,
@@ -163,7 +165,7 @@ export function useDemoWorkspaceState() {
         autoContinue: false,
         id: crypto.randomUUID(),
         name: name.trim(),
-        folderName: name.trim(),
+        folderName: folderSlug(name),
         createdAt: Date.now(),
       };
       setProjects((previous) => [project, ...previous]);

@@ -26,11 +26,6 @@
   background: #f2c126;
   color: #242027;
 }
-.ui-checkbox:focus-visible,
-.ui-switch:focus-visible {
-  outline: 2px solid #27272a;
-  outline-offset: 3px;
-}
 .ui-switch {
   position: relative;
   display: inline-flex;
@@ -438,12 +433,6 @@
 .asset-strip > .add-area.location-thumb {
   width: 170px;
 }
-.instruction-sortable-list > .add-area {
-  min-height: 42px;
-  border: 0;
-  border-bottom: 1px solid #c9c9d0;
-  border-radius: 6px 6px 0 0;
-}
 .stage-page > .add-area {
   margin-bottom: 14px;
 }
@@ -497,14 +486,12 @@
   background: #c9c9d0;
 }
 .resize-handle:hover,
-.resize-handle[data-dragging],
-.resize-handle:focus-visible {
+.resize-handle[data-dragging] {
   background: #ffd447;
   outline: none;
 }
 .resize-handle:hover::after,
-.resize-handle[data-dragging]::after,
-.resize-handle:focus-visible::after {
+.resize-handle[data-dragging]::after {
   width: 2px;
   background: #27272a;
 }
@@ -560,4 +547,21 @@
 .reference-attachment > .hover-delete {
   top: 50%;
   transform: translateY(-50%);
+}
+
+.section-menu-text {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+.section-menu-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.instruction-blocks .add-area,
+.agent-settings-content > .add-area {
+  margin-top: 12px;
 }

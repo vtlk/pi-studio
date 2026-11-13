@@ -31,18 +31,73 @@
   min-height: 0;
   overflow: auto;
   overflow-anchor: none;
-  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: #f7f7f8;
 }
-.project-agent-menu small {
+.project-column-heading {
   flex: 0 0 auto;
+  min-height: 52px;
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e4e7;
+  background: #f4f4f5;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.project-agent-menu .section-menu {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  gap: 0;
+}
+.project-agent-menu .section-menu-item {
+  min-height: 84px;
+  padding: 16px 20px;
+  gap: 16px;
+  border-radius: 0;
+  border-bottom: 1px solid #e4e4e7;
+  background: transparent;
+}
+.project-agent-menu .section-menu-item.active {
+  background: var(--pill-active);
+}
+.project-agent-menu .section-menu-label {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 24px;
+}
+.project-agent-menu .section-menu-description {
+  display: block;
+  white-space: normal;
+  margin-top: 3px;
   font-size: 13px;
-  color: inherit;
+  font-weight: 400;
+  line-height: 20px;
+  color: #71717a;
+}
+.project-agent-menu .section-menu-item.active .section-menu-description {
+  color: #52525b;
+}
+.project-agent-menu .section-menu-item[data-muted] .section-menu-text {
+  color: #737373;
+}
+.project-agent-menu .section-menu-item:not([data-muted]) .agent-status-icon[data-status='ready'] {
+  color: #15803d;
+}
+.project-agent-menu .section-menu-item:not([data-muted]) .agent-status-icon[data-status='error'] {
+  color: #b91c1c;
 }
 .project-agent-menu .agent-status-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 22px;
+  flex: 0 0 32px;
   color: inherit;
 }
 .agent-status-icon[data-status='running'] svg {
@@ -138,12 +193,21 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.output-files-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #f7f7f8;
+}
 .output-file-tree {
   min-width: 0;
   min-height: 0;
   overflow: auto;
   overflow-anchor: none;
-  padding: 20px 8px;
+  flex: 1;
+  padding: 8px;
 }
 .output-file-tree ul {
   margin: 0;

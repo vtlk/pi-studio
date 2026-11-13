@@ -7,8 +7,7 @@ import {
   Clock3,
   LoaderCircle,
 } from 'lucide-react';
-import { agentStatusLabels, type AgentDisplayStatus } from '../model/agentActivity';
-import { Tooltip } from '@/shared/ui/Tooltip';
+import type { AgentDisplayStatus } from '../model/agentActivity';
 
 const icons = {
   idle: CircleDashed,
@@ -23,15 +22,8 @@ const icons = {
 export function AgentStatusIcon({ status }: { status: AgentDisplayStatus }) {
   const Icon = icons[status];
   return (
-    <Tooltip label={agentStatusLabels[status]}>
-      <span
-        className="agent-status-icon"
-        data-status={status}
-        role="img"
-        aria-label={agentStatusLabels[status]}
-      >
-        <Icon size={18} aria-hidden="true" />
-      </span>
-    </Tooltip>
+    <span className="agent-status-icon" data-status={status} aria-hidden="true">
+      <Icon size={32} strokeWidth={1.6} />
+    </span>
   );
 }

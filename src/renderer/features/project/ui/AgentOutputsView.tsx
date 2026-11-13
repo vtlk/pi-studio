@@ -56,11 +56,14 @@ export function AgentOutputsView({
       ref={ref}
       style={{ gridTemplateColumns: `${actualWidth}px 8px minmax(0, 1fr)` }}
     >
-      <OutputFileTree
-        entries={agent.entries}
-        selectedFileId={selected?.file.id ?? ''}
-        onSelectFile={setFileId}
-      />
+      <aside className="output-files-pane">
+        <h2 className="project-column-heading">Файлы агента</h2>
+        <OutputFileTree
+          entries={agent.entries}
+          selectedFileId={selected?.file.id ?? ''}
+          onSelectFile={setFileId}
+        />
+      </aside>
       <ResizeHandle
         label="Ширина колонки файлов"
         value={actualWidth}

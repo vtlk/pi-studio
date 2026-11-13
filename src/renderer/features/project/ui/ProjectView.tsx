@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useWorkspace } from '../model/Workspace';
 import type { WorkspaceProject } from '../model/workspace.types';
-import { getAgentDisplayStatus } from '../model/agentActivity';
+import { getAgentDisplayStatus, getAgentStatusLabel } from '../model/agentActivity';
 import { AgentStatusIcon } from './AgentStatusIcon';
 import { AgentOutputsView } from './AgentOutputsView';
 import { RefreshAgentsDialog } from './RefreshAgentsDialog';
@@ -32,6 +32,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
       <div className="project-header">
         <h1>{project.name}</h1>
         <Button
+          kind="primary"
           onClick={() =>
             confirm({
               title: 'Перечитать агентов?',
@@ -52,13 +53,15 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
         style={{ gridTemplateColumns: `${actualAgentWidth}px 8px minmax(0, 1fr)` }}
       >
         <aside className="project-agent-menu">
+          <h2 className="project-column-heading">Агенты проекта</h2>
           <SectionMenu
             label="Агенты проекта"
             items={project.agents.map((agent, index) => ({
               id: agent.profile.id,
               label: `${index + 1}. ${agent.profile.name || 'Без названия'}`,
               muted: !agent.profile.enabled,
-              suffix: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
+              icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
+              description: getAgentStatusLabel(agent),
             }))}
             selected={selectedAgent?.profile.id ?? ''}
             onSelect={setAgentId}

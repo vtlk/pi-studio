@@ -27,7 +27,8 @@ export function ProjectsView() {
   const { setDialog } = useLaunch();
   const { demo } = useNotice();
   const fileCounts = useProjectFileCounts(projects);
-  const search = query.trim().toLocaleLowerCase('ru-RU');
+  const showSearch = projects.length >= 6;
+  const search = showSearch ? query.trim().toLocaleLowerCase('ru-RU') : '';
   const shown = [...projects]
     .sort((a, b) => b.createdAt - a.createdAt)
     .filter((project) =>
@@ -46,20 +47,22 @@ export function ProjectsView() {
           : 'проектов';
   return (
     <div className="page-body projects-page">
-      <div className="projects-list-toolbar">
-        <span className="projects-total" aria-live="polite">
-          {count} {noun}
-        </span>
-        <label className="projects-search">
-          <Search size={19} aria-hidden="true" />
-          <input
-            aria-label="Найти проект"
-            placeholder="Найти проект"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-      </div>
+      {showSearch && (
+        <div className="projects-list-toolbar">
+          <span className="projects-total" aria-live="polite">
+            {count} {noun}
+          </span>
+          <label className="projects-search">
+            <Search size={19} aria-hidden="true" />
+            <input
+              aria-label="Найти проект"
+              placeholder="Найти проект"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+        </div>
+      )}
       <AddArea
         className="project-create-area"
         label="Создать проект"
@@ -125,27 +128,28 @@ export function ProjectsView() {
           )}
         </tbody>
       </table>
-      <div className="projects-trash">
-        <DisclosureList>
-          <Disclosure label={`Корзина студии · ${trashProjects.length}`} icon={Trash2}>
-            {!trashProjects.length && <p className="subtle">Корзина пуста.</p>}
-            <DisclosureList>
-              {trashProjects.map((project) => (
-                <ListRow
-                  key={project.id}
-                  label={project.name}
-                  icon={Folder}
-                  actions={
-                    <Button disabled={busy} onClick={() => void restoreProject(project)}>
-                      Восстановить
-                    </Button>
-                  }
-                />
-              ))}
-            </DisclosureList>
-          </Disclosure>
-        </DisclosureList>
-      </div>
+      {trashProjects.length > 0 && (
+        <div className="projects-trash">
+          <DisclosureList>
+            <Disclosure label={`Корзина студии · ${trashProjects.length}`} icon={Trash2}>
+              <DisclosureList>
+                {trashProjects.map((project) => (
+                  <ListRow
+                    key={project.id}
+                    label={project.name}
+                    icon={Folder}
+                    actions={
+                      <Button disabled={busy} onClick={() => void restoreProject(project)}>
+                        Восстановить
+                      </Button>
+                    }
+                  />
+                ))}
+              </DisclosureList>
+            </Disclosure>
+          </DisclosureList>
+        </div>
+      )}
       {edit && <ProjectNameDialog {...edit} onClose={() => setEdit(null)} />}
     </div>
   );

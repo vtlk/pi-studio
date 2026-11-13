@@ -5,6 +5,8 @@ import { useState, type ReactNode } from 'react';
 interface MenuItem<T> {
   id: T;
   label: string;
+  icon?: ReactNode;
+  description?: string;
   suffix?: ReactNode;
   onRemove?: () => void;
   muted?: boolean;
@@ -46,9 +48,15 @@ export function SectionMenu<T extends string | number>({
               if (event.key === 'Escape') setFocused(null);
             }}
           >
-            <Tooltip label={item.label} onlyWhenTruncated open={focused === item.id || undefined}>
-              <span>{item.label}</span>
-            </Tooltip>
+            {item.icon}
+            <span className="section-menu-text">
+              <Tooltip label={item.label} onlyWhenTruncated open={focused === item.id || undefined}>
+                <span className="section-menu-label">{item.label}</span>
+              </Tooltip>
+              {item.description && (
+                <span className="section-menu-description">{item.description}</span>
+              )}
+            </span>
             {item.suffix}
           </button>
         );

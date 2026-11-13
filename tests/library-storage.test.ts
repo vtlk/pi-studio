@@ -13,7 +13,7 @@ import { characterFixture } from '../scripts/fixtures/character-rig.ts';
 async function fixture(t: { after: (callback: () => Promise<void>) => void }) {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-library-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const output = join(root, 'projects/Movie/agents/character/output');
+  const output = join(root, 'projects/movie/agents/character/output');
   await mkdir(output, { recursive: true });
   return { root, output, library: new LibraryStore(root) };
 }

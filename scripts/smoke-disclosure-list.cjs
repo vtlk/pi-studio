@@ -130,9 +130,11 @@ const deadline = setTimeout(() => {
     'rgba(0, 0, 0, 0)',
   );
   await mouse(trash, true, true);
-  await until(`document.activeElement===document.querySelector('.projects-trash .disclosure-trigger')`);
   await until(
-    `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')==='true'`,
+    `document.activeElement===document.querySelector('.projects-trash .disclosure-trigger')`,
+  );
+  await until(
+    `document.querySelector('.projects-trash .disclosure-trigger')?.getAttribute('aria-expanded')==='true'`,
   );
   assert.equal(
     await js(
@@ -147,35 +149,50 @@ const deadline = setTimeout(() => {
   await writeFile(resolve('artifacts/disclosure-trash.png'), (await win.capturePage()).toPNG());
   await mouse(trash + ' .ui-list-row-icon', false, true);
   await until(
-    `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')==='false'`,
+    `document.querySelector('.projects-trash .disclosure-trigger')?.getAttribute('aria-expanded')==='false'`,
   );
   await mouse(trash + ' .ui-list-row-chevron', false, true);
   await until(
-    `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')==='true'`,
+    `document.querySelector('.projects-trash .disclosure-trigger')?.getAttribute('aria-expanded')==='true'`,
   );
   await js(`document.querySelector('.projects-trash .disclosure-trigger').focus()`);
   await key('Enter', 'Enter', 13, '\r');
   await until(
-    `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')==='false'`,
+    `document.querySelector('.projects-trash .disclosure-trigger')?.getAttribute('aria-expanded')==='false'`,
   );
   await key(' ', 'Space', 32, ' ');
   await until(
-    `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')==='true'`,
+    `document.querySelector('.projects-trash .disclosure-trigger')?.getAttribute('aria-expanded')==='true'`,
   );
   await js(
     `document.querySelector('.projects-trash .disclosure-content .ui-list-row-actions button').click()`,
   );
-  await until(`document.querySelector('.projects-total')?.textContent==='1 проект'`);
+  await until(`document.querySelectorAll('.project-list-item').length===1`);
   assert.equal(
     await js(
-      `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')`,
+      `document.querySelector('.projects-trash .disclosure-trigger')?.getAttribute('aria-expanded')`,
     ),
-    'true',
-    'Restore action does not collapse its parent',
+    undefined,
+    'Restoring the final item hides the empty trash',
   );
   await click('Агенты');
   await until(`document.querySelectorAll('.instruction-sortable').length===2`);
   const instruction = '.instruction-sortable:first-child';
+  assert.equal(
+    await js(
+      `getComputedStyle(document.querySelector('.instruction-sortable textarea')).borderRadius`,
+    ),
+    '0px',
+  );
+  for (const selector of ['[aria-label="Добавить агента"]', '[aria-label="Добавить инструкцию"]']) {
+    const style = await js(
+      `(()=>{const s=getComputedStyle(document.querySelector(${JSON.stringify(selector)}));return{radius:s.borderRadius,styles:[s.borderTopStyle,s.borderRightStyle,s.borderBottomStyle,s.borderLeftStyle],widths:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth]}})()`,
+    );
+    assert.equal(style.radius, '6px');
+    assert.deepEqual(style.styles, ['dashed', 'dashed', 'dashed', 'dashed']);
+    assert.deepEqual(style.widths, ['1px', '1px', '1px', '1px']);
+  }
+
   await js(`document.querySelector(${JSON.stringify(instruction)}+' [role="switch"]').click()`);
   await until(
     `document.querySelector(${JSON.stringify(instruction)}+' [role="switch"]').getAttribute('aria-checked')==='false'`,
@@ -281,7 +298,8 @@ const deadline = setTimeout(() => {
       switchIndependent: true,
       deleteConfirmation: true,
       dragKeyboard: true,
-      restoreKeepsExpanded: true,
+      hidesEmptyTrash: true,
+      flatFieldsAndAddAreaBorders: true,
       longLabelTooltip: true,
       persisted: true,
       modelRequests: 0,
