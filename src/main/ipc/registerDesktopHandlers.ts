@@ -12,6 +12,8 @@ import type { Resource } from '../../shared/resources';
 import { BrowserAuth } from '../pi/BrowserAuth';
 import { Startup } from '../pi/Startup';
 import { readPiCatalog } from '../pi/catalog';
+import { createStudioRunHost } from '../pi/createStudioRunHost';
+import type { LaunchAgentRequest } from '../../shared/runtime';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -34,9 +36,16 @@ export function registerDesktopHandlers(): StudioService {
       }
     },
   });
+  const runs = createStudioRunHost(service, {
+    bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
+    bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
+    catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
+    piPath: () => startup.path,
+  });
   app.on('before-quit', () => {
     browserAuth.close();
     startup.close();
+    runs.close();
   });
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);
@@ -61,6 +70,10 @@ export function registerDesktopHandlers(): StudioService {
     );
     return browserAuth.start(path || startup.path);
   });
+  ipcMain.handle(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
+    caller(event);
+    return runs.launch(request);
+  });
   ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
     caller(event);
     return browserAuth.read(id);
@@ -82,7 +95,7 @@ export function registerDesktopHandlers(): StudioService {
       ({
         platform: 'darwin',
         version: app.getVersion(),
-        runtimeConnected: false,
+        runtimeConnected: runs.connected,
       }) satisfies DesktopInfo,
   );
   ipcMain.handle(desktopChannels.getStartup, (event) => {
@@ -157,7 +170,10 @@ export function registerDesktopHandlers(): StudioService {
     );
   });
   handle(desktopChannels.loadStudio, async () => (await service.load()).bootstrap());
-  handle(desktopChannels.openStudio, (_event, folder: string) => service.open(folder));
+  handle(desktopChannels.openStudio, (_event, folder: string) => {
+    runs.assertIdle();
+    return service.open(folder);
+  });
   handle(desktopChannels.chooseStudio, async (event) => {
     let defaultPath = app.getPath('documents');
     try {
@@ -171,14 +187,18 @@ export function registerDesktopHandlers(): StudioService {
       defaultPath,
     });
     if (result.canceled || !result.filePaths[0]) return null;
+    runs.assertIdle();
     return service.open(result.filePaths[0]);
   });
   handle(desktopChannels.saveSection, async (_event, section: StorageSection, value: unknown) =>
     (await service.load()).saveSection(section, value),
   );
-  handle(desktopChannels.projectCommand, async (_event, command: ProjectCommand) =>
-    (await service.load()).command(command),
-  );
+  ipcMain.handle(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
+    caller(event);
+    if (command.kind === 'remove-agent') await runs.stopAgent(command.projectId, command.agentId);
+    else if ('projectId' in command) runs.assertIdle(command.projectId);
+    return service.serialize(async () => (await service.load()).command(command));
+  });
   handle(desktopChannels.readProject, async (_event, id: string) =>
     withReadDeadline(async () => (await service.load()).projects.read(id)),
   );

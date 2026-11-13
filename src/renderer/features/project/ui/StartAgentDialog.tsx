@@ -4,6 +4,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { useNotice } from '@/shared/model/Notice';
 import { useWorkspace } from '../model/Workspace';
 import type { ProjectAgent } from '../model/workspace.types';
+import { useStorage } from '@/shared/storage/Storage';
 
 export function StartAgentDialog({
   agent,
@@ -15,14 +16,24 @@ export function StartAgentDialog({
   onClose: () => void;
 }) {
   const [message, setMessage] = useState('');
+  const [opening, setOpening] = useState(false);
+  const { isDesktop } = useStorage();
   const { addSession } = useWorkspace();
   const { demo } = useNotice();
 
-  const start = () => {
-    const session = addSession(agent.profile.id, message, autoContinue);
-    if (!session) return;
-    onClose();
-    demo('Первое сообщение и привязка диалога сохранены в памяти прототипа. Pi пока не подключён.');
+  const start = async () => {
+    setOpening(true);
+    try {
+      const session = await addSession(agent.profile.id, message, autoContinue);
+      if (!session) return;
+      onClose();
+      if (!isDesktop)
+        demo(
+          'Первое сообщение и привязка диалога сохранены в памяти прототипа. Pi пока не подключён.',
+        );
+    } finally {
+      setOpening(false);
+    }
   };
 
   return (
@@ -31,13 +42,15 @@ export function StartAgentDialog({
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button disabled={opening} onClick={onClose}>
+            Отмена
+          </Button>
           <Button
             kind="primary"
-            disabled={!agent.profile.enabled || !message.trim()}
-            onClick={start}
+            disabled={opening || !agent.profile.enabled || !message.trim()}
+            onClick={() => void start()}
           >
-            {autoContinue ? 'Запустить и продолжить' : 'Запустить'}
+            {opening ? 'Открываем Pi…' : autoContinue ? 'Запустить и продолжить' : 'Запустить'}
           </Button>
         </>
       }

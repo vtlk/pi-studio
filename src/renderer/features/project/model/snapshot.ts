@@ -23,11 +23,15 @@ export function snapshotAgents(agents: Agent[]): ProjectAgent[] {
   }));
 }
 
-export function compareAgents(snapshot: ProjectAgent[], current: Agent[]) {
+export function compareAgents(
+  snapshot: ProjectAgent[],
+  current: Agent[],
+  excludedIds: string[] = [],
+) {
   const savedById = new Map(snapshot.map((item) => [item.profile.id, item.profile]));
   const currentIds = new Set(current.map((item) => item.id));
   return {
-    added: current.filter((item) => !savedById.has(item.id)),
+    added: current.filter((item) => !savedById.has(item.id) && !excludedIds.includes(item.id)),
     changed: current.filter((item) => {
       const saved = savedById.get(item.id);
       return saved && JSON.stringify(saved) !== JSON.stringify(projectProfile(item));
@@ -42,8 +46,9 @@ export function refreshSnapshot(
   snapshot: ProjectAgent[],
   current: Agent[],
   updateExisting: boolean,
+  excludedIds: string[] = [],
 ) {
-  const diff = compareAgents(snapshot, current);
+  const diff = compareAgents(snapshot, current, excludedIds);
   const changed = new Map(diff.changed.map((item) => [item.id, item]));
   return [
     ...snapshotAgents(diff.added),

@@ -61,6 +61,19 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
   await until(`!!document.querySelector('[aria-label="Название агента"]')`);
+  async function nameAgent(name) {
+    await js(
+      `(() => { const input=document.querySelector('[aria-label="Название агента"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(name)});input.dispatchEvent(new Event('input',{bubbles:true})); })()`,
+    );
+  }
+  await nameAgent('Третий пользовательский агент');
+  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await nameAgent('Выключенный пользовательский агент');
+  await js(`document.querySelector('[role="switch"][aria-label="Агент включён"]').click()`);
+  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await nameAgent('Первый пользовательский агент');
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  const constructorBeforeCreate = (await js(`window.studio.loadStudio()`)).sections.agents;
   await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Проекты').click()`,
   );
@@ -77,7 +90,12 @@ const deadline = setTimeout(() => {
   assert.equal(first.projects.length, 1);
   const project = first.projects[0];
   assert.equal(project.name, 'Desktop smoke');
-  assert.equal(project.agents.length, 1);
+  assert.equal(project.agents.length, 3);
+  assert.deepEqual(
+    project.agents.map((item) => item.profile),
+    constructorBeforeCreate.map(({ instructions, mainInstruction, ...profile }) => profile),
+  );
+  assert.equal(project.agents[1].profile.enabled, false);
   const agentId = project.agents[0].profile.id;
   const output = join(first.folder, 'projects/Desktop smoke/agents', agentId, 'output');
   await writeFile(
@@ -123,6 +141,36 @@ const deadline = setTimeout(() => {
   const provider = await js(`window.studio.getProviderStatus('openai-codex')`);
   assert.ok(['ready', 'not_ready', 'invalid'].includes(provider.status));
   assert.deepEqual(Object.keys(provider).sort(), ['provider', 'status']);
+  // The project toolbar deletion is confirmed before mutation and restores its original position.
+  await js(`document.querySelector('[aria-label="Удалить агента из проекта"]').focus()`);
+  await until(
+    `Array.from(document.querySelectorAll('[role="tooltip"]')).some(item=>item.textContent==='Удалить агента из проекта')`,
+  );
+  await js(`document.querySelector('[aria-label="Удалить агента из проекта"]').click()`);
+  assert.equal((await js(`window.studio.loadStudio()`)).projects[0].agents.length, 3);
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button=>button.textContent==='Отмена').click()`,
+  );
+  assert.equal((await js(`window.studio.loadStudio()`)).projects[0].agents.length, 3);
+  await js(`document.querySelector('[aria-label="Удалить агента из проекта"]').click()`);
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(button=>button.textContent==='Удалить').click()`,
+  );
+  await until(
+    `document.querySelector('.notice')?.textContent.includes('Агент убран') || document.body.innerText.includes('Агент убран из проекта')`,
+  );
+  const removed = await js(`window.studio.loadStudio()`);
+  assert.equal(removed.projects[0].agents.length, 2);
+  assert.equal(removed.sections.agents.length, 3);
+  assert.equal(await readFile(join(output, 'проверка.md'), 'utf8'), apiRead.content);
+  await js(
+    `Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Вернуть').click()`,
+  );
+  await until(`document.querySelectorAll('.project-agent-menu .section-menu-item').length===3`);
+  assert.deepEqual(
+    (await js(`window.studio.loadStudio()`)).projects[0].agents.map((item) => item.profile.id),
+    project.agents.map((item) => item.profile.id),
+  );
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
   await until(
     `Array.from(document.querySelectorAll('.section-menu-item')).some(button => button.textContent.trim() === 'Каталог Skills')`,
@@ -176,7 +224,7 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const reopened = await js(`window.studio.loadStudio()`);
   assert.deepEqual(reopened.sections.agents, []);
-  assert.equal(reopened.projects[0].agents.length, 1);
+  assert.equal(reopened.projects[0].agents.length, 3);
   // Migrate saved prototype defaults only after confirmation; custom profiles/project snapshots survive.
   const legacy = JSON.parse(
     execFileSync(
@@ -191,16 +239,22 @@ const deadline = setTimeout(() => {
     ),
   );
   await js(
-    `window.studio.saveSection('agents', ${JSON.stringify([...legacy, edited.sections.agents[0]])})`,
+    `window.studio.saveSection('agents', ${JSON.stringify([...legacy, ...edited.sections.agents])})`,
   );
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`document.querySelector('.dialog-body')?.innerText.includes('агенты — 6')`);
-  assert.equal((await js(`window.studio.loadStudio()`)).sections.agents.length, 7);
+  assert.equal(
+    (await js(`window.studio.loadStudio()`)).sections.agents.length,
+    legacy.length + edited.sections.agents.length,
+  );
   await js(
     `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent === 'Отмена').click()`,
   );
-  assert.equal((await js(`window.studio.loadStudio()`)).sections.agents.length, 7);
+  assert.equal(
+    (await js(`window.studio.loadStudio()`)).sections.agents.length,
+    legacy.length + edited.sections.agents.length,
+  );
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`document.querySelector('.dialog-body')?.innerText.includes('агенты — 6')`);

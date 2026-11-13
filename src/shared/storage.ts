@@ -24,6 +24,7 @@ export type ProjectCommand =
   | { kind: 'update-agents'; projectId: string; agents: Agent[]; updateExisting: boolean }
   | { kind: 'rename'; projectId: string; name: string }
   | { kind: 'clone'; projectId: string; name: string }
+  | { kind: 'remove-agent' | 'restore-agent'; projectId: string; agentId: string }
   | { kind: 'remove' | 'restore'; projectId: string };
 export interface ProjectCommandResult {
   projects: WorkspaceProject[];

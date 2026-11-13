@@ -26,5 +26,6 @@ const desktopApi: DesktopApi = {
   skipStartup: () => ipcRenderer.invoke(desktopChannels.skipStartup),
   chooseStartupPi: () => ipcRenderer.invoke(desktopChannels.chooseStartupPi),
   getModelCatalog: () => ipcRenderer.invoke(desktopChannels.getModelCatalog),
+  launchAgent: (request) => ipcRenderer.invoke(desktopChannels.launchAgent, request),
 };
 contextBridge.exposeInMainWorld('studio', desktopApi);

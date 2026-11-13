@@ -42,6 +42,7 @@ export interface WorkspaceProject {
   autoContinue?: boolean;
   reviews?: Record<string, { revision: number; acceptedRevision: number | null }>;
   agents: ProjectAgent[];
+  archivedAgents?: { agent: ProjectAgent; position: number }[];
 }
 
 export interface ArtifactDescription {

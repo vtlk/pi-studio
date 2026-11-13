@@ -90,35 +90,37 @@ export function snapshotAgent(agent: Agent): ProjectAgent {
   return { profile, outputPath: `agents/${profile.id}/output`, entries: [] };
 }
 
+function parseProjectAgent(value: unknown): ProjectAgent {
+  const saved = record(value);
+  const profile = record(saved.profile);
+  if ('instructions' in profile || 'mainInstruction' in profile)
+    throw new Error('Проект не должен хранить копии инструкций.');
+  const agent = snapshotAgent(parseAgent({ ...profile, instructions: [] }));
+  if (saved.outputPath !== agent.outputPath) throw new Error('Некорректный путь выходов агента.');
+  if (saved.session !== undefined) {
+    const binding = record(saved.session);
+    const path = text(binding.path, 1000);
+    if (
+      !path.startsWith(`agents/${agent.profile.id}/sessions/`) ||
+      path.includes('..') ||
+      !path.endsWith('.jsonl')
+    )
+      throw new Error('Некорректный путь сессии Pi.');
+    agent.session = {
+      id: stableId(binding.id),
+      title: text(binding.title, 500),
+      path,
+      createdAt: timestamp(binding.createdAt),
+      needsFork: binding.needsFork === true,
+    };
+  }
+  return agent;
+}
+
 export function parseProject(value: unknown): WorkspaceProject {
   const item = record(value);
   if (item.schemaVersion !== 1) throw new Error('Неподдерживаемая версия project.json.');
-  const agents = list(item.agents).map((value): ProjectAgent => {
-    const saved = record(value);
-    const profile = record(saved.profile);
-    if ('instructions' in profile || 'mainInstruction' in profile)
-      throw new Error('Проект не должен хранить копии инструкций.');
-    const agent = snapshotAgent(parseAgent({ ...profile, instructions: [] }));
-    if (saved.outputPath !== agent.outputPath) throw new Error('Некорректный путь выходов агента.');
-    if (saved.session !== undefined) {
-      const binding = record(saved.session);
-      const path = text(binding.path, 1000);
-      if (
-        !path.startsWith(`agents/${agent.profile.id}/sessions/`) ||
-        path.includes('..') ||
-        !path.endsWith('.jsonl')
-      )
-        throw new Error('Некорректный путь сессии Pi.');
-      agent.session = {
-        id: stableId(binding.id),
-        title: text(binding.title, 500),
-        path,
-        createdAt: timestamp(binding.createdAt),
-        needsFork: binding.needsFork === true,
-      };
-    }
-    return agent;
-  });
+  const agents = list(item.agents).map(parseProjectAgent);
   if (new Set(agents.map((agent) => agent.profile.id)).size !== agents.length)
     throw new Error('Повторяющиеся ID снимка.');
   return {
@@ -127,6 +129,20 @@ export function parseProject(value: unknown): WorkspaceProject {
     createdAt: timestamp(item.createdAt),
     agents,
     autoContinue: false,
+    ...(item.archivedAgents === undefined
+      ? {}
+      : {
+          archivedAgents: list(item.archivedAgents).map((value) => {
+            const archive = record(value);
+            const agent = parseProjectAgent(archive.agent);
+            if (agents.some((item) => item.profile.id === agent.profile.id))
+              throw new Error('Удалённый агент одновременно активен.');
+            const position = timestamp(archive.position);
+            if (!Number.isInteger(position) || position > 10000)
+              throw new Error('Некорректная позиция удалённого агента.');
+            return { agent, position };
+          }),
+        }),
   };
 }
 export function projectDocument(project: WorkspaceProject) {
@@ -135,6 +151,12 @@ export function projectDocument(project: WorkspaceProject) {
     id: project.id,
     name: project.name,
     createdAt: project.createdAt,
+    archivedAgents: project.archivedAgents?.map(
+      ({ agent: { profile, outputPath, session }, position }) => ({
+        agent: { profile, outputPath, session },
+        position,
+      }),
+    ),
     agents: project.agents.map(({ profile, outputPath, session }) => ({
       profile,
       outputPath,

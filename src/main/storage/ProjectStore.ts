@@ -1,6 +1,6 @@
 import { cp, mkdir, readdir, rename, rm, lstat } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import type { WorkspaceProject } from '../../shared/project.ts';
+import type { WorkspaceProject, SessionBinding, AgentRunStatus } from '../../shared/project.ts';
 import type { ProjectCommand, ProjectCommandResult } from '../../shared/storage.ts';
 import { atomicJson, folderLabel, isMissing, readJson, safePath } from './files.ts';
 import {
@@ -11,6 +11,7 @@ import {
   stableId,
 } from './validation.ts';
 import { scanOutputs } from './outputs.ts';
+import { archiveProjectAgent, restoreProjectAgent } from '../../shared/projectAgents.ts';
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -63,6 +64,25 @@ export class ProjectStore {
     const project = this.projects.get(id);
     if (!project) throw new Error('Проект не найден.');
     return project;
+  }
+  async updateRuntime(
+    projectId: string,
+    agentId: string,
+    status: AgentRunStatus,
+    session?: SessionBinding,
+  ) {
+    const project = this.get(projectId);
+    const selected = project.agents.find((item) => item.profile.id === stableId(agentId));
+    if (!selected) throw new Error('Агент отсутствует в проекте.');
+    const updated = {
+      ...project,
+      agents: project.agents.map((item) =>
+        item === selected ? { ...item, runStatus: status, ...(session ? { session } : {}) } : item,
+      ),
+    };
+    if (session) await this.save(updated, await this.directory(projectId));
+    this.projects.set(projectId, updated);
+    return this.read(projectId);
   }
   async read(id: string): Promise<WorkspaceProject> {
     const project = this.get(id);
@@ -140,6 +160,13 @@ export class ProjectStore {
               entries: [],
               session: agent.session ? { ...agent.session, needsFork: true } : undefined,
             })),
+            archivedAgents: source.archivedAgents?.map(({ agent, position }) => ({
+              position,
+              agent: {
+                ...agent,
+                session: agent.session ? { ...agent.session, needsFork: true } : undefined,
+              },
+            })),
           };
         } else {
           await mkdir(staging);
@@ -187,6 +214,14 @@ export class ProjectStore {
         await rename(root, destination);
         this.deleted.set(project.id, { ...project, folderName: project.id });
         this.projects.delete(project.id);
+      } else if (command.kind === 'remove-agent' || command.kind === 'restore-agent') {
+        stableId(command.agentId);
+        const updated =
+          command.kind === 'remove-agent'
+            ? archiveProjectAgent(project, command.agentId)
+            : restoreProjectAgent(project, command.agentId);
+        await this.save(updated, root);
+        this.projects.set(project.id, updated);
       } else if (command.kind === 'rename') {
         const name = folderLabel(command.name);
         if (name !== project.folderName) {
@@ -211,7 +246,13 @@ export class ProjectStore {
         const next = {
           ...project,
           agents: [
-            ...current.filter((agent) => !existing.has(agent.id)).map(snapshotAgent),
+            ...current
+              .filter(
+                (agent) =>
+                  !existing.has(agent.id) &&
+                  !project.archivedAgents?.some((item) => item.agent.profile.id === agent.id),
+              )
+              .map(snapshotAgent),
             ...project.agents.map((agent) => {
               const profile = current.find((item) => item.id === agent.profile.id);
               return command.updateExisting && profile

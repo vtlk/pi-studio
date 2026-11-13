@@ -9,13 +9,17 @@ import { compareAgents } from '../model/snapshot';
 import { useStorage } from '@/shared/storage/Storage';
 
 export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
-  const { selectedProject, refreshAgents, busy } = useWorkspace();
+  const { selectedProject, refreshAgents, restoreProjectAgent, busy } = useWorkspace();
   const { isDesktop } = useStorage();
   const { agents } = useAgentProfiles();
   const { demo } = useNotice();
   const [updateExisting, setUpdateExisting] = useState(false);
   if (!selectedProject) return null;
-  const diff = compareAgents(selectedProject.agents, agents);
+  const diff = compareAgents(
+    selectedProject.agents,
+    agents,
+    selectedProject.archivedAgents?.map((item) => item.agent.profile.id),
+  );
   const hasChanges = diff.added.length > 0 || (updateExisting && diff.changed.length > 0);
   return (
     <Modal
@@ -47,6 +51,26 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="agent-diff">
+        {!!selectedProject.archivedAgents?.length && (
+          <section>
+            <h3>Удалены из этого проекта</h3>
+            <p>Не добавляются автоматически при перечитывании. Файлы и история сохранены.</p>
+            <ul>
+              {selectedProject.archivedAgents.map(({ agent }) => (
+                <li key={agent.profile.id}>
+                  <Button
+                    disabled={busy}
+                    onClick={() => {
+                      void restoreProjectAgent(selectedProject.id, agent.profile.id);
+                    }}
+                  >
+                    Вернуть · {agent.profile.name || 'Без названия'}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {diff.added.length > 0 ? (
           <section>
             <h3>Добавятся в проект</h3>

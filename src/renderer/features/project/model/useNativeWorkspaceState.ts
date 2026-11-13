@@ -18,6 +18,31 @@ export function useNativeWorkspaceState() {
   const lastReadError = useRef('');
   const generation = useRef(0);
   const selectedProject = projects.find((project) => project.id === projectId);
+  const openAgent = async (agentId: string, message?: string, autoContinue = false) => {
+    if (!window.studio || mutating.current) return undefined;
+    mutating.current = true;
+    setBusy(true);
+    generation.current++;
+    try {
+      const result = await window.studio.launchAgent({
+        projectId,
+        agentId,
+        firstMessage: message,
+        autoContinue,
+      });
+      setProjects((previous) =>
+        previous.map((project) => (project.id === result.project.id ? result.project : project)),
+      );
+      return result.project.agents.find((agent) => agent.profile.id === agentId)?.session;
+    } catch (error) {
+      demo(error instanceof Error ? error.message : 'Не удалось открыть Pi.');
+      return undefined;
+    } finally {
+      mutating.current = false;
+      setBusy(false);
+      generation.current++;
+    }
+  };
 
   const command = async (action: ProjectCommand) => {
     if (!window.studio || mutating.current) return false;
@@ -86,6 +111,10 @@ export function useNativeWorkspaceState() {
     createProject: (name: string) => command({ kind: 'create', name, agents }),
     refreshAgents: (updateExisting: boolean) =>
       command({ kind: 'update-agents', projectId, agents, updateExisting }),
+    removeProjectAgent: (projectId: string, agentId: string) =>
+      command({ kind: 'remove-agent', projectId, agentId }),
+    restoreProjectAgent: (projectId: string, agentId: string) =>
+      command({ kind: 'restore-agent', projectId, agentId }),
     removeProject: (id: string) => command({ kind: 'remove', projectId: id }),
     restoreProject: (project: WorkspaceProject) =>
       command({ kind: 'restore', projectId: project.id }),
@@ -93,13 +122,10 @@ export function useNativeWorkspaceState() {
     cloneProject: (source: WorkspaceProject, name: string) =>
       command({ kind: 'clone', projectId: source.id, name }),
     addSession: (
-      _agentId: string,
-      _message: string,
-      _autoContinue = false,
-    ): SessionBinding | undefined => {
-      demo('Pi установлен отдельно. Запуск из Studio ещё не подключён; диалог не создан.');
-      return undefined;
-    },
+      agentId: string,
+      message: string,
+      autoContinue = false,
+    ): Promise<SessionBinding | undefined> => openAgent(agentId, message, autoContinue),
     setAutoContinue: (_enabled: boolean) => {},
     reviewFile: (_projectId: string, _fileId: string, _accept: boolean) => {},
   };

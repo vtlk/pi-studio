@@ -10,12 +10,13 @@ import type { Resource, SkillDocument } from './resources';
 import type { AuthLoginState } from './auth';
 import type { StartupState } from './startup';
 import type { PiModelCatalog } from './models';
+import type { LaunchAgentRequest, LaunchAgentResult } from './runtime';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
   platform: 'darwin';
   version: string;
-  runtimeConnected: false;
+  runtimeConnected: boolean;
 }
 
 export interface DesktopApi {
@@ -42,6 +43,7 @@ export interface DesktopApi {
   skipStartup(): Promise<StartupState>;
   chooseStartupPi(): Promise<StartupState | null>;
   getModelCatalog(): Promise<PiModelCatalog>;
+  launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
 }
 
 export interface ProviderStatus {
@@ -81,4 +83,5 @@ export const desktopChannels = {
   skipStartup: 'studio:startup-skip',
   chooseStartupPi: 'studio:startup-choose',
   getModelCatalog: 'studio:model-catalog',
+  launchAgent: 'studio:launch-agent',
 } as const;

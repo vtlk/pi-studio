@@ -6,6 +6,10 @@ import { demoAgentActivity } from '@/fixtures/agentActivity';
 import { snapshotAgents, refreshSnapshot, getCurrentAgentInstructions } from './snapshot';
 import { getAgentLaunchAction } from './session';
 import type { SessionBinding, WorkspaceProject } from './workspace.types';
+import {
+  archiveProjectAgent,
+  restoreProjectAgent as restoreArchivedAgent,
+} from '../../../../shared/projectAgents';
 
 export function useDemoWorkspaceState() {
   const { agents } = useAgentProfiles();
@@ -37,7 +41,15 @@ export function useDemoWorkspaceState() {
     setProjects((previous) =>
       previous.map((project) =>
         project.id === projectId
-          ? { ...project, agents: refreshSnapshot(project.agents, agents, updateExisting) }
+          ? {
+              ...project,
+              agents: refreshSnapshot(
+                project.agents,
+                agents,
+                updateExisting,
+                project.archivedAgents?.map((item) => item.agent.profile.id),
+              ),
+            }
           : project,
       ),
     );
@@ -94,6 +106,22 @@ export function useDemoWorkspaceState() {
     setProjectId,
     createProject,
     refreshAgents,
+    removeProjectAgent: (projectId: string, agentId: string) => {
+      setProjects((previous) =>
+        previous.map((project) =>
+          project.id === projectId ? archiveProjectAgent(project, agentId) : project,
+        ),
+      );
+      return true;
+    },
+    restoreProjectAgent: (projectId: string, agentId: string) => {
+      setProjects((previous) =>
+        previous.map((project) =>
+          project.id === projectId ? restoreArchivedAgent(project, agentId) : project,
+        ),
+      );
+      return true;
+    },
     removeProject,
     restoreProject,
     addSession,

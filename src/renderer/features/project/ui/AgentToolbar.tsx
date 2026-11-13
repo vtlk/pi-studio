@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StartAgentDialog } from './StartAgentDialog';
+import { ProjectAgentDeleteButton } from './ProjectAgentDeleteButton';
 import { FolderOpen, MessageSquare, Play } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
 import { SplitButton } from '@/shared/ui/SplitButton';
@@ -28,14 +29,14 @@ export function AgentToolbar({
   previewKind?: PreviewKind;
 }) {
   const { demo } = useNotice();
-  const { setAutoContinue, selectedProject } = useWorkspace();
+  const { setAutoContinue, selectedProject, busy } = useWorkspace();
   const { agents } = useAgentProfiles();
   const [startOpen, setStartOpen] = useState(false);
   const [continueAfterRun, setContinueAfterRun] = useState(false);
   const hasSession = !!agent.session;
   const kind = previewKind ?? (file ? getPreviewKind(file) : undefined);
   const revealInFinder = file && kind && getPreviewCapabilities(kind).revealInFinder;
-  const launch = (autoContinue: boolean) => {
+  const launch = async (autoContinue: boolean) => {
     if (!getCurrentAgentInstructions(agent.profile.id, agents)) {
       demo('Профиль агента удалён. Текущие инструкции недоступны; другой агент не подставляется.');
       return;
@@ -48,6 +49,18 @@ export function AgentToolbar({
     setContinueAfterRun(autoContinue);
     if (action.kind === 'start') {
       setStartOpen(true);
+      return;
+    }
+    if (window.studio && selectedProject) {
+      try {
+        await window.studio.launchAgent({
+          projectId: selectedProject.id,
+          agentId: agent.profile.id,
+          autoContinue,
+        });
+      } catch (error) {
+        demo(error instanceof Error ? error.message : 'Не удалось продолжить диалог Pi.');
+      }
       return;
     }
     setAutoContinue(autoContinue);
@@ -67,6 +80,7 @@ export function AgentToolbar({
         </Tooltip>
       )}
       <div className="project-agent-toolbar-actions">
+        <ProjectAgentDeleteButton agent={agent} />
         {revealInFinder && (
           <IconButton
             title="Показать в Finder"
@@ -96,9 +110,9 @@ export function AgentToolbar({
           menuLabel="Другие варианты запуска"
           label={hasSession ? 'Продолжить диалог' : 'Запустить'}
           icon={hasSession ? <MessageSquare size={17} /> : <Play size={17} />}
-          disabled={!agent.profile.enabled}
-          onClick={() => launch(false)}
-          actions={[{ label: 'Запустить и продолжить', onSelect: () => launch(true) }]}
+          disabled={busy || !agent.profile.enabled}
+          onClick={() => void launch(false)}
+          actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
         />
       </div>
       {startOpen && (
