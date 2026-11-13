@@ -122,6 +122,8 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     read: (run) =>
       service.serialize(async () => (await service.load()).projects.read(run.project.id)),
     completed: async (run, outputs, message) => {
+      const continueStage = host.continuation(run);
+      if (!continueStage) return;
       if (run.agent.profile.requiresSceneApproval)
         throw new Error('Требуется согласование результата человеком.');
       const project = await service.serialize(async () =>
@@ -130,14 +132,13 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       const next = nextEnabledStage(project, run.agent.profile.id);
       if (!next) return;
       const input = nextStageMessage(run, outputs, message);
-      await host.launch(
+      await continueStage(
         {
           projectId: project.id,
           agentId: next.profile.id,
           autoContinue: true,
-          ...(!next.session ? { firstMessage: input } : {}),
         },
-        next.session ? input : undefined,
+        input,
       );
     },
   });

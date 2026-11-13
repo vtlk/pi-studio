@@ -7,15 +7,23 @@ import { resolvePiSdk } from './BrowserAuth.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { hasLiveSessionLease } from '../storage/sessionLease.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
+import type { PreparedRun } from './ContextBuilder.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
 import { closedRunStatus } from './closedRunStatus.ts';
+
+class ContinuationCancelled extends Error {}
+interface Continuation {
+  token: symbol;
+  check: () => void;
+}
 
 export class RunHost {
   private readonly channel = new RunChannel();
   private readonly live = new Map<string, LiveRun>();
   private readonly opening = new Set<string>();
   private readonly changing = new Set<string>();
+  private readonly chains = new Map<string, symbol>();
   private readonly dependencies: RunDependencies;
   private readonly lifecycle: RunLifecycle;
   private monitor = setInterval(() => {
@@ -28,6 +36,20 @@ export class RunHost {
       beforeRequest: async (run) => {
         this.assertUnchanged(run.project.id);
         const own = this.key({ projectId: run.project.id, agentId: run.agent.profile.id });
+        const live = this.live.get(own);
+        const automaticCheck = live?.automaticCheck;
+        const check = () => {
+          try {
+            automaticCheck?.();
+          } catch (error) {
+            if (error instanceof ContinuationCancelled && live) {
+              live.fail(error);
+              if (live.pid && processAlive(live.pid)) process.kill(live.pid, 'SIGTERM');
+            }
+            throw error;
+          }
+        };
+        check();
         if (
           [...this.live.values()].some(
             (other) =>
@@ -40,6 +62,8 @@ export class RunHost {
           throw new Error('Другой этап этого проекта ещё работает.');
         await dependencies.beforeRequest?.(run);
         this.assertUnchanged(run.project.id);
+        check();
+        if (live) live.automaticCheck = undefined;
       },
     });
     this.monitor.unref();
@@ -52,8 +76,53 @@ export class RunHost {
   private key(request: Pick<LaunchAgentRequest, 'projectId' | 'agentId'>) {
     return `${request.projectId}/${request.agentId}`;
   }
-  async launch(request: LaunchAgentRequest, automaticMessage?: string): Promise<LaunchAgentResult> {
+  launch(request: LaunchAgentRequest) {
+    return this.open(request);
+  }
+  continuation(run: PreparedRun) {
+    const live = this.live.get(
+      this.key({ projectId: run.project.id, agentId: run.agent.profile.id }),
+    );
+    if (
+      !live ||
+      live.run !== run ||
+      !live.request.autoContinue ||
+      !live.chain ||
+      live.sequence < (live.continueAfterSequence ?? 1)
+    )
+      return;
+    const token = live.chain,
+      sequence = live.sequence;
+    const check = () => {
+      if (
+        this.chains.get(run.project.id) !== token ||
+        live.sequence !== sequence ||
+        live.blocked ||
+        live.status !== 'ready'
+      )
+        throw new ContinuationCancelled();
+    };
+    let used = false;
+    return async (request: LaunchAgentRequest, message: string) => {
+      if (used) return;
+      used = true;
+      try {
+        if (request.projectId !== run.project.id)
+          throw new Error('Цепочка не может перейти в другой проект.');
+        check();
+        return await this.open({ ...request, autoContinue: true }, message, { token, check });
+      } catch (error) {
+        if (!(error instanceof ContinuationCancelled)) throw error;
+      }
+    };
+  }
+  private async open(
+    request: LaunchAgentRequest,
+    automaticMessage?: string,
+    continuation?: Continuation,
+  ): Promise<LaunchAgentResult> {
     this.assertUnchanged(request.projectId);
+    if (typeof request.autoContinue !== 'boolean') throw new Error('Некорректный режим запуска.');
     if (
       request.attachments !== undefined &&
       (!Array.isArray(request.attachments) ||
@@ -64,6 +133,14 @@ export class RunHost {
     if (request.attachments?.length && !request.firstMessage)
       throw new Error('Референсы отправляются только вместе с первым сообщением нового диалога.');
     const key = this.key(request);
+    continuation?.check();
+    const chain = continuation?.token ?? (request.autoContinue ? Symbol() : undefined);
+    if (!continuation) {
+      this.chains.delete(request.projectId);
+      if (chain) this.chains.set(request.projectId, chain);
+      for (const live of this.live.values())
+        if (live.run.project.id === request.projectId) live.request.autoContinue = false;
+    }
     if (this.opening.has(key)) throw new Error('Этот агент уже открывается.');
     this.opening.add(key);
     let current: LiveRun | undefined;
@@ -77,7 +154,11 @@ export class RunHost {
         if (active.status === 'running') {
           if (automaticMessage)
             throw new Error('Следующий агент уже работает. Автоматическая цепочка приостановлена.');
-          await activateSessionTerminal();
+          active.request.autoContinue = request.autoContinue;
+          active.chain = chain;
+          active.continueAfterSequence = active.sequence + 1;
+          active.automaticCheck = undefined;
+          await (this.dependencies.activateTerminal ?? activateSessionTerminal)();
           return {
             runId: active.run.record.runId,
             project: await this.dependencies.read(active.run),
@@ -97,6 +178,7 @@ export class RunHost {
         this.live.delete(key);
       }
       const { run, piPath } = await this.dependencies.prepare(request);
+      continuation?.check();
       if (run.agent.session && request.firstMessage !== undefined)
         throw new Error('У агента уже есть диалог. Продолжение не отправляет сообщение.');
       const message = automaticMessage ?? request.firstMessage;
@@ -113,10 +195,14 @@ export class RunHost {
         throw new Error('Этот диалог ещё открыт в другом процессе Pi. Закройте его и повторите.');
       let sessionPath: string | undefined;
       if (run.agent.session) sessionPath = await safePath(run.projectRoot, run.agent.session.path);
+      continuation?.check();
       const pending = new Promise<LaunchAgentResult>((resolve, reject) => {
         current = {
           run,
-          request,
+          request: { ...request },
+          chain,
+          continueAfterSequence: 1,
+          automaticCheck: continuation?.check,
           status: 'waiting',
           sequence: 0,
           blocked: false,
@@ -151,6 +237,7 @@ export class RunHost {
         sdk,
         headless: this.dependencies.headless === true,
       });
+      continuation?.check();
       await (this.dependencies.openTerminal ?? openSessionTerminal)(
         join(dirname(pi.path), 'node'),
         this.dependencies.bridge,
@@ -173,6 +260,13 @@ export class RunHost {
     } catch (error) {
       if (current) {
         this.dependencies.closed?.(current.run);
+        if (error instanceof ContinuationCancelled) {
+          if (current.pid && processAlive(current.pid)) process.kill(current.pid, 'SIGTERM');
+          this.channel.remove(current.run.record.runId);
+          if (this.live.get(key) === current) this.live.delete(key);
+          current.fail(error);
+          throw error;
+        }
         current.status = 'error';
         await this.dependencies.update(current.run, 'error');
       }
@@ -203,6 +297,7 @@ export class RunHost {
     }
     this.channel.close();
     this.live.clear();
+    this.chains.clear();
   }
   assertIdle(projectId?: string) {
     if (
@@ -219,13 +314,12 @@ export class RunHost {
   }
   private assertUnchanged(projectId: string) {
     if (this.changing.has(projectId))
-      throw new Error(
-        'Файлы проекта сейчас переносятся или копируются. Повторите после завершения.',
-      );
+      throw new Error('Файлы проекта переносятся или копируются. Повторите позже.');
   }
   async withProjectChange<T>(projectId: string, stopSessions: boolean, action: () => Promise<T>) {
     this.assertIdle(projectId);
     this.changing.add(projectId);
+    if (stopSessions) this.chains.delete(projectId);
     try {
       if (stopSessions)
         for (const live of [...this.live.values()])
@@ -237,6 +331,7 @@ export class RunHost {
     }
   }
   async stopAgent(projectId: string, agentId: string) {
+    this.chains.delete(projectId);
     const key = this.key({ projectId, agentId });
     if (this.opening.has(key)) throw new Error('Дождитесь открытия Pi перед удалением агента.');
     const live = this.live.get(key);

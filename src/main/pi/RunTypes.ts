@@ -16,6 +16,7 @@ export interface RunDependencies {
   ) => Promise<WorkspaceProject>;
   read: (run: PreparedRun) => Promise<WorkspaceProject>;
   openTerminal?: typeof openSessionTerminal;
+  activateTerminal?: () => Promise<void>;
   headless?: boolean;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
   tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
@@ -36,6 +37,9 @@ export interface LiveRun {
   status: AgentRunStatus;
   sequence: number;
   notifiedSequence?: number;
+  chain?: symbol;
+  continueAfterSequence?: number;
+  automaticCheck?: () => void;
   userMessage?: string;
   completion?: Awaited<ReturnType<typeof validateCompletedOutputs>>;
   blocked: boolean;

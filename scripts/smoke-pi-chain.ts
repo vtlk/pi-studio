@@ -3,10 +3,8 @@ import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { StudioStore } from '../src/main/storage/StudioStore.ts';
-import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
-import { RunHost } from '../src/main/pi/RunHost.ts';
-import { nextEnabledStage, nextStageMessage } from '../src/main/pi/stageChain.ts';
+import { StudioService } from '../src/main/storage/StudioStore.ts';
+import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import type { Agent } from '../src/shared/studio.ts';
 
@@ -25,7 +23,7 @@ const base: Agent = {
   model: {
     connectionId: 'subscription',
     provider: 'openai-codex',
-    id: 'gpt-6.1-sol',
+    id: 'gpt-5.6-luna',
     reasoning: 'Низкий',
     temperature: '',
   },
@@ -41,28 +39,29 @@ const agents = [
       'Read ../first/output/first.txt. If it contains CHAIN_FIRST_OK write output/final.txt containing CHAIN_FINAL_OK and a newline. Signal complete_stage with final.txt. No questions or extra work.',
   },
 ];
-const store = await StudioStore.open(join(root, 'Studio'));
+const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
+const store = await service.load();
+await store.saveSection('agents', agents);
+await store.saveSection('connections', [
+  {
+    id: 'subscription',
+    name: 'QA subscription',
+    purpose: 'codex',
+    providerId: 'openai-codex',
+    endpoint: '',
+    account: '',
+    createdAt: 1,
+  },
+]);
 const project = (await store.command({ kind: 'create', name: 'Real chain', agents })).projects[0];
 const pi = await checkPi('');
 const children: Promise<number | null>[] = [];
-let lastLaunch: Promise<unknown> | undefined;
-const host: RunHost = new RunHost({
+const host = createStudioRunHost(service, {
   bootstraps: join(root, 'boots'),
   bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   headless: true,
-  prepare: async (request) => ({
-    run: await buildRunContext(
-      await store.projects.directory(project.id),
-      await store.projects.read(project.id),
-      request.agentId,
-      agents,
-      [],
-    ),
-    piPath: pi.path,
-  }),
-  update: (run, status, session) =>
-    store.projects.updateRuntime(run.project.id, run.agent.profile.id, status, session),
-  read: () => store.projects.read(project.id),
+  catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
+  piPath: () => pi.path,
   openTerminal: async (node, bridge, bootstrap) => {
     const child = spawn(node, [bridge, bootstrap], {
       stdio: 'ignore',
@@ -74,22 +73,6 @@ const host: RunHost = new RunHost({
         child.once('exit', resolve);
       }),
     );
-  },
-  completed: async (run, outputs, message) => {
-    const current = await store.projects.read(project.id);
-    const next = nextEnabledStage(current, run.agent.profile.id);
-    if (!next) return;
-    const input = nextStageMessage(run, outputs, message);
-    lastLaunch = host.launch(
-      {
-        projectId: project.id,
-        agentId: next.profile.id,
-        autoContinue: true,
-        firstMessage: next.session ? undefined : input,
-      },
-      next.session ? input : undefined,
-    );
-    await lastLaunch;
   },
 });
 try {
@@ -111,8 +94,7 @@ try {
   assert.equal(finished.agents[2].runStatus, 'ready');
   assert.equal(finished.agents[1].session, undefined);
   assert.equal(children.length, 2);
-  await lastLaunch;
-  await Promise.all(children);
+  await Promise.all([...children]);
   const directory = await store.projects.directory(project.id);
   assert.equal(
     await readFile(join(directory, 'agents/last/output/final.txt'), 'utf8'),
@@ -137,7 +119,7 @@ try {
     transcripts,
   );
   console.log(
-    'Real chain passed: two selected Pi stages, disabled-stage skip, fresh contexts, native MCP completion and no replay on an armed idle resume.',
+    'Production factory chain passed: two real selected Pi stages, disabled-stage skip, fresh contexts, native MCP completion and no replay on an armed idle resume. No user studio changed.',
   );
 } finally {
   host.close();
