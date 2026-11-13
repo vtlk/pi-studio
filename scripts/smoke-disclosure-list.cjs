@@ -130,6 +130,7 @@ const deadline = setTimeout(() => {
     'rgba(0, 0, 0, 0)',
   );
   await mouse(trash, true, true);
+  await until(`document.activeElement===document.querySelector('.projects-trash .disclosure-trigger')`);
   await until(
     `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')==='true'`,
   );

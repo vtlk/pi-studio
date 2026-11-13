@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { useRef, type ComponentProps, type ReactNode } from 'react';
 import { ChevronDown, type LucideIcon } from 'lucide-react';
 import { Switch } from './SelectionControls';
 import { Tooltip } from './Tooltip';
@@ -36,6 +36,7 @@ export function ListRow({
   disabled = false,
   className = '',
 }: ListRowProps) {
+  const trigger = useRef<HTMLButtonElement>(null);
   const content = (
     <>
       {Icon && <Icon className="ui-list-row-icon" size={20} strokeWidth={1.8} aria-hidden="true" />}
@@ -52,7 +53,10 @@ export function ListRow({
       data-clickable={!!onClick}
       data-disabled={disabled || undefined}
       onClick={(event) => {
-        if (event.target === event.currentTarget && !disabled) onClick?.();
+        if (event.target === event.currentTarget && !disabled) {
+          trigger.current?.focus({ preventScroll: true });
+          onClick?.();
+        }
       }}
     >
       {dragHandle && <div className="ui-list-row-drag">{dragHandle}</div>}
@@ -60,6 +64,7 @@ export function ListRow({
         {onClick ? (
           <button
             type="button"
+            ref={trigger}
             id={id}
             className={`ui-list-row-main${expanded !== undefined ? ' disclosure-trigger' : ''}`}
             aria-expanded={expanded}
