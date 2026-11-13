@@ -2,6 +2,7 @@ import { readFile, rm, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
+import { sessionSystemPrompt } from './prompt.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -185,11 +186,7 @@ export async function runSession(bootstrapPath) {
           noContextFiles: true,
           additionalExtensionPaths: envelope.resources.plugins.map((item) => item.source),
           additionalSkillPaths: envelope.resources.skills.map((item) => item.path),
-          appendSystemPrompt: [
-            envelope.serviceAgent
-              ? envelope.instructions
-              : `You are the selected Pi Studio project agent. Use this current role instruction:\n${envelope.instructions}\n\nWorking directory: ${envelope.record.cwd}\nWrite all deliverables under: ${envelope.record.output}\nEarlier agents' outputs: ${JSON.stringify(envelope.record.previousOutputs)}\nCall mcp__pi_studio__complete_stage with relative output filenames only after completing the user's task. If questions, required approvals or inputs are missing, call report_blocked and ask the user. A normal reply is not task completion. Do not modify application code or another project's files. Final rendering and SVG redraw/animation require human acceptance.`,
-          ],
+          appendSystemPrompt: [sessionSystemPrompt(envelope)],
           extensionFactories: [
             control,
             createCodemodeExtension(),

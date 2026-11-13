@@ -16,6 +16,7 @@ export interface RunContextRecord {
   projectId: string;
   agentId: string;
   createdAt: number;
+  projectRoot: string;
   cwd: string;
   output: string;
   sessionDirectory: string;

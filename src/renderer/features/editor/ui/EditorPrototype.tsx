@@ -4,7 +4,6 @@ import { Button, IconButton } from '@/shared/ui';
 import { useEditorDocument } from '../model/Editor';
 import { durationFrames, type DemoTimeline } from '../model/timeline';
 import { TimelineTracks } from './TimelineTracks';
-import { ExportDialog } from './ExportDialog';
 
 export function EditorPrototype({
   documentKey,
@@ -22,7 +21,6 @@ export function EditorPrototype({
   const { document, update } = useEditorDocument(documentKey, initial);
   const [fullscreen, setFullscreen] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
   const total = durationFrames(document.timeline);
   const { timeline, frame } = document;
   const track = timeline.tracks.find((item) =>
@@ -36,14 +34,14 @@ export function EditorPrototype({
   useEffect(() => {
     if (!fullscreen) return;
     const handler = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !exportOpen) {
+      if (event.key === 'Escape') {
         event.stopPropagation();
         setFullscreen(false);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [fullscreen, exportOpen]);
+  }, [fullscreen]);
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(() => {
@@ -167,13 +165,7 @@ export function EditorPrototype({
               ? 'Принять сцену'
               : 'Принять общую версию'}
         </Button>
-        {scope === 'film' && (
-          <Button disabled={!accepted} onClick={() => setExportOpen(true)}>
-            Финальный рендер
-          </Button>
-        )}
       </footer>
-      {exportOpen && <ExportDialog accepted={accepted} onClose={() => setExportOpen(false)} />}
     </section>
   );
 }

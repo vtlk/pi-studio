@@ -9,6 +9,7 @@ import { validateCompletedOutputs } from '../src/main/pi/completeStage.ts';
 import { resolveResources } from '../src/main/pi/resources.ts';
 import { RunChannel } from '../src/main/pi/RunChannel.ts';
 import type { Agent } from '../src/shared/studio.ts';
+import { sessionSystemPrompt } from '../bundled/pi-bridge/prompt.mjs';
 
 const agent: Agent = {
   id: 'one',
@@ -43,6 +44,17 @@ test('each launch reads current instructions and keeps only IDs/paths/settings i
     root = await store.projects.directory(project.id);
   const current = { ...agent, mainInstruction: 'LATEST_INSTRUCTION_TEXT' };
   const first = await buildRunContext(root, project, agent.id, [current], []);
+  assert.equal(first.record.projectRoot, root);
+  for (const serviceAgent of [true, false]) {
+    const prompt = sessionSystemPrompt({
+      record: first.record,
+      instructions: first.instructions,
+      serviceAgent,
+    });
+    assert.ok(prompt.includes(`Project directory (absolute): ${JSON.stringify(root)}`));
+    assert.ok(prompt.includes(JSON.stringify(first.record.cwd)));
+    assert.ok(prompt.includes(JSON.stringify(first.record.output)));
+  }
   assert.match(first.instructions, /LATEST_INSTRUCTION_TEXT/);
   assert.match(first.instructions, /SECRET_CURRENT_INSTRUCTIONS/);
   assert.equal(first.instructions.includes('CURRENT_ROLE_TEXT'), false);
@@ -137,6 +149,8 @@ test('loopback MCP requires a session capability and never exposes admin tools t
     [
       'web_search',
       'get_run_context',
+      'list_project_files',
+      'read_project_file',
       'get_video_contract',
       'validate_video_project',
       'complete_stage',

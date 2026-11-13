@@ -7,6 +7,7 @@ import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { searchWeb } from './webSearch.ts';
 import { videoContract } from '../video/contract.ts';
 import { readVideoProject } from '../video/readVideoProject.ts';
+import { listProjectFiles, readProjectFile } from './projectFiles.ts';
 
 export class RunLifecycle {
   private readonly dependencies: RunDependencies;
@@ -132,6 +133,8 @@ export class RunLifecycle {
   async tool(live: LiveRun, name: string, args: Record<string, unknown>) {
     if (name === 'web_search') return searchWeb(args.query);
     if (name === 'get_run_context') return live.run.record;
+    if (name === 'list_project_files') return listProjectFiles(live.run.projectRoot, args);
+    if (name === 'read_project_file') return readProjectFile(live.run.projectRoot, args);
     if (name === 'get_video_contract') return videoContract;
     if (name === 'validate_video_project') {
       if (typeof args.manifest !== 'string')

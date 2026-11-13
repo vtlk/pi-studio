@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises';
+import { mkdir, realpath } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { Agent } from '../../shared/studio.ts';
@@ -23,6 +23,7 @@ export async function buildRunContext(
   constructor: Agent[],
   catalog: Resource[],
 ): Promise<PreparedRun> {
+  projectRoot = await realpath(projectRoot);
   const agent = project.agents.find((item) => item.profile.id === agentId);
   if (!agent) throw new Error('Агент отсутствует в снимке проекта.');
   if (!agent.profile.enabled) throw new Error('Агент выключен.');
@@ -44,6 +45,7 @@ export async function buildRunContext(
     projectId: project.id,
     agentId,
     createdAt: Date.now(),
+    projectRoot,
     cwd,
     output,
     sessionDirectory,

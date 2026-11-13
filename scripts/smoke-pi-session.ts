@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, readFile, readdir } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, readdir, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -33,9 +34,18 @@ const agent: Agent = {
   },
 };
 const store = await StudioStore.open(join(temporary, 'Studio'));
-await store.saveSection('agents', [agent]);
-const created = await store.command({ kind: 'create', name: 'Live SDK check', agents: [agent] });
+const earlier = { ...agent, id: 'previous', name: 'Earlier agent' };
+const constructor = [earlier, agent];
+await store.saveSection('agents', constructor);
+const created = await store.command({
+  kind: 'create',
+  name: 'Live SDK check',
+  agents: constructor,
+});
 const projectId = created.selectedId!;
+const root = await store.projects.directory(projectId);
+const token = `PISTUDIO_REAL_SESSION_${randomUUID()}`;
+await writeFile(join(root, 'agents/previous/output/brief.md'), `${token}\n`);
 const children: Promise<number | null>[] = [];
 const host = new RunHost({
   bootstraps: join(temporary, 'bootstraps'),
@@ -46,7 +56,7 @@ const host = new RunHost({
       await store.projects.directory(projectId),
       await store.projects.read(projectId),
       request.agentId,
-      [agent],
+      constructor,
       [],
     ),
     piPath: pi.path,
@@ -74,24 +84,55 @@ try {
     agentId: agent.id,
     autoContinue: false,
     firstMessage:
-      'Create output/hello.txt containing exactly PISTUDIO_REAL_SESSION_OK and a newline. Then call the Pi Studio complete_stage tool with outputs ["hello.txt"]. Do not do anything else.',
+      'Use the Pi Studio internal MCP list_project_files tool to list agents/previous/output, then its read_project_file tool to read agents/previous/output/brief.md. That file contains one token. Use the native bash tool (not write/edit) to create output/hello.txt with exactly that token and a newline. Also use bash to write the absolute Project directory stated in your system prompt to output/project-root.txt with a newline. Then call the Pi Studio complete_stage tool with outputs ["hello.txt", "project-root.txt"]. Do not do anything else.',
   });
-  assert.ok(started.project.agents[0].session);
+  assert.ok(started.project.agents.find((item) => item.profile.id === agent.id)?.session);
   const firstExit = await children[0];
   assert.equal(firstExit, 0, 'Pi bridge must complete normally');
   const finished = await store.projects.read(projectId);
-  assert.equal(finished.agents[0].runStatus, 'ready');
-  const binding = finished.agents[0].session!;
-  const root = await store.projects.directory(projectId);
+  assert.equal(finished.agents.find((item) => item.profile.id === agent.id)?.runStatus, 'ready');
+  const binding = finished.agents.find((item) => item.profile.id === agent.id)!.session!;
   assert.equal(
     await readFile(join(root, 'agents/qa-agent/output/hello.txt'), 'utf8'),
-    'PISTUDIO_REAL_SESSION_OK\n',
+    `${token}\n`,
+  );
+  assert.equal(
+    await readFile(join(root, 'agents/qa-agent/output/project-root.txt'), 'utf8'),
+    `${root}\n`,
   );
   const transcript = await readFile(join(root, binding.path), 'utf8');
-  assert.ok(transcript.includes('PISTUDIO_REAL_SESSION_OK'));
+  const messages = transcript
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line))
+    .map((entry) => entry.message)
+    .filter(Boolean);
+  const calls = messages.flatMap((message) =>
+    Array.isArray(message.content)
+      ? message.content.filter((block: { type: string }) => block.type === 'toolCall')
+      : [],
+  );
+  assert.ok(
+    calls.some((call) => call.name === 'bash'),
+    'Native bash must actually be called',
+  );
+  for (const tool of ['list_project_files', 'read_project_file'])
+    assert.ok(
+      calls.some((call) => call.name.endsWith(tool)),
+      `Native MCP must call ${tool}`,
+    );
+  assert.ok(
+    messages.some(
+      (message) => message.role === 'toolResult' && message.toolName === 'bash' && !message.isError,
+    ),
+    'Native bash must succeed',
+  );
   const beforeFiles = await readdir(join(root, 'agents/qa-agent/sessions'));
   const resumed = await host.launch({ projectId, agentId: agent.id, autoContinue: false });
-  assert.equal(resumed.project.agents[0].session?.path, binding.path);
+  assert.equal(
+    resumed.project.agents.find((item) => item.profile.id === agent.id)?.session?.path,
+    binding.path,
+  );
   assert.equal(await children[1], 0);
   assert.equal(
     await readFile(join(root, binding.path), 'utf8'),
@@ -102,10 +143,10 @@ try {
   for (const id of [started.runId, resumed.runId]) {
     const context = await readFile(join(root, '.pistudio/context', id, 'context.json'), 'utf8');
     assert.equal(context.includes(agent.mainInstruction!), false);
-    assert.equal(context.includes('PISTUDIO_REAL_SESSION_OK'), false);
+    assert.equal(context.includes(token), false);
   }
   console.log(
-    'Real Pi session passed: selected subscription model, native MCP, actual output, explicit validated completion, exact resume without a message, no instruction/prompt copies in run contexts.',
+    'Real Pi session passed: native bash, internal MCP read/list of an earlier agent output, explicit project root in the system prompt, validated completion, exact resume with no message, no instruction/prompt copies in run contexts.',
   );
 } finally {
   host.close();

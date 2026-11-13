@@ -49,6 +49,36 @@ export const productionTools: SessionTool[] = [
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
+    name: 'list_project_files',
+    description:
+      'Browse a directory in this session project, including earlier agents outputs and project files. Read-only; no other projects. Paths are relative to the project root; omit path for the root. Oldest first, with pagination.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', maxLength: 2000 },
+        offset: { type: 'integer', minimum: 0, maximum: 10000 },
+        limit: { type: 'integer', minimum: 1, maximum: 500 },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'read_project_file',
+    description:
+      'Read any regular file in this session project, including another project agent output, without executing or modifying it. path is relative to the project root, e.g. agents/<previous-id>/output/script.md. Bounded byte windows; nextOffset continues reading. auto detects UTF-8 versus base64 binary. For visual image/PDF/media inspection or shell processing, use Pi native read/bash.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', minLength: 1, maxLength: 2000 },
+        offset: { type: 'integer', minimum: 0 },
+        maxBytes: { type: 'integer', minimum: 4, maximum: 262144 },
+        encoding: { enum: ['auto', 'utf8', 'base64'] },
+      },
+      required: ['path'],
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'get_video_contract',
     description:
       'Read the exact data schema and example for the bundled Remotion Player viewer. Do not invent a format or ship executable TSX/HTML as a viewer.',
