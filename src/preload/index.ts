@@ -51,6 +51,8 @@ const desktopApi: DesktopApi = {
   skipStartup: () => ipcRenderer.invoke(desktopChannels.skipStartup),
   chooseStartupPi: () => ipcRenderer.invoke(desktopChannels.chooseStartupPi),
   getModelCatalog: (request) => ipcRenderer.invoke(desktopChannels.getModelCatalog, request),
+  discoverConnectionModels: (request) =>
+    ipcRenderer.invoke(desktopChannels.discoverConnectionModels, request),
   launchAgent: (request) => ipcRenderer.invoke(desktopChannels.launchAgent, request),
   openSetupAssistant: () => ipcRenderer.invoke(desktopChannels.openSetupAssistant),
   checkResource: (id) => ipcRenderer.invoke(desktopChannels.checkResource, id),

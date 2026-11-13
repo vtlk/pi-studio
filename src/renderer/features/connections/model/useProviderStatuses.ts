@@ -4,7 +4,7 @@ import type { Connection, ModelConnectionStatus } from '../../../../shared/conne
 export function useProviderStatuses(connections: Connection[], scope: string, folder?: string) {
   const key = JSON.stringify(
     connections
-      .map((item) => [item.id, item.providerId, item.authScope, item.endpoint])
+      .map((item) => [item.id, item.providerId, item.authScope, item.endpoint, item.endpointConfig])
       .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
   );
   const [providerStatuses, setStatuses] = useState<

@@ -9,29 +9,51 @@ import { getProviderStatus } from './provider.ts';
 import type { ProviderStatus } from '../../shared/contracts.ts';
 import { safePath } from '../storage/files.ts';
 import type { Connection } from '../../shared/connections.ts';
+import {
+  modelEndpointUrl,
+  parseModelEndpoint,
+  endpointProviderId,
+  type ModelEndpoint,
+} from '../../shared/modelEndpoint.ts';
 
 export interface ModelAuthScope {
   authPath: string;
   provider: string;
+  endpoint?: { url: string; config: ModelEndpoint };
 }
 export async function connectionAuthScope(
   directory: string,
   folder: string,
   connection: Connection,
 ): Promise<ModelAuthScope | undefined> {
-  if (connection.authScope !== 'connection') return;
+  const custom = connection.purpose === 'compatible' || connection.purpose === 'local';
+  if (!custom && connection.authScope !== 'connection') return;
   stableId(connection.id);
+  const endpoint = custom
+    ? {
+        url: modelEndpointUrl(connection.endpoint),
+        config: parseModelEndpoint(connection.endpointConfig),
+      }
+    : undefined;
+  if (custom && connection.providerId !== endpointProviderId(connection.id))
+    throw new Error(
+      'Пересохраните настройки совместимого подключения и заново выберите его модель.',
+    );
   const key = createHash('sha256')
     .update(await realpath(folder))
     .update('\0')
     .update(connection.id)
     .update('\0')
     .update(connection.providerId)
+    .update(
+      endpoint ? JSON.stringify([endpoint.url, endpoint.config.api, endpoint.config.auth]) : '',
+    )
     .digest('hex');
   await mkdir(directory, { recursive: true, mode: 0o700 });
   return {
     authPath: await safePath(directory, `${key}.json`, true),
     provider: connection.providerId,
+    ...(endpoint ? { endpoint } : {}),
   };
 }
 
@@ -40,7 +62,7 @@ export async function modelAuthOperation<T>(
   piPath: string,
   script: string,
   request: {
-    action: 'status' | 'catalog' | 'logout';
+    action: 'status' | 'catalog' | 'logout' | 'discover';
     provider?: string;
     scope?: ModelAuthScope;
     cwd?: string;

@@ -8,6 +8,8 @@ import { usePiCatalog } from '../model/usePiCatalog';
 import { useStorage } from '@/shared/storage/Storage';
 import { ImageKeyFields } from './ImageKeyFields';
 import { NativeConnectionAuth } from './NativeConnectionAuth';
+import { EndpointFields } from './EndpointFields';
+import { endpointProviderId } from '../../../../shared/modelEndpoint';
 
 export function ConnectionEditor({
   connection,
@@ -16,7 +18,20 @@ export function ConnectionEditor({
   connection: Connection;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(connection);
+  const [draft, setDraft] = useState(() =>
+    connection.purpose === 'compatible' || connection.purpose === 'local'
+      ? {
+          ...connection,
+          providerId: endpointProviderId(connection.id),
+          authScope: 'connection' as const,
+          endpointConfig: connection.endpointConfig ?? {
+            api: 'openai-completions' as const,
+            auth: connection.purpose === 'local' ? ('none' as const) : ('api_key' as const),
+            models: [],
+          },
+        }
+      : connection,
+  );
   const { catalog, loading, error, reload } = usePiCatalog();
   const { saveConnection, refreshImageConnection } = useConnections();
   const { bootstrap, saveNow } = useStorage();
@@ -24,7 +39,20 @@ export function ConnectionEditor({
   const [imageKey, setImageKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [authActive, setAuthActive] = useState(false);
-  const provider = catalog?.providers.find((item) => item.id === draft.providerId);
+  const custom = draft.purpose === 'compatible' || draft.purpose === 'local';
+  const provider = custom
+    ? {
+        id: draft.providerId,
+        name: draft.name,
+        configured: false,
+        subscription: false,
+        isolatedAuth: true,
+        loginMethods:
+          draft.endpointConfig?.auth === 'api_key'
+            ? [{ id: 'api_key' as const, label: 'API-ключ' }]
+            : [],
+      }
+    : catalog?.providers.find((item) => item.id === draft.providerId);
   const save = async () => {
     if (!draft.name.trim() || !draft.providerId.trim())
       throw new Error('Укажите название и провайдера подключения.');
@@ -100,41 +128,61 @@ export function ConnectionEditor({
               ...draft,
               purpose: value,
               endpoint: value === 'compatible' || value === 'local' ? draft.endpoint : '',
-              providerId: value === 'codex' ? 'openai-codex' : value === 'images' ? 'openai' : '',
+              providerId:
+                value === 'codex'
+                  ? 'openai-codex'
+                  : value === 'images'
+                    ? 'openai'
+                    : value === 'compatible' || value === 'local'
+                      ? endpointProviderId(draft.id)
+                      : '',
               authScope: value === 'images' ? undefined : 'connection',
+              endpointConfig:
+                value === 'compatible' || value === 'local'
+                  ? (draft.endpointConfig ?? {
+                      api: 'openai-completions',
+                      auth: value === 'local' ? 'none' : 'api_key',
+                      models: [],
+                    })
+                  : undefined,
             });
           }}
         />
       </label>
-      <label className="field-label">
-        ID провайдера
-        {window.studio && draft.purpose === 'pi' ? (
-          <Select
-            label="Провайдер Pi"
-            value={draft.providerId || 'none'}
-            disabled={busy || authActive}
-            options={[
-              { value: 'none', label: loading ? 'Загружаем провайдеров…' : 'Выберите провайдера' },
-              ...(catalog?.providers.map((item) => ({
-                value: item.id,
-                label: `${item.name} · ${item.id}`,
-              })) ?? []),
-              ...(draft.providerId &&
-              !catalog?.providers.some((item) => item.id === draft.providerId)
-                ? [{ value: draft.providerId, label: draft.providerId }]
-                : []),
-            ]}
-            onValueChange={(id) => setDraft({ ...draft, providerId: id === 'none' ? '' : id })}
-          />
-        ) : (
-          <input
-            disabled={busy || authActive}
-            value={draft.providerId}
-            readOnly={draft.purpose === 'codex' || draft.purpose === 'images'}
-            onChange={(event) => setDraft({ ...draft, providerId: event.target.value })}
-          />
-        )}
-      </label>
+      {!custom && (
+        <label className="field-label">
+          ID провайдера
+          {window.studio && draft.purpose === 'pi' ? (
+            <Select
+              label="Провайдер Pi"
+              value={draft.providerId || 'none'}
+              disabled={busy || authActive}
+              options={[
+                {
+                  value: 'none',
+                  label: loading ? 'Загружаем провайдеров…' : 'Выберите провайдера',
+                },
+                ...(catalog?.providers.map((item) => ({
+                  value: item.id,
+                  label: `${item.name} · ${item.id}`,
+                })) ?? []),
+                ...(draft.providerId &&
+                !catalog?.providers.some((item) => item.id === draft.providerId)
+                  ? [{ value: draft.providerId, label: draft.providerId }]
+                  : []),
+              ]}
+              onValueChange={(id) => setDraft({ ...draft, providerId: id === 'none' ? '' : id })}
+            />
+          ) : (
+            <input
+              disabled={busy || authActive}
+              value={draft.providerId}
+              readOnly={draft.purpose === 'codex' || draft.purpose === 'images'}
+              onChange={(event) => setDraft({ ...draft, providerId: event.target.value })}
+            />
+          )}
+        </label>
+      )}
       {draft.purpose === 'images' ? (
         <>
           <ImageKeyFields
@@ -167,31 +215,71 @@ export function ConnectionEditor({
         </>
       ) : (
         <>
-          <label className="field-label">
-            Авторизация
-            <Select
-              label="Область авторизации Pi"
-              disabled={busy || authActive}
-              value={draft.authScope ?? 'native'}
-              options={[
-                { value: 'connection', label: 'Отдельный вход для этого подключения' },
-                { value: 'native', label: 'Общий вход Pi' },
-              ]}
-              onValueChange={(value) =>
-                setDraft({ ...draft, authScope: value as 'connection' | 'native' })
-              }
-            />
-          </label>
-          {(draft.purpose === 'compatible' || draft.purpose === 'local') && (
+          {!custom && (
             <label className="field-label">
-              Адрес endpoint
-              <input
+              Авторизация
+              <Select
+                label="Область авторизации Pi"
                 disabled={busy || authActive}
-                value={draft.endpoint}
-                onChange={(event) => setDraft({ ...draft, endpoint: event.target.value })}
-                placeholder="http://localhost:…"
+                value={draft.authScope ?? 'native'}
+                options={[
+                  { value: 'connection', label: 'Отдельный вход для этого подключения' },
+                  { value: 'native', label: 'Общий вход Pi' },
+                ]}
+                onValueChange={(value) =>
+                  setDraft({ ...draft, authScope: value as 'connection' | 'native' })
+                }
               />
             </label>
+          )}
+          {custom && (
+            <EndpointFields
+              connection={draft}
+              update={setDraft}
+              disabled={busy || authActive}
+              discover={() => {
+                setBusy(true);
+                void (async () => {
+                  try {
+                    await save();
+                    const ids = await window.studio!.discoverConnectionModels({
+                      folder: bootstrap!.folder,
+                      connectionId: draft.id,
+                    });
+                    setDraft({
+                      ...draft,
+                      endpointConfig: {
+                        ...draft.endpointConfig!,
+                        models: [
+                          ...draft.endpointConfig!.models,
+                          ...ids
+                            .filter(
+                              (id) =>
+                                !draft.endpointConfig!.models.some((model) => model.id === id),
+                            )
+                            .map((id) => ({
+                              id,
+                              name: id,
+                              imageInput: false,
+                              reasoning: false,
+                              contextWindow: 4096,
+                              maxTokens: 1024,
+                            })),
+                        ],
+                      },
+                    });
+                  } catch (error) {
+                    demo(
+                      error instanceof Error
+                        ? error.message
+                        : 'Не удалось прочитать модели сервера.',
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                })();
+              }}
+            />
           )}
           {error && <p role="alert">{error}</p>}
           <NativeConnectionAuth

@@ -108,6 +108,25 @@ export class ModelConnections {
       },
     });
   }
+  async discover(request: ModelConnectionRequest) {
+    const saved = await this.descriptor(request);
+    if (!saved.scope?.endpoint) throw new Error('Выберите совместимый или локальный сервер.');
+    let models: string[];
+    try {
+      models = await modelAuthOperation<string[]>(
+        saved.path,
+        join(this.scripts, 'model-auth.mjs'),
+        { action: 'discover', scope: saved.scope },
+      );
+    } catch {
+      throw new Error(
+        'Сервер не вернул список моделей. Проверьте адрес API и ключ или добавьте ID модели вручную.',
+      );
+    }
+    if ((await this.descriptor(request)).signature !== saved.signature)
+      throw new Error('Подключение изменилось во время чтения моделей.');
+    return models;
+  }
   async logout(request: ModelConnectionRequest) {
     const saved = await this.descriptor(request);
     await modelAuthOperation(saved.path, join(this.scripts, 'model-auth.mjs'), {

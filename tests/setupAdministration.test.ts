@@ -9,6 +9,7 @@ import { setupTools } from '../src/main/pi/setupTools.ts';
 import { productionTools } from '../src/main/pi/RunChannel.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
+import type { Connection } from '../src/shared/connections.ts';
 
 test('setup tools change only current constructor/catalog links and never snapshots or instruction copies', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-setup-admin-'));
@@ -28,6 +29,47 @@ test('setup tools change only current constructor/catalog links and never snapsh
     provider: 'provider',
   })) as { connection: { id: string; authScope: string } };
   assert.equal(result.connection.authScope, 'connection');
+  const local = (await admin.call(run, 'register_model_endpoint', {
+    name: 'My local model',
+    purpose: 'local',
+    endpoint: 'http://localhost:1234/v1/',
+    endpointConfig: {
+      api: 'openai-completions',
+      auth: 'none',
+      models: [
+        {
+          id: 'local-model',
+          name: 'Local model',
+          imageInput: false,
+          reasoning: false,
+          contextWindow: 4096,
+          maxTokens: 1024,
+        },
+      ],
+    },
+  })) as { connection: Connection };
+  assert.equal(local.connection.endpoint, 'http://localhost:1234/v1');
+  assert.equal(local.connection.providerId, 'studio-' + local.connection.id);
+  const localAgent = (await admin.call(run, 'configure_agent', {
+    name: 'Local role',
+    model: {
+      connectionId: local.connection.id,
+      provider: local.connection.providerId,
+      id: 'local-model',
+      reasoning: 'По умолчанию',
+    },
+  })) as { agentId: string };
+  assert.ok(localAgent.agentId);
+  await assert.rejects(
+    () =>
+      admin.call(run, 'register_model_endpoint', {
+        id: 'missing',
+        name: 'Missing',
+        purpose: 'local',
+        endpoint: 'http://localhost:1234/v1',
+      }),
+    /отсутствует/,
+  );
   const created = (await admin.call(run, 'configure_agent', {
     name: 'My role',
     mainInstruction: 'Current role only',
@@ -61,7 +103,9 @@ test('setup tools change only current constructor/catalog links and never snapsh
     kind: 'skills',
     enabled: true,
   });
-  const changed = (store.bootstrap().sections.agents as Agent[])[0];
+  const changed = (store.bootstrap().sections.agents as Agent[]).find(
+    (item) => item.id === created.agentId,
+  )!;
   assert.deepEqual(changed.skills, [imported.resource.id]);
   assert.deepEqual((await store.projects.read(project.id)).agents, snapshot);
   const metadata = JSON.stringify(await admin.call(run, 'list_configuration', {}));

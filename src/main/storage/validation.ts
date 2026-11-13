@@ -3,6 +3,7 @@ import type { WorkspaceProject, ProjectAgent } from '../../shared/project.ts';
 import { storageSections, type StorageSection, type StudioSections } from '../../shared/storage.ts';
 import { agentDirectory, agentFolderSlug } from '../../shared/agentPaths.ts';
 import { systemAgentRoles, type SystemAgent } from '../../shared/systemAgents.ts';
+import { modelEndpointUrl, parseModelEndpoint } from '../../shared/modelEndpoint.ts';
 
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -229,6 +230,12 @@ export function parseSection(section: unknown, value: unknown): unknown {
         ...(item.authScope === undefined ? {} : { authScope: item.authScope }),
         providerId: text(item.providerId, 500),
         endpoint: text(item.endpoint, 2000),
+        ...(item.endpointConfig === undefined
+          ? {}
+          : {
+              endpoint: modelEndpointUrl(text(item.endpoint, 2000)),
+              endpointConfig: parseModelEndpoint(item.endpointConfig),
+            }),
         account: text(item.account, 500),
       };
     }

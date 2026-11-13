@@ -2,12 +2,14 @@ import { readFileSync, writeSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createConnectionRuntime } from './connection-runtime.mjs';
 import { catalogData } from './catalog-data.mjs';
+import { discoverEndpointModels } from './endpoint-runtime.mjs';
 try {
   const input = JSON.parse(readFileSync(0, 'utf8'));
   const sdk = await import(pathToFileURL(process.argv[2]).href);
   const runtime = await createConnectionRuntime(sdk, input.scope);
   let result;
-  if (input.action === 'catalog') result = await catalogData(sdk, runtime, input.cwd);
+  if (input.action === 'discover') result = await discoverEndpointModels(runtime, input.scope);
+  else if (input.action === 'catalog') result = await catalogData(sdk, runtime, input.cwd, input.scope);
   else if (input.action === 'logout') {
     await runtime.logout(input.provider);
     result = { removed: true };

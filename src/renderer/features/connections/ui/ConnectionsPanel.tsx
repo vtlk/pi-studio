@@ -56,7 +56,10 @@ export function ConnectionsPanel() {
               <div>
                 <strong>{connection.name}</strong>
                 <p>
-                  {connection.providerId} ·{' '}
+                  {connection.purpose === 'local' || connection.purpose === 'compatible'
+                    ? connection.endpoint
+                    : connection.providerId}{' '}
+                  ·{' '}
                   {connection.purpose === 'codex'
                     ? 'Подписка'
                     : connection.purpose === 'images'

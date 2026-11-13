@@ -1,3 +1,4 @@
+import type { ModelEndpoint } from './modelEndpoint';
 export interface Connection {
   id: string;
   name: string;
@@ -7,6 +8,7 @@ export interface Connection {
   account: string;
   createdAt: number;
   authScope?: 'native' | 'connection';
+  endpointConfig?: ModelEndpoint;
 }
 
 export interface ImageConnectionStatus {

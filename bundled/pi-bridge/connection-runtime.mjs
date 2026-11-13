@@ -1,3 +1,4 @@
+import { registerEndpoint } from './endpoint-runtime.mjs';
 // Public native Pi APIs only. Isolated model auth never consults ambient accounts/config files.
 export async function createConnectionRuntime(sdk, scope) {
   if (!scope) return sdk.ModelRuntime.create({ allowModelNetwork: false, refreshOnCreate: true });
@@ -13,6 +14,7 @@ export async function createConnectionRuntime(sdk, scope) {
     allowModelNetwork: false,
     refreshOnCreate: false,
   });
+  if (scope.endpoint) registerEndpoint(runtime, scope);
   if (!runtime.getProvider(scope.provider))
     throw new Error('Provider needs native Pi configuration');
   // Keep the pinned provider's login, OAuth refresh and request adapter. Disable implicit env/file auth.
@@ -36,6 +38,7 @@ export async function createConnectionRuntime(sdk, scope) {
     }
     const api = provider.auth.apiKey;
     if (!api) continue;
+    if (scope.endpoint?.config.auth === 'none') continue;
     runtime.registerNativeProvider({
       ...provider,
       auth: {

@@ -76,6 +76,7 @@ export interface DesktopApi {
   skipStartup(): Promise<StartupState>;
   chooseStartupPi(): Promise<StartupState | null>;
   getModelCatalog(request?: ModelConnectionRequest): Promise<PiModelCatalog>;
+  discoverConnectionModels(request: ModelConnectionRequest): Promise<string[]>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
   openSetupAssistant(): Promise<void>;
   listLibrary(): Promise<LibraryListing>;
@@ -146,6 +147,7 @@ export const desktopChannels = {
   skipStartup: 'studio:startup-skip',
   chooseStartupPi: 'studio:startup-choose',
   getModelCatalog: 'studio:model-catalog',
+  discoverConnectionModels: 'studio:connection-models-discover',
   launchAgent: 'studio:launch-agent',
   openSetupAssistant: 'studio:setup-assistant',
   checkResource: 'studio:resource-check',

@@ -93,6 +93,41 @@ export const setupTools: SessionTool[] = [
     inputSchema: object({ id: string, name: string, provider: string }, ['name', 'provider']),
   },
   {
+    name: 'register_model_endpoint',
+    description:
+      'Create/update a requested compatible or local OpenAI API server and explicit model capabilities. ID preserves the connection. No secrets accepted; user enters API keys only in Studio. Changing URL/protocol/auth requires a fresh key. Does not contact server or launch agents.',
+    inputSchema: object(
+      {
+        id: string,
+        name: string,
+        purpose: { type: 'string', enum: ['compatible', 'local'] },
+        endpoint: string,
+        endpointConfig: object(
+          {
+            api: { type: 'string', enum: ['openai-completions', 'openai-responses'] },
+            auth: { type: 'string', enum: ['api_key', 'none'] },
+            models: {
+              type: 'array',
+              items: object(
+                {
+                  id: string,
+                  name: string,
+                  imageInput: { type: 'boolean' },
+                  reasoning: { type: 'boolean' },
+                  contextWindow: { type: 'integer' },
+                  maxTokens: { type: 'integer' },
+                },
+                ['id', 'name', 'imageInput', 'reasoning', 'contextWindow', 'maxTokens'],
+              ),
+            },
+          },
+          ['api', 'auth', 'models'],
+        ),
+      },
+      ['name', 'purpose', 'endpoint', 'endpointConfig'],
+    ),
+  },
+  {
     name: 'import_skill',
     description:
       'Import metadata/link of an existing local SKILL.md. Does not copy instruction text or execute skill scripts.',

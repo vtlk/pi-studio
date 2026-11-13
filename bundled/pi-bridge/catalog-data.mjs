@@ -1,4 +1,4 @@
-export async function catalogData(sdk, runtime, cwd) {
+export async function catalogData(sdk, runtime, cwd, scope) {
   const builtins = await sdk.ModelRuntime.create({
     credentials: {
       read: async () => undefined,
@@ -18,7 +18,7 @@ export async function catalogData(sdk, runtime, cwd) {
     name: provider.name || provider.id,
     configured: runtime.hasConfiguredAuth(provider.id),
     subscription: runtime.isUsingSubscription(provider.id),
-    isolatedAuth: !!builtins.getProvider(provider.id),
+    isolatedAuth: !!builtins.getProvider(provider.id) || scope?.provider === provider.id,
     loginMethods: [
       ...(provider.auth.oauth
         ? [{ id: 'oauth', label: provider.auth.oauth.loginLabel || provider.auth.oauth.name }]

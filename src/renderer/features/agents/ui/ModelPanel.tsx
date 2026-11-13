@@ -111,7 +111,7 @@ export function ModelPanel() {
       </div>
       <p>
         {connection
-          ? `${connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}${providerStatuses[connection.id] === 'ready' ? ' · Подключено' : ''}`
+          ? `${connection.purpose === 'local' || connection.purpose === 'compatible' ? connection.endpoint : connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}${providerStatuses[connection.id] === 'ready' ? ' · Подключено' : ''}`
           : 'Сначала выберите подключение в первом поле — затем станет доступен список моделей.'}
       </p>
       {error && <p role="alert">{error}</p>}
@@ -122,7 +122,7 @@ export function ModelPanel() {
       )}
       {catalog && (
         <p className="subtle">
-          Модели прочитаны из установленного Pi. Доступ аккаунта проверяется перед запуском;
+          Модели прочитаны из установленного Pi. Доступ к модели проверяется при запросе;
           сохранение профиля не выполняет запрос к модели.
         </p>
       )}

@@ -11,6 +11,11 @@ import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
+import {
+  endpointProviderId,
+  parseModelEndpoint,
+  modelEndpointUrl,
+} from '../../shared/modelEndpoint.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
@@ -106,6 +111,41 @@ export class SetupAdministration {
           models,
           ...(nativeMcp ? { nativeMcp } : {}),
         };
+      if (name === 'register_model_endpoint') {
+        const old =
+          typeof args.id === 'string' ? connections.find((item) => item.id === args.id) : undefined;
+        if (args.id && !old) throw new Error('Подключение отсутствует.');
+        if (old && !['compatible', 'local'].includes(old.purpose))
+          throw new Error('Выберите подключение сервера моделей.');
+        if (
+          typeof args.name !== 'string' ||
+          !args.name.trim() ||
+          !['compatible', 'local'].includes(String(args.purpose)) ||
+          typeof args.endpoint !== 'string'
+        )
+          throw new Error('Укажите название, тип и адрес сервера.');
+        const id = old?.id ?? randomUUID();
+        const connection: Connection = {
+          id,
+          name: args.name.trim(),
+          purpose: args.purpose as 'compatible' | 'local',
+          providerId: endpointProviderId(id),
+          authScope: 'connection',
+          endpoint: modelEndpointUrl(args.endpoint),
+          endpointConfig: parseModelEndpoint(args.endpointConfig),
+          account: '',
+          createdAt: old?.createdAt ?? Date.now(),
+        };
+        await store.saveSection('connections', [
+          connection,
+          ...connections.filter((item) => item.id !== id),
+        ]);
+        return {
+          connection,
+          authorization: 'not_checked',
+          next: 'User configures any required API key in Studio. Never request keys in chat.',
+        };
+      }
       if (name === 'register_connection') {
         if (
           typeof args.provider !== 'string' ||
@@ -194,7 +234,15 @@ export class SetupAdministration {
               'Модель должна использовать существующее подключение этого провайдера.',
             );
           if (
-            !models.models.some((item) => item.provider === model.provider && item.id === model.id)
+            !models.models.some(
+              (item) => item.provider === model.provider && item.id === model.id,
+            ) &&
+            !connections.some(
+              (item) =>
+                item.id === model.connectionId &&
+                item.providerId === model.provider &&
+                item.endpointConfig?.models.some((entry) => entry.id === model.id),
+            )
           )
             throw new Error('Модель отсутствует в реестре Pi.');
           draft.model = { ...model, temperature: '' };

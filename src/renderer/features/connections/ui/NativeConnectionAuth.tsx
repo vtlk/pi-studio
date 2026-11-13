@@ -32,13 +32,16 @@ export function NativeConnectionAuth({
   const [answer, setAnswer] = useState('');
   const [method, setMethod] = useState<'oauth' | 'api_key'>('oauth');
   const methods = provider?.loginMethods ?? [];
+  const keyless = connection.endpointConfig?.auth === 'none';
   const selectedMethod = methods.find((item) => item.id === method)?.id ?? methods[0]?.id;
   const active = !!auth && ['opening', 'waiting', 'verifying'].includes(auth.phase);
   const saved = connections.find((item) => item.id === connection.id);
   const matches =
     saved?.providerId === connection.providerId &&
     saved?.authScope === connection.authScope &&
-    saved?.purpose === connection.purpose;
+    saved?.purpose === connection.purpose &&
+    saved?.endpoint === connection.endpoint &&
+    JSON.stringify(saved?.endpointConfig) === JSON.stringify(connection.endpointConfig);
   const status = matches ? providerStatuses[connection.id] : undefined;
   const request = bootstrap && { folder: bootstrap.folder, connectionId: connection.id };
   const isolatedSupported =
@@ -116,35 +119,41 @@ export function NativeConnectionAuth({
       )}
       {methods.length === 0 && (
         <p className="subtle">
-          У этого провайдера нет формы входа. Используйте его штатное окружение или конфигурацию Pi
-          и проверьте подключение.
+          {keyless
+            ? 'Сервер выбран без авторизации; ключи других подключений не используются.'
+            : 'У этого провайдера нет формы входа. Используйте его штатное окружение или конфигурацию Pi и проверьте подключение.'}
         </p>
       )}
-      <Button
-        kind="primary"
-        disabled={
-          !window.studio ||
-          !request ||
-          !selectedMethod ||
-          !isolatedSupported ||
-          busy ||
-          active ||
-          !connection.name.trim()
-        }
-        onClick={() =>
-          void perform(async () => {
-            setAnswer('');
-            setAuth(
-              await window.studio!.beginConnectionLogin({ ...request!, method: selectedMethod! }),
-            );
-          })
-        }
-      >
-        {connection.purpose === 'codex' ? 'Войти через ChatGPT' : 'Войти через Pi'}
-      </Button>
-      <p className="subtle">
-        Перед входом запись подключения сохраняется. Авторизацию и обновление токенов выполняет Pi.
-      </p>
+      {!keyless && (
+        <Button
+          kind="primary"
+          disabled={
+            !window.studio ||
+            !request ||
+            !selectedMethod ||
+            !isolatedSupported ||
+            busy ||
+            active ||
+            !connection.name.trim()
+          }
+          onClick={() =>
+            void perform(async () => {
+              setAnswer('');
+              setAuth(
+                await window.studio!.beginConnectionLogin({ ...request!, method: selectedMethod! }),
+              );
+            })
+          }
+        >
+          {connection.purpose === 'codex' ? 'Войти через ChatGPT' : 'Войти через Pi'}
+        </Button>
+      )}
+      {!keyless && (
+        <p className="subtle">
+          Перед входом запись подключения сохраняется. Авторизацию и обновление токенов выполняет
+          Pi.
+        </p>
+      )}
       {auth && (
         <p
           role={auth.phase === 'error' ? 'alert' : 'status'}
@@ -215,25 +224,27 @@ export function NativeConnectionAuth({
         >
           Проверить подключение
         </Button>
-        <Button
-          disabled={!window.studio || !request || busy || active || !matches}
-          onClick={() =>
-            confirm({
-              title: 'Удалить сохранённый вход?',
-              description:
-                connection.authScope === 'connection'
-                  ? 'Pi удалит локальную авторизацию только этого подключения. Проекты и диалоги сохранятся. Это не отзыв доступа на стороне сервиса.'
-                  : 'Удалится общий вход этого провайдера в Pi. Другие подключения с общим входом тоже потребуют авторизацию. Проекты и диалоги сохранятся.',
-              onConfirm: () =>
-                void perform(async () => {
-                  await window.studio!.removeConnectionLogin(request!);
-                  setProviderStatus(await window.studio!.getConnectionStatus(request!));
-                }),
-            })
-          }
-        >
-          Удалить сохранённый вход
-        </Button>
+        {!keyless && (
+          <Button
+            disabled={!window.studio || !request || busy || active || !matches}
+            onClick={() =>
+              confirm({
+                title: 'Удалить сохранённый вход?',
+                description:
+                  connection.authScope === 'connection'
+                    ? 'Pi удалит локальную авторизацию только этого подключения. Проекты и диалоги сохранятся. Это не отзыв доступа на стороне сервиса.'
+                    : 'Удалится общий вход этого провайдера в Pi. Другие подключения с общим входом тоже потребуют авторизацию. Проекты и диалоги сохранятся.',
+                onConfirm: () =>
+                  void perform(async () => {
+                    await window.studio!.removeConnectionLogin(request!);
+                    setProviderStatus(await window.studio!.getConnectionStatus(request!));
+                  }),
+              })
+            }
+          >
+            Удалить сохранённый вход
+          </Button>
+        )}
       </div>
       <p role="status">
         {status === 'ready'
