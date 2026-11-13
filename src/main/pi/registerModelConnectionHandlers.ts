@@ -15,6 +15,10 @@ export function registerModelConnectionHandlers(
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
   const connections = new ModelConnections(service, directory, scripts, piPath, auth);
+  ipcMain.handle(desktopChannels.getModelCatalog, (event, request?: ModelConnectionRequest) => {
+    caller(event);
+    return connections.catalog(request);
+  });
   ipcMain.handle(desktopChannels.getConnectionStatus, (event, request: ModelConnectionRequest) => {
     caller(event);
     return connections.status(request);

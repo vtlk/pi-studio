@@ -8,7 +8,9 @@ import { usePiCatalog } from '@/features/connections/model/usePiCatalog';
 export function ModelPanel() {
   const { selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
   const { connections, providerStatuses } = useConnections();
-  const { catalog, loading, error, reload } = usePiCatalog();
+  const { catalog, loading, error, reload } = usePiCatalog(
+    connections.find((item) => item.id === selectedAgent?.model?.connectionId),
+  );
   if (!selectedAgent) return null;
   const model = selectedAgent.model ?? {
     connectionId: '',
@@ -109,7 +111,7 @@ export function ModelPanel() {
       </div>
       <p>
         {connection
-          ? `${connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}${providerStatuses[connection.providerId] === 'ready' ? ' · Подключено' : ''}`
+          ? `${connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}${providerStatuses[connection.id] === 'ready' ? ' · Подключено' : ''}`
           : 'Сначала выберите подключение в первом поле — затем станет доступен список моделей.'}
       </p>
       {error && <p role="alert">{error}</p>}

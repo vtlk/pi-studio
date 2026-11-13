@@ -46,7 +46,8 @@
     "test:mcp-oauth-ui": "npm run build && electron scripts/smoke-mcp-oauth-ui.cjs",
     "test:stereo": "npm run build && electron scripts/smoke-video.cjs --stereo",
     "test:projects-list": "npm run build && electron scripts/smoke-projects-list.cjs",
-    "test:disclosures": "npm run build && electron scripts/smoke-disclosure-list.cjs"
+    "test:disclosures": "npm run build && electron scripts/smoke-disclosure-list.cjs",
+    "test:pi-connections": "node --experimental-strip-types scripts/smoke-pi-connections.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -4,12 +4,36 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { createInterface } from 'node:readline';
 import {
   validateCodexAuthUrl,
   validateMcpAuthUrl,
   resolvePiSdk,
 } from '../src/main/pi/BrowserAuth.ts';
+
+function loginBridge(sdk: string) {
+  return new Promise<{ stdout: string }>((resolveResult, reject) => {
+    const child = execFile(
+      process.execPath,
+      [resolve('bundled/pi-bridge/login.mjs'), sdk],
+      { timeout: 10000 },
+      (error, stdout) => {
+        if (error) reject(Object.assign(error, { stdout }));
+        else resolveResult({ stdout });
+      },
+    );
+    createInterface({ input: child.stdout! }).on('line', (line) => {
+      const event = JSON.parse(line);
+      if (event.type === 'prompt')
+        child.stdin!.write(
+          JSON.stringify({ type: 'answer', id: event.id, answer: 'browser' }) + '\n',
+        );
+    });
+    child.stdin!.write(
+      JSON.stringify({ type: 'init', provider: 'openai-codex', method: 'oauth' }) + '\n',
+    );
+  });
+}
 
 test('SDK discovery resolves the official bundled CLI layout and rejects other packages', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-sdk-'));
@@ -67,31 +91,28 @@ test('the Pi SDK bridge delegates login and emits no credentials or raw errors',
     if (options.allowModelNetwork !== false) throw new Error('must not generate');
     return { async login(provider, kind, interaction) {
       if (provider !== 'openai-codex' || kind !== 'oauth') throw new Error('wrong provider');
-      const method = await interaction.prompt({type:'select', options:[{id:'browser'}]});
+      const method = await interaction.prompt({type:'select', message:'Choose login', options:[{id:'browser',label:'Browser'}]});
       if (method !== 'browser') throw new Error('wrong method');
       interaction.notify({type:'auth_url',url:'https://auth.openai.com/oauth/authorize?state=test'});
       return {access_token:'MUST_NOT_LEAVE_PI'};
     }, async settleCredentialWrites() {} };
   }};`,
   );
-  const { stdout } = await promisify(execFile)(process.execPath, [
-    resolve('bundled/pi-bridge/login.mjs'),
-    sdk,
-  ]);
+  const { stdout } = await loginBridge(sdk);
   const events = stdout
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
   assert.deepEqual(
     events.map((event) => event.type),
-    ['auth_url', 'done'],
+    ['prompt', 'auth_url', 'done'],
   );
   assert.equal(stdout.includes('MUST_NOT_LEAVE_PI'), false);
   await writeFile(
     sdk,
     `export const ModelRuntime = { create() { throw new Error('token=DO_NOT_LEAK'); } };`,
   );
-  await promisify(execFile)(process.execPath, [resolve('bundled/pi-bridge/login.mjs'), sdk]).then(
+  await loginBridge(sdk).then(
     () => assert.fail('expected failure'),
     (error: { stdout: string }) => {
       assert.equal(error.stdout.trim(), '{"type":"failed"}');

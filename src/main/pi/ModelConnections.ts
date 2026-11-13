@@ -11,15 +11,27 @@ import { stableId } from '../storage/validation.ts';
 import type { BrowserAuth } from './BrowserAuth.ts';
 import { connectionAuthScope, modelAuthOperation } from './modelAuth.ts';
 import { getProviderStatus } from './provider.ts';
+import { readPiCatalog } from './catalog.ts';
 
 export class ModelConnections {
+  private service: StudioService;
+  private directory: string;
+  private scripts: string;
+  private piPath: () => string;
+  private browserAuth: BrowserAuth;
   constructor(
-    private service: StudioService,
-    private directory: string,
-    private scripts: string,
-    private piPath: () => string,
-    private browserAuth: BrowserAuth,
-  ) {}
+    service: StudioService,
+    directory: string,
+    scripts: string,
+    piPath: () => string,
+    browserAuth: BrowserAuth,
+  ) {
+    this.service = service;
+    this.directory = directory;
+    this.scripts = scripts;
+    this.piPath = piPath;
+    this.browserAuth = browserAuth;
+  }
   private async descriptor(request: ModelConnectionRequest) {
     if (!request || typeof request.folder !== 'string') throw new Error('Выберите папку студии.');
     stableId(request.connectionId);
@@ -59,6 +71,28 @@ export class ModelConnections {
     )
       throw new Error('Неподдерживаемый ответ авторизации Pi.');
     return { ...status, connectionId: request.connectionId };
+  }
+  async catalog(request?: ModelConnectionRequest) {
+    if (!request) {
+      const saved = await this.service.serialize(async () => {
+        const store = await this.service.load();
+        return {
+          folder: store.folder,
+          path: String(store.bootstrap().sections.piPath ?? '') || this.piPath(),
+        };
+      });
+      return readPiCatalog(saved.path, join(this.scripts, 'catalog.mjs'), saved.folder);
+    }
+    const saved = await this.descriptor(request);
+    const catalog = await readPiCatalog(
+      saved.path,
+      join(this.scripts, 'catalog.mjs'),
+      request.folder,
+      saved.scope,
+    );
+    if ((await this.descriptor(request)).signature !== saved.signature)
+      throw new Error('Подключение изменилось во время загрузки каталога.');
+    return catalog;
   }
   async login(request: ModelLoginRequest) {
     if (!['oauth', 'api_key'].includes(request.method)) throw new Error('Выберите способ входа.');

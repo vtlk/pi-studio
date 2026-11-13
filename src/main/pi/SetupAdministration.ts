@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
+import type { Connection } from '../../shared/connections.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
@@ -86,15 +87,7 @@ export class SetupAdministration {
       const agents = (sections.agents ?? []) as Agent[];
       const systems = (sections.systemAgents ?? []) as SystemAgent[];
       const resources = (sections.resources ?? []) as Resource[];
-      const connections = (sections.connections ?? []) as {
-        id: string;
-        name: string;
-        providerId: string;
-        purpose: string;
-        endpoint: string;
-        account: string;
-        createdAt: number;
-      }[];
+      const connections = (sections.connections ?? []) as Connection[];
       if (name === 'list_configuration')
         return {
           studio: store.folder,
@@ -127,8 +120,14 @@ export class SetupAdministration {
             : undefined;
         if (args.id && !old)
           throw new Error('Запрошенное подключение отсутствует; другое не подставляется.');
-        const connection = {
-          ...(old ?? { id: randomUUID(), createdAt: Date.now(), endpoint: '', account: '' }),
+        const connection: Connection = {
+          ...(old ?? {
+            id: randomUUID(),
+            createdAt: Date.now(),
+            endpoint: '',
+            account: '',
+            authScope: 'connection',
+          }),
           name: args.name.trim(),
           providerId: args.provider,
           purpose: args.provider === 'openai-codex' ? 'codex' : 'pi',

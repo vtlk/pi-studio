@@ -177,6 +177,7 @@ export class BrowserAuth {
     return { ...login.state };
   }
   private fail(login: Login, message: string) {
+    if (!['opening', 'waiting', 'verifying'].includes(login.state.phase)) return;
     login.state = { id: login.state.id, phase: 'error', message };
     login.child.kill();
   }

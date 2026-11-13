@@ -17,7 +17,6 @@ import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
 import { BrowserAuth } from '../pi/BrowserAuth';
 import { Startup } from '../pi/Startup';
-import { readPiCatalog } from '../pi/catalog';
 import { createStudioRunHost } from '../pi/createStudioRunHost';
 import type { LaunchAgentRequest } from '../../shared/runtime';
 import { createSetupAssistant } from '../pi/createSetupAssistant';
@@ -194,17 +193,6 @@ export function registerDesktopHandlers(): StudioService {
     return state;
   });
   handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path || startup.path));
-  ipcMain.handle(desktopChannels.getModelCatalog, async (event) => {
-    caller(event);
-    const { path, folder } = await service.serialize(async () => {
-      const store = await service.load();
-      return {
-        path: String(store.bootstrap().sections.piPath ?? '') || startup.path,
-        folder: store.folder,
-      };
-    });
-    return readPiCatalog(path, join(__dirname, '../../bundled/pi-bridge/catalog.mjs'), folder);
-  });
   handle(desktopChannels.chooseSkill, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Папка skill или SKILL.md',

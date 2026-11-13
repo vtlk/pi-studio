@@ -75,7 +75,7 @@ export interface DesktopApi {
   retryStartup(): Promise<StartupState>;
   skipStartup(): Promise<StartupState>;
   chooseStartupPi(): Promise<StartupState | null>;
-  getModelCatalog(): Promise<PiModelCatalog>;
+  getModelCatalog(request?: ModelConnectionRequest): Promise<PiModelCatalog>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
   openSetupAssistant(): Promise<void>;
   listLibrary(): Promise<LibraryListing>;
