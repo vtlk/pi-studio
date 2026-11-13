@@ -53,10 +53,14 @@ export function withMcpSecrets(
 ) {
   const result = structuredClone(config);
   for (const { section, key, text } of entries(config)) {
-    if (!parser.getConfigValueEnvVarNames(text).length) continue;
+    const names = parser.getConfigValueEnvVarNames(text);
+    if (!names.some((name) => Object.hasOwn(values, name))) continue;
     if (parser.isCommandConfigValue(text)) throw new Error('Секреты не подставляются в команды.');
     const value = parser.resolveConfigValue(text, values);
-    if (value === undefined) throw new Error('Сначала сохраните все защищённые параметры MCP.');
+    if (value === undefined)
+      throw new Error(
+        'Не удалось разрешить переменные MCP. Сохраните секреты или настройте остальные переменные в окружении Pi.',
+      );
     // Native Pi parses these fields again. Its literal escapes prevent a key from becoming a command or env reference.
     let literal = value.replaceAll('$', () => '$$');
     if (literal.startsWith('!')) literal = `$!${literal.slice(1)}`;

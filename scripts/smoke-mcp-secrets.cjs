@@ -66,8 +66,10 @@ const deadline = setTimeout(() => {
   const stdio = join(temporary, 'fixture-mcp.mjs');
   writeFileSync(
     stdio,
-    `import {createInterface} from 'node:readline';import {createHash} from 'node:crypto';
+    `import {createInterface} from 'node:readline';import {createHash} from 'node:crypto';import {homedir} from 'node:os';
 if(createHash('sha256').update(process.env.SERVICE_TOKEN||'').digest('hex')!==${JSON.stringify(createHash('sha256').update(stdioKey).digest('hex'))})process.exit(2);
+if(process.env.NATIVE_HOME!==homedir()||!process.env.NATIVE_PATH||process.env.NATIVE_PATH.includes('$'))process.exit(3);
+if(process.env.SERVICE_REGION!==process.env.SERVICE_TOKEN+':qa-region')process.exit(4);
 for await(const line of createInterface({input:process.stdin})){const data=JSON.parse(line);if(!('id'in data))continue;const result=data.method==='initialize'?{protocolVersion:data.params.protocolVersion,capabilities:{tools:{}},serverInfo:{name:'Protected stdio',version:'1'}}:{tools:[{name:'protected_value',description:'Return test marker',inputSchema:{type:'object',properties:{}}}]};process.stdout.write(JSON.stringify({jsonrpc:'2.0',id:data.id,result})+'\\n');}`,
   );
   writeFileSync(
@@ -78,11 +80,17 @@ for await(const line of createInterface({input:process.stdin})){const data=JSON.
         protected_stdio: {
           command: '/usr/bin/env',
           args: ['node', stdio],
-          env: { SERVICE_TOKEN: '${STDIO_KEY}' },
+          env: {
+            SERVICE_TOKEN: '${STDIO_KEY}',
+            NATIVE_HOME: '${HOME}',
+            NATIVE_PATH: '${PATH}',
+            SERVICE_REGION: '${STDIO_KEY}:${PISTUDIO_QA_REGION}',
+          },
         },
       },
     }),
   );
+  process.env.PISTUDIO_QA_REGION = 'qa-region';
   const resources = ['http', 'stdio'].map((kind) => ({
     id: 'protected-' + kind,
     name: 'Protected ' + kind,
@@ -172,6 +180,12 @@ for await(const line of createInterface({input:process.stdin})){const data=JSON.
   await click('Сохранить параметры');
   await until(`document.querySelector('.dialog-body')?.innerText.includes('Параметры сохранены')`);
   await click('Закрыть');
+  assert.deepEqual(
+    (await js('window.studio.loadStudio()')).sections.resources.find(
+      (item) => item.id === 'protected-stdio',
+    ).mcpSecretNames,
+    ['STDIO_KEY'],
+  );
   const stdioChecked = await js(`window.studio.checkResource('protected-stdio')`);
   assert.equal(stdioChecked.status, 'available');
   assert.equal(stdioChecked.toolCount, 1);

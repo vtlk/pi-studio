@@ -26,7 +26,13 @@ interface Options {
   mcpSecrets?: McpSecrets;
 }
 const signature = (resource: Resource) =>
-  JSON.stringify([resource.kind, resource.source, resource.args, resource.credential]);
+  JSON.stringify([
+    resource.kind,
+    resource.source,
+    resource.args,
+    resource.credential,
+    resource.mcpSecretNames,
+  ]);
 export class StudioResources {
   private readonly service: StudioService;
   private readonly options: Options;
@@ -66,6 +72,7 @@ export class StudioResources {
         ...resource,
         credential:
           old?.credential === 'keychain:pistudio-mcp' ? old.credential : resource.credential,
+        ...(old?.mcpSecretNames ? { mcpSecretNames: old.mcpSecretNames } : {}),
         name: old && !replaceName ? old.name : resource.name,
         description: resource.description || old?.description || '',
         version: resource.version || old?.version || '',

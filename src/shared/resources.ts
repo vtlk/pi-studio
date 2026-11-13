@@ -14,6 +14,8 @@ export interface Resource {
   transport: string;
   args: string;
   credential: string;
+  /** Names only, including removed credentials; their values must never fall back to global env. */
+  mcpSecretNames?: string[];
   contents: string;
   createdAt: number;
   localSkill?: boolean;

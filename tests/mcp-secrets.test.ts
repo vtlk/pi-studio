@@ -21,8 +21,15 @@ const parser: PiConfigValues = {
       ? []
       : [...value.matchAll(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g)].map((match) => match[1]),
   isCommandConfigValue: (value) => value.startsWith('!'),
-  resolveConfigValue: (value, env) =>
-    value.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_match, name) => env[name]),
+  resolveConfigValue: (value, env) => {
+    let missing = false;
+    const result = value.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_match, name) => {
+      const resolved = env[name] || process.env[name];
+      if (!resolved) missing = true;
+      return resolved ?? '';
+    });
+    return missing ? undefined : result;
+  },
 };
 const resource: Resource = {
   id: 'protected',
@@ -286,4 +293,109 @@ test('an in-flight native MCP check cannot publish readiness after the protected
   release();
   await assert.rejects(checking, /изменились/);
   assert.equal(f.current().check, undefined);
+});
+
+test('only saved variables are managed; native environment remains native and deleted secrets never fall back', async (t) => {
+  const f = await fixture(t);
+  const beforeEnv = { region: process.env.QA_MCP_REGION, token: process.env.TOKEN };
+  process.env.QA_MCP_REGION = 'qa-region';
+  process.env.TOKEN = 'SYNTHETIC_GLOBAL_MUST_NOT_REPLACE_DELETED';
+  t.after(() => {
+    if (beforeEnv.region === undefined) delete process.env.QA_MCP_REGION;
+    else process.env.QA_MCP_REGION = beforeEnv.region;
+    if (beforeEnv.token === undefined) delete process.env.TOKEN;
+    else process.env.TOKEN = beforeEnv.token;
+  });
+  const config = {
+    ...f.config,
+    env: { PATH: '${PATH}', HOME: '${HOME}', REGION: '${QA_MCP_REGION}' },
+    headers: { Authorization: 'Bearer ${TOKEN}', Mixed: '${TOKEN}/${QA_MCP_REGION}' },
+  };
+  await f.writeConfig(config);
+  const state = await f.secrets.status(f.request);
+  await f.secrets.save({
+    ...f.request,
+    revision: state.revision,
+    values: { TOKEN: 'SYNTHETIC_PRIVATE' },
+  });
+  assert.deepEqual(f.current().mcpSecretNames, ['TOKEN']);
+  const resolved = await f.secrets.resolver(f.store.folder, '')(f.current(), config);
+  assert.deepEqual(resolved.env, config.env, 'Unmanaged env fields reach native Pi unchanged');
+  assert.deepEqual(resolved.headers, {
+    Authorization: 'Bearer SYNTHETIC_PRIVATE',
+    Mixed: 'SYNTHETIC_PRIVATE/qa-region',
+  });
+  await f.secrets.remove({ ...f.request, revision: state.revision });
+  assert.deepEqual(f.current().mcpSecretNames, ['TOKEN']);
+  await assert.rejects(
+    f.secrets.resolver(f.store.folder, '')(f.current(), config),
+    /не удалось прочитать/i,
+  );
+  await assert.rejects(
+    f.secrets.save({
+      ...f.request,
+      revision: state.revision,
+      values: { QA_MCP_REGION: 'new-region' },
+    }),
+    /ранее сохранённые/,
+  );
+  assert.equal((await f.secrets.status(f.request)).hasSavedValues, false);
+  await f.secrets.save({
+    ...f.request,
+    revision: state.revision,
+    values: { TOKEN: 'SYNTHETIC_NEW_PRIVATE' },
+  });
+  assert.deepEqual(f.current().mcpSecretNames, ['TOKEN']);
+  assert.deepEqual(
+    (await f.secrets.resolver(f.store.folder, '')(f.current(), config)).env,
+    config.env,
+  );
+  const native = new StudioResources(f.service, {
+    piPath: () => '',
+    script: 'unused',
+    logins: 'unused',
+    mcpSecrets: f.secrets,
+    operation: async () => ({ name: 'protected', transport: 'HTTP' }),
+  });
+  await native.importMcp(f.store.folder, 'protected', undefined, {
+    name: 'protected',
+    transport: 'HTTP',
+  });
+  assert.deepEqual(
+    f.current().mcpSecretNames,
+    ['TOKEN'],
+    'Reimport retains ownership after deletion/re-entry',
+  );
+});
+
+test('changed endpoints require every previously managed current variable, without promoting ordinary env to secrets', async (t) => {
+  const f = await fixture(t);
+  const config = { ...f.config, env: { PRIVATE: '${SECOND_TOKEN}', HOME: '${HOME}' } };
+  await f.writeConfig(config);
+  let state = await f.secrets.status(f.request);
+  await f.secrets.save({
+    ...f.request,
+    revision: state.revision,
+    values: { TOKEN: 'SYNTHETIC_FIRST', SECOND_TOKEN: 'SYNTHETIC_SECOND' },
+  });
+  await f.writeConfig({ ...config, url: 'https://new.example/mcp' });
+  state = await f.secrets.status(f.request);
+  await assert.rejects(
+    f.secrets.save({
+      ...f.request,
+      revision: state.revision,
+      values: { TOKEN: 'SYNTHETIC_NEW_FIRST' },
+    }),
+    /ранее сохранённые/,
+  );
+  await f.secrets.save({
+    ...f.request,
+    revision: state.revision,
+    values: { TOKEN: 'SYNTHETIC_NEW_FIRST', SECOND_TOKEN: 'SYNTHETIC_NEW_SECOND' },
+  });
+  assert.deepEqual(f.current().mcpSecretNames, ['TOKEN', 'SECOND_TOKEN']);
+  assert.equal(
+    (await f.secrets.status(f.request)).fields.find((field) => field.name === 'HOME')?.stored,
+    false,
+  );
 });

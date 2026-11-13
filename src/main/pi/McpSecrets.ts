@@ -154,6 +154,20 @@ export class McpSecrets {
         ...(previous?.revision === scope.revision ? previous.values : {}),
         ...request.values,
       };
+      const names =
+        scope.resource.mcpSecretNames ??
+        (previous
+          ? Object.keys(previous.values)
+          : scope.resource.credential === managed
+            ? scope.fields
+            : []);
+      if (names.some((name) => scope.fields.includes(name) && !Object.hasOwn(values, name)))
+        throw new Error(
+          'Введите заново все ранее сохранённые секреты MCP. Глобальное окружение их не подменяет.',
+        );
+      const ownedNames = [...new Set([...names, ...Object.keys(values)])];
+      if (ownedNames.length > 64)
+        throw new Error('Слишком много защищённых параметров одного MCP.');
       const encoded = JSON.stringify({ revision: scope.revision, values });
       if (encoded.length > 16000) throw new Error('Защищённые параметры MCP слишком большие.');
       if (
@@ -161,7 +175,12 @@ export class McpSecrets {
       )
         throw new Error('Конфигурация MCP изменилась. Повторите ввод.');
       await this.vault.save(scope.folder, scope.resource.id, encoded);
-      const resource = { ...scope.resource, credential: managed, check: undefined };
+      const resource = {
+        ...scope.resource,
+        credential: managed,
+        mcpSecretNames: ownedNames,
+        check: undefined,
+      };
       await store.saveSection(
         'resources',
         (store.bootstrap().sections.resources as Resource[]).map((item) =>
@@ -176,14 +195,27 @@ export class McpSecrets {
       const store = await this.service.load(),
         scope = await this.scope(store, request);
       this.assertRevision(request, scope.revision);
+      let names = scope.resource.mcpSecretNames;
+      if (!names && scope.resource.credential === managed) {
+        try {
+          names = Object.keys((await this.read(scope.folder, scope.resource.id)).values);
+        } catch {
+          names = scope.fields;
+        }
+      }
       await this.vault.remove(scope.folder, scope.resource.id);
+      const resource = {
+        ...scope.resource,
+        ...(names ? { mcpSecretNames: names } : {}),
+        check: undefined,
+      };
       await store.saveSection(
         'resources',
         (store.bootstrap().sections.resources as Resource[]).map((item) =>
-          item.id === scope.resource.id ? { ...item, check: undefined } : item,
+          item.id === scope.resource.id ? resource : item,
         ),
       );
-      return this.describe(scope);
+      return this.describe({ ...scope, resource });
     });
   }
   async revision(folder: string, resource: Resource) {
@@ -199,8 +231,11 @@ export class McpSecrets {
       const saved = await this.read(folder, resource.id);
       if (saved.revision !== mcpConfigRevision(config))
         throw new Error('MCP изменён: сохраните параметры для новой конфигурации явно.');
-      if (fields.some((name) => !Object.hasOwn(saved.values, name)))
-        throw new Error('Сначала сохраните все защищённые параметры MCP в каталоге.');
+      const names = resource.mcpSecretNames ?? Object.keys(saved.values);
+      if (names.some((name) => fields.includes(name) && !Object.hasOwn(saved.values, name)))
+        throw new Error(
+          'Сначала сохраните защищённые параметры MCP в каталоге. Глобальное окружение их не подменяет.',
+        );
       if (saved.revision !== mcpConfigRevision(await nativeMcpConfig(resource.source.slice(3))))
         throw new Error('Конфигурация MCP изменилась во время открытия.');
       return withMcpSecrets(config, saved.values, parser);

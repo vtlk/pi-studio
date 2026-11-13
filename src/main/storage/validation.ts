@@ -233,6 +233,14 @@ export function parseSection(section: unknown, value: unknown): unknown {
     const credential = text(item.credential, 500);
     if (credential && !/^keychain:[a-zA-Z0-9_.-]+$/.test(credential))
       throw new Error('Сохраняйте только ссылку keychain:имя, без секретов.');
+    const names = item.mcpSecretNames;
+    if (
+      names !== undefined &&
+      (!Array.isArray(names) ||
+        names.length > 64 ||
+        names.some((name) => typeof name !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
+    )
+      throw new Error('Некорректные имена защищённых параметров MCP.');
     return {
       ...base,
       kind: item.kind,
@@ -242,6 +250,7 @@ export function parseSection(section: unknown, value: unknown): unknown {
       transport: text(item.transport, 100),
       args: text(item.args, 10_000),
       credential,
+      ...(Array.isArray(names) ? { mcpSecretNames: [...new Set(names)] } : {}),
       contents: text(item.contents),
       ...(item.localSkill === true ? { localSkill: true } : {}),
       ...(item.check === undefined
