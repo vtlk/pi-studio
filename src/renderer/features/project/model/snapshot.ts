@@ -23,15 +23,11 @@ export function snapshotAgents(agents: Agent[]): ProjectAgent[] {
   }));
 }
 
-export function compareAgents(
-  snapshot: ProjectAgent[],
-  current: Agent[],
-  excludedIds: string[] = [],
-) {
+export function compareAgents(snapshot: ProjectAgent[], current: Agent[]) {
   const savedById = new Map(snapshot.map((item) => [item.profile.id, item.profile]));
   const currentIds = new Set(current.map((item) => item.id));
   return {
-    added: current.filter((item) => !savedById.has(item.id) && !excludedIds.includes(item.id)),
+    added: current.filter((item) => !savedById.has(item.id)),
     changed: current.filter((item) => {
       const saved = savedById.get(item.id);
       return saved && JSON.stringify(saved) !== JSON.stringify(projectProfile(item));
@@ -39,6 +35,10 @@ export function compareAgents(
     missing: snapshot
       .filter((item) => !currentIds.has(item.profile.id))
       .map((item) => item.profile),
+    reordered:
+      JSON.stringify(
+        snapshot.filter((item) => currentIds.has(item.profile.id)).map((item) => item.profile.id),
+      ) !== JSON.stringify(current.filter((item) => savedById.has(item.id)).map((item) => item.id)),
   };
 }
 
@@ -46,15 +46,15 @@ export function refreshSnapshot(
   snapshot: ProjectAgent[],
   current: Agent[],
   updateExisting: boolean,
-  excludedIds: string[] = [],
+  archived: ProjectAgent[] = [],
 ) {
-  const diff = compareAgents(snapshot, current, excludedIds);
-  const changed = new Map(diff.changed.map((item) => [item.id, item]));
-  return [
-    ...snapshotAgents(diff.added),
-    ...snapshot.map((item) => {
-      const next = changed.get(item.profile.id);
-      return updateExisting && next ? { ...item, profile: projectProfile(next) } : item;
-    }),
-  ];
+  const existing = new Map([...snapshot, ...archived].map((item) => [item.profile.id, item]));
+  return current.map((profile) => {
+    const previous = existing.get(profile.id);
+    return previous
+      ? updateExisting
+        ? { ...previous, profile: projectProfile(profile) }
+        : previous
+      : snapshotAgents([profile])[0];
+  });
 }

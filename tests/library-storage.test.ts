@@ -8,6 +8,7 @@ import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
 import { libraryTool } from '../src/main/library/tools.ts';
 import { writeLibraryFixture, libraryPng } from '../scripts/fixtures/library.mjs';
+import { characterFixture } from '../scripts/fixtures/character-rig.ts';
 
 async function fixture(t: { after: (callback: () => Promise<void>) => void }) {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-library-'));
@@ -16,6 +17,49 @@ async function fixture(t: { after: (callback: () => Promise<void>) => void }) {
   await mkdir(output, { recursive: true });
   return { root, output, library: new LibraryStore(root) };
 }
+test('a published data rig enables animation, scopes its reads and revalidates external rig changes', async (t) => {
+  const { root, output, library } = await fixture(t);
+  const prepared = await library.prepare(output, { kind: 'characters', title: 'Rigged original' });
+  await writeLibraryFixture(prepared);
+  const { svg, rig } = characterFixture();
+  await writeFile(join(prepared.stagingDirectory, 'art.svg'), svg);
+  await writeFile(join(prepared.stagingDirectory, 'rig.json'), JSON.stringify(rig));
+  await writeFile(
+    join(prepared.stagingDirectory, 'asset.json'),
+    JSON.stringify({
+      ...prepared.manifest,
+      files: { ...prepared.manifest.files, vector: 'art.svg', rig: 'rig.json' },
+    }),
+  );
+  assert.equal((await library.validate(output, prepared.token)).animated, true);
+  const published = await library.publish(output, prepared.token);
+  assert.equal(published.asset.library.animated, true);
+  const revision = published.asset.library.revision;
+  const data = await library.character(prepared.id, 1, revision);
+  assert.equal(data.rig.engine, 'pistudio-character-1');
+  await assert.rejects(() =>
+    library.media(library.scope, 'characters', prepared.id, 1, 'rig.json'),
+  );
+  await assert.rejects(() => library.character(prepared.id, 1, 'wrong-revision'));
+  const reopened = new LibraryStore(root);
+  assert.equal((await reopened.list()).assets[0].library.animated, true);
+  await writeFile(
+    join(published.directory, 'rig.json'),
+    JSON.stringify({ ...rig, defaults: { ...rig.defaults, mouthC: 140 } }),
+  );
+  await assert.rejects(() => reopened.character(prepared.id, 1, revision), /изменился/);
+  const current = (await reopened.list()).assets[0];
+  assert.notEqual(current.library.revision, revision);
+  await writeFile(
+    join(published.directory, 'rig.json'),
+    JSON.stringify({ ...rig, engine: 'unsupported' }),
+  );
+  assert.equal((await reopened.list()).assets.length, 0);
+  await assert.rejects(
+    () => reopened.character(prepared.id, 1, current.library.revision),
+    /версия/,
+  );
+});
 test('publishing current asset data appears once, preserves old versions and survives reopening without seeding', async (t) => {
   const { root, output, library } = await fixture(t);
   assert.deepEqual((await library.list()).assets, []);

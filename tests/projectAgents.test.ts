@@ -116,9 +116,10 @@ test('removing a project agent is persistent and reversible; output/session byte
   });
   assert.deepEqual(
     (await store.projects.read(project.id)).agents.map((item) => item.profile.id),
-    ['a', 'c'],
-    'Refresh must not silently re-add a deliberately removed agent',
+    ['a', 'b', 'c'],
+    'Confirmed synchronization restores an agent that still exists in the global constructor',
   );
+  await store.command({ kind: 'remove-agent', projectId: project.id, agentId: 'b' });
   await store.command({ kind: 'restore-agent', projectId: project.id, agentId: 'b' });
   const restored = await store.projects.read(project.id);
   assert.deepEqual(

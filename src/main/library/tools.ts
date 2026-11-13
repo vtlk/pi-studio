@@ -4,6 +4,7 @@ import type { StudioService } from '../storage/StudioStore.ts';
 import { stableId } from '../storage/validation.ts';
 import { libraryKind } from './manifest.ts';
 import { safePath } from '../storage/files.ts';
+import { characterRigContract } from '../../shared/characterRigContract.ts';
 
 const string = { type: 'string', minLength: 1, maxLength: 500 };
 const schema = (properties: Record<string, unknown>, required: string[] = []) => ({
@@ -16,7 +17,7 @@ export const libraryTools: SessionTool[] = [
   {
     name: 'library_get_contract',
     description:
-      'Read the exact data-only library publication contract. Studio never executes generated scripts or imports app code as preview logic. Character rigs are not connected yet; PNG/static SVG publication is supported.',
+      'Read the exact data-only library publication contract, including the versioned SVG/rig.json animation schema. Studio never executes generated scripts or imports app code as preview logic.',
     inputSchema: schema({}),
   },
   {
@@ -59,7 +60,7 @@ export const libraryTools: SessionTool[] = [
   {
     name: 'library_validate_asset',
     description:
-      'Check prepared PNG/static SVG files and manifest without publishing. No human approval state, no animation claim for an unrigged asset.',
+      'Check prepared PNG, SVG and optional character rig data without publishing. No human approval state; an unrigged character stays static.',
     inputSchema: schema({ token: string }, ['token']),
   },
   {
@@ -94,9 +95,10 @@ export const libraryContract = {
     'File limits: PNG up to 32 MiB, 16384 pixels per side and 128 MiB inflated data; static SVG up to 2 MiB. Total: 256 MiB and 1000 files per published asset.',
     'No approval or manual import step in the library. Production human approvals stay in the Pi/project workflow.',
     'Only trusted application code performs previews. Generated JavaScript/HTML/TSX is never executed by the library viewer.',
-    'Dynamic rig.json playback is not implemented yet. Published characters are explicitly static; do not claim action/emotion controls are working for them.',
+    'Characters may add files.rig referencing a validated pistudio-character-1 rig.json and files.vector referencing compatible SVG. See characterRig below. No rig means explicitly static; location rigs are not supported.',
     'Updates use existingId and preserve earlier versions, not duplicate cards. No instruction copies are stored in asset packages.',
   ],
+  characterRig: characterRigContract,
 };
 
 export function libraryTool(

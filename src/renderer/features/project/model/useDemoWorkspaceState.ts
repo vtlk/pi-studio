@@ -9,6 +9,7 @@ import type { SessionBinding, WorkspaceProject } from './workspace.types';
 import {
   archiveProjectAgent,
   restoreProjectAgent as restoreArchivedAgent,
+  synchronizeProjectAgentList,
 } from '../../../../shared/projectAgents';
 
 export function useDemoWorkspaceState() {
@@ -41,15 +42,15 @@ export function useDemoWorkspaceState() {
     setProjects((previous) =>
       previous.map((project) =>
         project.id === projectId
-          ? {
-              ...project,
-              agents: refreshSnapshot(
+          ? synchronizeProjectAgentList(
+              project,
+              refreshSnapshot(
                 project.agents,
                 agents,
                 updateExisting,
-                project.archivedAgents?.map((item) => item.agent.profile.id),
+                project.archivedAgents?.map((item) => item.agent),
               ),
-            }
+            )
           : project,
       ),
     );

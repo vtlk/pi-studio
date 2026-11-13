@@ -39,7 +39,7 @@ test('a project snapshot isolates all nested settings and the order from the glo
   assert.equal(secondProject[0].profile.enabled, true);
 });
 
-test('refresh adds new IDs once and preserves existing snapshots, missing agents, output folders and files', () => {
+test('refresh synchronizes IDs/order and preserves retained snapshots, output folders and files', () => {
   const saved = snapshotAgents([agent('writer'), agent('removed')]);
   saved[0].entries = [
     { kind: 'file', id: 'script', name: 'script.txt', format: 'text', content: 'Готовый сценарий' },
@@ -63,12 +63,12 @@ test('refresh adds new IDs once and preserves existing snapshots, missing agents
   const refreshed = refreshSnapshot(saved, current, false);
   assert.deepEqual(
     refreshed.map((item) => item.profile.id),
-    ['new', 'writer', 'removed'],
+    ['new', 'writer'],
   );
   assert.equal(refreshed[1].profile.name, 'writer');
   assert.equal(refreshed[1].entries, saved[0].entries);
   assert.equal(refreshed[1].outputPath, saved[0].outputPath);
-  assert.equal(refreshSnapshot(refreshed, current, false).length, 3);
+  assert.equal(refreshSnapshot(refreshed, current, false).length, 2);
 });
 
 test('updating changed profiles requires an explicit choice and never replaces their outputs', () => {

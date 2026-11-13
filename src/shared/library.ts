@@ -10,10 +10,10 @@ export interface LibraryManifest {
   description: string;
   category: string;
   createdAt: number;
-  files: { reference: string; preview: string; vector?: string };
+  files: { reference: string; preview: string; vector?: string; rig?: string };
 }
 export interface LibraryAsset extends Asset {
-  library: { kind: LibraryKind; version: number; animated: false };
+  library: { kind: LibraryKind; version: number; animated: boolean; revision: string };
   createdAt: number;
 }
 export interface LibraryListing {

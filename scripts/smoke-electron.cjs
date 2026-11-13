@@ -162,6 +162,7 @@ const deadline = setTimeout(() => {
   assert.ok(['ready', 'not_ready', 'invalid'].includes(provider.status));
   assert.deepEqual(Object.keys(provider).sort(), ['provider', 'status']);
   // The project toolbar deletion is confirmed before mutation and restores its original position.
+  app.focus({steal:true});
   window.focus();
   await until('document.hasFocus()');
   await js(

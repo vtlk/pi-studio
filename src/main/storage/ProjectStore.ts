@@ -12,7 +12,11 @@ import {
   stableId,
 } from './validation.ts';
 import { scanOutputs } from './outputs.ts';
-import { archiveProjectAgent, restoreProjectAgent } from '../../shared/projectAgents.ts';
+import {
+  archiveProjectAgent,
+  restoreProjectAgent,
+  synchronizeProjectAgentList,
+} from '../../shared/projectAgents.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 
 export class ProjectStore {
@@ -245,29 +249,30 @@ export class ProjectStore {
         }
       } else if (command.kind === 'update-agents') {
         const current = parseAgents(command.agents);
-        const existing = new Map(project.agents.map((agent) => [agent.profile.id, agent]));
-        const next = {
-          ...project,
-          agents: [
-            ...snapshotProjectAgents(
-              current.filter(
-                (agent) =>
-                  !existing.has(agent.id) &&
-                  !project.archivedAgents?.some((item) => item.agent.profile.id === agent.id),
-              ),
-              await readdir(await safePath(root, 'agents', true)).catch((error) => {
-                if (isMissing(error)) return [];
-                throw error;
-              }),
-            ),
-            ...project.agents.map((agent) => {
-              const profile = current.find((item) => item.id === agent.profile.id);
-              return command.updateExisting && profile
-                ? { ...agent, profile: snapshotAgent(profile).profile }
-                : agent;
+        const existing = new Map(
+          [...project.agents, ...(project.archivedAgents ?? []).map((item) => item.agent)].map(
+            (agent) => [agent.profile.id, agent],
+          ),
+        );
+        const added = new Map(
+          snapshotProjectAgents(
+            current.filter((agent) => !existing.has(agent.id)),
+            await readdir(await safePath(root, 'agents', true)).catch((error) => {
+              if (isMissing(error)) return [];
+              throw error;
             }),
-          ],
-        };
+          ).map((agent) => [agent.profile.id, agent]),
+        );
+        const next = synchronizeProjectAgentList(
+          project,
+          current.map((profile) => {
+            const previous = existing.get(profile.id);
+            if (!previous) return added.get(profile.id)!;
+            return command.updateExisting
+              ? { ...previous, profile: snapshotAgent(profile).profile }
+              : previous;
+          }),
+        );
         await this.ensureAgents(next, root);
         await this.save(next, root);
         this.projects.set(project.id, next);

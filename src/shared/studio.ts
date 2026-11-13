@@ -9,7 +9,12 @@ export interface Asset {
   type: string;
   actions?: string[];
   emotions?: string[];
-  library?: { kind: 'characters' | 'locations'; version: number; animated: boolean };
+  library?: {
+    kind: 'characters' | 'locations';
+    version: number;
+    animated: boolean;
+    revision?: string;
+  };
 }
 export interface Instruction {
   id: string;

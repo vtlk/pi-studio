@@ -6,6 +6,8 @@ import type { LibraryKind, LibraryManifest } from '../../shared/library.ts';
 import { readJson, readText, safePath } from '../storage/files.ts';
 import { record, stableId } from '../storage/validation.ts';
 import { validateStaticSvg } from '../video/readVideoProject.ts';
+import { parseCharacterSvg } from '../../shared/characterSvg.ts';
+import { parseCharacterRig } from '../../shared/parseCharacterRig.ts';
 
 export function libraryKind(value: unknown): LibraryKind {
   if (value !== 'characters' && value !== 'locations')
@@ -32,10 +34,9 @@ export function parseLibraryManifest(value: unknown): LibraryManifest {
     throw new Error('Некорректная дата материала.');
   const title = text(data.title, 500).trim();
   if (!title) throw new Error('Нужно название материала.');
-  if (files.rig !== undefined || data.rig !== undefined)
-    throw new Error(
-      'Динамические rig.json ещё не поддерживаются. Публикуйте эталон/статичный SVG; не выдавайте его за готовый анимационный риг.',
-    );
+  if (data.rig !== undefined) throw new Error('Ссылка на rig.json задаётся в files.rig.');
+  if (files.rig !== undefined && (data.kind !== 'characters' || files.vector === undefined))
+    throw new Error('Анимационный риг поддерживается только для персонажа с SVG.');
   return {
     schemaVersion: 1,
     id: stableId(data.id),
@@ -49,6 +50,7 @@ export function parseLibraryManifest(value: unknown): LibraryManifest {
       reference: path(files.reference, '.png'),
       preview: path(files.preview, '.png'),
       ...(files.vector === undefined ? {} : { vector: path(files.vector, '.svg') }),
+      ...(files.rig === undefined ? {} : { rig: path(files.rig, '.json') }),
     },
   };
 }
@@ -125,8 +127,21 @@ export async function validateLibraryDirectory(root: string) {
   await png(root, manifest.files.preview);
   if (manifest.files.vector)
     validateStaticSvg(await readText(await safePath(root, manifest.files.vector)));
+  let character;
+  if (manifest.files.rig && manifest.files.vector) {
+    const { svg, parts } = parseCharacterSvg(
+      await readText(await safePath(root, manifest.files.vector)),
+    );
+    const rigPath = await safePath(root, manifest.files.rig);
+    const text = await readText(rigPath);
+    character = { svg, rig: parseCharacterRig(JSON.parse(text), parts) };
+  }
   const after = await Promise.all(paths.map((path) => signature(root, path)));
   if (JSON.stringify(before) !== JSON.stringify(after))
     throw new Error('Материал изменился во время проверки. Повторите действие.');
-  return { manifest, files: paths.map((path, index) => ({ path, signature: after[index] })) };
+  return {
+    manifest,
+    files: paths.map((path, index) => ({ path, signature: after[index] })),
+    character,
+  };
 }

@@ -1,4 +1,35 @@
-import type { WorkspaceProject } from './project.ts';
+import type { WorkspaceProject, ProjectAgent } from './project.ts';
+
+export function synchronizeProjectAgentList(
+  project: WorkspaceProject,
+  agents: ProjectAgent[],
+): WorkspaceProject {
+  const ids = new Set(agents.map((agent) => agent.profile.id));
+  const removed = project.agents.flatMap((agent, position) =>
+    ids.has(agent.profile.id)
+      ? []
+      : [
+          {
+            agent: structuredClone({
+              ...agent,
+              ...(agent.runStatus === 'running' ? { runStatus: 'stopped' as const } : {}),
+            }),
+            position,
+          },
+        ],
+  );
+  const removedIds = new Set(removed.map((item) => item.agent.profile.id));
+  return {
+    ...project,
+    agents,
+    archivedAgents: [
+      ...(project.archivedAgents ?? []).filter(
+        (item) => !ids.has(item.agent.profile.id) && !removedIds.has(item.agent.profile.id),
+      ),
+      ...removed,
+    ],
+  };
+}
 
 export function archiveProjectAgent(project: WorkspaceProject, agentId: string): WorkspaceProject {
   const position = project.agents.findIndex((agent) => agent.profile.id === agentId);

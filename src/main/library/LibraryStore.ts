@@ -89,7 +89,12 @@ export class LibraryStore {
       ...(manifest.files.vector ? { vector: url(manifest.files.vector) } : {}),
       type: manifest.kind === 'characters' ? 'character' : 'location',
       createdAt: manifest.createdAt,
-      library: { kind: manifest.kind, version: manifest.version, animated: false },
+      library: {
+        kind: manifest.kind,
+        version: manifest.version,
+        animated: !!checked.character,
+        revision,
+      },
     };
   }
   list(): Promise<LibraryListing> {
@@ -161,10 +166,23 @@ export class LibraryStore {
   async media(scope: string, kind: LibraryKind, id: string, version: number, file: string) {
     if (scope !== this.scope) throw new Error('Папка студии изменилась.');
     const checked = await this.get(kind, id, version);
-    if (!Object.values(checked.manifest.files).includes(file))
+    if (
+      ![
+        checked.manifest.files.reference,
+        checked.manifest.files.preview,
+        checked.manifest.files.vector,
+      ].includes(file)
+    )
       throw new Error('Этот файл не является материалом предпросмотра.');
     await safePath(checked.directory, file);
     return { root: checked.directory, path: file };
+  }
+  async character(id: string, version: number, revision: string) {
+    const checked = await this.checked('characters', stableId(id), version);
+    if (!checked.character) throw new Error('У персонажа нет совместимого анимационного рига.');
+    const current = this.asset(checked).library.revision;
+    if (revision !== current) throw new Error('Материал изменился. Перечитайте библиотеку.');
+    return { ...checked.character, revision: current };
   }
   private stage(outputRoot: string, token: string) {
     if (!/^[a-f0-9-]{36}$/.test(token)) throw new Error('Некорректный идентификатор подготовки.');
@@ -255,7 +273,7 @@ export class LibraryStore {
       validated: true,
       id: job.id,
       version: job.version,
-      animated: false,
+      animated: !!checked.character,
       files: checked.files.map((file) => file.path),
     };
   }

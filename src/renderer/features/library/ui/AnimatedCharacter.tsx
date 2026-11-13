@@ -3,6 +3,7 @@ import type { Asset } from '@/entities/studio/types';
 import type { CharacterPreviewOptions } from '../model/characterPreview';
 import { loadCharacterRuntime } from '../runtime/characterRuntime';
 import { CharacterPlayer } from '../runtime/CharacterPlayer';
+import { dataCharacterRuntime } from '../runtime/dataCharacterRuntime';
 
 export function AnimatedCharacter({
   asset,
@@ -18,13 +19,22 @@ export function AnimatedCharacter({
   const latestOptions = useRef(options);
   const prefix = useId().replace(/[^a-z0-9_-]/gi, '');
   const [error, setError] = useState('');
+  const nativeVersion = asset.library?.version;
+  const nativeRevision = asset.library?.revision;
   useEffect(() => {
     latestOptions.current = options;
     player.current?.setOptions(options);
   }, [options]);
   useEffect(() => {
     let cancelled = false;
-    loadCharacterRuntime()
+    setError('');
+    const loading =
+      nativeVersion !== undefined
+        ? window
+            .studio!.readLibraryCharacter(asset.id, nativeVersion, nativeRevision!)
+            .then((source) => dataCharacterRuntime(source, asset.id))
+        : loadCharacterRuntime();
+    loading
       .then((runtime) => {
         if (cancelled || !host.current) return;
         const design = runtime.designs[asset.id];
@@ -48,7 +58,7 @@ export function AnimatedCharacter({
       player.current?.dispose();
       player.current = null;
     };
-  }, [asset.id, asset.title, prefix]);
+  }, [asset.id, asset.title, nativeVersion, nativeRevision, prefix]);
   useEffect(() => {
     if (blinkRequest) player.current?.blink();
   }, [blinkRequest]);

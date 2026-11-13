@@ -15,12 +15,12 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
   const { demo } = useNotice();
   const [updateExisting, setUpdateExisting] = useState(false);
   if (!selectedProject) return null;
-  const diff = compareAgents(
-    selectedProject.agents,
-    agents,
-    selectedProject.archivedAgents?.map((item) => item.agent.profile.id),
-  );
-  const hasChanges = diff.added.length > 0 || (updateExisting && diff.changed.length > 0);
+  const diff = compareAgents(selectedProject.agents, agents);
+  const hasChanges =
+    diff.added.length > 0 ||
+    diff.missing.length > 0 ||
+    diff.reordered ||
+    (updateExisting && diff.changed.length > 0);
   return (
     <Modal
       title="Перечитать агентов"
@@ -39,8 +39,17 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
               if ((await refreshAgents(updateExisting)) === false) return;
               demo(
                 isDesktop
-                  ? 'Снимок агентов сохранён. Выходные файлы сохранены.'
+                  ? 'Список агентов синхронизирован. Файлы и история Pi сохранены.'
                   : 'Снимок агентов обновлён в памяти прототипа.',
+                diff.missing.length
+                  ? {
+                      label: 'Вернуть удалённых',
+                      onClick: async () => {
+                        for (const agent of diff.missing)
+                          await restoreProjectAgent(selectedProject.id, agent.id);
+                      },
+                    }
+                  : undefined,
               );
               onClose();
             }}
@@ -51,26 +60,6 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="agent-diff">
-        {!!selectedProject.archivedAgents?.length && (
-          <section>
-            <h3>Удалены из этого проекта</h3>
-            <p>Не добавляются автоматически при перечитывании. Файлы и история сохранены.</p>
-            <ul>
-              {selectedProject.archivedAgents.map(({ agent }) => (
-                <li key={agent.profile.id}>
-                  <Button
-                    disabled={busy}
-                    onClick={() => {
-                      void restoreProjectAgent(selectedProject.id, agent.profile.id);
-                    }}
-                  >
-                    Вернуть · {agent.profile.name || 'Без названия'}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
         {diff.added.length > 0 ? (
           <section>
             <h3>Добавятся в проект</h3>
@@ -103,16 +92,20 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
         )}
         {diff.missing.length > 0 && (
           <section>
-            <h3>Убраны из общего списка</h3>
+            <h3>Уберутся из проекта</h3>
             <ul>
               {diff.missing.map((agent) => (
                 <li key={agent.id}>{agent.name || 'Без названия'}</li>
               ))}
             </ul>
-            <p>Эти агенты и их файлы останутся в проекте.</p>
+            <p>
+              Этих агентов больше нет во вкладке «Агенты». Их выходные файлы и история Pi
+              сохранятся.
+            </p>
           </section>
         )}
-        {(diff.added.length > 0 || diff.changed.length > 0) && (
+        {diff.reordered && <p>Порядок этапов будет соответствовать вкладке «Агенты».</p>}
+        {(diff.added.length > 0 || diff.changed.length > 0 || diff.missing.length > 0) && (
           <p>Существующие выходные файлы сохраняются.</p>
         )}
       </div>

@@ -121,8 +121,10 @@ export function useNativeWorkspaceState() {
     busy,
     createProject: async (name: string) =>
       (await saveNow()) ? command({ kind: 'create', name, agents }) : false,
-    refreshAgents: (updateExisting: boolean) =>
-      command({ kind: 'update-agents', projectId, agents, updateExisting }),
+    refreshAgents: async (updateExisting: boolean) =>
+      (await saveNow())
+        ? command({ kind: 'update-agents', projectId, agents, updateExisting })
+        : false,
     removeProjectAgent: (projectId: string, agentId: string) =>
       command({ kind: 'remove-agent', projectId, agentId }),
     restoreProjectAgent: (projectId: string, agentId: string) =>

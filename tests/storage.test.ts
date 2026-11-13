@@ -110,8 +110,12 @@ test('rename changes the physical folder but preserves IDs, dates and relative f
   assert.equal(saved.name, 'После');
   assert.equal(saved.agents[0].profile.id, 'writer');
   assert.equal(
-    (await loadOutput(await reopened.projects.directory(saved.id), 'agents/scenarist/output/file.txt'))
-      .content,
+    (
+      await loadOutput(
+        await reopened.projects.directory(saved.id),
+        'agents/scenarist/output/file.txt',
+      )
+    ).content,
     'данные',
   );
 });
@@ -162,7 +166,7 @@ test('existing folder collision and invalid names never overwrite files or regis
   assert.equal(store.bootstrap().projects.length, 0);
   assert.equal(await readFile(join(store.folder, 'projects/Занято/keep.txt'), 'utf8'), 'keep');
 });
-test('refresh stable IDs adds only once, preserves orphan agents and files, and updates profiles only by explicit choice', async (t) => {
+test('refresh synchronizes stable IDs/order, archives removed agents, preserves files and updates profiles only by explicit choice', async (t) => {
   const { store } = await fixture(t);
   const project = (
     await store.command({ kind: 'create', name: 'Снимок', agents: [agent(), agent('orphan')] })
@@ -180,9 +184,13 @@ test('refresh stable IDs adds only once, preserves orphan agents and files, and 
   let saved = await store.projects.read(project.id);
   assert.deepEqual(
     saved.agents.map((agent) => agent.profile.id),
-    ['new', 'writer', 'orphan'],
+    ['writer', 'new'],
   );
-  assert.equal(saved.agents[1].profile.name, 'Сценарист');
+  assert.equal(saved.agents[0].profile.name, 'Сценарист');
+  assert.deepEqual(
+    saved.archivedAgents?.map((item) => item.agent.profile.id),
+    ['orphan'],
+  );
   await store.command({
     kind: 'update-agents',
     projectId: project.id,
@@ -190,7 +198,30 @@ test('refresh stable IDs adds only once, preserves orphan agents and files, and 
     updateExisting: true,
   });
   saved = await store.projects.read(project.id);
-  assert.equal(saved.agents[1].profile.name, 'Изменён');
+  assert.equal(saved.agents[0].profile.name, 'Изменён');
+  assert.deepEqual(
+    saved.agents.map((item) => item.profile.id),
+    ['writer'],
+  );
+  await store.command({
+    kind: 'update-agents',
+    projectId: project.id,
+    agents: [],
+    updateExisting: false,
+  });
+  assert.deepEqual((await store.projects.read(project.id)).agents, []);
+  await store.command({
+    kind: 'update-agents',
+    projectId: project.id,
+    agents: [agent('orphan'), changed],
+    updateExisting: false,
+  });
+  saved = await store.projects.read(project.id);
+  assert.deepEqual(
+    saved.agents.map((item) => item.profile.id),
+    ['orphan', 'writer'],
+  );
+  assert.equal(saved.agents[1].outputPath, 'agents/scenarist/output');
   assert.equal(await readFile(join(root, 'agents/scenarist/output/file.txt'), 'utf8'), 'не менять');
 });
 test('corrupt and future studio versions fail without overwriting the original bytes', async (t) => {

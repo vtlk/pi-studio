@@ -1,12 +1,4 @@
-import {
-  app,
-  BrowserWindow,
-  dialog,
-  ipcMain,
-  shell,
-  nativeImage,
-  type IpcMainInvokeEvent,
-} from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
 import type {
@@ -15,7 +7,8 @@ import type {
   StorageSection,
   SectionEdit,
 } from '../../shared/storage';
-import { StudioService } from '../storage/StudioStore';
+import { StudioService, type StudioStore } from '../storage/StudioStore';
+import { snapshotAgent } from '../storage/validation';
 import { loadOutput } from '../storage/outputs';
 import { safePath, withReadDeadline } from '../storage/files';
 import { checkPi } from '../pi/checkPi';
@@ -36,7 +29,7 @@ import packageInfo from '../../../package.json';
 import { ReferenceFiles } from '../pi/ReferenceFiles';
 import { referenceImage } from '../pi/referenceImage';
 import { createLibraryRunHost } from '../pi/createLibraryRunHost';
-import type { LibraryKind } from '../../shared/library';
+import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -109,40 +102,7 @@ export function registerDesktopHandlers(): StudioService {
       return service.serialize(() => Promise.resolve(action(event, ...(args as never[]))));
     });
   }
-  handle(desktopChannels.listLibrary, async () =>
-    withReadDeadline(async () => (await service.load()).library.list()),
-  );
-  ipcMain.handle(
-    desktopChannels.createLibraryAsset,
-    async (event, request: { kind: LibraryKind; description: string; attachments: string[] }) => {
-      caller(event);
-      await generators.create(request);
-    },
-  );
-  ipcMain.handle(desktopChannels.chooseReferenceFiles, async (event) => {
-    const result = await dialog.showOpenDialog(caller(event), {
-      title: 'Файлы референса',
-      properties: ['openFile', 'multiSelections'],
-    });
-    if (result.canceled) return [];
-    const folder = await service.serialize(async () => (await service.load()).folder);
-    const files = await references.select(result.filePaths, folder);
-    return Promise.all(
-      files.map(async (file, index) => {
-        if (!file.type.startsWith('image/')) return file;
-        try {
-          const png = await referenceImage(result.filePaths[index], file.type);
-          const image = nativeImage.createFromBuffer(png);
-          return {
-            ...file,
-            preview: image.resize({ width: 120, height: 120, quality: 'good' }).toDataURL(),
-          };
-        } catch {
-          return file;
-        }
-      }),
-    );
-  });
+  registerLibraryHandlers(service, references, generators, caller);
   ipcMain.handle(desktopChannels.beginCodexLogin, async (event) => {
     caller(event);
     const path = await service.serialize(async () =>
@@ -225,13 +185,16 @@ export function registerDesktopHandlers(): StudioService {
     return state;
   });
   handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path || startup.path));
-  handle(desktopChannels.getModelCatalog, async () => {
-    const store = await service.load();
-    return readPiCatalog(
-      String(store.bootstrap().sections.piPath ?? '') || startup.path,
-      join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
-      store.folder,
-    );
+  ipcMain.handle(desktopChannels.getModelCatalog, async (event) => {
+    caller(event);
+    const { path, folder } = await service.serialize(async () => {
+      const store = await service.load();
+      return {
+        path: String(store.bootstrap().sections.piPath ?? '') || startup.path,
+        folder: store.folder,
+      };
+    });
+    return readPiCatalog(path, join(__dirname, '../../bundled/pi-bridge/catalog.mjs'), folder);
   });
   handle(desktopChannels.chooseSkill, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
@@ -257,12 +220,12 @@ export function registerDesktopHandlers(): StudioService {
     if (!resource) throw new Error('Локальный skill не найден в каталоге.');
     return inspectSkill(resource.source);
   });
-  handle(desktopChannels.getProviderStatus, async (_event, provider: string) => {
-    const store = await service.load();
-    return getProviderStatus(
-      String(store.bootstrap().sections.piPath ?? '') || startup.path,
-      provider,
+  ipcMain.handle(desktopChannels.getProviderStatus, async (event, provider: string) => {
+    caller(event);
+    const path = await service.serialize(
+      async () => String((await service.load()).bootstrap().sections.piPath ?? '') || startup.path,
     );
+    return getProviderStatus(path, provider);
   });
   handle(desktopChannels.openProviderLogin, async (_event, provider: string) => {
     const store = await service.load();
@@ -304,13 +267,35 @@ export function registerDesktopHandlers(): StudioService {
   );
   ipcMain.handle(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
     caller(event);
+    const templates = (store: StudioStore) => {
+      const current = store.bootstrap().sections.agents as Agent[];
+      if (
+        command.kind === 'update-agents' &&
+        JSON.stringify(current.map((agent) => snapshotAgent(agent).profile)) !==
+          JSON.stringify(command.agents.map((agent) => snapshotAgent(agent).profile))
+      )
+        throw new Error(
+          'Общий список агентов изменился. Перечитайте настройки и откройте сравнение заново.',
+        );
+      return current;
+    };
     if (command.kind === 'remove-agent') await runs.stopAgent(command.projectId, command.agentId);
     else if ('projectId' in command) runs.assertIdle(command.projectId);
+    if (command.kind === 'update-agents') {
+      const removed = await service.serialize(async () => {
+        const store = await service.load();
+        const ids = new Set(templates(store).map((agent) => agent.id));
+        return (await store.projects.read(command.projectId)).agents
+          .filter((agent) => !ids.has(agent.profile.id))
+          .map((agent) => agent.profile.id);
+      });
+      for (const id of removed) await runs.stopAgent(command.projectId, id);
+    }
     return service.serialize(async () => {
       const store = await service.load();
       return store.command(
-        command.kind === 'create'
-          ? { ...command, agents: store.bootstrap().sections.agents as Agent[] }
+        command.kind === 'create' || command.kind === 'update-agents'
+          ? { ...command, agents: templates(store) }
           : command,
       );
     });

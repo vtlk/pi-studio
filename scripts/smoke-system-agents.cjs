@@ -130,8 +130,57 @@ const deadline = setTimeout(() => {
   const reopened = await js('window.studio.loadStudio()');
   assert.deepEqual(reopened.sections.systemAgents, state.sections.systemAgents);
   assert.deepEqual(reopened.sections.agents, state.sections.agents);
+  const nextTemplates = [
+    state.sections.agents[1],
+    { ...state.sections.agents[0], id: 'qa-new-project-role', name: 'Third project role' },
+  ];
+  await js(
+    `window.studio.saveSection('agents',${JSON.stringify(nextTemplates)},${JSON.stringify({ folder: state.folder, base: state.sections.agents })})`,
+  );
+  window.webContents.reload();
+  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.includes('System exclusion')&&!button.getAttribute('aria-label')).click()`,
+  );
+  await until(`!!document.querySelector('.project-header')`);
+  const beforeSync = await js('window.studio.loadStudio()');
+  await click('Перечитать агентов');
+  await click('Перечитать');
+  await until(`document.querySelector('.agent-diff')?.textContent.includes('Уберутся из проекта')`);
+  assert.ok(
+    (await js(`document.querySelector('.agent-diff').textContent`)).includes('First project role'),
+  );
+  assert.ok(
+    (await js(`document.querySelector('.agent-diff').textContent`)).includes('Third project role'),
+  );
+  await click('Отмена');
+  assert.deepEqual(
+    (await js('window.studio.loadStudio()')).projects[0].agents,
+    beforeSync.projects[0].agents,
+  );
+  await click('Перечитать агентов');
+  await click('Перечитать');
+  await click('Применить');
+  await until(`document.body.innerText.includes('Список агентов синхронизирован')`);
+  const synced = await js('window.studio.loadStudio()');
+  assert.deepEqual(
+    synced.projects[0].agents.map((agent) => agent.profile.id),
+    nextTemplates.map((agent) => agent.id),
+  );
+  assert.equal(synced.projects[0].archivedAgents[0].agent.profile.id, state.sections.agents[0].id);
+  await click('Вернуть удалённых');
+  await until(`document.querySelectorAll('.project-agent-menu .section-menu-item').length===3`);
+  await click('Перечитать агентов');
+  await click('Перечитать');
+  await click('Применить');
+  await until(`document.querySelectorAll('.project-agent-menu .section-menu-item').length===2`);
+  assert.deepEqual(
+    (await js('window.studio.loadStudio()')).projects[0].agents.map((agent) => agent.profile.id),
+    nextTemplates.map((agent) => agent.id),
+  );
   console.log(
-    'System agents Electron passed: fixed separate service group, shared instruction editor and persistence, pinned MCP without disable/delete, backend deletion rejection, appended project profiles with plus before services, project snapshots exclude system profiles.',
+    'System agents Electron passed: fixed service group/editor, pinned MCP/deletion guards, appended project profiles, snapshots exclude systems; confirmed project synchronization adds/removes IDs, cancellation preserves data, undo and repeated synchronization work.',
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

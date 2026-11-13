@@ -35,18 +35,24 @@ for (const [source, name] of [
   ['@remotion/player/LICENSE.md', 'Remotion-LICENSE.md'],
   ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
   ['zod/LICENSE', 'Zod-LICENSE.txt'],
+  ['saxes/README.md', 'Saxes-README.txt'],
+  ['saxes/package.json', 'Saxes-package.json'],
+  ['xmlchars/LICENSE', 'Xmlchars-LICENSE.txt'],
 ])
   await cp(join(root, 'node_modules', source), join(licenses, name));
+await cp(join(root, 'third-party-licenses/Saxes-LICENSE.txt'), join(licenses, 'Saxes-LICENSE.txt'));
 await writeFile(
   join(licenses, 'README.txt'),
   [
-    'Pi Studio bundled montage preview dependencies (unmodified upstream code):',
+    'Pi Studio bundled dependencies (unmodified upstream code):',
     'remotion, @remotion/player, @remotion/media 4.0.543: Remotion License; see Remotion-LICENSE.md.',
     'Source: https://github.com/remotion-dev/remotion/tree/v4.0.543',
     'Mediabunny 1.64.0: MPL-2.0; see Mediabunny-LICENSE.txt.',
     'Corresponding source: https://registry.npmjs.org/mediabunny/-/mediabunny-1.64.0.tgz (includes src/).',
     'Zod 4.6.7: MIT; see Zod-LICENSE.txt. Source: https://github.com/colinhacks/zod',
     'Editor Starter and Remotion Timeline are not included.',
+    'Saxes 6.0.0: ISC; see Saxes-LICENSE.txt. Source: https://github.com/lddubeau/saxes',
+    'xmlchars 2.2.0: MIT; see Xmlchars-LICENSE.txt. Source: https://github.com/lddubeau/xmlchars',
     '',
   ].join('\n'),
 );
@@ -55,9 +61,10 @@ await cp(join(root, 'out'), join(application, 'out'), {
   filter: (source) =>
     !['characters', 'scenes', 'library-runtime', 'source.json'].includes(source.split('/').at(-1)),
 });
-await cp(join(root, 'node_modules/yaml'), join(application, 'node_modules/yaml'), {
-  recursive: true,
-});
+for (const dependency of ['yaml', 'saxes', 'xmlchars'])
+  await cp(join(root, 'node_modules', dependency), join(application, 'node_modules', dependency), {
+    recursive: true,
+  });
 await cp(join(root, 'bundled/pi-bridge'), join(application, 'bundled/pi-bridge'), {
   recursive: true,
 });
