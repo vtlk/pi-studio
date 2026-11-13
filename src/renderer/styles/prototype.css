@@ -269,18 +269,6 @@
     13px/1.7 ui-monospace,
     monospace;
 }
-.project-row-actions {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  right: 52px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.project-list-row {
-  padding-right: 150px;
-}
 .montage-card {
   padding: 24px;
 }

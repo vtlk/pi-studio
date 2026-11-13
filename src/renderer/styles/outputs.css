@@ -20,11 +20,6 @@
 .project-header > .button {
   flex-shrink: 0;
 }
-.project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
 .project-files-layout {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);

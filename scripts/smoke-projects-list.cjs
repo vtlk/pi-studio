@@ -1,0 +1,298 @@
+const { app, BrowserWindow } = require('electron');
+const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
+const { readFile, writeFile, rm, mkdir } = require('node:fs/promises');
+const { join, resolve } = require('node:path');
+const { tmpdir } = require('node:os');
+const assert = require('node:assert/strict');
+let root;
+const timeout = setTimeout(() => {
+  console.error('Projects list QA timed out');
+  app.exit(1);
+}, 60000);
+(async () => {
+  root = mkdtempSync(join(tmpdir(), 'pistudio-projects-list-'));
+  const studio = join(root, 'Studio'),
+    userData = join(root, 'UserData');
+  mkdirSync(userData);
+  writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
+  const longName =
+    'Очень длинное название проекта для проверки сокращения и подсказки — ' +
+    'история большого города '.repeat(8);
+  const longFolder = 'long-real-folder-' + 'physical-project-directory-'.repeat(7);
+  const records = [
+    ['city', 'Город после дождя', 'gorod-posle-dozhdya', 13, 4, 24],
+    ['discoveries', 'Маленькие открытия', 'malenkie-otkrytiya', 12, 3, 18],
+    ['morning', 'История одного утра', 'istoriya-odnogo-utra', 10, 5, 42],
+    ['long', longName, longFolder, 8, 3, 0],
+  ];
+  for (const [id, name, folder, day, agents, files] of [
+    ...records,
+    ['deleted', 'Удалённый проект', 'deleted', 1, 0, 0],
+  ]) {
+    const directory = join(studio, id === 'deleted' ? '.pistudio/trash' : 'projects', folder);
+    mkdirSync(directory, { recursive: true });
+    const snapshots = Array.from({ length: agents }, (_, n) => {
+      const outputPath = `agents/agent-${n}/output`;
+      mkdirSync(join(directory, outputPath), { recursive: true });
+      return {
+        profile: {
+          id: `agent-${n}`,
+          name: `QA ${n}`,
+          enabled: true,
+          skills: [],
+          mcps: [],
+          plugins: [],
+        },
+        outputPath,
+      };
+    });
+    for (let n = 0; n < files; n++)
+      writeFileSync(
+        join(directory, snapshots[0].outputPath, `file-${n}.txt`),
+        'Fixture result ' + n,
+      );
+    writeFileSync(
+      join(directory, 'project.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        id,
+        name,
+        createdAt: Date.UTC(2026, 10, day, 10),
+        agents: snapshots,
+      }),
+    );
+  }
+  app.setPath('userData', userData);
+  app.setPath('videos', root);
+  const loaded = new Promise((resolve) =>
+    app.once('browser-window-created', (_, win) =>
+      win.webContents.once('did-finish-load', () => resolve(win)),
+    ),
+  );
+  require('../out/main/index.cjs');
+  const win = await loaded;
+  win.webContents.setBackgroundThrottling(false);
+  win.webContents.debugger.attach('1.3');
+  const js = (code) => win.webContents.executeJavaScript(code, true);
+  const until = async (code) => {
+    for (let n = 0; n < 150; n++) {
+      if (await js(code)) return;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    throw Error('Timed out: ' + code + '\n' + (await js('document.body.innerText')));
+  };
+  const click = (text) =>
+    js(
+      `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)}).click()`,
+    );
+  const input = (selector, value) =>
+    js(
+      `(()=>{const e=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+    );
+  const rows = () =>
+    js(
+      `Array.from(document.querySelectorAll('.projects-table tbody tr.project-list-item')).map(row=>({name:row.querySelector('.project-list-name').textContent,folder:row.querySelector('.project-list-folder').textContent,date:row.querySelector('time').dateTime,counts:Array.from(row.querySelectorAll('.project-number')).map(e=>e.textContent)}))`,
+    );
+  const hover = async (selector) => {
+    const rect = await js(
+      `(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()`,
+    );
+    await win.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
+      type: 'mouseMoved',
+      ...rect,
+    });
+  };
+  await until(`document.querySelector('.projects-total')?.textContent==='4 проекта'`);
+  await until(
+    `Array.from(document.querySelectorAll('.project-list-item .project-number')).map(e=>e.textContent).join(',')==='4,24,3,18,5,42,3,0'`,
+  );
+  let displayed = await rows();
+  assert.deepEqual(
+    displayed.map((row) => row.name),
+    records.map((row) => row[1]),
+  );
+  assert.deepEqual(
+    displayed.map((row) => row.folder),
+    records.map((row) => row[2]),
+  );
+  assert.equal(displayed[0].date, '2026-11-13T10:00:00.000Z');
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.projects-table thead th')).slice(0,4).map(e=>e.textContent)`,
+    ),
+    ['Проект', 'Создан', 'Агенты', 'Файлы'],
+  );
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Создать проект"]').textContent.trim()`),
+    'Создать проект',
+  );
+  assert.equal(
+    await js(`document.querySelector('.topbar').textContent.includes('PI STUDIO')`),
+    false,
+  );
+  await input('[aria-label="Найти проект"]', ' МАЛЕНЬКИЕ ');
+  assert.equal((await rows()).length, 1);
+  assert.equal((await rows())[0].name, 'Маленькие открытия');
+  await input('[aria-label="Найти проект"]', 'DOZHDYA');
+  assert.equal((await rows())[0].folder, 'gorod-posle-dozhdya');
+  await input('[aria-label="Найти проект"]', 'нет такого проекта');
+  assert.equal((await rows()).length, 0);
+  assert.equal(
+    await js(`document.querySelector('.projects-empty').textContent`),
+    'Проекты не найдены.',
+  );
+  await input('[aria-label="Найти проект"]', '');
+  await js(`document.activeElement.blur()`);
+  await win.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
+    type: 'mouseMoved',
+    x: 10,
+    y: 90,
+  });
+  assert.equal(
+    await js(`getComputedStyle(document.querySelector('.project-row-actions')).opacity`),
+    '0',
+  );
+  win.focus();
+  win.webContents.focus();
+  await js(`document.querySelector('.project-list-row').focus()`);
+  assert.equal(
+    await js(`getComputedStyle(document.querySelector('.project-row-actions')).opacity`),
+    '1',
+  );
+  await win.webContents.debugger.sendCommand('Input.dispatchKeyEvent', {
+    type: 'keyDown',
+    key: 'Enter',
+    code: 'Enter',
+    windowsVirtualKeyCode: 13,
+    text: '\r',
+    unmodifiedText: '\r',
+  });
+  await win.webContents.debugger.sendCommand('Input.dispatchKeyEvent', {
+    type: 'keyUp',
+    key: 'Enter',
+    code: 'Enter',
+    windowsVirtualKeyCode: 13,
+  });
+  await until(`document.querySelector('.project-header h1')?.textContent==='Город после дождя'`);
+  await click('Проекты');
+  await until(`document.querySelectorAll('.project-list-item').length===4`);
+  await js(
+    `document.querySelectorAll('.project-list-item')[1].querySelector('.project-created').click()`,
+  );
+  await until(`document.querySelector('.project-header h1')?.textContent==='Маленькие открытия'`);
+  await click('Проекты');
+  await until(`document.querySelectorAll('.project-list-item').length===4`);
+  await hover('.project-list-name');
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  assert.equal(
+    await js(`!!document.querySelector('[role="tooltip"]')`),
+    false,
+    'Short names do not repeat in a tooltip',
+  );
+  await hover('.project-list-item:last-child .project-list-name');
+  await until(
+    `document.querySelector('[role="tooltip"]')?.textContent.includes(${JSON.stringify(longName)})`,
+  );
+  await hover('.project-list-item:last-child .project-list-folder');
+  await until(
+    `document.querySelector('[role="tooltip"]')?.textContent.includes(${JSON.stringify(longFolder)})`,
+  );
+  await hover('.project-list-item:first-child .project-created');
+  await until(`!document.querySelector('.ui-tooltip')`);
+  await until(
+    `getComputedStyle(document.querySelector('.project-list-item .hover-delete')).opacity==='1'`,
+  );
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await writeFile(resolve('artifacts/projects-list.png'), (await win.capturePage()).toPNG());
+  await js(`document.querySelector('[aria-label="Переименовать Город после дождя"]').click()`);
+  await until(`!!document.querySelector('[role="dialog"]')`);
+  assert.equal(
+    await js(`!!document.querySelector('.project-header')`),
+    false,
+    'Rename does not open the project',
+  );
+  await input('.dialog-body input', 'Город после дождя — новая версия');
+  await click('Переименовать');
+  await until(`!document.querySelector('[role="dialog"]')`);
+  await until(
+    `document.querySelector('.project-list-folder')?.textContent==='Город после дождя — новая версия'`,
+  );
+  assert.equal(
+    await readFile(
+      join(studio, 'projects/Город после дождя — новая версия/agents/agent-0/output/file-0.txt'),
+      'utf8',
+    ),
+    'Fixture result 0',
+  );
+  await js(
+    `document.querySelector('[aria-label="Клонировать Город после дождя — новая версия"]').click()`,
+  );
+  await until(`!!document.querySelector('[role="dialog"]')`);
+  await input('.dialog-body input', 'Копия для проверки');
+  await click('Клонировать');
+  await until(`document.querySelector('.projects-total')?.textContent==='5 проектов'`);
+  await until(
+    `document.querySelector('.project-list-item .project-number:last-of-type') || document.querySelector('.project-list-name')?.textContent==='Копия для проверки'`,
+  );
+  assert.equal((await rows())[0].name, 'Копия для проверки');
+  const deleteSelector = '[aria-label="Удалить проект «Копия для проверки»"]';
+  await js(`document.querySelector(${JSON.stringify(deleteSelector)}).click()`);
+  await until(`!!document.querySelector('[role="alertdialog"]')`);
+  assert.equal((await rows()).length, 5, 'Deletion waits for confirmation');
+  await click('Отмена');
+  assert.equal((await rows()).length, 5);
+  await js(`document.querySelector(${JSON.stringify(deleteSelector)}).click()`);
+  await until(`!!document.querySelector('[role="alertdialog"]')`);
+  await click('Удалить');
+  await until(`document.querySelector('.projects-total')?.textContent==='4 проекта'`);
+  await until(
+    `document.querySelector('.projects-trash .disclosure-trigger')?.textContent.includes('2')`,
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('.projects-trash .disclosure-trigger').getAttribute('aria-expanded')`,
+    ),
+    'false',
+  );
+  await js(`document.querySelector('.projects-trash .disclosure-trigger').click()`);
+  await js(
+    `Array.from(document.querySelectorAll('.projects-trash .version-row')).find(row=>row.textContent.includes('Копия для проверки')).querySelector('button').click()`,
+  );
+  await until(`document.querySelector('.projects-total')?.textContent==='5 проектов'`);
+  await until(
+    `Array.from(document.querySelectorAll('.project-list-item')).some(row=>row.querySelector('.project-list-name')?.textContent==='Копия для проверки'&&row.querySelectorAll('.project-number')[1]?.textContent==='24')`,
+  );
+  assert.equal(
+    await readFile(
+      join(studio, 'projects/Копия для проверки/agents/agent-0/output/file-0.txt'),
+      'utf8',
+    ),
+    'Fixture result 0',
+  );
+  const style = await js(
+    `(()=>{const get=s=>{const e=document.querySelector(s),v=getComputedStyle(e);return {size:v.fontSize,weight:v.fontWeight,color:v.color,font:v.fontFamily}};return {name:get('.project-list-name'),folder:get('.project-list-folder'),heading:get('.projects-table th'),count:get('.projects-total'),create:get('.project-create-area'),search:get('.projects-search input'),trash:get('.projects-trash .disclosure-trigger')}})()`,
+  );
+  console.log(
+    JSON.stringify({
+      projectsList: true,
+      realFolderAndCounts: true,
+      orderAndDates: true,
+      searchNameAndFolder: true,
+      keyboardAndRowClick: true,
+      clippedTooltipsOnly: true,
+      renameCloneConfirmCancelRestore: true,
+      noModelRequests: true,
+      typography: style,
+    }),
+  );
+  clearTimeout(timeout);
+  for (const w of BrowserWindow.getAllWindows()) w.destroy();
+  await rm(root, { recursive: true, force: true });
+  app.exit(0);
+})().catch(async (error) => {
+  console.error(error);
+  clearTimeout(timeout);
+  for (const w of BrowserWindow.getAllWindows()) w.destroy();
+  if (root) await rm(root, { recursive: true, force: true });
+  app.exit(1);
+});

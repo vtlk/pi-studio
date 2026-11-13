@@ -318,30 +318,6 @@ input::placeholder {
     gap: 13px;
   }
 }
-.project-list-item {
-  border: 1px solid #c9c9d0;
-  border-radius: 6px;
-  overflow: hidden;
-}
-.project-list-item > .hover-delete {
-  top: 50%;
-  right: 14px;
-  transform: translateY(-50%);
-}
-.project-list-row {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  width: 100%;
-  padding: 20px 62px 20px 20px;
-  text-align: left;
-  font-size: 15px;
-}
-.project-list-row > strong {
-  flex: 1;
-  font-size: 16px;
-  font-weight: 500;
-}
 .topbar {
   background: #fff;
   gap: 20px;

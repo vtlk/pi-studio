@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Copy, Pencil } from 'lucide-react';
-import { Button, IconButton } from '@/shared/ui';
+import { Search, Trash2 } from 'lucide-react';
+import { Button } from '@/shared/ui';
 import { Disclosure } from '@/shared/ui/Disclosure';
 import { useStorage } from '@/shared/storage/Storage';
 import { ProjectNameDialog } from './ProjectNameDialog';
@@ -8,12 +8,15 @@ import type { WorkspaceProject } from '../model/workspace.types';
 import { AddArea } from '@/shared/ui/AddArea';
 import { useNavigation } from '@/shared/model/Navigation';
 import { useLaunch } from '@/features/launch/model/Launch';
-import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { useNotice } from '@/shared/model/Notice';
 import { useWorkspace } from '../model/Workspace';
-import { countFiles } from '../model/outputTree';
+import { ProjectListRow } from './ProjectListRow';
+import { Tooltip } from '@/shared/ui/Tooltip';
+import { useProjectFileCounts } from '../model/useProjectFileCounts';
+import './projectsList.css';
 
 export function ProjectsView() {
+  const [query, setQuery] = useState('');
   const [edit, setEdit] = useState<{ project: WorkspaceProject; mode: 'clone' | 'rename' } | null>(
     null,
   );
@@ -23,47 +26,82 @@ export function ProjectsView() {
   const { isDesktop } = useStorage();
   const { setDialog } = useLaunch();
   const { demo } = useNotice();
+  const fileCounts = useProjectFileCounts(projects);
+  const search = query.trim().toLocaleLowerCase('ru-RU');
+  const shown = [...projects]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .filter((project) =>
+      [project.name, project.folderName ?? project.id].some((value) =>
+        value.toLocaleLowerCase('ru-RU').includes(search),
+      ),
+    );
+  const count = projects.length;
+  const noun =
+    count % 100 >= 11 && count % 100 <= 14
+      ? 'проектов'
+      : count % 10 === 1
+        ? 'проект'
+        : count % 10 >= 2 && count % 10 <= 4
+          ? 'проекта'
+          : 'проектов';
   return (
-    <div className="page-body">
+    <div className="page-body projects-page">
+      <div className="projects-list-toolbar">
+        <span className="projects-total" aria-live="polite">
+          {count} {noun}
+        </span>
+        <label className="projects-search">
+          <Search size={19} aria-hidden="true" />
+          <input
+            aria-label="Найти проект"
+            placeholder="Найти проект"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+      </div>
       <AddArea
         className="project-create-area"
         label="Создать проект"
+        showLabel
+        disabled={busy}
         onClick={() => setDialog({ title: 'Новый проект', kind: 'new-project' })}
       />
-      {!projects.length && <p className="no-results">Проектов пока нет.</p>}
-      <div className="project-list">
-        {projects.map((project) => (
-          <div className="project-list-item" key={project.id} data-removable>
-            <button
-              className="project-list-row"
-              onClick={() => {
+      <table className="projects-table" aria-label="Проекты">
+        <colgroup>
+          <col className="project-title-column" />
+          <col className="project-date-column" />
+          <col className="project-number-column" />
+          <col className="project-number-column" />
+          <col className="project-actions-column" />
+          <col className="project-arrow-column" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Проект</th>
+            <th scope="col">Создан</th>
+            <th scope="col" className="project-number">
+              Агенты
+            </th>
+            <th scope="col" className="project-number">
+              Файлы
+            </th>
+            <th scope="col" aria-label="Действия с проектом" />
+            <th scope="col" aria-label="Открыть проект" />
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((project) => (
+            <ProjectListRow
+              key={project.id}
+              project={project}
+              busy={busy}
+              fileCount={fileCounts[project.id]}
+              onOpen={() => {
                 setProjectId(project.id);
                 navigate('project');
               }}
-            >
-              <strong>{project.name}</strong>
-              <span>Агентов: {project.agents.length}</span>
-              <span>
-                Файлов:{' '}
-                {project.agents.reduce((count, agent) => count + countFiles(agent.entries), 0)}
-              </span>
-            </button>
-            <div className="project-row-actions">
-              <IconButton
-                title={`Переименовать ${project.name}`}
-                onClick={() => setEdit({ project, mode: 'rename' })}
-              >
-                <Pencil size={16} />
-              </IconButton>
-              <IconButton
-                title={`Клонировать ${project.name}`}
-                onClick={() => setEdit({ project, mode: 'clone' })}
-              >
-                <Copy size={16} />
-              </IconButton>
-            </div>
-            <HoverDeleteButton
-              label={`Удалить проект «${project.name}»`}
+              onEdit={(mode) => setEdit({ project, mode })}
               onDelete={async () => {
                 if ((await removeProject(project.id)) === false) return;
                 demo(
@@ -77,21 +115,34 @@ export function ProjectsView() {
                 );
               }}
             />
-          </div>
-        ))}
-      </div>
-      {trashProjects.length > 0 && (
-        <Disclosure label={`Корзина студии · ${trashProjects.length}`}>
+          ))}
+          {!shown.length && (
+            <tr>
+              <td colSpan={6} className="projects-empty">
+                {projects.length ? 'Проекты не найдены.' : 'Проектов пока нет.'}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      <div className="projects-trash">
+        <Disclosure
+          label={`Корзина студии · ${trashProjects.length}`}
+          leading={<Trash2 size={20} aria-hidden="true" />}
+        >
+          {!trashProjects.length && <p className="subtle">Корзина пуста.</p>}
           {trashProjects.map((project) => (
             <div className="version-row" key={project.id}>
-              <span>{project.name}</span>
+              <Tooltip label={project.name} onlyWhenTruncated>
+                <span className="trash-project-name">{project.name}</span>
+              </Tooltip>
               <Button disabled={busy} onClick={() => void restoreProject(project)}>
                 Восстановить
               </Button>
             </div>
           ))}
         </Disclosure>
-      )}
+      </div>
       {edit && <ProjectNameDialog {...edit} onClose={() => setEdit(null)} />}
     </div>
   );

@@ -386,10 +386,14 @@
 .add-area.project-create-area {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 12px;
   width: 100%;
-  min-height: 68px;
-  margin-bottom: 14px;
+  min-height: 48px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
   border: 1px dashed #9b9ba3;
   border-radius: 6px;
   background: #fff;
@@ -414,6 +418,7 @@
     'Segoe UI',
     sans-serif;
   user-select: none;
+  overflow-wrap: anywhere;
 }
 .ui-tooltip-arrow {
   fill: #27272a;
