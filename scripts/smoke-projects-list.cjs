@@ -287,6 +287,8 @@ const timeout = setTimeout(() => {
   );
   clearTimeout(timeout);
   for (const w of BrowserWindow.getAllWindows()) w.destroy();
+  // Finish read-only IPC already admitted by the final refresh before removing its fixture.
+  await new Promise((resolve) => setTimeout(resolve, 500));
   await rm(root, { recursive: true, force: true });
   app.exit(0);
 })().catch(async (error) => {
