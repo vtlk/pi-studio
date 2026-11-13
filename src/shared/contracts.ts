@@ -19,6 +19,7 @@ import type { LibraryKind } from './library';
 import type { ReferenceFile } from './attachments';
 import type { LibraryCharacter } from './characterRig';
 import type { ImageConnectionRequest, ImageConnectionStatus } from './connections';
+import type { McpSecretRequest, McpSecretEdit, McpSecretStatus } from './mcpSecrets';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -28,6 +29,11 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  readMcpSecretStatus(request: McpSecretRequest): Promise<McpSecretStatus>;
+  saveMcpSecrets(
+    request: McpSecretEdit & { values: Record<string, string> },
+  ): Promise<McpSecretStatus>;
+  removeMcpSecrets(request: McpSecretEdit): Promise<McpSecretStatus>;
   readImageConnection(request: ImageConnectionRequest): Promise<ImageConnectionStatus>;
   saveImageKey(request: ImageConnectionRequest & { key: string }): Promise<ImageConnectionStatus>;
   removeImageKey(request: ImageConnectionRequest): Promise<ImageConnectionStatus>;
@@ -91,6 +97,9 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  readMcpSecretStatus: 'studio:mcp-secrets-status',
+  saveMcpSecrets: 'studio:mcp-secrets-save',
+  removeMcpSecrets: 'studio:mcp-secrets-remove',
   readImageConnection: 'studio:image-connection',
   saveImageKey: 'studio:image-key-save',
   removeImageKey: 'studio:image-key-remove',

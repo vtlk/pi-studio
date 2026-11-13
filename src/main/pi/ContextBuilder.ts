@@ -6,7 +6,7 @@ import type { WorkspaceProject, ProjectAgent } from '../../shared/project.ts';
 import type { RunContextRecord } from '../../shared/runtime.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
-import { resolveResources, type ResolvedResources } from './resources.ts';
+import { resolveResources, type ResolvedResources, type McpConfigResolver } from './resources.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 
@@ -25,6 +25,7 @@ export async function buildRunContext(
   agentId: string,
   constructor: Agent[],
   catalog: Resource[],
+  materializeMcp?: McpConfigResolver,
 ): Promise<PreparedRun> {
   projectRoot = await realpath(projectRoot);
   const saved = project.agents.find((item) => item.profile.id === agentId);
@@ -42,7 +43,7 @@ export async function buildRunContext(
   const cwd = await safePath(projectRoot, agentFolder);
   const output = await safePath(projectRoot, agent.outputPath);
   const sessionDirectory = await safePath(projectRoot, `${agentFolder}/sessions`);
-  const resources = await resolveResources(agent.profile, catalog);
+  const resources = await resolveResources(agent.profile, catalog, materializeMcp);
   const record: RunContextRecord = {
     schemaVersion: 1,
     runId: randomUUID(),

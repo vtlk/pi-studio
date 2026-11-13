@@ -18,6 +18,7 @@ import { agentDirectory } from '../../shared/agentPaths.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { ImageGeneration } from '../images/ImageGeneration.ts';
+import type { McpSecrets } from './McpSecrets.ts';
 
 interface Options {
   bootstraps: string;
@@ -26,6 +27,7 @@ interface Options {
   piPath: () => string;
   references: ReferenceFiles;
   images?: ImageGeneration;
+  mcpSecrets?: McpSecrets;
   headless?: boolean;
   openTerminal?: typeof openSessionTerminal;
 }
@@ -115,6 +117,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
           agent.id,
           [agent],
           (sections.resources ?? []) as Resource[],
+          options.mcpSecrets?.resolver(store.folder, path),
         );
         await options.references.attach(run, input.attachments, store.folder, selected.imageInput);
         options.images?.bind(run, store.folder, selected);

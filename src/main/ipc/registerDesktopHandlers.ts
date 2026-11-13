@@ -31,6 +31,7 @@ import { referenceImage } from '../pi/referenceImage';
 import { createLibraryRunHost } from '../pi/createLibraryRunHost';
 import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
 import { createImageServices, registerImageHandlers } from '../images/registerImageHandlers';
+import { registerMcpSecretHandlers } from '../pi/registerMcpSecretHandlers';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -54,6 +55,7 @@ export function registerDesktopHandlers(): StudioService {
     },
   });
   const references = new ReferenceFiles(referenceImage);
+  const mcpSecrets = registerMcpSecretHandlers(service, caller, () => startup.path);
   const { connections: imageConnections, images } = createImageServices(service);
   const runs = createStudioRunHost(service, {
     bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
@@ -62,8 +64,10 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
     references,
     images,
+    mcpSecrets,
   });
   const resources = new StudioResources(service, {
+    mcpSecrets,
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
     logins: join(app.getPath('userData'), 'resource-logins'),
     piPath: () => startup.path,
@@ -74,8 +78,10 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
     resources,
+    mcpSecrets,
   });
   const generators = createLibraryRunHost(service, {
+    mcpSecrets,
     bootstraps: join(app.getPath('userData'), 'library-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
@@ -84,11 +90,7 @@ export function registerDesktopHandlers(): StudioService {
     images,
   });
   app.on('before-quit', () => {
-    browserAuth.close();
-    startup.close();
-    runs.close();
-    setup.close();
-    generators.close();
+    for (const controller of [browserAuth, startup, runs, setup, generators]) controller.close();
   });
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);

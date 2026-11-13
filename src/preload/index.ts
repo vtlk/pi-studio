@@ -2,6 +2,10 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 
 const desktopApi: DesktopApi = {
+  readMcpSecretStatus: (request) =>
+    ipcRenderer.invoke(desktopChannels.readMcpSecretStatus, request),
+  saveMcpSecrets: (request) => ipcRenderer.invoke(desktopChannels.saveMcpSecrets, request),
+  removeMcpSecrets: (request) => ipcRenderer.invoke(desktopChannels.removeMcpSecrets, request),
   readImageConnection: (request) =>
     ipcRenderer.invoke(desktopChannels.readImageConnection, request),
   saveImageKey: (request) => ipcRenderer.invoke(desktopChannels.saveImageKey, request),

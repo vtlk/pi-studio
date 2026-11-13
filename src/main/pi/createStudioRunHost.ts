@@ -13,6 +13,7 @@ import type { ReferenceFiles } from './ReferenceFiles.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { ImageGeneration } from '../images/ImageGeneration.ts';
+import type { McpSecrets } from './McpSecrets.ts';
 
 interface Options {
   bootstraps: string;
@@ -21,6 +22,7 @@ interface Options {
   piPath: () => string;
   references?: ReferenceFiles;
   images?: ImageGeneration;
+  mcpSecrets?: McpSecrets;
   headless?: boolean;
   openTerminal?: typeof openSessionTerminal;
 }
@@ -102,6 +104,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           request.agentId,
           sections.agents as Agent[],
           sections.resources as Resource[],
+          options.mcpSecrets?.resolver(store.folder, piPath),
         );
         await options.references?.attach(
           run,

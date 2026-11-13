@@ -15,12 +15,15 @@ import {
   type NativeResourceResult,
 } from './NativeResources.ts';
 import { assertCredentialReferences, packageSource } from './resourceConfig.ts';
+import type { McpSecrets } from './McpSecrets.ts';
+import { nativeMcpConfig } from './nativeMcp.ts';
 
 interface Options {
   script: string;
   logins: string;
   piPath: () => string;
   operation?: typeof nativeResourceOperation;
+  mcpSecrets?: McpSecrets;
 }
 const signature = (resource: Resource) =>
   JSON.stringify([resource.kind, resource.source, resource.args, resource.credential]);
@@ -61,6 +64,8 @@ export class StudioResources {
       );
       const saved = {
         ...resource,
+        credential:
+          old?.credential === 'keychain:pistudio-mcp' ? old.credential : resource.credential,
         name: old && !replaceName ? old.name : resource.name,
         description: resource.description || old?.description || '',
         version: resource.version || old?.version || '',
@@ -162,6 +167,9 @@ export class StudioResources {
     const scope = await this.scope(expectedFolder);
     const resource = scope.resources.find((item) => item.id === id);
     if (!resource) throw new Error('Ресурс отсутствует в текущем каталоге.');
+    if (resource.credential === 'keychain:pistudio-mcp' && !this.options.mcpSecrets)
+      throw new Error('Защищённые параметры MCP недоступны.');
+    const secretRevision = await this.options.mcpSecrets?.revision(scope.folder, resource);
     let result: NativeResourceResult;
     if (resource.kind === 'skills') {
       await inspectSkill(resource.source);
@@ -172,13 +180,27 @@ export class StudioResources {
         cwd: scope.folder,
         source: packageSource(resource.source),
       });
-    else if (resource.source.startsWith('pi:'))
+    else if (resource.source.startsWith('pi:')) {
+      const config = this.options.mcpSecrets
+        ? await nativeMcpConfig(resource.source.slice(3))
+        : undefined;
       result = await this.call(scope.piPath, {
         action: 'check-mcp',
         cwd: scope.folder,
         name: resource.source.slice(3),
+        ...(config && this.options.mcpSecrets
+          ? {
+              config:
+                config.enabled === false
+                  ? config
+                  : await this.options.mcpSecrets.resolver(scope.folder, scope.piPath)(
+                      resource,
+                      config,
+                    ),
+            }
+          : {}),
       });
-    else {
+    } else {
       if (resource.credential)
         throw new Error('Для авторизации используйте native Pi и ссылку pi:имя.');
       const config = /^https?:\/\//.test(resource.source)
@@ -203,6 +225,8 @@ export class StudioResources {
       const selected = current.find((item) => item.id === id);
       if (store.folder !== scope.folder || !selected || signature(selected) !== signature(resource))
         throw new Error('Настройки ресурса изменились во время проверки. Повторите её.');
+      if (secretRevision !== (await this.options.mcpSecrets?.revision(scope.folder, selected)))
+        throw new Error('Ключи или конфигурация MCP изменились во время проверки. Повторите её.');
       await store.saveSection(
         'resources',
         current.map((item) => (item.id === id ? { ...item, check } : item)),
@@ -223,6 +247,20 @@ export class StudioResources {
       throw new Error('Сначала настройте сервер через помощника как native Pi MCP (pi:имя).');
     const name = resource.source.slice(3);
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Некорректное имя MCP.');
+    if (this.options.mcpSecrets) {
+      const status = await this.options.mcpSecrets.status({ folder: scope.folder, resourceId: id });
+      if (
+        status.managed ||
+        status.fields.some((field) =>
+          /token|secret|password|credential|auth|key|(?:^|_)pat(?:_|$)/i.test(field.name),
+        )
+      )
+        return {
+          opened: false,
+          authorized: false,
+          next: 'Откройте «Настройки → MCP-серверы → Защищённые параметры» у этого ресурса, сохраните необходимые значения и проверьте подключение. Ключи не передаются в чат или Terminal.',
+        };
+    }
     const pi = await checkPi(scope.piPath);
     if (!pi.supported) throw new Error('Требуется поддерживаемый Pi.');
     await mkdir(this.options.logins, { recursive: true });

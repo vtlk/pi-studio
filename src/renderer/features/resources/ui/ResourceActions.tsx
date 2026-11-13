@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { Resource } from '../../../../shared/resources';
 import { useStorage } from '@/shared/storage/Storage';
 import { Button } from '@/shared/ui';
+import { McpSecretsDialog } from './McpSecretsDialog';
 
 export function ResourceActions({ resource }: { resource: Resource }) {
   const { saveNow } = useStorage();
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [secretsOpen, setSecretsOpen] = useState(false);
   if (!window.studio) return null;
   const action = async (kind: 'check' | 'install' | 'login') => {
     if (busy) return;
@@ -17,8 +19,12 @@ export function ResourceActions({ resource }: { resource: Resource }) {
     try {
       if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
       if (kind === 'login') {
-        await window.studio!.openResourceLogin(resource.id);
-        setMessage('Завершите вход в Pi/браузере, затем проверьте подключение.');
+        const result = await window.studio!.openResourceLogin(resource.id);
+        setMessage(
+          result.opened
+            ? 'Завершите вход в Pi/браузере, затем проверьте подключение.'
+            : result.next,
+        );
       } else if (kind === 'install') {
         await window.studio!.installResource(resource.id);
         setMessage('Пакет доступен в Pi. Назначенные агенты загрузят его при следующем открытии.');
@@ -66,6 +72,18 @@ export function ResourceActions({ resource }: { resource: Resource }) {
           <Button
             disabled={!!busy}
             onClick={() => {
+              setMessage('');
+              setError('');
+              setSecretsOpen(true);
+            }}
+          >
+            Защищённые параметры
+          </Button>
+        )}
+        {resource.kind === 'mcps' && resource.source.startsWith('pi:') && (
+          <Button
+            disabled={!!busy}
+            onClick={() => {
               void action('login');
             }}
           >
@@ -82,6 +100,9 @@ export function ResourceActions({ resource }: { resource: Resource }) {
         <p role="alert" className="error-message">
           {error}
         </p>
+      )}
+      {secretsOpen && (
+        <McpSecretsDialog resource={resource} onClose={() => setSecretsOpen(false)} />
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import { agentDirectory } from '../../shared/agentPaths.ts';
 import type { SessionBinding } from '../../shared/project.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import { StudioResources } from './StudioResources.ts';
+import type { McpSecrets } from './McpSecrets.ts';
 
 interface Options {
   bootstraps: string;
@@ -24,6 +25,7 @@ interface Options {
   headless?: boolean;
   openTerminal?: typeof openSessionTerminal;
   resources?: StudioResources;
+  mcpSecrets?: McpSecrets;
 }
 export function createSetupAssistant(service: StudioService, options: Options) {
   const catalog = async () => {
@@ -44,6 +46,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         script: join(dirname(options.catalog), 'resources.mjs'),
         logins: join(options.bootstraps, 'resource-logins'),
         piPath: options.piPath,
+        mcpSecrets: options.mcpSecrets,
       }),
   );
   return new RunHost({
@@ -143,6 +146,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
             agent.id,
             [agent],
             (sections.resources ?? []) as Resource[],
+            options.mcpSecrets?.resolver(store.folder, path),
           ),
           piPath: path,
         };

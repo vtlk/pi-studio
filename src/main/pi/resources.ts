@@ -1,10 +1,14 @@
 import { access, realpath } from 'node:fs/promises';
-import { homedir } from 'node:os';
-import { join, isAbsolute } from 'node:path';
+import { isAbsolute } from 'node:path';
 import type { ProjectAgentProfile } from '../../shared/project.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
-import { readJson } from '../storage/files.ts';
+import { nativeMcpConfig } from './nativeMcp.ts';
+
+export type McpConfigResolver = (
+  resource: Resource,
+  config: Record<string, unknown>,
+) => Promise<Record<string, unknown>>;
 
 export interface ResolvedResources {
   skills: { id: string; name: string; path: string }[];
@@ -32,6 +36,7 @@ function args(value: string): string[] {
 export async function resolveResources(
   profile: ProjectAgentProfile,
   catalog: Resource[],
+  materialize?: McpConfigResolver,
 ): Promise<ResolvedResources> {
   const result: ResolvedResources = { skills: [], plugins: [], mcpServers: [] };
   const names = new Set<string>();
@@ -66,15 +71,7 @@ export async function resolveResources(
           throw new Error(`Недопустимое имя MCP «${resource.name}».`);
         let config: Record<string, unknown>;
         if (resource.source.startsWith('pi:')) {
-          const file = join(
-            process.env.PI_CODING_AGENT_DIR || join(homedir(), '.pi/agent'),
-            'mcp.json',
-          );
-          const native = (await readJson(file)) as {
-            mcpServers?: Record<string, Record<string, unknown>>;
-          };
-          const server = native.mcpServers?.[name];
-          if (!server) throw new Error(`MCP «${name}» отсутствует в настройках Pi.`);
+          const server = await nativeMcpConfig(name);
           if (server.enabled === false) throw new Error(`MCP «${name}» выключен в Pi.`);
           config = { ...server };
         } else {
@@ -86,6 +83,9 @@ export async function resolveResources(
             ? { url: resource.source, exposure: 'direct' }
             : { command: resource.source, args: args(resource.args), exposure: 'direct' };
         }
+        if (resource.credential === 'keychain:pistudio-mcp' && !materialize)
+          throw new Error('Защищённые параметры MCP недоступны в этом запуске.');
+        if (materialize) config = await materialize(resource, config);
         if (
           result.mcpServers.some(
             (item) => item.name.replaceAll('-', '_') === name.replaceAll('-', '_'),
