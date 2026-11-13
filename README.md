@@ -1,8 +1,8 @@
 # Pi Studio
 
-Локальная видеостудия для macOS: проекты, общая библиотека и конструктор агентов Pi. Electron + React + strict TypeScript. Рабочая первая версия в разработке; подготовленная сборка — `0.2.0-alpha.29`.
+Локальная видеостудия для macOS: проекты, общая библиотека и конструктор агентов Pi. Electron + React + strict TypeScript. Рабочая первая версия в разработке; подготовленная сборка — `0.2.0-alpha.30`.
 
-[Скачать текущую alpha для macOS Apple Silicon](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.29). ZIP опубликован в Releases закрытого репозитория; нужен доступ к нему. Подпись локальная ad-hoc, Apple notarization пока нет. Сборка установлена и открыта на текущем Mac.
+[Скачать текущую alpha для macOS Apple Silicon](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.30). ZIP опубликован в Releases закрытого репозитория; нужен доступ к нему. Подпись локальная ad-hoc, Apple notarization пока нет. Сборка установлена и открыта на текущем Mac.
 
 ```sh
 npm ci
