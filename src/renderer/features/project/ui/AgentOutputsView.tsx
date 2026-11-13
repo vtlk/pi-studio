@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { ProjectAgent } from '../model/workspace.types';
 import { listOutputFiles } from '../model/outputTree';
 import { ResizeHandle } from '@/shared/ui/ResizeHandle';
@@ -8,8 +8,7 @@ import { MontageCard } from '@/features/editor/ui/MontageCard';
 import { useWorkspace } from '../model/Workspace';
 import { OutputFileTree } from './OutputFileTree';
 import { ArtifactPreview } from './ArtifactPreview';
-import { AgentToolbar } from './AgentToolbar';
-import { inspectManifest } from '@/features/editor/model/manifest';
+import { OutputToolbar } from './OutputToolbar';
 import { useOutputFile } from '../model/useOutputFile';
 import { useStorage } from '@/shared/storage/Storage';
 import { useVideoInspection } from '@/features/editor/model/useVideoInspection';
@@ -37,17 +36,6 @@ export function AgentOutputsView({
     isDesktop && selectedFile?.name.endsWith('.pistudio.json') ? selectedFile.diskPath : undefined;
   const filesVersion = files.map(({ file }) => `${file.diskPath}:${file.fingerprint}`).join('|');
   const nativeVideo = useVideoInspection(projectId, nativeManifestPath, filesVersion);
-  const previewKind = useMemo(
-    () =>
-      nativeVideo?.ok ||
-      (!isDesktop &&
-        projectId &&
-        selectedFile?.name.endsWith('.pistudio.json') &&
-        inspectManifest(selectedFile, agent.entries).ok)
-        ? 'montage'
-        : undefined,
-    [projectId, selectedFile, agent.entries, isDesktop, nativeVideo],
-  );
   const max = Math.max(140, (width || 600) - 240);
   const actualWidth = Math.min(treeWidth, max);
   return (
@@ -72,10 +60,8 @@ export function AgentOutputsView({
         onChange={onTreeWidthChange}
       />
       <div className="output-preview-pane">
-        <AgentToolbar
-          agent={agent}
+        <OutputToolbar
           file={selected?.file}
-          previewKind={previewKind}
           filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
         />
         <div className="output-browser-content">

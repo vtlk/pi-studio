@@ -5,7 +5,13 @@ import { useNotice } from '@/shared/model/Notice';
 import { useWorkspace } from '../model/Workspace';
 import type { ProjectAgent } from '../model/workspace.types';
 
-export function ProjectAgentDeleteButton({ agent }: { agent: ProjectAgent }) {
+export function ProjectAgentDeleteButton({
+  agent,
+  className,
+}: {
+  agent: ProjectAgent;
+  className?: string;
+}) {
   const { selectedProject, removeProjectAgent, restoreProjectAgent, busy } = useWorkspace();
   const { confirm } = useConfirm();
   const { demo } = useNotice();
@@ -14,6 +20,7 @@ export function ProjectAgentDeleteButton({ agent }: { agent: ProjectAgent }) {
   return (
     <IconButton
       title="Удалить агента из проекта"
+      className={className}
       disabled={busy}
       onClick={() =>
         confirm({

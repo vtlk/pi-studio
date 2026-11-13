@@ -84,7 +84,7 @@ const deadline = setTimeout(() => {
   await until(
     `Array.from(document.querySelectorAll('button')).some(b => b.textContent.trim() === 'Открыть монтаж')`,
   );
-  assert.equal(await js(`!!document.querySelector('[aria-label="Показать в Finder"]')`), false);
+  assert.equal(await js(`!!document.querySelector('.project-file-toolbar [aria-label="Показать в Finder"]')`), false);
   await js(
     `window.__audioStarted=0; const originalAudioStart=AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start=function(...args){ if(this.buffer?.length>0) window.__audioStarted++; return originalAudioStart.apply(this,args); }; void 0;`,
   );

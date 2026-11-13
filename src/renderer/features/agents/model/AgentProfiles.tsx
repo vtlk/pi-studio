@@ -11,7 +11,7 @@ function useProfilesState() {
     createSystemAgents(() => crypto.randomUUID()),
   );
   const [agentId, setAgentId] = useState(agents[0]?.id ?? '');
-  const [agentTab, setAgentTab] = useState('Инструкции');
+  const [agentTab, setAgentTab] = useState('Промпт');
   const selectedAgent =
     agents.find((a) => a.id === agentId) ??
     systemAgents.find((a) => a.id === agentId) ??
@@ -32,7 +32,7 @@ function useProfilesState() {
     };
     setAgents((previous) => [...previous, agent]);
     setAgentId(agent.id);
-    setAgentTab('Инструкции');
+    setAgentTab('Промпт');
   };
   const moveAgent = (fromId: string, toId: string) =>
     setAgents((previous) => {
