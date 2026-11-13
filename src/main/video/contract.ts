@@ -114,7 +114,7 @@ export const videoContract = {
     'Coordinates are composition pixels. x/y default 0; width/height default composition size. Scale/rotation pivot at the item center. scale=1, rotation=0, opacity=1, fit=contain, volume=1, sourceFrom=0 by default. Stereo pan is currently unsupported: only 0 is accepted.',
     'Keyframe frame is local to the item. Sparse channels interpolate independently. ease on the left key controls linear/hold/smooth interpolation to the next; endpoint values hold. Subtitles are displayed uppercase.',
     'Images: static SVG, PNG, JPEG, WebP. SVG must be self-contained with no scripts, external references, foreignObject or SMIL. Animate image layers through timeline keyframes. Video: MP4/M4V/MOV/WebM; audio: WAV/MP3/M4A/AAC/OGG/FLAC. Actual decoding depends on supported codecs; use H.264 MP4 and PCM WAV for predictable macOS playback.',
-    'Changes invalidate the document revision (SHA-256 includes manifest, timeline and every asset). A scene is not the accepted final film. This tool does not grant human approval or render permission.',
+    'Changes invalidate the document revision (SHA-256 includes manifest, timeline and every asset). Rendering is performed by the agent through bash/tools; Studio adds no approval gate.',
   ],
   example: {
     manifest: {

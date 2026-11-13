@@ -8,7 +8,6 @@ import { MontageCard } from '@/features/editor/ui/MontageCard';
 import { useWorkspace } from '../model/Workspace';
 import { OutputFileTree } from './OutputFileTree';
 import { ArtifactPreview } from './ArtifactPreview';
-import { OutputReview } from './OutputReview';
 import { AgentToolbar } from './AgentToolbar';
 import { inspectManifest } from '@/features/editor/model/manifest';
 import { useOutputFile } from '../model/useOutputFile';
@@ -111,7 +110,6 @@ export function AgentOutputsView({
                       file={selectedFile}
                     />
                   )}
-                  <OutputReview file={selected.file} agent={agent} />
                 </>
               )}
             </div>

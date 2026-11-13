@@ -88,7 +88,7 @@ export const productionTools: SessionTool[] = [
   {
     name: 'validate_video_project',
     description:
-      'Validate a .pistudio.json montage and all its local assets inside this agent output. Returns dependency hashes and a revision, never human acceptance.',
+      'Validate a .pistudio.json montage and all its local assets inside this agent output. Returns dependency hashes and a revision. This technical validation does not start rendering.',
     inputSchema: {
       type: 'object',
       properties: { manifest: { type: 'string', minLength: 1, maxLength: 2000 } },
@@ -112,7 +112,7 @@ export const productionTools: SessionTool[] = [
   {
     name: 'report_blocked',
     description:
-      'Pause automatic continuation when a question, missing input or human approval is required.',
+      'Pause automatic continuation when a real question or missing input prevents the task. Studio has no mandatory artwork, scene or rendering approval steps.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
 ];

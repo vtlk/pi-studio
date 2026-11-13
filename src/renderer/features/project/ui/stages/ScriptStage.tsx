@@ -5,7 +5,7 @@ import { useProject } from '../../model/Project';
 
 export function ScriptStage() {
   const { demo } = useNotice();
-  const { setStep, script, setScript, invalidate } = useProject();
+  const { setStep, script, setScript } = useProject();
   return (
     <div className="stage-page script-workspace">
       <label className="field-label script-idea-label">
@@ -29,7 +29,6 @@ export function ScriptStage() {
             value={script}
             onChange={(event) => {
               setScript(event.target.value);
-              invalidate();
             }}
           />
         </label>
@@ -43,7 +42,7 @@ export function ScriptStage() {
               demo('Открыт пример плана. Анализ сценария пока не подключён.');
             }}
           >
-            Принять сценарий и перейти к плану
+            Открыть план
           </Button>
         </div>
       )}

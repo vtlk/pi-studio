@@ -169,19 +169,5 @@ export function useDemoWorkspaceState() {
       setProjects((previous) => [project, ...previous]);
       setProjectId(project.id);
     },
-    reviewFile: (projectId: string, fileId: string, accept: boolean) =>
-      setProjects((previous) =>
-        previous.map((project) => {
-          if (project.id !== projectId) return project;
-          const review = project.reviews?.[fileId] ?? { revision: 1, acceptedRevision: null };
-          return {
-            ...project,
-            reviews: {
-              ...project.reviews,
-              [fileId]: { ...review, acceptedRevision: accept ? review.revision : null },
-            },
-          };
-        }),
-      ),
   };
 }

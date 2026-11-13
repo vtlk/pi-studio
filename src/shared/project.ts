@@ -40,7 +40,6 @@ export interface WorkspaceProject {
   createdAt: number;
   folderName?: string;
   autoContinue?: boolean;
-  reviews?: Record<string, { revision: number; acceptedRevision: number | null }>;
   agents: ProjectAgent[];
   archivedAgents?: { agent: ProjectAgent; position: number }[];
 }

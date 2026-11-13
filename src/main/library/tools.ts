@@ -93,7 +93,7 @@ export const libraryContract = {
     'reference and preview are PNG files; vector is an optional static SVG with local fragment references only',
     'Use relative paths within the prepared folder. No symlinks or external SVG resources. Preserve editable sources in source/ if needed.',
     'File limits: PNG up to 32 MiB, 16384 pixels per side and 128 MiB inflated data; static SVG up to 2 MiB. Total: 256 MiB and 1000 files per published asset.',
-    'No approval or manual import step in the library. Production human approvals stay in the Pi/project workflow.',
+    'No approval or manual import step. The user reviews results and requests changes in the same Pi dialogue.',
     'Only trusted application code performs previews. Generated JavaScript/HTML/TSX is never executed by the library viewer.',
     'Characters may add files.rig referencing a validated pistudio-character-1 rig.json and files.vector referencing compatible SVG. See characterRig below. No rig means explicitly static; location rigs are not supported.',
     'Updates use existingId and preserve earlier versions, not duplicate cards. No instruction copies are stored in asset packages.',

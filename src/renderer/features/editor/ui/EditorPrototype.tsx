@@ -9,13 +9,11 @@ export function EditorPrototype({
   documentKey,
   name,
   initial,
-  scope = 'film',
   onClose,
 }: {
   documentKey: string;
   name: string;
   initial: DemoTimeline;
-  scope?: 'scene' | 'film';
   onClose: () => void;
 }) {
   const { document, update } = useEditorDocument(documentKey, initial);
@@ -30,7 +28,6 @@ export function EditorPrototype({
   const preview = timeline.tracks[0]?.clips.find(
     (clip) => clip.start <= frame && clip.start + clip.duration > frame,
   );
-  const accepted = document.acceptedRevision === document.revision;
   useEffect(() => {
     if (!fullscreen) return;
     const handler = (event: KeyboardEvent) => {
@@ -62,9 +59,7 @@ export function EditorPrototype({
       <header className="editor-toolbar">
         <div>
           <strong>{name}</strong>
-          <small>
-            Просмотр монтажа · макет · v{document.revision} · {accepted ? 'Принята' : 'Не принята'}
-          </small>
+          <small>Просмотр монтажа · макет · v{document.revision}</small>
         </div>
         <Button onClick={() => setFullscreen(!fullscreen)}>
           {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
@@ -149,23 +144,6 @@ export function EditorPrototype({
           </p>
         </aside>
       </div>
-      <footer className="editor-footer">
-        <Button
-          kind="primary"
-          onClick={() =>
-            update((previous) => ({
-              ...previous,
-              acceptedRevision: accepted ? null : previous.revision,
-            }))
-          }
-        >
-          {accepted
-            ? 'Отменить принятие'
-            : scope === 'scene'
-              ? 'Принять сцену'
-              : 'Принять общую версию'}
-        </Button>
-      </footer>
     </section>
   );
 }

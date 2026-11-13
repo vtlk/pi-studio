@@ -22,7 +22,6 @@ export function MontageCard({
       <EditorPrototype
         documentKey={`${projectId}:${agent.profile.id}:${path.join('/')}`}
         initial={result.timeline}
-        scope={file.montageScope}
         name={result.name}
         onClose={() => setOpen(false)}
       />

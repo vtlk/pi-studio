@@ -1,7 +1,6 @@
 import { Play } from 'lucide-react';
 import { useLaunch } from '@/features/launch/model/Launch';
 import { useNotice } from '@/shared/model/Notice';
-import { useProject } from '../model/Project';
 import { Button, IconButton } from '@/shared/ui';
 const sounds = [
   { name: 'Двор: город и ветер', start: '00:00', duration: '12 с', volume: 35 },
@@ -12,7 +11,6 @@ const sounds = [
 export function SoundLayers() {
   const { openRun } = useLaunch();
   const { demo } = useNotice();
-  const { invalidate } = useProject();
   return (
     <>
       <div className="stage-actions">
@@ -50,7 +48,6 @@ export function SoundLayers() {
                   type="range"
                   aria-label={`Громкость: ${item.name}`}
                   defaultValue={item.volume}
-                  onChange={invalidate}
                 />
               </td>
               <td>

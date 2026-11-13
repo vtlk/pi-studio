@@ -26,7 +26,6 @@ export interface EditorDocument {
   frame: number;
   selectedClip: string;
   revision: number;
-  acceptedRevision: number | null;
 }
 export const durationFrames = (timeline: DemoTimeline) =>
   Math.max(
@@ -38,8 +37,7 @@ export const createDocument = (timeline: DemoTimeline): EditorDocument => ({
   frame: 0,
   selectedClip: timeline.tracks[0]?.clips[0]?.id ?? '',
   revision: 1,
-  acceptedRevision: null,
 });
 export function changeTimeline(document: EditorDocument, timeline: DemoTimeline): EditorDocument {
-  return { ...document, timeline, revision: document.revision + 1, acceptedRevision: null };
+  return { ...document, timeline, revision: document.revision + 1 };
 }

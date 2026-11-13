@@ -127,8 +127,6 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     completed: async (run, outputs, message) => {
       const continueStage = host.continuation(run);
       if (!continueStage) return;
-      if (run.agent.profile.requiresSceneApproval)
-        throw new Error('Требуется согласование результата человеком.');
       const project = await service.serialize(async () =>
         (await service.load()).projects.read(run.project.id),
       );

@@ -1,6 +1,5 @@
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useState } from 'react';
-import { Check } from 'lucide-react';
 import { AddArea } from '@/shared/ui/AddArea';
 import { useProject } from '../model/Project';
 import { useNotice } from '@/shared/model/Notice';
@@ -22,8 +21,6 @@ export function ScenesView() {
     currentScene,
     selectedLocation,
     chooseLocation,
-    sceneApproved,
-    setSceneApproved,
   } = useProject();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const { demo } = useNotice();
@@ -61,7 +58,6 @@ export function ScenesView() {
               },
               id: item.index,
               label: `${position + 1}. ${item.name}`,
-              suffix: sceneApproved.includes(item.index) ? <Check size={13} /> : undefined,
             }))
             .reverse()}
         />
@@ -97,19 +93,6 @@ export function ScenesView() {
           <div className="simple-scene-layout">
             <div>
               <Preview />
-              <div className="scene-acceptance">
-                <Button
-                  onClick={() => {
-                    setSceneApproved((items) =>
-                      items.includes(scene) ? items : [...items, scene],
-                    );
-                    demo('Сцена принята в макете.');
-                  }}
-                >
-                  <Check size={14} />
-                  {sceneApproved.includes(scene) ? 'Сцена принята' : 'Принять сцену'}
-                </Button>
-              </div>
               <Disclosure label="Слои и монтажная область">
                 <Timeline />
               </Disclosure>

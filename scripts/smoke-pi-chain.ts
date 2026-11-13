@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -54,6 +54,11 @@ await store.saveSection('connections', [
   },
 ]);
 const project = (await store.command({ kind: 'create', name: 'Real chain', agents })).projects[0];
+// A pre-refinement project must not retain the obsolete mandatory-approval block.
+const projectFile = join(await store.projects.directory(project.id), 'project.json');
+const legacy = JSON.parse(await readFile(projectFile, 'utf8'));
+legacy.agents[0].profile.requiresSceneApproval = true;
+await writeFile(projectFile, JSON.stringify(legacy));
 const pi = await checkPi('');
 const children: Promise<number | null>[] = [];
 const host = createStudioRunHost(service, {
@@ -119,7 +124,7 @@ try {
     transcripts,
   );
   console.log(
-    'Production factory chain passed: two real selected Pi stages, disabled-stage skip, fresh contexts, native MCP completion and no replay on an armed idle resume. No user studio changed.',
+    'Production factory chain passed: legacy approval flag ignored, two real selected Pi stages, disabled-stage skip, fresh contexts, native MCP completion and no replay on an armed idle resume. No user studio changed.',
   );
 } finally {
   host.close();

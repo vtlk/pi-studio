@@ -36,7 +36,6 @@ export interface Agent {
   plugins: string[];
   capabilitySettings?: Record<string, CapabilitySettings>;
   mainInstruction?: string;
-  requiresSceneApproval?: boolean;
   model?: {
     connectionId?: string;
     provider: string;

@@ -56,8 +56,6 @@ export function parseAgent(value: unknown): Agent {
     }),
   };
   if (item.mainInstruction !== undefined) agent.mainInstruction = text(item.mainInstruction);
-  if (item.requiresSceneApproval !== undefined)
-    agent.requiresSceneApproval = boolean(item.requiresSceneApproval);
   if (item.capabilitySettings !== undefined)
     agent.capabilitySettings = Object.fromEntries(
       Object.entries(record(item.capabilitySettings)).map(([key, value]) => [

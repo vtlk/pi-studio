@@ -71,6 +71,6 @@ export const characterRigContract = {
     'All eight emotions are partial absolute channel poses layered over defaults plus neutral. Every non-neutral emotion changes facial curves. Intensity blends from neutral to that pose. Coordinate mouth, brows, eyelids and head; preserve independent action selection.',
     'Manual gaze is absolute relative to default pupil position and overrides emotion/automatic gaze, independent of intensity. Choose ranges that keep pupils inside the whites. Head tilt adds user degrees around the neck pivot.',
     'Blink left/right maps affect only their own existing lid path coordinates; distinct channels for each eye. Fully closed values must cover the white/pupil with the existing lid, not scale or duplicate an eye. Player uses 110 ms close, 40 ms hold, 190 ms reopen and bypasses expression smoothing for blink.',
-    'One visible clock. Hidden/unmounted/PNG/reduced-motion views stop playback. Updates do not rewrite application code. A validated rig is data compatibility, not human approval of artwork or permission for final render.',
+    'One visible clock. Hidden/unmounted/PNG/reduced-motion views stop playback. Updates do not rewrite application code. Rig validation checks data compatibility; Studio adds no artwork approval step.',
   ],
 };

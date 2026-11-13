@@ -162,7 +162,6 @@ export class RunLifecycle {
         revision: document.revision,
         manifest: args.manifest,
         scope: document.manifest.scope,
-        humanApproval: false,
         assets: document.assets.map(({ id, sha256, size }) => ({ id, sha256, size })),
       };
     }
@@ -181,7 +180,6 @@ export class RunLifecycle {
         validated: true,
         outputs: live.completion,
         readyAfter: 'agent_settled',
-        humanApproval: false,
       };
     }
     if (this.dependencies.tool) return this.dependencies.tool(live.run, name, args);

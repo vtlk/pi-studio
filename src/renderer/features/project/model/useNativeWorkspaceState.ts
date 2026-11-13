@@ -143,6 +143,5 @@ export function useNativeWorkspaceState() {
     ): Promise<SessionBinding | undefined> =>
       openAgent(agentId, message, autoContinue, attachments),
     setAutoContinue: (_enabled: boolean) => {},
-    reviewFile: (_projectId: string, _fileId: string, _accept: boolean) => {},
   };
 }
