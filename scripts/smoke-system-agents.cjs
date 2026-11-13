@@ -179,6 +179,56 @@ const deadline = setTimeout(() => {
     (await js('window.studio.loadStudio()')).projects[0].agents.map((agent) => agent.profile.id),
     nextTemplates.map((agent) => agent.id),
   );
+  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await click('Помощник подключения');
+  await until(
+    `document.querySelector('[aria-label="Модель помощника подключения"]')?.textContent.includes('не выбрано')`,
+  );
+  await click('Настройки модели помощника');
+  await until(`!!document.querySelector('[aria-label="Подключение модели"]')`);
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Название агента"]').value`),
+    'Помощник настройки',
+  );
+  const assistantState = await js('window.studio.loadStudio()');
+  const configured = assistantState.sections.systemAgents.map((agent) =>
+    agent.systemRole === 'assistant'
+      ? {
+          ...agent,
+          model: {
+            connectionId: 'qa-helper',
+            provider: 'openai-codex',
+            id: 'gpt-5.6-luna',
+            reasoning: 'Средний',
+            temperature: '',
+          },
+        }
+      : agent,
+  );
+  await js(
+    `window.studio.saveSection('connections',${JSON.stringify([{ id: 'qa-helper', name: 'QA helper subscription', purpose: 'codex', providerId: 'openai-codex', endpoint: '', account: '', createdAt: 1 }])},${JSON.stringify({ folder: assistantState.folder, base: assistantState.sections.connections })})`,
+  );
+  await js(
+    `window.studio.saveSection('systemAgents',${JSON.stringify(configured)},${JSON.stringify({ folder: assistantState.folder, base: assistantState.sections.systemAgents })})`,
+  );
+  window.webContents.reload();
+  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  await until(`!!document.querySelector('[aria-label="Настройки"]')`);
+  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await click('Помощник подключения');
+  const helperSummary = await js(
+    `document.querySelector('[aria-label="Модель помощника подключения"]').textContent`,
+  );
+  for (const expected of ['QA helper subscription', 'gpt-5.6-luna', 'Средний'])
+    assert.ok(helperSummary.includes(expected), helperSummary);
+  await click('Настройки модели помощника');
+  await until(
+    `document.querySelector('[aria-label="Подключение модели"]')?.textContent.includes('QA helper subscription')`,
+  );
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Название агента"]').value`),
+    'Помощник настройки',
+  );
   console.log(
     'System agents Electron passed: fixed service group/editor, pinned MCP/deletion guards, appended project profiles, snapshots exclude systems; confirmed project synchronization adds/removes IDs, cancellation preserves data, undo and repeated synchronization work.',
   );
