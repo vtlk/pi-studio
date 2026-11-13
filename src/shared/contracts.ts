@@ -5,6 +5,8 @@ import type {
   ProjectCommandResult,
   StorageSection,
   StudioBootstrap,
+  SectionEdit,
+  SectionSaveResult,
 } from './storage';
 import type { Resource, ResourceCheck, SkillDocument } from './resources';
 import type { AuthLoginState } from './auth';
@@ -25,7 +27,11 @@ export interface DesktopApi {
   loadStudio(): Promise<StudioBootstrap>;
   chooseStudio(): Promise<StudioBootstrap | null>;
   openStudio(folder: string): Promise<StudioBootstrap>;
-  saveSection(section: StorageSection, value: unknown): Promise<void>;
+  saveSection(
+    section: StorageSection,
+    value: unknown,
+    edit: SectionEdit,
+  ): Promise<SectionSaveResult>;
   projectCommand(command: ProjectCommand): Promise<ProjectCommandResult>;
   readProject(projectId: string): Promise<WorkspaceProject>;
   readOutput(request: FileRequest): Promise<OutputFile>;

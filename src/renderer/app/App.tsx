@@ -61,8 +61,8 @@ function PrototypeProviders({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <StartupGate>
-      <StorageProvider>
-        <TooltipProvider>
+      <TooltipProvider>
+        <StorageProvider>
           <NavigationProvider>
             <NoticeProvider>
               <ConfirmProvider>
@@ -84,8 +84,8 @@ export default function App() {
               </ConfirmProvider>
             </NoticeProvider>
           </NavigationProvider>
-        </TooltipProvider>
-      </StorageProvider>
+        </StorageProvider>
+      </TooltipProvider>
     </StartupGate>
   );
 }

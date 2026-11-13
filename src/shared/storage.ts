@@ -12,6 +12,14 @@ export const storageSections = [
 ] as const;
 export type StorageSection = (typeof storageSections)[number];
 export type StudioSections = Partial<Record<StorageSection, unknown>>;
+export interface SectionEdit {
+  folder: string;
+  base: unknown;
+}
+export interface SectionSaveResult {
+  saved: boolean;
+  value: unknown;
+}
 export interface StudioBootstrap {
   folder: string;
   sections: StudioSections;

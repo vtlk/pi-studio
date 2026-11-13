@@ -51,7 +51,7 @@ const deadline = setTimeout(() => {
     );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   await js(
-    `window.studio.saveSection('agents', [{id:'viewer',name:'Монтаж',enabled:true,instructions:[],skills:[],mcps:[],plugins:[]}])`,
+    `(async()=>{const before=await window.studio.loadStudio();const result=await window.studio.saveSection('agents', [{id:'viewer',name:'Монтаж',enabled:true,instructions:[],skills:[],mcps:[],plugins:[]}],{folder:before.folder,base:before.sections.agents});if(!result.saved)throw new Error('Fixture save conflicted')})()`,
   );
   await js(`window.studio.projectCommand({kind:'create',name:'Видео smoke',agents:[]})`);
   const studio = await js('window.studio.loadStudio()'),

@@ -1,7 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
-import type { FileRequest, ProjectCommand, StorageSection } from '../../shared/storage';
+import type {
+  FileRequest,
+  ProjectCommand,
+  StorageSection,
+  SectionEdit,
+} from '../../shared/storage';
 import { StudioService } from '../storage/StudioStore';
 import { loadOutput } from '../storage/outputs';
 import { safePath, withReadDeadline } from '../storage/files';
@@ -224,8 +229,10 @@ export function registerDesktopHandlers(): StudioService {
     runs.assertIdle();
     return service.open(result.filePaths[0]);
   });
-  handle(desktopChannels.saveSection, async (_event, section: StorageSection, value: unknown) =>
-    (await service.load()).saveSection(section, value),
+  handle(
+    desktopChannels.saveSection,
+    async (_event, section: StorageSection, value: unknown, edit: SectionEdit) =>
+      (await service.load()).editSection(section, value, edit),
   );
   ipcMain.handle(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
     caller(event);

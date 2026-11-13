@@ -6,7 +6,8 @@ const desktopApi: DesktopApi = {
   loadStudio: () => ipcRenderer.invoke(desktopChannels.loadStudio),
   chooseStudio: () => ipcRenderer.invoke(desktopChannels.chooseStudio),
   openStudio: (folder) => ipcRenderer.invoke(desktopChannels.openStudio, folder),
-  saveSection: (section, value) => ipcRenderer.invoke(desktopChannels.saveSection, section, value),
+  saveSection: (section, value, edit) =>
+    ipcRenderer.invoke(desktopChannels.saveSection, section, value, edit),
   projectCommand: (command) => ipcRenderer.invoke(desktopChannels.projectCommand, command),
   readProject: (id) => ipcRenderer.invoke(desktopChannels.readProject, id),
   readOutput: (request) => ipcRenderer.invoke(desktopChannels.readOutput, request),

@@ -11,6 +11,21 @@ import type { StorageSection, StudioBootstrap } from '../../../shared/storage';
 import { StorageContext } from './Storage.context';
 import { Button } from '../ui';
 import { StartupScreen } from '../ui/StartupScreen';
+import { Modal } from '../ui/Modal';
+
+interface PendingEdit {
+  base: unknown;
+  value: unknown;
+}
+const sectionNames: Record<StorageSection, string> = {
+  agents: 'Агенты',
+  resources: 'Ресурсы',
+  connections: 'Подключения',
+  imageTool: 'Генерация изображений',
+  hiddenLibraryIds: 'Библиотека',
+  baseInstruction: 'Общие инструкции',
+  piPath: 'Путь к Pi',
+};
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
@@ -21,7 +36,14 @@ export function StorageProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [revision, setRevision] = useState(0);
-  const pending = useRef(new Map<StorageSection, unknown>());
+  const pending = useRef(new Map<StorageSection, PendingEdit>());
+  const [conflict, setConflict] = useState<{
+    key: StorageSection;
+  } | null>(null);
+  const [showConflict, setShowConflict] = useState(false);
+  const blockedSection = useRef<StorageSection | undefined>(undefined);
+  const [reloading, setReloading] = useState(false);
+  const currentFolder = useRef('');
   const writing = useRef(false);
   const writeTask = useRef<Promise<void> | null>(null);
   const refreshing = useRef(false);
@@ -32,6 +54,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
   const load = useCallback(async () => {
     try {
       const data = await window.studio!.loadStudio();
+      currentFolder.current = data.folder;
       setBootstrap(data);
       setReady(true);
       setError('');
@@ -45,17 +68,40 @@ export function StorageProvider({ children }: { children: ReactNode }) {
 
   const flush = useCallback((): Promise<void> => {
     if (writeTask.current) return writeTask.current;
+    if (blockedSection.current) return Promise.resolve();
     if (!window.studio || !pending.current.size) return Promise.resolve();
     const task = (async () => {
       writing.current = true;
       setSaving(true);
       try {
         while (pending.current.size) {
-          const [key, value] = pending.current.entries().next().value!;
-          await window.studio!.saveSection(key, value);
-          if (pending.current.get(key) === value) pending.current.delete(key);
+          const [key, sent] = pending.current.entries().next().value!;
+          const result = await window.studio!.saveSection(key, sent.value, {
+            folder: currentFolder.current,
+            base: sent.base,
+          });
+          if (!result.saved) {
+            blockedSection.current = key;
+            setConflict({ key });
+            setShowConflict(true);
+            setError('Настройки уже изменены в Pi. Ваш черновик не сохранён; перечитайте раздел.');
+            return;
+          }
+          const latest = pending.current.get(key);
+          if (latest === sent) pending.current.delete(key);
+          // Keystrokes made during a write use that sent value as their next comparison base.
+          else if (latest) pending.current.set(key, { base: sent.value, value: latest.value });
+          setBootstrap((previous) =>
+            previous
+              ? {
+                  ...previous,
+                  sections: { ...previous.sections, [key]: result.value },
+                }
+              : previous,
+          );
+          setConflict((previous) => (previous?.key === key ? null : previous));
         }
-        setError('');
+        if (!pending.current.size) setError('');
       } catch (error) {
         setError(`Не сохранено: ${message(error)}`);
       } finally {
@@ -99,15 +145,42 @@ export function StorageProvider({ children }: { children: ReactNode }) {
     };
   }, [ready, folder]);
   const save = useCallback(
-    (key: StorageSection, value: unknown) => {
+    (key: StorageSection, value: unknown, base: unknown) => {
       if (!window.studio) return;
-      pending.current.set(key, value);
+      pending.current.set(key, { base: pending.current.get(key)?.base ?? base, value });
       setSaving(true);
       clearTimeout(timer.current);
       timer.current = setTimeout(() => void flush(), 250);
     },
     [flush],
   );
+  const reloadConflict = async () => {
+    if (!conflict || !window.studio || reloading) return;
+    const key = conflict.key;
+    const draft = pending.current.get(key);
+    setReloading(true);
+    try {
+      const data = await window.studio.loadStudio();
+      if (data.folder !== currentFolder.current || pending.current.get(key) !== draft)
+        throw new Error('Данные изменились во время перечитывания. Повторите действие.');
+      pending.current.delete(key);
+      blockedSection.current = undefined;
+      setBootstrap((previous) =>
+        previous
+          ? { ...previous, sections: { ...previous.sections, [key]: data.sections[key] } }
+          : previous,
+      );
+      setConflict(null);
+      setShowConflict(false);
+      setError('');
+      setSaving(pending.current.size > 0);
+      void flush();
+    } catch (error) {
+      setError(message(error));
+    } finally {
+      setReloading(false);
+    }
+  };
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (!pending.current.size) return;
@@ -132,6 +205,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           ? await window.studio.chooseStudio()
           : await window.studio.openStudio(folder);
       if (!data) return;
+      currentFolder.current = data.folder;
       setBootstrap(data);
       setReady(true);
       setError('');
@@ -194,12 +268,38 @@ export function StorageProvider({ children }: { children: ReactNode }) {
       {ready && error && (
         <div className="storage-error" role="alert">
           <span>{error}</span>
-          {pending.current.size ? (
+          {conflict ? (
+            <Button onClick={() => setShowConflict(true)}>Перечитать раздел</Button>
+          ) : pending.current.size ? (
             <Button onClick={() => void flush()}>Повторить сохранение</Button>
           ) : (
             <Button onClick={() => setError('')}>Закрыть</Button>
           )}
         </div>
+      )}
+      {conflict && showConflict && (
+        <Modal
+          title="Настройки изменились"
+          onClose={() => setShowConflict(false)}
+          alert
+          footer={
+            <>
+              <Button onClick={() => setShowConflict(false)}>Вернуться к моим правкам</Button>
+              <Button disabled={reloading} onClick={() => void reloadConflict()}>
+                {reloading ? 'Перечитываем…' : 'Перечитать раздел'}
+              </Button>
+            </>
+          }
+        >
+          <p>
+            В разделе «{sectionNames[conflict.key]}» уже сохранены другие изменения. Ваш черновик
+            пока не записан.
+          </p>
+          <p>
+            Перечитывание заменит ваши несохранённые правки этого раздела актуальными данными. Можно
+            вернуться к черновику и скопировать нужный текст перед перечитыванием.
+          </p>
+        </Modal>
       )}
       {ready && bootstrap?.warnings.length ? (
         <div className="storage-warning" role="status">
@@ -240,11 +340,11 @@ export function useStoredState<T>(key: StorageSection, initial: T | (() => T)) {
   }, [external, key, isPending]);
   const setValue = useCallback(
     (action: SetStateAction<T>) => {
-      const next =
-        typeof action === 'function' ? (action as (previous: T) => T)(latest.current) : action;
+      const previous = latest.current;
+      const next = typeof action === 'function' ? (action as (previous: T) => T)(previous) : action;
       latest.current = next;
       update(next);
-      save(key, next);
+      save(key, next, previous);
     },
     [key, save],
   );

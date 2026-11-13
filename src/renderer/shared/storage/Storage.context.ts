@@ -8,7 +8,7 @@ export interface StorageValue {
   error: string;
   chooseStudio: () => Promise<void>;
   openStudio: (folder: string) => Promise<void>;
-  save: (section: StorageSection, value: unknown) => void;
+  save: (section: StorageSection, value: unknown, base: unknown) => void;
   retry: () => void;
   saveNow: () => Promise<boolean>;
   isPending: (section: StorageSection) => boolean;

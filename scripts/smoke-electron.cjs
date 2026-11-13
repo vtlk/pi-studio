@@ -36,11 +36,24 @@ const deadline = setTimeout(() => {
       console.error('Failed desktop expression:', code.slice(0, 250));
       throw error;
     });
+  const save = async (section, value) => {
+    const before = await js('window.studio.loadStudio()');
+    const result = await js(
+      `window.studio.saveSection(${JSON.stringify(section)},${JSON.stringify(value)},${JSON.stringify({ folder: before.folder, base: before.sections[section] })})`,
+    );
+    assert.ok(result.saved);
+  };
   async function until(code) {
     for (let i = 0; i < 80; i++) {
       if (await js(code)) return;
       await new Promise((resolve) => setTimeout(resolve, 75));
     }
+    console.error(
+      'Desktop state at timeout:',
+      await js(
+        `({status:document.querySelector('.prototype-label')?.textContent,error:document.querySelector('.storage-error')?.innerText,dialog:document.querySelector('[role="alertdialog"]')?.getAttribute('aria-label'),name:document.querySelector('[aria-label="Название агента"]')?.value})`,
+      ),
+    );
     throw new Error(`Desktop assertion timed out: ${code}`);
   }
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
@@ -142,7 +155,10 @@ const deadline = setTimeout(() => {
   assert.ok(['ready', 'not_ready', 'invalid'].includes(provider.status));
   assert.deepEqual(Object.keys(provider).sort(), ['provider', 'status']);
   // The project toolbar deletion is confirmed before mutation and restores its original position.
-  await js(`document.querySelector('[aria-label="Удалить агента из проекта"]').focus()`);
+  window.focus();
+  await js(
+    `document.activeElement?.blur(); document.querySelector('[aria-label="Удалить агента из проекта"]').focus()`,
+  );
   await until(
     `Array.from(document.querySelectorAll('[role="tooltip"]')).some(item=>item.textContent==='Удалить агента из проекта')`,
   );
@@ -225,19 +241,67 @@ const deadline = setTimeout(() => {
     input.dispatchEvent(new Event('input', {bubbles:true})); })()`);
   await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
   const externalBefore = await js(`window.studio.loadStudio()`);
-  await js(
-    `window.studio.saveSection('agents',${JSON.stringify(externalBefore.sections.agents.map((agent, index) => (index === 0 ? { ...agent, name: 'Изменён помощником' } : agent)))})`,
+  await save(
+    'agents',
+    externalBefore.sections.agents.map((agent, index) =>
+      index === 0 ? { ...agent, name: 'Изменён помощником' } : agent,
+    ),
   );
   await until(
     `document.querySelector('[aria-label="Название агента"]')?.value==='Изменён помощником'`,
   );
   await nameAgent('Сохранённый агент');
   await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  // A helper writes between UI hydration and autosave: ordinary CRUD must reject the stale list.
+  await js(`(async()=>{
+    const before=await window.studio.loadStudio();
+    const next=before.sections.agents.map((agent,index)=>index===0?{...agent,name:'Новая правка помощника'}:agent);
+    const saved=await window.studio.saveSection('agents',next,{folder:before.folder,base:before.sections.agents});
+    if(!saved.saved)throw new Error('Helper fixture save failed');
+    const input=document.querySelector('[aria-label="Название агента"]');
+    if(input.value!=='Сохранённый агент')throw new Error('The UI must still hold its earlier value');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'Мой несохранённый черновик');
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  })()`);
+  await until(
+    `!!document.querySelector('[role="alertdialog"][aria-label="Настройки изменились"]')`,
+  );
+  assert.equal(
+    (await js('window.studio.loadStudio()')).sections.agents[0].name,
+    'Новая правка помощника',
+  );
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(b=>b.textContent==='Вернуться к моим правкам').click()`,
+  );
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Название агента"]').value`),
+    'Мой несохранённый черновик',
+  );
+  const concurrent = await js('window.studio.loadStudio()');
+  await save(
+    'agents',
+    concurrent.sections.agents.map((agent, index) =>
+      index === 0 ? { ...agent, name: 'Самая свежая правка помощника' } : agent,
+    ),
+  );
+  await js(`document.querySelector('.storage-error button').click()`);
+  await until(
+    `!!document.querySelector('[role="alertdialog"][aria-label="Настройки изменились"]')`,
+  );
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(b=>b.textContent==='Перечитать раздел').click()`,
+  );
+  await until(
+    `document.querySelector('[aria-label="Название агента"]')?.value==='Самая свежая правка помощника'`,
+  );
+  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  await nameAgent('Сохранённый агент');
+  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
   const edited = await js(`window.studio.loadStudio()`);
   assert.equal(edited.sections.agents[0].name, 'Сохранённый агент');
   assert.notEqual(edited.projects[0].agents[0].profile.name, 'Сохранённый агент');
   // Save through the actual preload and reload the renderer to prove hydration and isolation.
-  await js(`window.studio.saveSection('agents', [])`);
+  await save('agents', []);
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
@@ -257,9 +321,7 @@ const deadline = setTimeout(() => {
       { cwd: resolve(__dirname, '..'), encoding: 'utf8' },
     ),
   );
-  await js(
-    `window.studio.saveSection('agents', ${JSON.stringify([...legacy, ...edited.sections.agents])})`,
-  );
+  await save('agents', [...legacy, ...edited.sections.agents]);
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`document.querySelector('.dialog-body')?.innerText.includes('агенты — 6')`);

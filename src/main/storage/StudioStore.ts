@@ -5,6 +5,8 @@ import type {
   StudioBootstrap,
   StudioSections,
   ProjectCommand,
+  SectionEdit,
+  SectionSaveResult,
 } from '../../shared/storage.ts';
 import { atomicJson, isMissing, readJson, safePath } from './files.ts';
 import { parseSection, parseStudio } from './validation.ts';
@@ -64,6 +66,23 @@ export class StudioStore {
       sections,
     });
     this.sections = sections;
+  }
+  /** Called inside StudioService's mutation queue; stale renderer values cannot replace a section. */
+  async editSection(
+    section: StorageSection,
+    value: unknown,
+    edit: SectionEdit,
+  ): Promise<SectionSaveResult> {
+    if (!edit || edit.folder !== this.folder)
+      throw new Error('Папка студии изменилась. Правки не записаны в другую студию.');
+    const local = parseSection(section, value);
+    const base = parseSection(section, edit.base);
+    const current = this.sections[section] ?? base;
+    const equal = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    if (equal(local, current)) return { saved: true, value: structuredClone(current) };
+    if (!equal(base, current)) return { saved: false, value: structuredClone(current) };
+    await this.saveSection(section, local);
+    return { saved: true, value: structuredClone(local) };
   }
   command(command: ProjectCommand) {
     return this.projects.command(command);
