@@ -20,6 +20,14 @@
 .native-video-viewer .editor-inspector p {
   overflow-wrap: anywhere;
 }
+.native-video-viewer .editor-inspector .data-list {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: 8px;
+  font-size: 13px;
+}
+.native-video-viewer .editor-inspector .data-list dd {
+  white-space: nowrap;
+}
 .native-video-viewer .editor-clip {
   min-width: 2px;
 }

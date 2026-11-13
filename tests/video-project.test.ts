@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm, symlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { readVideoProject, validateStaticSvg } from '../src/main/video/readVideoProject.ts';
@@ -40,6 +40,77 @@ function timeline() {
     ],
   };
 }
+test('stereo pan accepts audio/video, rejects non-audible or invalid values, and revisions preserve source bytes', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-pan-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const output = join(root, 'agents/agent/output');
+  await mkdir(output, { recursive: true });
+  const source = Buffer.alloc(46);
+  source.write('RIFF');
+  source.writeUInt32LE(38, 4);
+  source.write('WAVEfmt ', 8);
+  source.writeUInt32LE(16, 16);
+  source.writeUInt16LE(1, 20);
+  source.writeUInt16LE(1, 22);
+  source.writeUInt32LE(48000, 24);
+  source.writeUInt32LE(96000, 28);
+  source.writeUInt16LE(2, 32);
+  source.writeUInt16LE(16, 34);
+  source.write('data', 36);
+  source.writeUInt32LE(2, 40);
+  await writeFile(join(output, 'voice.wav'), source);
+  const manifestPath = 'agents/agent/output/film.pistudio.json';
+  await writeFile(
+    join(root, manifestPath),
+    JSON.stringify({
+      ...videoContract.example.manifest,
+      state: './timeline.json',
+    }),
+  );
+  const data = {
+    ...videoContract.example.timeline,
+    assets: [{ id: 'voice', type: 'audio', src: './voice.wav' }],
+    tracks: [
+      {
+        id: 'audio',
+        name: 'Речь',
+        type: 'audio',
+        items: [
+          { id: 'speech', name: 'Реплика', from: 0, duration: 30, assetId: 'voice', pan: -1 },
+        ],
+      },
+    ],
+  };
+  await writeFile(join(output, 'timeline.json'), JSON.stringify(data));
+  const left = await readVideoProject(root, 'project', manifestPath);
+  assert.equal(left.timeline.tracks[0].items[0].pan, -1);
+  data.tracks[0].items[0].pan = 1;
+  await writeFile(join(output, 'timeline.json'), JSON.stringify(data));
+  const right = await readVideoProject(root, 'project', manifestPath);
+  assert.notEqual(right.revision, left.revision);
+  assert.equal(right.assets[0].sha256, left.assets[0].sha256);
+  assert.deepEqual(await readFile(join(output, 'voice.wav')), source);
+  for (const pan of [-1.01, 1.01, Infinity, NaN, '1', null]) {
+    const invalid = structuredClone(data);
+    Object.assign(invalid.tracks[0].items[0], { pan });
+    assert.throws(() => parseVideoTimeline(invalid));
+  }
+  for (const type of ['image', 'subtitles']) {
+    const invalid = structuredClone(data);
+    if (type === 'image') {
+      invalid.assets[0].type = 'image';
+      invalid.tracks[0].type = 'visual';
+    } else {
+      invalid.tracks[0].type = 'subtitles';
+      Object.assign(invalid.tracks[0].items[0], { text: 'Текст' });
+    }
+    assert.throws(() => parseVideoTimeline(invalid), /панорама/);
+  }
+  const video = structuredClone(data);
+  video.assets[0].type = 'video';
+  video.tracks[0].type = 'visual';
+  assert.equal(parseVideoTimeline(video).tracks[0].items[0].pan, 1);
+});
 test('native montage resolves assets inside one output and revisions include every dependency', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-video-'));
   const output = join(root, 'agents/agent/output');

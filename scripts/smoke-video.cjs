@@ -5,6 +5,7 @@ const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const assert = require('node:assert/strict');
 const { writeVideoFixture } = require('./video-fixture.cjs');
+const { stereoProbe, verifyStereoPlayback } = require('./stereo-check.cjs');
 
 let temporary;
 const deadline = setTimeout(() => {
@@ -28,6 +29,8 @@ const deadline = setTimeout(() => {
   );
   require('../out/main/index.cjs');
   const window = await loaded;
+  window.webContents.setBackgroundThrottling(false); // Keep owned QA deterministic when the user works in another window.
+  window.webContents.setAudioMuted(true); // QA measures Web Audio, without playing tones on the user's speakers.
   window.webContents.on('console-message', (event) => {
     if (event.level === 'error') console.error(event.message);
   });
@@ -85,6 +88,7 @@ const deadline = setTimeout(() => {
   await js(
     `window.__audioStarted=0; const originalAudioStart=AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start=function(...args){ if(this.buffer?.length>0) window.__audioStarted++; return originalAudioStart.apply(this,args); }; void 0;`,
   );
+  if (process.argv.includes('--stereo')) await js(stereoProbe);
   await click('Открыть монтаж');
   await until(
     `!!document.querySelector('.studio-remotion-player [data-montage-item="video-clip"] canvas')`,
@@ -109,7 +113,7 @@ const deadline = setTimeout(() => {
   );
   const green = await pixel(5, 5);
   assert.ok(green[1] > 90 && green[0] < 30, `Video pixel: ${green}`);
-  // CORS/taint checks also prove export can use the same native image/video sources.
+  // Prove the native preview sources allow canvas reads without tainting.
   assert.match(
     await js(
       `document.querySelector('[data-montage-item="video-clip"] canvas').toDataURL().slice(0,30)`,
@@ -202,6 +206,31 @@ const deadline = setTimeout(() => {
   const changed = await js(`window.studio.inspectVideoProject(${JSON.stringify(request)})`);
   assert.notEqual(changed.document.revision, inspected.document.revision);
   await until(`document.querySelector('[data-video-frame]')?.dataset.videoFrame === '0'`);
+  if (process.argv.includes('--stereo'))
+    await verifyStereoPlayback({
+      js,
+      until,
+      click,
+      output,
+      capture: async () =>
+        writeFile(resolve('artifacts/stereo-viewer.png'), (await window.capturePage()).toPNG()),
+      verifyVisibility: async () => {
+        window.webContents.setBackgroundThrottling(true);
+        window.hide();
+        await until(
+          `document.hidden && window.__readStereo().state==='suspended' && !!document.querySelector('[aria-label="Воспроизвести"]')`,
+        );
+        const frame = await js(`document.querySelector('[data-video-frame]').dataset.videoFrame`);
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        assert.equal(
+          await js(`document.querySelector('[data-video-frame]').dataset.videoFrame`),
+          frame,
+        );
+        window.webContents.setBackgroundThrottling(false);
+        window.showInactive();
+        await until(`!document.hidden`);
+      },
+    });
   console.log(
     'Official Remotion Player passed: safe manifest/assets, SVG keyframes, video pixel decoding, real decoded audio playback, read-only clips, fullscreen/Escape, preserved view state and dependency revision.',
   );

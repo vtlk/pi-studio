@@ -170,6 +170,13 @@ export function parseVideoTimeline(value: unknown): VideoTimeline {
         if (item[key] !== undefined)
           result[key] = number(item[key], min, max, key === 'sourceFrom');
       }
+      if (
+        result.pan &&
+        !assets.some(
+          (asset) => asset.id === result.assetId && ['audio', 'video'].includes(asset.type),
+        )
+      )
+        throw new Error('Ненулевая панорама допустима только для аудио и видео со звуком.');
       if (item.fit !== undefined) result.fit = choice(item.fit, ['contain', 'cover']);
       if (item.align !== undefined) result.align = choice(item.align, ['left', 'center', 'right']);
       if (item.color !== undefined) result.color = color(item.color);

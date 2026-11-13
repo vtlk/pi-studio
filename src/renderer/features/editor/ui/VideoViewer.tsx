@@ -202,6 +202,18 @@ export function VideoViewer({
                 <dd>{selected.duration}</dd>
                 <dt>Громкость</dt>
                 <dd>{Math.round((selected.volume ?? 1) * 100)}%</dd>
+                {document.assets.some(
+                  (asset) => asset.id === selected.assetId && asset.type !== 'image',
+                ) && (
+                  <>
+                    <dt>Панорама</dt>
+                    <dd>
+                      {!selected.pan
+                        ? 'Центр'
+                        : `${selected.pan < 0 ? 'Влево' : 'Вправо'} ${Math.round(Math.abs(selected.pan) * 100)}%`}
+                    </dd>
+                  </>
+                )}
               </dl>
               {selected.text && (
                 <>

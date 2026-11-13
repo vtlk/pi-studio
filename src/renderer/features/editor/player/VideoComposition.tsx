@@ -2,8 +2,11 @@ import { AbsoluteFill, Img, Sequence, useCurrentFrame, useVideoConfig } from 're
 import { Audio, Video } from '@remotion/media';
 import type { ValidatedVideoProject, VideoItem, VideoTrack } from '../../../../shared/video';
 import { evaluateVideoTransform } from '../../../../shared/videoFrame';
+import { StereoPan } from './StereoPan';
 
 type VideoCompositionProps = { document: ValidatedVideoProject };
+// Stable identity keeps Remotion's native decoder alive across frame/volume changes.
+const failMedia = () => 'fail' as const;
 
 function TimelineLayer({
   item,
@@ -24,7 +27,12 @@ function TimelineLayer({
     trimBefore: item.sourceFrom ?? 0,
     durationInFrames: item.duration,
   };
-  if (type === 'audio') return <Audio {...media} onError={() => 'fail'} />;
+  if (type === 'audio')
+    return (
+      <StereoPan pan={item.pan ?? 0}>
+        <Audio {...media} onError={failMedia} />
+      </StereoPan>
+    );
   return (
     <div
       data-montage-item={item.id}
@@ -66,12 +74,14 @@ function TimelineLayer({
           style={{ width: '100%', height: '100%', objectFit: item.fit ?? 'contain' }}
         />
       ) : (
-        <Video
-          {...media}
-          objectFit={item.fit ?? 'contain'}
-          style={{ width: '100%', height: '100%' }}
-          onError={() => 'fail'}
-        />
+        <StereoPan pan={item.pan ?? 0}>
+          <Video
+            {...media}
+            objectFit={item.fit ?? 'contain'}
+            style={{ width: '100%', height: '100%' }}
+            onError={failMedia}
+          />
+        </StereoPan>
       )}
     </div>
   );

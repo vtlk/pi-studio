@@ -73,10 +73,6 @@ export async function readVideoProject(
   if (!state) throw new Error('Путь таймлайна выходит за output агента.');
   const timelineSource = await readText(await safePath(outputRoot, state));
   const timeline = parseVideoTimeline(JSON.parse(timelineSource));
-  if (timeline.tracks.some((track) => track.items.some((item) => item.pan)))
-    throw new Error(
-      'Стереопанорама ещё не подключена к адаптеру Remotion. Текущая версия поддерживает pan: 0; ненулевые значения не игнорируются.',
-    );
   const assets = [];
   for (const asset of timeline.assets) {
     const relative = resolveOutputReference(parent, asset.src);
