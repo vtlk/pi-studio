@@ -9,6 +9,7 @@ import type {
 import type { Resource, SkillDocument } from './resources';
 import type { AuthLoginState } from './auth';
 import type { StartupState } from './startup';
+import type { PiModelCatalog } from './models';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -40,6 +41,7 @@ export interface DesktopApi {
   retryStartup(): Promise<StartupState>;
   skipStartup(): Promise<StartupState>;
   chooseStartupPi(): Promise<StartupState | null>;
+  getModelCatalog(): Promise<PiModelCatalog>;
 }
 
 export interface ProviderStatus {
@@ -78,4 +80,5 @@ export const desktopChannels = {
   retryStartup: 'studio:startup-retry',
   skipStartup: 'studio:startup-skip',
   chooseStartupPi: 'studio:startup-choose',
+  getModelCatalog: 'studio:model-catalog',
 } as const;

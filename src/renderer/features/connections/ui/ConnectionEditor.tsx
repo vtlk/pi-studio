@@ -6,6 +6,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useConnections, type Connection } from '../model/Connections';
 import type { ProviderStatus } from '../../../../shared/contracts';
 import type { AuthLoginState } from '../../../../shared/auth';
+import { usePiCatalog } from '../model/usePiCatalog';
 export function ConnectionEditor({
   connection,
   onClose,
@@ -14,6 +15,12 @@ export function ConnectionEditor({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(connection);
+  const {
+    catalog,
+    loading: loadingCatalog,
+    error: catalogError,
+    reload: reloadCatalog,
+  } = usePiCatalog();
   const { saveConnection, setProviderStatus } = useConnections();
   const { demo } = useNotice();
   const [status, setStatus] = useState<ProviderStatus>();
@@ -127,11 +134,33 @@ export function ConnectionEditor({
       </label>
       <label className="field-label">
         ID провайдера
-        <input
-          value={draft.providerId}
-          onChange={(event) => setDraft({ ...draft, providerId: event.target.value })}
-          readOnly={draft.purpose === 'codex' || draft.purpose === 'images'}
-        />
+        {window.studio && draft.purpose === 'pi' ? (
+          <Select
+            label="Провайдер Pi"
+            value={draft.providerId || 'none'}
+            options={[
+              {
+                value: 'none',
+                label: loadingCatalog ? 'Загружаем провайдеров…' : 'Выберите провайдера',
+              },
+              ...(catalog?.providers.map((item) => ({
+                value: item.id,
+                label: `${item.name} · ${item.id}`,
+              })) ?? []),
+              ...(draft.providerId &&
+              !catalog?.providers.some((item) => item.id === draft.providerId)
+                ? [{ value: draft.providerId, label: draft.providerId }]
+                : []),
+            ]}
+            onValueChange={(id) => setDraft({ ...draft, providerId: id === 'none' ? '' : id })}
+          />
+        ) : (
+          <input
+            value={draft.providerId}
+            onChange={(event) => setDraft({ ...draft, providerId: event.target.value })}
+            readOnly={draft.purpose === 'codex' || draft.purpose === 'images'}
+          />
+        )}
       </label>
       {draft.purpose === 'codex' ? (
         <>
@@ -215,17 +244,8 @@ export function ConnectionEditor({
               />
             </label>
           )}
-          <p className="prototype-note">
-            Методы входа, device flow, облачные профили и параметры будут получены из реестра
-            выбранной версии Pi. Реестр пока не подключён; неподтверждённые методы не предлагаются.
-          </p>
-          <Button
-            onClick={() =>
-              demo(
-                'Реестр провайдеров Pi ещё не подключён. Должны загружаться все провайдеры, включая установленные расширения.',
-              )
-            }
-          >
+          {catalogError && <p role="alert">{catalogError}</p>}
+          <Button disabled={loadingCatalog} onClick={() => void reloadCatalog()}>
             Загрузить каталог Pi
           </Button>
           {window.studio && (

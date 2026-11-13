@@ -11,6 +11,7 @@ import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
 import { BrowserAuth } from '../pi/BrowserAuth';
 import { Startup } from '../pi/Startup';
+import { readPiCatalog } from '../pi/catalog';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -109,6 +110,13 @@ export function registerDesktopHandlers(): StudioService {
     return state;
   });
   handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path || startup.path));
+  handle(desktopChannels.getModelCatalog, async () => {
+    const store = await service.load();
+    return readPiCatalog(
+      String(store.bootstrap().sections.piPath ?? '') || startup.path,
+      join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
+    );
+  });
   handle(desktopChannels.chooseSkill, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Папка skill или SKILL.md',
