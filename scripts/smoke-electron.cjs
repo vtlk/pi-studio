@@ -162,9 +162,19 @@ const deadline = setTimeout(() => {
   assert.ok(['ready', 'not_ready', 'invalid'].includes(provider.status));
   assert.deepEqual(Object.keys(provider).sort(), ['provider', 'status']);
   // The project toolbar deletion is confirmed before mutation and restores its original position.
-  app.focus({steal:true});
+  app.focus({ steal: true });
   window.focus();
   await until('document.hasFocus()');
+  const statusIcon = await js(`(() => {
+    const element = document.querySelector('.agent-status-icon');
+    const rect = element.getBoundingClientRect();
+    return {x:Math.round(rect.x+rect.width/2),y:Math.round(rect.y+rect.height/2)};
+  })()`);
+  window.webContents.sendInputEvent({ type: 'mouseMove', ...statusIcon });
+  await until(
+    `Array.from(document.querySelectorAll('[role="tooltip"]')).some(item=>item.textContent==='Не запускался')`,
+  );
+  window.webContents.sendInputEvent({ type: 'mouseMove', x: 5, y: 5 });
   await js(
     `document.activeElement?.blur(); document.querySelector('[aria-label="Удалить агента из проекта"]').focus()`,
   );

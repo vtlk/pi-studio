@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getAgentLaunchAction } from '../src/renderer/features/project/model/session.ts';
+import { getAgentDisplayStatus } from '../src/renderer/features/project/model/agentActivity.ts';
 import type { ProjectAgent } from '../src/renderer/features/project/model/workspace.types.ts';
 
 const agent = (): ProjectAgent => ({
@@ -68,4 +69,20 @@ test('a moved session retains the exact history binding and requires supported f
     assert.equal(action.session.id, 'original');
     assert.equal(action.session.needsFork, true);
   }
+});
+
+test('a saved dialogue without a live runtime is stopped, never shown as never launched or waiting', () => {
+  const current = agent();
+  assert.equal(getAgentDisplayStatus(current), 'idle');
+  current.session = {
+    id: 'saved',
+    title: 'Диалог',
+    path: 'agents/writer/sessions/saved.jsonl',
+    createdAt: 1,
+  };
+  assert.equal(getAgentDisplayStatus(current), 'stopped');
+  current.runStatus = 'waiting';
+  assert.equal(getAgentDisplayStatus(current), 'waiting');
+  current.profile.enabled = false;
+  assert.equal(getAgentDisplayStatus(current), 'disabled');
 });

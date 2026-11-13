@@ -1,23 +1,16 @@
 import { execFile } from 'node:child_process';
-import { chmod, realpath } from 'node:fs/promises';
+import { realpath } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { promisify } from 'node:util';
-import { atomicText } from '../storage/files.ts';
 import { shellQuote } from './provider.ts';
+import { openTerminalCommand } from './terminalCommand.ts';
 
 const execute = promisify(execFile);
 export async function openSessionTerminal(node: string, bridge: string, bootstrap: string) {
-  const launcher = `${bootstrap}.command`;
   const path = `${dirname(node)}:${dirname(await realpath(node))}`;
-  await atomicText(
-    launcher,
-    `#!/bin/zsh\nexport PATH=${shellQuote(path)}:"$PATH"\nexport PI_TELEMETRY=0\nexec ${shellQuote(node)} ${shellQuote(bridge)} ${shellQuote(bootstrap)}\n`,
+  await openTerminalCommand(
+    `export PATH=${shellQuote(path)}:"$PATH"; export PI_TELEMETRY=0; exec ${shellQuote(node)} ${shellQuote(bridge)} ${shellQuote(bootstrap)}`,
   );
-  await chmod(launcher, 0o700);
-  await execute('/usr/bin/open', ['-a', 'Terminal', launcher], {
-    timeout: 10_000,
-    maxBuffer: 10_000,
-  });
 }
 export async function activateSessionTerminal() {
   await execute('/usr/bin/open', ['-a', 'Terminal'], { timeout: 10_000, maxBuffer: 10_000 });

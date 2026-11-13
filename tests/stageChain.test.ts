@@ -62,12 +62,18 @@ test('only a new request plus explicit validated completion continues once; ques
   await lifecycle.event(live, { type: 'settled', outcome: 'completed' });
   assert.equal(calls, 1);
   assert.equal(live.status, 'ready');
+  await lifecycle.event(live, { type: 'stopped' });
+  assert.equal(live.status, 'ready', 'Closing Pi preserves an already validated result.');
+  assert.equal(calls, 1);
   await lifecycle.event(live, { type: 'request', message: 'A question' });
   await lifecycle.tool(live, 'complete_stage', { outputs: ['result.txt'] });
   await lifecycle.tool(live, 'report_blocked', {});
   await lifecycle.event(live, { type: 'settled', outcome: 'completed' });
   assert.equal(calls, 1);
   assert.equal(live.status, 'waiting');
+  await lifecycle.event(live, { type: 'stopped' });
+  assert.equal(live.status, 'stopped', 'Closing an idle dialogue ends the waiting state.');
+  assert.equal(calls, 1);
   await lifecycle.event(live, { type: 'request', message: 'Changed outputs' });
   await lifecycle.tool(live, 'complete_stage', { outputs: ['result.txt'] });
   await writeFile(join(root, 'result.txt'), 'changed after signal');
@@ -79,4 +85,6 @@ test('only a new request plus explicit validated completion continues once; ques
   await lifecycle.event(live, { type: 'settled', outcome: 'error' });
   assert.equal(calls, 1);
   assert.equal(live.status, 'error');
+  await lifecycle.event(live, { type: 'stopped' });
+  assert.equal(live.status, 'error', 'Closing Pi does not erase its error.');
 });

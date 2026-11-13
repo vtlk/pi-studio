@@ -94,6 +94,7 @@ for (const [key, value] of Object.entries({
   CFBundleShortVersionString: metadata.version.split('-')[0],
   CFBundleVersion: metadata.version.split('-')[0],
   NSHumanReadableCopyright: 'Pi Studio',
+  NSAppleEventsUsageDescription: 'Pi Studio открывает диалоги Pi в одном окне Terminal.',
 }))
   execFileSync('/usr/bin/plutil', ['-replace', key, '-string', value, plist]);
 // Source media can carry Finder metadata; strip it only from the generated distribution copy.

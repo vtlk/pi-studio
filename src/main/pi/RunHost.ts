@@ -10,6 +10,7 @@ import { atomicJson, safePath, readJson, isMissing } from '../storage/files.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
+import { closedRunStatus } from './closedRunStatus.ts';
 
 export class RunHost {
   private readonly channel = new RunChannel();
@@ -195,8 +196,8 @@ export class RunHost {
   private async checkLiveness() {
     for (const [key, live] of this.live)
       if ((live.pid && !processAlive(live.pid)) || Date.now() - live.heartbeat > 20000) {
-        if (live.status === 'running')
-          await this.dependencies.update(live.run, 'stopped').catch(() => {});
+        live.status = closedRunStatus(live.status);
+        await this.dependencies.update(live.run, live.status).catch(() => {});
         this.channel.remove(live.run.record.runId);
         this.live.delete(key);
         live.fail(new Error('Связь с Pi потеряна. Готовность результата не подтверждена.'));

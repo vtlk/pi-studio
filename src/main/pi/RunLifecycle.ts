@@ -8,6 +8,7 @@ import { searchWeb } from './webSearch.ts';
 import { videoContract } from '../video/contract.ts';
 import { readVideoProject } from '../video/readVideoProject.ts';
 import { listProjectFiles, readProjectFile } from './projectFiles.ts';
+import { closedRunStatus } from './closedRunStatus.ts';
 
 export class RunLifecycle {
   private readonly dependencies: RunDependencies;
@@ -120,8 +121,7 @@ export class RunLifecycle {
           });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {
-      live.status =
-        event.type === 'error' ? 'error' : live.status === 'running' ? 'stopped' : live.status;
+      live.status = event.type === 'error' ? 'error' : closedRunStatus(live.status);
       await this.dependencies.update(live.run, live.status);
       live.fail(
         new Error(

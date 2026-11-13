@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { promisify } from 'node:util';
 import type { ProviderStatus } from '../../shared/contracts.ts';
 import { checkPi } from './checkPi.ts';
+import { openTerminalCommand } from './terminalCommand.ts';
 
 const execute = promisify(execFile);
 export function providerId(value: unknown): string {
@@ -58,10 +59,5 @@ export async function openProviderLogin(path: string, provider: string, cwd: str
   if (!pi.supported)
     throw new Error(`Pi ${pi.version} ещё не проверен со Studio. Поддерживается 1.5.2.`);
   const command = `cd ${shellQuote(cwd)} && PATH=${shellQuote(`${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`)} ${shellQuote(pi.path)} auth login ${shellQuote(id)}`;
-  const script =
-    'on run argv\n tell application "Terminal"\n activate\n do script (item 1 of argv)\n end tell\nend run';
-  await execute('/usr/bin/osascript', ['-e', script, command], {
-    timeout: 15_000,
-    maxBuffer: 10_000,
-  });
+  await openTerminalCommand(command);
 }
