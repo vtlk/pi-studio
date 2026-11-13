@@ -8,6 +8,7 @@ import type { Resource } from '../../shared/resources.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { resolveResources, type ResolvedResources } from './resources.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
+import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 
 export interface PreparedRun {
   record: RunContextRecord;
@@ -25,17 +26,17 @@ export async function buildRunContext(
   catalog: Resource[],
 ): Promise<PreparedRun> {
   projectRoot = await realpath(projectRoot);
-  const agent = project.agents.find((item) => item.profile.id === agentId);
-  if (!agent) throw new Error('Агент отсутствует в снимке проекта.');
-  if (!agent.profile.enabled) throw new Error('Агент выключен.');
+  const saved = project.agents.find((item) => item.profile.id === agentId);
+  if (!saved) throw new Error('Агент отсутствует в снимке проекта.');
+  if (!saved.profile.enabled) throw new Error('Агент выключен.');
   const current = constructor.find((item) => item.id === agentId);
   if (!current)
     throw new Error('Текущие инструкции агента удалены. Другой профиль не подставляется.');
-  const model = agent.profile.model;
-  if (!model?.provider || !model.id || !model.connectionId)
-    throw new Error(
-      'Выберите подключение и модель агента в конструкторе, затем явно перечитайте агента в проекте.',
-    );
+  const model = current.model;
+  if (!hasModelConfiguration(model))
+    throw new Error('Выберите подключение, модель и уровень рассуждения агента в конструкторе.');
+  const agent = { ...saved, profile: { ...saved.profile, model: structuredClone(model) } };
+  project = { ...project, agents: project.agents.map((item) => (item === saved ? agent : item)) };
   const agentFolder = agentDirectory(agent.outputPath);
   const cwd = await safePath(projectRoot, agentFolder);
   const output = await safePath(projectRoot, agent.outputPath);
@@ -51,13 +52,11 @@ export async function buildRunContext(
     cwd,
     output,
     sessionDirectory,
-    previousOutputs: project.agents
-      .slice(0, project.agents.indexOf(agent))
-      .map((item) => ({
-        agentId: item.profile.id,
-        agentName: item.profile.name,
-        path: join(projectRoot, item.outputPath),
-      })),
+    previousOutputs: project.agents.slice(0, project.agents.indexOf(agent)).map((item) => ({
+      agentId: item.profile.id,
+      agentName: item.profile.name,
+      path: join(projectRoot, item.outputPath),
+    })),
     model: {
       connectionId: model.connectionId,
       provider: model.provider,

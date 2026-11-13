@@ -12,6 +12,9 @@ import type { OutputFile, ProjectAgent } from '../model/workspace.types';
 import { getAgentLaunchAction } from '../model/session';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { getCurrentAgentInstructions } from '../model/snapshot';
+import { hasModelConfiguration } from '../../../../shared/modelConfiguration';
+import { useConnections } from '@/features/connections/model/Connections';
+import { AgentConfigurationDialog } from './AgentConfigurationDialog';
 import {
   getPreviewCapabilities,
   getPreviewKind,
@@ -33,6 +36,8 @@ export function AgentToolbar({
   const { saveNow } = useStorage();
   const { setAutoContinue, selectedProject, busy } = useWorkspace();
   const { agents } = useAgentProfiles();
+  const { connections } = useConnections();
+  const [configurationOpen, setConfigurationOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [continueAfterRun, setContinueAfterRun] = useState(false);
   const hasSession = !!agent.session;
@@ -46,6 +51,19 @@ export function AgentToolbar({
     const action = getAgentLaunchAction(agent);
     if (action.kind === 'blocked') {
       demo(action.reason);
+      return;
+    }
+    const current = agents.find((profile) => profile.id === agent.profile.id);
+    const configured = (model: typeof agent.profile.model) =>
+      hasModelConfiguration(model) &&
+      connections.some(
+        (connection) =>
+          connection.id === model?.connectionId &&
+          connection.purpose !== 'images' &&
+          connection.providerId === model.provider,
+      );
+    if (!configured(current?.model)) {
+      setConfigurationOpen(true);
       return;
     }
     setContinueAfterRun(autoContinue);
@@ -126,6 +144,12 @@ export function AgentToolbar({
           agent={agent}
           autoContinue={continueAfterRun}
           onClose={() => setStartOpen(false)}
+        />
+      )}
+      {configurationOpen && (
+        <AgentConfigurationDialog
+          agentId={agent.profile.id}
+          onClose={() => setConfigurationOpen(false)}
         />
       )}
     </div>

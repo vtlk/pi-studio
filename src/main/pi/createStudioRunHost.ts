@@ -10,6 +10,8 @@ import { nextEnabledStage, nextStageMessage } from './stageChain.ts';
 import { productionTools } from './RunChannel.ts';
 import { libraryTools, libraryTool } from '../library/tools.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
+import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
+import type { openSessionTerminal } from './terminal.ts';
 
 interface Options {
   bootstraps: string;
@@ -17,6 +19,8 @@ interface Options {
   catalog: string;
   piPath: () => string;
   references?: ReferenceFiles;
+  headless?: boolean;
+  openTerminal?: typeof openSessionTerminal;
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
@@ -24,6 +28,8 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     tool: (run, name, args) => libraryTool(service, run, name, args),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
+    headless: options.headless,
+    openTerminal: options.openTerminal,
     prepare: (request) =>
       service.serialize(async () => {
         stableId(request.projectId);
@@ -34,15 +40,22 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         )
           throw new Error('Некорректный запрос запуска.');
         const store = await service.load();
-        const project = await store.projects.read(request.projectId);
-        const profile = project.agents.find((item) => item.profile.id === request.agentId)?.profile;
+        let project = await store.projects.read(request.projectId);
+        const savedAgent = project.agents.find((item) => item.profile.id === request.agentId);
+        if (!savedAgent) throw new Error('Агент отсутствует в проекте.');
+        if (!savedAgent.profile.enabled) throw new Error('Агент выключен.');
+        const sections = store.bootstrap().sections;
+        const current = (sections.agents as Agent[]).find((agent) => agent.id === request.agentId);
+        if (!current)
+          throw new Error('Профиль агента удалён из конструктора. Другой агент не подставляется.');
+        const profile = current;
         if (
           project.agents.find((item) => item.profile.id === request.agentId)?.session &&
           request.attachments?.length
         )
           throw new Error('Продолжение диалога не отправляет референсы повторно.');
-        if (!profile?.model) throw new Error('Выберите модель проектного агента.');
-        const sections = store.bootstrap().sections;
+        if (!profile || !hasModelConfiguration(profile.model))
+          throw new Error('Выберите подключение, модель и уровень рассуждения проектного агента.');
         const connections = sections.connections as {
           id: string;
           providerId: string;
@@ -55,12 +68,12 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           connection.providerId !== profile?.model?.provider
         )
           throw new Error(
-            'Подключение проектного агента отсутствует или изменено. Настройте модель и явно перечитайте профиль.',
+            'Подключение агента отсутствует или изменено. Выберите действующее подключение и модель в конструкторе.',
           );
         const piPath = String(sections.piPath ?? '') || options.piPath();
         if ((await getProviderStatus(piPath, connection.providerId)).status !== 'ready')
           throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
-        const catalog = await readPiCatalog(piPath, options.catalog);
+        const catalog = await readPiCatalog(piPath, options.catalog, store.folder);
         const selectedModel = catalog.models.find(
           (item) => item.provider === profile.model?.provider && item.id === profile.model.id,
         );
@@ -75,6 +88,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           store.folder,
           selectedModel.imageInput,
         );
+        project = await store.projects.applyAgentModel(project.id, request.agentId, profile.model);
         const run = await buildRunContext(
           await store.projects.directory(project.id),
           project,

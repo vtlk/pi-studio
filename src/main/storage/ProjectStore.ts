@@ -18,6 +18,7 @@ import {
   synchronizeProjectAgentList,
 } from '../../shared/projectAgents.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
+import type { Agent } from '../../shared/studio.ts';
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -88,6 +89,24 @@ export class ProjectStore {
     };
     if (session) await this.save(updated, await this.directory(projectId));
     this.projects.set(projectId, updated);
+    return this.read(projectId);
+  }
+  async applyAgentModel(projectId: string, agentId: string, model: NonNullable<Agent['model']>) {
+    const project = this.get(projectId);
+    const selected = project.agents.find((agent) => agent.profile.id === stableId(agentId));
+    if (!selected) throw new Error('Агент отсутствует в проекте.');
+    if (JSON.stringify(selected.profile.model) !== JSON.stringify(model)) {
+      const updated = {
+        ...project,
+        agents: project.agents.map((agent) =>
+          agent === selected
+            ? { ...agent, profile: { ...agent.profile, model: structuredClone(model) } }
+            : agent,
+        ),
+      };
+      await this.save(updated, await this.directory(projectId));
+      this.projects.set(projectId, updated);
+    }
     return this.read(projectId);
   }
   async read(id: string): Promise<WorkspaceProject> {
