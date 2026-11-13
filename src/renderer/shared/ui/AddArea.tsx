@@ -5,10 +5,12 @@ export function AddArea({
   label,
   onClick,
   className = '',
+  disabled = false,
 }: {
   label: string;
   onClick: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <Tooltip label={label}>
@@ -16,6 +18,7 @@ export function AddArea({
         type="button"
         className={`add-area ${className}`}
         aria-label={label}
+        disabled={disabled}
         onClick={onClick}
       >
         <Plus size={26} aria-hidden="true" />

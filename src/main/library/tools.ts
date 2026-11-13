@@ -3,6 +3,7 @@ import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { stableId } from '../storage/validation.ts';
 import { libraryKind } from './manifest.ts';
+import { safePath } from '../storage/files.ts';
 
 const string = { type: 'string', minLength: 1, maxLength: 500 };
 const schema = (properties: Record<string, unknown>, required: string[] = []) => ({
@@ -103,11 +104,15 @@ export function libraryTool(
   run: PreparedRun,
   name: string,
   args: Record<string, unknown>,
+  scope: 'project' | 'library-service' = 'project',
 ) {
   return service.serialize(async () => {
     const store = await service.load();
-    if ((await store.projects.directory(run.project.id)) !== run.projectRoot)
-      throw new Error('Папка студии/проекта изменилась.');
+    const root =
+      scope === 'library-service'
+        ? await safePath(store.folder, `.pistudio/library-runs/${stableId(run.project.id)}`)
+        : await store.projects.directory(run.project.id);
+    if (root !== run.projectRoot) throw new Error('Папка студии/проекта изменилась.');
     const library = store.library;
     if (name === 'library_get_contract') return libraryContract;
     if (name === 'library_find_assets') {

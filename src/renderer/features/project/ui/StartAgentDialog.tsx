@@ -5,6 +5,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useWorkspace } from '../model/Workspace';
 import type { ProjectAgent } from '../model/workspace.types';
 import { useStorage } from '@/shared/storage/Storage';
+import { ReferenceAttachments, type ReferenceAttachment } from '@/shared/ui/ReferenceAttachments';
 
 export function StartAgentDialog({
   agent,
@@ -17,6 +18,7 @@ export function StartAgentDialog({
 }) {
   const [message, setMessage] = useState('');
   const [opening, setOpening] = useState(false);
+  const [references, setReferences] = useState<ReferenceAttachment[]>([]);
   const { isDesktop } = useStorage();
   const { addSession } = useWorkspace();
   const { demo } = useNotice();
@@ -24,7 +26,12 @@ export function StartAgentDialog({
   const start = async () => {
     setOpening(true);
     try {
-      const session = await addSession(agent.profile.id, message, autoContinue);
+      const session = await addSession(
+        agent.profile.id,
+        message,
+        autoContinue,
+        references.map((item) => item.id),
+      );
       if (!session) return;
       onClose();
       if (!isDesktop)
@@ -39,7 +46,9 @@ export function StartAgentDialog({
   return (
     <Modal
       title={`Запустить · ${agent.profile.name || 'Без названия'}`}
-      onClose={onClose}
+      onClose={() => {
+        if (!opening) onClose();
+      }}
       footer={
         <>
           <Button disabled={opening} onClick={onClose}>
@@ -66,6 +75,7 @@ export function StartAgentDialog({
           aria-describedby="agent-first-message-help"
         />
       </label>
+      <ReferenceAttachments value={references} onChange={setReferences} disabled={opening} />
       <p id="agent-first-message-help" className="subtle">
         Будет отправлено первым сообщением в новый диалог Pi. Используем текущие инструкции из
         конструктора и инструменты проектного агента.

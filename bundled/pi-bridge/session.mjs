@@ -1,6 +1,6 @@
 import { readFile, rm, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { resolve } from 'node:path';
+import { resolve, relative, isAbsolute } from 'node:path';
 import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
@@ -38,6 +38,29 @@ export async function runSession(bootstrapPath) {
   };
   await event({ type: 'hello', pid: process.pid });
   const envelope = await request('context');
+  const initialImages = [];
+  for (const attachment of envelope.record.attachments ?? []) {
+    if (!attachment.image) continue;
+    const path = resolve(envelope.record.projectRoot, attachment.image.path);
+    const rel = relative(envelope.record.projectRoot, path);
+    if (
+      isAbsolute(rel) ||
+      rel.startsWith('..') ||
+      !['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(attachment.image.mimeType)
+    )
+      throw new Error('Invalid image reference');
+    initialImages.push({
+      type: 'image',
+      mimeType: attachment.image.mimeType,
+      data: (await readFile(path)).toString('base64'),
+    });
+  }
+  const initialMessage =
+    envelope.firstMessage &&
+    envelope.firstMessage +
+      (envelope.record.attachments?.length
+        ? `\n\nInput files (paths relative to project directory): ${JSON.stringify(envelope.record.attachments)}\nUse assigned handlers for document/audio/video formats; report missing handlers explicitly. Never execute an attachment automatically.`
+        : '');
   const sdk = await import(pathToFileURL(bootstrap.sdk).href);
   const { createDefaultTransport } = await import(
     new URL('./extensions/mcp/runtime.js', pathToFileURL(bootstrap.sdk)).href
@@ -232,6 +255,8 @@ export async function runSession(bootstrapPath) {
         envelope.record.model.id,
       );
       if (!model) throw new Error('The explicitly selected model is unavailable');
+      if (initialImages.length && !model.input?.includes('image'))
+        throw new Error('Selected model does not support image input');
       const levels = {
         Минимальный: 'minimal',
         Низкий: 'low',
@@ -276,10 +301,11 @@ export async function runSession(bootstrapPath) {
       await waitForMcp(statuses, requiredServers);
       await event({ type: 'opened' });
       await bindWrittenSession();
-      if (envelope.firstMessage) await runtime.session.prompt(envelope.firstMessage);
+      if (initialMessage) await runtime.session.prompt(initialMessage, { images: initialImages });
     } else {
       const mode = new InteractiveMode(runtime, {
-        initialMessage: envelope.firstMessage,
+        initialMessage,
+        initialImages,
         verbose: false,
       });
       await mode.init();

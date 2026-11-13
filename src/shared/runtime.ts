@@ -1,10 +1,12 @@
 import type { WorkspaceProject } from './project';
+import type { SavedAttachment } from './attachments';
 
 export interface LaunchAgentRequest {
   projectId: string;
   agentId: string;
   firstMessage?: string;
   autoContinue: boolean;
+  attachments?: string[];
 }
 export interface LaunchAgentResult {
   runId: string;
@@ -24,4 +26,5 @@ export interface RunContextRecord {
   model: { connectionId: string; provider: string; id: string; reasoning: string };
   resourceIds: { skills: string[]; mcps: string[]; plugins: string[] };
   instructionIds: string[];
+  attachments?: SavedAttachment[];
 }

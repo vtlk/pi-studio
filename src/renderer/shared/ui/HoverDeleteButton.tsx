@@ -5,10 +5,12 @@ export function HoverDeleteButton({
   label,
   description,
   onDelete,
+  disabled = false,
 }: {
   label: string;
   description?: string;
   onDelete: () => void;
+  disabled?: boolean;
 }) {
   const { confirm } = useConfirm();
   return (
@@ -17,6 +19,7 @@ export function HoverDeleteButton({
         type="button"
         className="hover-delete"
         aria-label={label}
+        disabled={disabled}
         onClick={() => confirm({ title: label, description, onConfirm: onDelete })}
       >
         <Trash2 size={17} strokeWidth={1.8} />

@@ -9,12 +9,14 @@ import type { Resource } from '../../shared/resources.ts';
 import { nextEnabledStage, nextStageMessage } from './stageChain.ts';
 import { productionTools } from './RunChannel.ts';
 import { libraryTools, libraryTool } from '../library/tools.ts';
+import type { ReferenceFiles } from './ReferenceFiles.ts';
 
 interface Options {
   bootstraps: string;
   bridge: string;
   catalog: string;
   piPath: () => string;
+  references?: ReferenceFiles;
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
@@ -34,6 +36,11 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         const store = await service.load();
         const project = await store.projects.read(request.projectId);
         const profile = project.agents.find((item) => item.profile.id === request.agentId)?.profile;
+        if (
+          project.agents.find((item) => item.profile.id === request.agentId)?.session &&
+          request.attachments?.length
+        )
+          throw new Error('Продолжение диалога не отправляет референсы повторно.');
         if (!profile?.model) throw new Error('Выберите модель проектного агента.');
         const sections = store.bootstrap().sections;
         const connections = sections.connections as {
@@ -54,20 +61,32 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         if ((await getProviderStatus(piPath, connection.providerId)).status !== 'ready')
           throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
         const catalog = await readPiCatalog(piPath, options.catalog);
-        if (
-          !catalog.models.some(
-            (item) => item.provider === profile.model?.provider && item.id === profile.model.id,
-          )
-        )
+        const selectedModel = catalog.models.find(
+          (item) => item.provider === profile.model?.provider && item.id === profile.model.id,
+        );
+        if (!selectedModel)
           throw new Error(
             'Выбранная модель отсутствует в текущем каталоге Pi. Автоматической подмены нет.',
           );
+        if (request.attachments?.length && !options.references)
+          throw new Error('Передача референсов недоступна.');
+        options.references?.validate(
+          request.attachments ?? [],
+          store.folder,
+          selectedModel.imageInput,
+        );
         const run = await buildRunContext(
           await store.projects.directory(project.id),
           project,
           request.agentId,
           sections.agents as Agent[],
           sections.resources as Resource[],
+        );
+        await options.references?.attach(
+          run,
+          request.attachments ?? [],
+          store.folder,
+          selectedModel.imageInput,
         );
         return { run, piPath };
       }),

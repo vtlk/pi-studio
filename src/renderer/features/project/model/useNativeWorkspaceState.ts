@@ -18,7 +18,12 @@ export function useNativeWorkspaceState() {
   const lastReadError = useRef('');
   const generation = useRef(0);
   const selectedProject = projects.find((project) => project.id === projectId);
-  const openAgent = async (agentId: string, message?: string, autoContinue = false) => {
+  const openAgent = async (
+    agentId: string,
+    message?: string,
+    autoContinue = false,
+    attachments: string[] = [],
+  ) => {
     if (!window.studio || mutating.current) return undefined;
     if (!(await saveNow())) {
       demo('Сначала сохраните текущие изменения настроек.');
@@ -34,6 +39,7 @@ export function useNativeWorkspaceState() {
         agentId,
         firstMessage: message,
         autoContinue,
+        attachments,
       });
       setProjects((previous) =>
         previous.map((project) => (project.id === result.project.id ? result.project : project)),
@@ -131,7 +137,9 @@ export function useNativeWorkspaceState() {
       agentId: string,
       message: string,
       autoContinue = false,
-    ): Promise<SessionBinding | undefined> => openAgent(agentId, message, autoContinue),
+      attachments: string[] = [],
+    ): Promise<SessionBinding | undefined> =>
+      openAgent(agentId, message, autoContinue, attachments),
     setAutoContinue: (_enabled: boolean) => {},
     reviewFile: (_projectId: string, _fileId: string, _accept: boolean) => {},
   };

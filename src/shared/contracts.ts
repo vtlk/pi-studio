@@ -15,6 +15,8 @@ import type { PiModelCatalog } from './models';
 import type { LaunchAgentRequest, LaunchAgentResult } from './runtime';
 import type { VideoProjectInspection } from './video';
 import type { LibraryListing } from './library';
+import type { LibraryKind } from './library';
+import type { ReferenceFile } from './attachments';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -55,6 +57,12 @@ export interface DesktopApi {
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
   openSetupAssistant(): Promise<void>;
   listLibrary(): Promise<LibraryListing>;
+  chooseReferenceFiles(): Promise<ReferenceFile[]>;
+  createLibraryAsset(request: {
+    kind: LibraryKind;
+    description: string;
+    attachments: string[];
+  }): Promise<void>;
   checkResource(resourceId: string): Promise<ResourceCheck>;
   installResource(resourceId: string): Promise<Resource>;
   openResourceLogin(
@@ -77,6 +85,8 @@ export interface PiCheck {
 
 export const desktopChannels = {
   listLibrary: 'studio:list-library',
+  chooseReferenceFiles: 'studio:choose-reference-files',
+  createLibraryAsset: 'studio:create-library-asset',
   getInfo: 'studio:get-info',
   loadStudio: 'studio:load',
   chooseStudio: 'studio:choose',

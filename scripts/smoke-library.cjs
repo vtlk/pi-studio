@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const { mkdtempSync, mkdirSync } = require('node:fs');
 const { writeFile, rm, mkdir, access } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
@@ -48,6 +48,44 @@ const deadline = setTimeout(() => {
   await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(button=>button.textContent.trim()==='Библиотека').click()`,
   );
+  const reference = join(temporary, 'reference.svg');
+  await writeFile(
+    reference,
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="white"/><path d="M50 10L90 90H10Z" fill="red"/></svg>',
+  );
+  const originalChooser = dialog.showOpenDialog;
+  dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [reference] });
+  await js(`document.querySelector('[aria-label="Создать персонажа"]').click()`);
+  await until(`!!document.querySelector('[role="dialog"] textarea')`);
+  assert.ok(
+    (await js(`document.querySelector('[role="dialog"]').textContent`)).includes(
+      'Создание персонажа',
+    ),
+  );
+  await js(`document.querySelector('[aria-label="Прикрепить файлы референса"]').click()`);
+  await until(`document.querySelector('.reference-thumbnail img')?.naturalWidth>0`);
+  await js(`document.querySelector('[aria-label="Убрать референс «reference.svg»"]').click()`);
+  await until(`!!document.querySelector('[role="alertdialog"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="alertdialog"] button')).find(button=>button.textContent.trim()==='Отмена').click()`,
+  );
+  assert.equal(await js(`document.querySelectorAll('.reference-attachment').length`), 1);
+  await click('Отмена');
+  await assert.rejects(access(join(studio.folder, '.pistudio/library-runs')));
+  await js(`document.querySelector('[aria-label="Создать персонажа"]').click()`);
+  await js(
+    `(()=>{const textarea=document.querySelector('[role="dialog"] textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(textarea,'Create a test character');textarea.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await until(
+    `!Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()==='Создать с Pi').disabled`,
+  );
+  await click('Создать с Pi');
+  await until(
+    `document.querySelector('[role="dialog"] [role="alert"]')?.textContent.includes('Выберите подключение и модель')`,
+  );
+  await assert.rejects(access(join(studio.folder, '.pistudio/library-runs')));
+  await click('Отмена');
+  dialog.showOpenDialog = originalChooser;
   const publish = (kind, title, id) =>
     JSON.parse(
       execFileSync(

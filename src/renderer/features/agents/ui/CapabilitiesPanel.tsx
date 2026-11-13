@@ -34,7 +34,7 @@ export function CapabilitiesPanel() {
             <p className="subtle">
               {selectedSystemRole === 'assistant'
                 ? 'Подключается при запуске помощника.'
-                : 'Запуск библиотечного генератора ещё подключается.'}
+                : 'Подключается при запуске библиотечного агента.'}
             </p>
           </Disclosure>
         </div>

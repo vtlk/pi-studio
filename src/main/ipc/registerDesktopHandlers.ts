@@ -1,4 +1,12 @@
-import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  shell,
+  nativeImage,
+  type IpcMainInvokeEvent,
+} from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
 import type {
@@ -25,6 +33,10 @@ import { readVideoProject } from '../video/readVideoProject';
 import { StudioResources } from '../pi/StudioResources';
 import type { SystemAgent } from '../../shared/systemAgents';
 import packageInfo from '../../../package.json';
+import { ReferenceFiles } from '../pi/ReferenceFiles';
+import { referenceImage } from '../pi/referenceImage';
+import { createLibraryRunHost } from '../pi/createLibraryRunHost';
+import type { LibraryKind } from '../../shared/library';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -47,11 +59,13 @@ export function registerDesktopHandlers(): StudioService {
       }
     },
   });
+  const references = new ReferenceFiles(referenceImage);
   const runs = createStudioRunHost(service, {
     bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
+    references,
   });
   const resources = new StudioResources(service, {
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
@@ -65,11 +79,19 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
     resources,
   });
+  const generators = createLibraryRunHost(service, {
+    bootstraps: join(app.getPath('userData'), 'library-bootstraps'),
+    bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
+    catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
+    piPath: () => startup.path,
+    references,
+  });
   app.on('before-quit', () => {
     browserAuth.close();
     startup.close();
     runs.close();
     setup.close();
+    generators.close();
   });
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);
@@ -90,6 +112,37 @@ export function registerDesktopHandlers(): StudioService {
   handle(desktopChannels.listLibrary, async () =>
     withReadDeadline(async () => (await service.load()).library.list()),
   );
+  ipcMain.handle(
+    desktopChannels.createLibraryAsset,
+    async (event, request: { kind: LibraryKind; description: string; attachments: string[] }) => {
+      caller(event);
+      await generators.create(request);
+    },
+  );
+  ipcMain.handle(desktopChannels.chooseReferenceFiles, async (event) => {
+    const result = await dialog.showOpenDialog(caller(event), {
+      title: 'Файлы референса',
+      properties: ['openFile', 'multiSelections'],
+    });
+    if (result.canceled) return [];
+    const folder = await service.serialize(async () => (await service.load()).folder);
+    const files = await references.select(result.filePaths, folder);
+    return Promise.all(
+      files.map(async (file, index) => {
+        if (!file.type.startsWith('image/')) return file;
+        try {
+          const png = await referenceImage(result.filePaths[index], file.type);
+          const image = nativeImage.createFromBuffer(png);
+          return {
+            ...file,
+            preview: image.resize({ width: 120, height: 120, quality: 'good' }).toDataURL(),
+          };
+        } catch {
+          return file;
+        }
+      }),
+    );
+  });
   ipcMain.handle(desktopChannels.beginCodexLogin, async (event) => {
     caller(event);
     const path = await service.serialize(async () =>
@@ -222,6 +275,8 @@ export function registerDesktopHandlers(): StudioService {
   handle(desktopChannels.loadStudio, async () => (await service.load()).bootstrap());
   handle(desktopChannels.openStudio, (_event, folder: string) => {
     runs.assertIdle();
+    setup.assertIdle();
+    generators.assertIdle();
     return service.open(folder);
   });
   handle(desktopChannels.chooseStudio, async (event) => {
@@ -238,6 +293,8 @@ export function registerDesktopHandlers(): StudioService {
     });
     if (result.canceled || !result.filePaths[0]) return null;
     runs.assertIdle();
+    setup.assertIdle();
+    generators.assertIdle();
     return service.open(result.filePaths[0]);
   });
   handle(

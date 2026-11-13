@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 
 const desktopApi: DesktopApi = {
+  chooseReferenceFiles: () => ipcRenderer.invoke(desktopChannels.chooseReferenceFiles),
+  createLibraryAsset: (request) => ipcRenderer.invoke(desktopChannels.createLibraryAsset, request),
   listLibrary: () => ipcRenderer.invoke(desktopChannels.listLibrary),
   getInfo: () => ipcRenderer.invoke(desktopChannels.getInfo),
   loadStudio: () => ipcRenderer.invoke(desktopChannels.loadStudio),

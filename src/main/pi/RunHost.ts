@@ -50,6 +50,15 @@ export class RunHost {
     return `${request.projectId}/${request.agentId}`;
   }
   async launch(request: LaunchAgentRequest, automaticMessage?: string): Promise<LaunchAgentResult> {
+    if (
+      request.attachments !== undefined &&
+      (!Array.isArray(request.attachments) ||
+        request.attachments.length > 32 ||
+        request.attachments.some((id) => typeof id !== 'string'))
+    )
+      throw new Error('Некорректный список референсов.');
+    if (request.attachments?.length && !request.firstMessage)
+      throw new Error('Референсы отправляются только вместе с первым сообщением нового диалога.');
     const key = this.key(request);
     if (this.opening.has(key)) throw new Error('Этот агент уже открывается.');
     this.opening.add(key);
@@ -57,6 +66,10 @@ export class RunHost {
     try {
       const active = this.live.get(key);
       if (active?.pid && processAlive(active.pid)) {
+        if (request.firstMessage !== undefined)
+          throw new Error(
+            'У агента уже открыт диалог. Первое сообщение и референсы не отправлялись повторно.',
+          );
         if (active.status === 'running') {
           if (automaticMessage)
             throw new Error('Следующий агент уже работает. Автоматическая цепочка приостановлена.');

@@ -1,0 +1,174 @@
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import type { LibraryKind } from '../../shared/library.ts';
+import type { SystemAgent } from '../../shared/systemAgents.ts';
+import type { Resource } from '../../shared/resources.ts';
+import type { StudioService } from '../storage/StudioStore.ts';
+import { parseProject, snapshotAgent } from '../storage/validation.ts';
+import { safePath, atomicJson } from '../storage/files.ts';
+import { libraryTools, libraryTool } from '../library/tools.ts';
+import { libraryKind } from '../library/manifest.ts';
+import { RunHost } from './RunHost.ts';
+import { productionTools } from './RunChannel.ts';
+import { buildRunContext } from './ContextBuilder.ts';
+import { readPiCatalog } from './catalog.ts';
+import { getProviderStatus } from './provider.ts';
+import { agentDirectory } from '../../shared/agentPaths.ts';
+import type { ReferenceFiles } from './ReferenceFiles.ts';
+import type { openSessionTerminal } from './terminal.ts';
+
+interface Options {
+  bootstraps: string;
+  bridge: string;
+  catalog: string;
+  piPath: () => string;
+  references: ReferenceFiles;
+  headless?: boolean;
+  openTerminal?: typeof openSessionTerminal;
+}
+export function createLibraryRunHost(service: StudioService, options: Options) {
+  const requests = new Map<
+    string,
+    { kind: LibraryKind; description: string; attachments: string[] }
+  >();
+  const host = new RunHost({
+    ...options,
+    serviceAgent: true,
+    tools: [...productionTools, ...libraryTools],
+    tool: (run, name, args) => libraryTool(service, run, name, args, 'library-service'),
+    prepare: (request) =>
+      service.serialize(async () => {
+        const input = requests.get(request.projectId);
+        if (!input || request.autoContinue || request.firstMessage !== input.description)
+          throw new Error('Некорректный запуск библиотечного агента.');
+        const store = await service.load();
+        const sections = store.bootstrap().sections;
+        const role = input.kind === 'characters' ? 'character' : 'location';
+        const agent = (sections.systemAgents as SystemAgent[]).find(
+          (agent) => agent.systemRole === role,
+        );
+        if (!agent || agent.id !== request.agentId || !agent.enabled)
+          throw new Error(
+            'Библиотечный агент отсутствует или выключен. Включите его в конструкторе.',
+          );
+        const model = agent.model;
+        const connections = (sections.connections ?? []) as {
+          id: string;
+          providerId: string;
+          purpose: string;
+        }[];
+        if (
+          !model?.id ||
+          !model.provider ||
+          !model.connectionId ||
+          !connections.some(
+            (connection) =>
+              connection.id === model.connectionId &&
+              connection.providerId === model.provider &&
+              connection.purpose !== 'images',
+          )
+        )
+          throw new Error('Выберите подключение и модель системного агента на странице «Агенты».');
+        const path = String(sections.piPath ?? '') || options.piPath();
+        const catalog = await readPiCatalog(path, options.catalog, store.folder);
+        const selected = catalog.models.find(
+          (item) => item.provider === model.provider && item.id === model.id,
+        );
+        if (!selected)
+          throw new Error('Выбранная модель отсутствует в Pi. Автоматической подмены нет.');
+        options.references.validate(input.attachments, store.folder, selected.imageInput);
+        if ((await getProviderStatus(path, model.provider)).status !== 'ready')
+          throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
+        const root = await safePath(
+          store.folder,
+          `.pistudio/library-runs/${request.projectId}`,
+          true,
+        );
+        await mkdir(root, { recursive: true });
+        const snapshot = snapshotAgent(agent);
+        // The service role is a binding, not project snapshot data or archived instruction text.
+        const { systemRole: _role, ...profile } = snapshot.profile as typeof snapshot.profile & {
+          systemRole?: string;
+        };
+        const project = parseProject({
+          schemaVersion: 1,
+          id: request.projectId,
+          name: agent.name,
+          createdAt: Date.now(),
+          agents: [{ ...snapshot, profile }],
+        });
+        for (const sub of ['output', 'sessions'])
+          await mkdir(await safePath(root, `${agentDirectory(snapshot.outputPath)}/${sub}`, true), {
+            recursive: true,
+          });
+        const run = await buildRunContext(
+          root,
+          project,
+          agent.id,
+          [agent],
+          (sections.resources ?? []) as Resource[],
+        );
+        await options.references.attach(run, input.attachments, store.folder, selected.imageInput);
+        await atomicJson(join(root, 'state.json'), { schemaVersion: 1, kind: input.kind, project });
+        return { run, piPath: path };
+      }),
+    update: (run, status, session) =>
+      service.serialize(async () => {
+        const store = await service.load();
+        if (
+          (await safePath(store.folder, `.pistudio/library-runs/${run.project.id}`)) !==
+          run.projectRoot
+        )
+          throw new Error('Папка студии изменилась.');
+        run.agent.runStatus = status;
+        if (session) run.agent.session = session;
+        await atomicJson(join(run.projectRoot, 'state.json'), {
+          schemaVersion: 1,
+          kind:
+            run.project.agents[0].profile.id ===
+            (store.bootstrap().sections.systemAgents as SystemAgent[]).find(
+              (agent) => agent.systemRole === 'character',
+            )?.id
+              ? 'characters'
+              : 'locations',
+          project: run.project,
+        });
+        return run.project;
+      }),
+    read: async (run) => run.project,
+  });
+  return {
+    async create(input: { kind: LibraryKind; description: string; attachments: string[] }) {
+      libraryKind(input?.kind);
+      if (
+        typeof input.description !== 'string' ||
+        !input.description.trim() ||
+        input.description.length > 200_000 ||
+        !Array.isArray(input.attachments)
+      )
+        throw new Error('Введите описание материала и проверьте референсы.');
+      const id = randomUUID();
+      const agentId = await service.serialize(
+        async () =>
+          ((await service.load()).bootstrap().sections.systemAgents as SystemAgent[]).find(
+            (agent) =>
+              agent.systemRole === (input.kind === 'characters' ? 'character' : 'location'),
+          )!.id,
+      );
+      requests.set(id, input);
+      try {
+        return await host.launch({
+          projectId: id,
+          agentId,
+          autoContinue: false,
+          firstMessage: input.description,
+        });
+      } finally {
+        requests.delete(id);
+      }
+    },
+    close: () => host.close(),
+    assertIdle: () => host.assertIdle(),
+  };
+}
