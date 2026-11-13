@@ -51,7 +51,7 @@ const deadline = setTimeout(() => {
     console.error(
       'Desktop state at timeout:',
       await js(
-        `({status:document.querySelector('.prototype-label')?.textContent,error:document.querySelector('.storage-error')?.innerText,dialog:document.querySelector('[role="alertdialog"]')?.getAttribute('aria-label'),name:document.querySelector('[aria-label="Название агента"]')?.value})`,
+        `({status:document.querySelector('.prototype-label')?.textContent,error:document.querySelector('.storage-error')?.innerText,dialog:document.querySelector('[role="alertdialog"]')?.getAttribute('aria-label'),name:document.querySelector('[aria-label="Название агента"]')?.value,focused:document.hasFocus(),tooltips:Array.from(document.querySelectorAll('[role="tooltip"]')).map(item=>item.textContent),pointer:window.__statusPointerTrace})`,
       ),
     );
     throw new Error(`Desktop assertion timed out: ${code}`);
@@ -165,11 +165,16 @@ const deadline = setTimeout(() => {
   app.focus({ steal: true });
   window.focus();
   await until('document.hasFocus()');
+  await js(
+    `window.__statusPointerTrace=[];document.addEventListener('pointermove',event=>{window.__statusPointerTrace.push({x:event.clientX,y:event.clientY,target:event.target.getAttribute('aria-label')||event.target.tagName,status:event.target.closest('.agent-status-icon')?.dataset.status});window.__statusPointerTrace=window.__statusPointerTrace.slice(-10);},true);`,
+  );
   const statusIcon = await js(`(() => {
     const element = document.querySelector('.agent-status-icon');
     const rect = element.getBoundingClientRect();
     return {x:Math.round(rect.x+rect.width/2),y:Math.round(rect.y+rect.height/2)};
   })()`);
+  window.webContents.sendInputEvent({ type: 'mouseMove', x: 5, y: 5 });
+  await js('new Promise(resolve=>requestAnimationFrame(resolve))');
   window.webContents.sendInputEvent({ type: 'mouseMove', ...statusIcon });
   await until(
     `Array.from(document.querySelectorAll('[role="tooltip"]')).some(item=>item.textContent==='Не запускался')`,

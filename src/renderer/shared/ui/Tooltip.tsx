@@ -13,13 +13,15 @@ export function Tooltip({
   label,
   children,
   open,
+  onOpenChange,
 }: {
   label: string;
   children: ReactElement;
   open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <TooltipPrimitive.Root open={open}>
+    <TooltipPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content className="ui-tooltip" sideOffset={6} collisionPadding={8}>
