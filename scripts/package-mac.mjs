@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { constants } from 'node:fs';
 import { homedir } from 'node:os';
 
 if (process.platform !== 'darwin') throw new Error('Packaging Pi Studio requires macOS.');
@@ -19,6 +20,7 @@ await rm(bundle, { recursive: true, force: true });
 await cp(join(root, 'node_modules/electron/dist/Electron.app'), bundle, {
   recursive: true,
   verbatimSymlinks: true,
+  mode: constants.COPYFILE_FICLONE,
 });
 await rename(join(bundle, 'Contents/MacOS/Electron'), join(bundle, 'Contents/MacOS/Pi Studio'));
 const resources = join(bundle, 'Contents/Resources');
