@@ -11,7 +11,14 @@ export interface ImageOperation {
   modelId: string;
   state: 'pending' | 'saved' | 'uncertain' | 'failed' | 'save_failed';
   reason?:
-    'authentication' | 'quota' | 'parameters' | 'generation' | 'uncertain' | 'cancelled' | 'saving';
+    | 'authentication'
+    | 'access'
+    | 'quota'
+    | 'parameters'
+    | 'generation'
+    | 'uncertain'
+    | 'cancelled'
+    | 'saving';
   path?: string;
   sha256?: string;
   usage?: Record<string, number>;

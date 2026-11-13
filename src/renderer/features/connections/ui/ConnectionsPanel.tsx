@@ -68,9 +68,11 @@ export function ConnectionsPanel() {
                       ? 'Ключ принят API'
                       : imageStatuses[connection.id]?.authentication === 'invalid'
                         ? 'Ошибка авторизации API'
-                        : imageStatuses[connection.id]?.keyStored
-                          ? 'Ключ сохранён · авторизация не проверена'
-                          : 'API-ключ не сохранён'
+                        : imageStatuses[connection.id]?.authentication === 'restricted'
+                          ? 'Доступ API ограничен · проверьте разрешения'
+                          : imageStatuses[connection.id]?.keyStored
+                            ? 'Ключ сохранён · авторизация не проверена'
+                            : 'API-ключ не сохранён'
                     : providerStatuses[connection.providerId] === 'ready'
                       ? 'Подключено'
                       : providerStatuses[connection.providerId] === 'not_ready'

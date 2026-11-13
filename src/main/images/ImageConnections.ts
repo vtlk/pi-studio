@@ -14,7 +14,12 @@ export class ImageConnections {
   readonly api: ImagesApi;
   private checked = new Map<
     string,
-    { revision: string; checkedAt: number; modelIds: string[]; authentication: 'ready' | 'invalid' }
+    {
+      revision: string;
+      checkedAt: number;
+      modelIds: string[];
+      authentication: 'ready' | 'invalid' | 'restricted';
+    }
   >();
   constructor(service: StudioService, vault: SecretVault, api = new ImagesApi()) {
     this.service = service;
@@ -79,13 +84,16 @@ export class ImageConnections {
     try {
       models = await this.api.models(key);
     } catch (error) {
+      await this.scope(request);
+      if ((await this.vault.inspect(scope.folder, scope.id)).revision !== before.revision)
+        throw new Error('Ключ изменился во время проверки. Повторите проверку.', { cause: error });
       this.checked.delete(scope.cache);
-      if (error instanceof ImagesApiError && error.kind === 'authentication')
+      if (error instanceof ImagesApiError && ['authentication', 'access'].includes(error.kind))
         this.checked.set(scope.cache, {
           revision: before.revision,
           checkedAt: Date.now(),
           modelIds: [],
-          authentication: 'invalid',
+          authentication: error.kind === 'access' ? 'restricted' : 'invalid',
         });
       throw error;
     }
@@ -115,7 +123,7 @@ export class ImageConnections {
   async reportAuthorization(
     request: ImageConnectionRequest,
     revision: string,
-    valid: boolean,
+    valid: boolean | 'restricted',
     modelId?: string,
   ) {
     const scope = await this.scope(request);
@@ -124,15 +132,16 @@ export class ImageConnections {
     this.checked.set(scope.cache, {
       revision,
       checkedAt: Date.now(),
-      authentication: valid ? 'ready' : 'invalid',
-      modelIds: valid
-        ? [
-            ...new Set([
-              ...(previous?.revision === revision ? previous.modelIds : []),
-              ...(modelId ? [modelId] : []),
-            ]),
-          ].sort()
-        : [],
+      authentication: valid === 'restricted' ? 'restricted' : valid ? 'ready' : 'invalid',
+      modelIds:
+        valid === true
+          ? [
+              ...new Set([
+                ...(previous?.revision === revision ? previous.modelIds : []),
+                ...(modelId ? [modelId] : []),
+              ]),
+            ].sort()
+          : [],
     });
   }
 }

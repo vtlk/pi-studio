@@ -7,7 +7,8 @@ const assert = require('node:assert/strict');
 const KEY = 'QA_SYNTHETIC_IMAGES_KEY_NOT_A_REAL_CREDENTIAL';
 const REPLACEMENT = 'QA_SYNTHETIC_REPLACEMENT_NOT_A_REAL_CREDENTIAL';
 let temporary,
-  checks = 0;
+  checks = 0,
+  restricted = true;
 const deadline = setTimeout(() => {
   console.error('Image settings smoke timed out');
   app.exit(1);
@@ -20,6 +21,8 @@ global.fetch = async (url, init) => {
   assert.equal(init?.method, undefined);
   assert.equal(new Headers(init.headers).get('Authorization'), `Bearer ${KEY}`);
   checks++;
+  if (restricted)
+    return Response.json({ error: `Missing scopes: api.model.read. ${KEY}` }, { status: 403 });
   return Response.json({ data: [{ id: 'gpt-image-2.5-flare' }, { id: 'gpt-6' }] });
 };
 (async () => {
@@ -104,10 +107,21 @@ global.fetch = async (url, init) => {
   );
   assert.equal(await js(`document.querySelector('[aria-label="API-ключ изображений"]').value`), '');
   await click('Проверить подключение');
+  await until(`document.body.textContent.includes('List models → Read')`);
+  await until(
+    `Array.from(document.querySelectorAll('[role="status"]')).some(element=>element.textContent.includes('API ограничил доступ'))`,
+  );
+  assert.equal(
+    (await js(`window.studio.readImageConnection(${JSON.stringify(request)})`)).authentication,
+    'restricted',
+  );
+  assert.equal(await js(`document.body.textContent.includes(${JSON.stringify(KEY)})`), false);
+  restricted = false;
+  await click('Проверить подключение');
   await until(
     `Array.from(document.querySelectorAll('[role="status"]')).some(element=>element.textContent.includes('Ключ принят API'))`,
   );
-  assert.equal(checks, 1);
+  assert.equal(checks, 2);
   await click('Отмена');
   await click('Генерация изображений · внутренний MCP');
   await select('API-подключение генерации изображений', 'QA Images');
@@ -123,7 +137,7 @@ global.fetch = async (url, init) => {
     connectionId: connection.id,
     modelId: 'gpt-image-2.5-flare',
   });
-  assert.equal(checks, 1);
+  assert.equal(checks, 2);
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/images-settings.png'), (await window.capturePage()).toPNG());
   await click('Настроить');

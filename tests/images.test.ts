@@ -392,3 +392,104 @@ test('generation auth failures update connection health, and a stale result neve
   await f.connections.reportAuthorization(f.connection, old.revision, false);
   assert.equal((await f.connections.status(f.connection)).authentication, 'unchecked');
 });
+
+test('catalog permission refusals distinguish restricted access from invalid keys without echoing provider text', async () => {
+  const cases = [
+    {
+      body: { error: `Missing scopes: api.model.read. ${KEY}` },
+      status: 403,
+      kind: 'access',
+      text: /List models → Read/,
+    },
+    {
+      body: { error: { message: `Missing scopes: api.model.read. ${KEY}` } },
+      status: 401,
+      kind: 'access',
+      text: /api.model.read/,
+    },
+    {
+      body: { error: { code: 'invalid_api_key', message: KEY } },
+      status: 401,
+      kind: 'authentication',
+      text: /ключ не принят/,
+    },
+    {
+      body: { error: { code: 'unsupported_country_region_territory', message: KEY } },
+      status: 403,
+      kind: 'access',
+      text: /страны или региона/,
+    },
+    { body: { error: { message: KEY } }, status: 403, kind: 'access', text: /HTTP 403/ },
+    { body: null, status: 403, kind: 'access', text: /HTTP 403/ },
+  ];
+  for (const item of cases) {
+    let calls = 0;
+    const api = new ImagesApi(async (url, options) => {
+      calls++;
+      assert.equal(url, 'https://api.openai.com/v1/models');
+      assert.notEqual(options?.method, 'POST');
+      return Response.json(item.body, { status: item.status });
+    });
+    await assert.rejects(api.models(KEY), (error: Error & { kind?: string }) => {
+      assert.equal(error.kind, item.kind);
+      assert.match(error.message, item.text);
+      assert.ok(!inspect(error).includes(KEY));
+      return true;
+    });
+    assert.equal(calls, 1);
+  }
+  for (const body of ['<html>forbidden ' + KEY + '</html>', 'x'.repeat(20000) + KEY]) {
+    const api = new ImagesApi(async () => new Response(body, { status: 403 }));
+    await assert.rejects(
+      api.models(KEY),
+      (error: Error & { kind?: string }) =>
+        error.kind === 'access' && !inspect(error).includes(KEY),
+    );
+  }
+});
+
+test('a missing models-read permission keeps the key stored and reports restricted access', async (t) => {
+  const f = await fixture(t, async () =>
+    Response.json(
+      {
+        error: `Insufficient permissions. Missing scopes: api.model.read. ${KEY}`,
+      },
+      { status: 403 },
+    ),
+  );
+  await f.connections.save({ ...f.connection, key: KEY });
+  await assert.rejects(f.connections.check(f.connection), /List models → Read/);
+  const state = await f.connections.status(f.connection);
+  assert.equal(state.authentication, 'restricted');
+  assert.equal(state.keyStored, true);
+  assert.deepEqual(state.modelIds, []);
+  assert.ok(!JSON.stringify(state).includes(KEY));
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /api.model.read/);
+  assert.equal((await f.connections.status(f.connection)).authentication, 'restricted');
+});
+
+test('a stale catalog refusal cannot overwrite a replacement key successful check', async (t) => {
+  let refuse!: (response: Response) => void;
+  let started!: () => void;
+  const entered = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    if (++calls === 1) {
+      started();
+      return new Promise<Response>((resolve) => {
+        refuse = resolve;
+      });
+    }
+    return Response.json({ data: [{ id: 'gpt-image-2' }] });
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const stale = f.connections.check(f.connection);
+  await entered;
+  await f.connections.save({ ...f.connection, key: 'QA_REPLACEMENT_KEY' });
+  await f.connections.check(f.connection);
+  refuse(Response.json({ error: 'Missing scopes: api.model.read' }, { status: 403 }));
+  await assert.rejects(stale, /Ключ изменился/);
+  assert.equal((await f.connections.status(f.connection)).authentication, 'ready');
+});

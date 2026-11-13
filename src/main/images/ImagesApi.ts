@@ -2,7 +2,7 @@ import { validatePngBytes } from '../storage/png.ts';
 
 export class ImagesApiError extends Error {
   readonly kind:
-    'authentication' | 'quota' | 'parameters' | 'generation' | 'uncertain' | 'cancelled';
+    'authentication' | 'access' | 'quota' | 'parameters' | 'generation' | 'uncertain' | 'cancelled';
   constructor(kind: ImagesApiError['kind'], message: string, options?: ErrorOptions) {
     super(message, options);
     this.kind = kind;
@@ -27,19 +27,53 @@ async function readBody(response: Response, limit: number) {
     await reader.cancel().catch(() => {});
   }
 }
-async function apiError(response: Response): Promise<never> {
-  if (response.status === 401 || response.status === 403)
+async function apiError(response: Response, catalog = false): Promise<never> {
+  const body = await readBody(response, 16384).catch(() => null);
+  const failure = body && typeof body === 'object' ? body.error : undefined;
+  const detail =
+    failure && typeof failure === 'object' ? (failure as Record<string, unknown>) : undefined;
+  const code = typeof detail?.code === 'string' ? detail.code : '';
+  const message =
+    typeof failure === 'string'
+      ? failure
+      : typeof detail?.message === 'string'
+        ? detail.message
+        : '';
+  // Provider text may contain credentials. Use it only for classification, never echo it.
+  if (response.status === 401 || response.status === 403) {
+    if (/\bapi\.model\.read\b/i.test(message))
+      throw new ImagesApiError(
+        'access',
+        `OpenAI: не хватает разрешения api.model.read для чтения каталога. В OpenAI Platform включите «List models → Read» для ключа и проверьте права его владельца в проекте.${catalog ? ' Генерация не запускалась.' : ' Автоматического повтора нет.'}`,
+      );
+    if (
+      ['unsupported_country_region_territory', 'country_not_supported'].includes(code) ||
+      /(?:unsupported|not supported).*(?:country|region|territory)|(?:country|region|territory).*(?:unsupported|not supported)/i.test(
+        message,
+      )
+    )
+      throw new ImagesApiError(
+        'access',
+        'OpenAI: API недоступен для страны или региона текущего подключения. Проверьте доступность OpenAI API; замена модели не устранит это ограничение.',
+      );
+    if (
+      code !== 'invalid_api_key' &&
+      (response.status === 403 ||
+        /missing scopes?|insufficient permissions|permission denied/i.test(message))
+    )
+      throw new ImagesApiError(
+        'access',
+        `OpenAI запретил ${catalog ? 'чтение каталога моделей' : 'генерацию изображения'} (HTTP ${response.status}). Проверьте разрешения API-ключа и права в проекте OpenAI. Неверный ключ не подтверждён.`,
+      );
     throw new ImagesApiError(
       'authentication',
-      'Images API: ключ не принят или доступ запрещён. Проверьте подключение.',
+      `Images API: ключ не принят (HTTP ${response.status}). Проверьте, что ключ действующий и относится к нужному проекту OpenAI.`,
     );
+  }
   if (response.status === 429) {
-    const body = (await readBody(response, 16384).catch(() => ({}))) as {
-      error?: { code?: unknown };
-    };
     throw new ImagesApiError(
       'quota',
-      body.error?.code === 'insufficient_quota'
+      code === 'insufficient_quota'
         ? 'Images API: исчерпана квота API. Подписка ChatGPT не подменяется другим подключением.'
         : 'Images API: достигнут лимит запросов. Автоматического повтора нет.',
     );
@@ -104,7 +138,7 @@ export class ImagesApi {
         'Не удалось проверить Images API. Проверьте сеть и повторите проверку; генерация не запускалась.',
       );
     }
-    if (!response.ok) return apiError(response);
+    if (!response.ok) return apiError(response, true);
     let body: Record<string, unknown>;
     try {
       body = await readBody(response, 2 * 1024 ** 2);

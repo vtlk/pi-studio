@@ -210,19 +210,19 @@ export class ImageGeneration {
       };
     } catch (error) {
       if (operation) {
-        if (error instanceof ImagesApiError && error.kind === 'authentication')
+        if (error instanceof ImagesApiError && ['authentication', 'access'].includes(error.kind))
           await this.connections
             .reportAuthorization(
               { folder: binding.folder, connectionId: operation.connectionId },
               credentialRevision,
-              false,
+              error.kind === 'access' ? 'restricted' : false,
             )
             .catch(() => {});
         operation.reason = error instanceof ImagesApiError ? error.kind : 'saving';
         if (operation.state === 'pending')
           operation.state =
             error instanceof ImagesApiError &&
-            ['authentication', 'quota', 'parameters'].includes(error.kind)
+            ['authentication', 'access', 'quota', 'parameters'].includes(error.kind)
               ? 'failed'
               : 'uncertain';
         await this.operations.save(binding.scope, operations).catch(() => {});

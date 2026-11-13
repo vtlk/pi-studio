@@ -73,6 +73,7 @@ export function ImageToolSettings() {
             });
             await refreshImageConnection(imageTool.connectionId);
           } catch (error) {
+            await refreshImageConnection(imageTool.connectionId).catch(() => {});
             demo(
               error instanceof Error ? error.message : 'Не удалось прочитать модели Images API.',
             );
