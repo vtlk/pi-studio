@@ -129,8 +129,7 @@
   min-width: 0;
 }
 .project-list-name,
-.project-list-folder,
-.trash-project-name {
+.project-list-folder {
   display: block;
   overflow: hidden;
   white-space: nowrap;
@@ -203,29 +202,4 @@
   margin-top: 24px;
   font-size: 14px;
   font-weight: 400;
-}
-.projects-trash .disclosure {
-  border: 0;
-  border-top: 1px solid #d4d4d8;
-  border-radius: 0;
-}
-.projects-trash .disclosure-heading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 0 16px;
-  background: transparent;
-}
-.projects-trash .disclosure-trigger {
-  padding: 16px 0;
-  font-size: 14px;
-  font-weight: 400;
-}
-.app-shell .projects-trash .disclosure-trigger:hover:not(:disabled) {
-  background: #f4f4f5;
-  color: #18181b;
-}
-.trash-project-name {
-  flex: 1;
-  min-width: 0;
 }

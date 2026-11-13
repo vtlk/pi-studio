@@ -577,38 +577,6 @@ input::placeholder {
 .script-editor {
   min-height: calc(100vh - 420px);
 }
-.disclosure {
-  margin-top: 16px;
-  border-top: 1px solid #c9c9d0;
-}
-.disclosure-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 13px 0;
-  width: 100%;
-  font-size: 15px;
-  font-weight: 500;
-  text-align: left;
-  color: #202027;
-}
-.disclosure-trigger:hover:not(:disabled) {
-  background: #f2f2f4;
-  color: #202027;
-}
-.disclosure-trigger svg {
-  transition: transform 0.15s;
-}
-.disclosure-trigger[aria-expanded='true'] svg {
-  transform: rotate(180deg);
-}
-.disclosure-content {
-  padding: 0 0 14px;
-}
-.disclosure-content[hidden] {
-  display: none;
-}
 .scene-choices {
   margin-top: 18px;
 }
@@ -620,11 +588,6 @@ input::placeholder {
 .scene-duration {
   margin-left: auto;
   white-space: nowrap;
-}
-@media (prefers-reduced-motion: reduce) {
-  .disclosure-trigger svg {
-    transition: none;
-  }
 }
 .section-menu {
   display: flex;

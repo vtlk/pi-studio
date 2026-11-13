@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { OutputFile, ProjectAgent } from '@/features/project/model/workspace.types';
 import { inspectManifest } from '../model/manifest';
 import { Button } from '@/shared/ui';
-import { Disclosure } from '@/shared/ui/Disclosure';
+import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
 import { EditorPrototype } from './EditorPrototype';
 export function MontageCard({
   file,
@@ -50,9 +50,11 @@ export function MontageCard({
       <Button kind="primary" disabled={!result.ok} onClick={() => setOpen(true)}>
         Открыть монтаж
       </Button>
-      <Disclosure label="Манифест">
-        <pre className="output-text output-code">{file.content}</pre>
-      </Disclosure>
+      <DisclosureList>
+        <Disclosure label="Манифест">
+          <pre className="output-text output-code">{file.content}</pre>
+        </Disclosure>
+      </DisclosureList>
     </section>
   );
 }

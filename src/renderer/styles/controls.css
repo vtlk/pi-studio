@@ -276,14 +276,6 @@
   line-height: 1.8;
 }
 
-.disclosure-heading {
-  display: flex;
-  align-items: center;
-}
-.disclosure-heading > .disclosure-trigger {
-  flex: 1;
-  min-width: 0;
-}
 .ui-select-trigger {
   display: inline-flex;
   align-items: center;

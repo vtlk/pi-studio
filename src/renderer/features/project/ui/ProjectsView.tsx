@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Trash2 } from 'lucide-react';
+import { Folder, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui';
-import { Disclosure } from '@/shared/ui/Disclosure';
+import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
+import { ListRow } from '@/shared/ui/ListRow';
 import { useStorage } from '@/shared/storage/Storage';
 import { ProjectNameDialog } from './ProjectNameDialog';
 import type { WorkspaceProject } from '../model/workspace.types';
@@ -11,7 +12,6 @@ import { useLaunch } from '@/features/launch/model/Launch';
 import { useNotice } from '@/shared/model/Notice';
 import { useWorkspace } from '../model/Workspace';
 import { ProjectListRow } from './ProjectListRow';
-import { Tooltip } from '@/shared/ui/Tooltip';
 import { useProjectFileCounts } from '../model/useProjectFileCounts';
 import './projectsList.css';
 
@@ -126,22 +126,25 @@ export function ProjectsView() {
         </tbody>
       </table>
       <div className="projects-trash">
-        <Disclosure
-          label={`Корзина студии · ${trashProjects.length}`}
-          leading={<Trash2 size={20} aria-hidden="true" />}
-        >
-          {!trashProjects.length && <p className="subtle">Корзина пуста.</p>}
-          {trashProjects.map((project) => (
-            <div className="version-row" key={project.id}>
-              <Tooltip label={project.name} onlyWhenTruncated>
-                <span className="trash-project-name">{project.name}</span>
-              </Tooltip>
-              <Button disabled={busy} onClick={() => void restoreProject(project)}>
-                Восстановить
-              </Button>
-            </div>
-          ))}
-        </Disclosure>
+        <DisclosureList>
+          <Disclosure label={`Корзина студии · ${trashProjects.length}`} icon={Trash2}>
+            {!trashProjects.length && <p className="subtle">Корзина пуста.</p>}
+            <DisclosureList>
+              {trashProjects.map((project) => (
+                <ListRow
+                  key={project.id}
+                  label={project.name}
+                  icon={Folder}
+                  actions={
+                    <Button disabled={busy} onClick={() => void restoreProject(project)}>
+                      Восстановить
+                    </Button>
+                  }
+                />
+              ))}
+            </DisclosureList>
+          </Disclosure>
+        </DisclosureList>
       </div>
       {edit && <ProjectNameDialog {...edit} onClose={() => setEdit(null)} />}
     </div>

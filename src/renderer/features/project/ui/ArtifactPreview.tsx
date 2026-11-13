@@ -1,5 +1,5 @@
 import type { ProjectAgent, OutputFile } from '../model/workspace.types';
-import { Disclosure } from '@/shared/ui/Disclosure';
+import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
 export function ArtifactPreview({ file }: { file: OutputFile; agent: ProjectAgent }) {
   const artifact = file.artifact;
   if (!artifact) return null;
@@ -15,21 +15,23 @@ export function ArtifactPreview({ file }: { file: OutputFile; agent: ProjectAgen
           </div>
         ))}
       </dl>
-      {artifact.reference && (
-        <Disclosure label="Версия материала библиотеки" defaultOpen>
-          <p>
-            {artifact.reference.title} · зафиксирована v{artifact.reference.version}. Доступна v
-            {artifact.reference.latestVersion}.
-          </p>
-          <p>
-            Обновление ссылки и создание проектного варианта выполняются агентом после явного выбора
-            в диалоге.
-          </p>
+      <DisclosureList>
+        {artifact.reference && (
+          <Disclosure label="Версия материала библиотеки" defaultOpen>
+            <p>
+              {artifact.reference.title} · зафиксирована v{artifact.reference.version}. Доступна v
+              {artifact.reference.latestVersion}.
+            </p>
+            <p>
+              Обновление ссылки и создание проектного варианта выполняются агентом после явного
+              выбора в диалоге.
+            </p>
+          </Disclosure>
+        )}
+        <Disclosure label="Исходный JSON">
+          <pre className="output-text output-code">{file.content}</pre>
         </Disclosure>
-      )}
-      <Disclosure label="Исходный JSON">
-        <pre className="output-text output-code">{file.content}</pre>
-      </Disclosure>
+      </DisclosureList>
     </section>
   );
 }

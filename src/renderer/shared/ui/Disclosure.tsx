@@ -1,38 +1,48 @@
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ListRow, type ListRowProps } from './ListRow';
+export { List as DisclosureList } from './ListRow';
 
 export function Disclosure({
   label,
   children,
   defaultOpen = false,
-  leading,
+  icon,
+  toggle,
+  dragHandle,
   actions,
 }: {
   label: string;
   children: ReactNode;
   defaultOpen?: boolean;
-  leading?: ReactNode;
+  icon?: ListRowProps['icon'];
+  toggle?: ListRowProps['toggle'];
+  dragHandle?: ReactNode;
   actions?: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const contentId = useId();
+  const triggerId = useId();
   return (
     <section className="disclosure">
-      <div className="disclosure-heading">
-        {leading}
-        <button
-          type="button"
-          className="disclosure-trigger"
-          aria-expanded={open}
-          aria-controls={contentId}
-          onClick={() => setOpen((value) => !value)}
-        >
-          <span>{label}</span>
-          <ChevronDown size={18} aria-hidden="true" />
-        </button>
-        {actions}
-      </div>
-      <div className="disclosure-content" id={contentId} hidden={!open}>
+      <ListRow
+        className="disclosure-heading"
+        label={label}
+        icon={icon}
+        toggle={toggle}
+        dragHandle={dragHandle}
+        actions={actions}
+        id={triggerId}
+        expanded={open}
+        controls={contentId}
+        onClick={() => setOpen((value) => !value)}
+      />
+      <div
+        className="disclosure-content"
+        role="region"
+        aria-labelledby={triggerId}
+        id={contentId}
+        hidden={!open}
+      >
         {children}
       </div>
     </section>

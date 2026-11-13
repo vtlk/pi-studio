@@ -256,7 +256,7 @@ const timeout = setTimeout(() => {
   );
   await js(`document.querySelector('.projects-trash .disclosure-trigger').click()`);
   await js(
-    `Array.from(document.querySelectorAll('.projects-trash .version-row')).find(row=>row.textContent.includes('Копия для проверки')).querySelector('button').click()`,
+    `Array.from(document.querySelectorAll('.projects-trash .disclosure-content .ui-list-row')).find(row=>row.textContent.includes('Копия для проверки')).querySelector('.ui-list-row-actions button').click()`,
   );
   await until(`document.querySelector('.projects-total')?.textContent==='5 проектов'`);
   await until(

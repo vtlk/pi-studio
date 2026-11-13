@@ -6,7 +6,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useLaunch } from '@/features/launch/model/Launch';
 import { locations } from '@/fixtures/studio';
 import { Button } from '@/shared/ui';
-import { Disclosure } from '@/shared/ui/Disclosure';
+import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
 import { Select } from '@/shared/ui/Select';
 import { Preview } from '@/features/preview/ui/Preview';
 import { Timeline } from '@/features/preview/ui/Timeline';
@@ -93,9 +93,11 @@ export function ScenesView() {
           <div className="simple-scene-layout">
             <div>
               <Preview />
-              <Disclosure label="Слои и монтажная область">
-                <Timeline />
-              </Disclosure>
+              <DisclosureList>
+                <Disclosure label="Слои и монтажная область">
+                  <Timeline />
+                </Disclosure>
+              </DisclosureList>
               <div className="simple-prompt">
                 <textarea
                   aria-label="Правка сцены"

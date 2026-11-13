@@ -111,33 +111,6 @@
   right: 0;
   transform: translateY(-50%);
 }
-.resource-binding {
-  position: relative;
-  border-bottom: 1px solid var(--line);
-}
-.resource-binding > .disclosure {
-  margin: 0;
-  border-top: 0;
-}
-.resource-binding .disclosure-heading {
-  gap: 12px;
-  padding-right: 40px;
-}
-.resource-binding .hover-delete {
-  top: 10px;
-  right: 0;
-}
-.resource-binding:hover .hover-delete,
-.resource-binding:focus-within .hover-delete {
-  opacity: 1;
-  pointer-events: auto;
-}
-.resource-binding .disclosure-content {
-  padding: 0 0 18px 54px;
-}
-.resource-binding .disclosure-content p {
-  font-size: 14px;
-}
 .resource-binding .field-label {
   margin-bottom: 0;
 }
@@ -464,9 +437,6 @@
   font-size: 13px;
   padding: 8px 10px;
 }
-.editor-prototype > .disclosure {
-  margin: 0 14px;
-}
 .editor-fullscreen .editor-body {
   grid-template-columns: minmax(0, 1fr) 250px;
 }
@@ -532,10 +502,6 @@
 .asset-thumb {
   border-radius: 6px;
 }
-.library-task > .disclosure p {
-  margin: 10px 0;
-  font-size: 13px;
-}
 .library-task .action-row {
   gap: 8px;
 }
@@ -550,10 +516,6 @@
   grid-template-columns: 70px minmax(0, 1fr);
   font-size: 12px;
   gap: 10px;
-}
-.library-task > .disclosure > .disclosure-content > .button {
-  min-height: 34px;
-  font-size: 13px;
 }
 .control-line {
   display: flex;
@@ -600,15 +562,7 @@
   left: 5%;
   right: 5%;
 }
-.instruction-delete {
-  opacity: 0;
-  pointer-events: none;
-}
-.instruction-sortable:hover .instruction-delete,
-.instruction-sortable:focus-within .instruction-delete {
-  opacity: 1;
-  pointer-events: auto;
-}
+
 .settings-field-row {
   display: flex;
   align-items: flex-end;

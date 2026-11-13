@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
-import { Disclosure } from '@/shared/ui/Disclosure';
+import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
 import type { SkillDocument } from '../../../../shared/resources';
 
 export function LocalSkillInfo({
@@ -49,9 +49,11 @@ export function LocalSkillInfo({
             <dt>Состояние</dt>
             <dd>Файл прочитан · загрузка в Pi-сессию ещё не подключена</dd>
           </dl>
-          <Disclosure label="Содержимое SKILL.md">
-            <pre className="output-text">{skill.content}</pre>
-          </Disclosure>
+          <DisclosureList>
+            <Disclosure label="Содержимое SKILL.md">
+              <pre className="output-text">{skill.content}</pre>
+            </Disclosure>
+          </DisclosureList>
           <p className="subtle">
             Текст читается из исходного файла при открытии. Внешний skill здесь доступен только для
             чтения; его скрипты не запускаются.

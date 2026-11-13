@@ -14,6 +14,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { AddArea } from '@/shared/ui/AddArea';
+import { DisclosureList } from '@/shared/ui/Disclosure';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { InstructionBlock } from './InstructionBlock';
 
@@ -56,7 +57,7 @@ export function InstructionsPanel() {
         }}
       >
         <SortableContext items={selectedAgent.instructions} strategy={verticalListSortingStrategy}>
-          <div className="instruction-sortable-list">
+          <DisclosureList className="instruction-sortable-list">
             {selectedAgent.instructions.map((item) => (
               <InstructionBlock key={`${selectedAgent.id}:${item.id}`} item={item} />
             ))}
@@ -76,7 +77,7 @@ export function InstructionsPanel() {
                 })
               }
             />
-          </div>
+          </DisclosureList>
         </SortableContext>
       </DndContext>
     </div>

@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.24",
+  "version": "0.2.0-alpha.25",
   "private": true,
   "description": "Pi Studio для macOS — локальные проекты и конструктор агентов",
   "type": "module",
@@ -45,7 +45,8 @@
     "test:mcp-oauth": "node --experimental-strip-types scripts/smoke-mcp-oauth.ts",
     "test:mcp-oauth-ui": "npm run build && electron scripts/smoke-mcp-oauth-ui.cjs",
     "test:stereo": "npm run build && electron scripts/smoke-video.cjs --stereo",
-    "test:projects-list": "npm run build && electron scripts/smoke-projects-list.cjs"
+    "test:projects-list": "npm run build && electron scripts/smoke-projects-list.cjs",
+    "test:disclosures": "npm run build && electron scripts/smoke-disclosure-list.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

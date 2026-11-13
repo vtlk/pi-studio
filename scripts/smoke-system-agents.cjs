@@ -141,7 +141,7 @@ const deadline = setTimeout(() => {
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   await js(
-    `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.includes('System exclusion')&&!button.getAttribute('aria-label')).click()`,
+    `Array.from(document.querySelectorAll('.project-list-row')).find(button=>button.textContent.includes('System exclusion')).click()`,
   );
   await until(`!!document.querySelector('.project-header')`);
   const beforeSync = await js('window.studio.loadStudio()');
