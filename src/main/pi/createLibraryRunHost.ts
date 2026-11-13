@@ -17,6 +17,7 @@ import { getProviderStatus } from './provider.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
 import type { openSessionTerminal } from './terminal.ts';
+import type { ImageGeneration } from '../images/ImageGeneration.ts';
 
 interface Options {
   bootstraps: string;
@@ -24,6 +25,7 @@ interface Options {
   catalog: string;
   piPath: () => string;
   references: ReferenceFiles;
+  images?: ImageGeneration;
   headless?: boolean;
   openTerminal?: typeof openSessionTerminal;
 }
@@ -35,8 +37,13 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
   const host = new RunHost({
     ...options,
     serviceAgent: true,
-    tools: [...productionTools, ...libraryTools],
-    tool: (run, name, args) => libraryTool(service, run, name, args, 'library-service'),
+    tools: (run) => [...productionTools, ...libraryTools, ...(options.images?.tools(run) ?? [])],
+    closed: (run) => options.images?.cancel(run),
+    capabilities: (run, extensions) => options.images?.runtime(run, extensions),
+    tool: (run, name, args) =>
+      ['generate_image', 'get_image_operation'].includes(name) && options.images
+        ? options.images.tool(run, name, args)
+        : libraryTool(service, run, name, args, 'library-service'),
     prepare: (request) =>
       service.serialize(async () => {
         const input = requests.get(request.projectId);
@@ -110,6 +117,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
           (sections.resources ?? []) as Resource[],
         );
         await options.references.attach(run, input.attachments, store.folder, selected.imageInput);
+        options.images?.bind(run, store.folder, selected);
         await atomicJson(join(root, 'state.json'), { schemaVersion: 1, kind: input.kind, project });
         return { run, piPath: path };
       }),

@@ -142,6 +142,7 @@ export class RunHost {
       void pending.catch(() => {});
       const live = current!;
       this.live.set(key, live);
+      const tools = this.dependencies.tools;
       const transport = await this.channel.add(
         run.record.runId,
         {
@@ -155,7 +156,7 @@ export class RunHost {
         },
         (event) => this.lifecycle.event(live, event),
         (name, args) => this.lifecycle.tool(live, name, args),
-        this.dependencies.tools,
+        typeof tools === 'function' ? () => tools(run) : tools,
       );
       await mkdir(this.dependencies.bootstraps, { recursive: true, mode: 0o700 });
       const bootstrap = join(this.dependencies.bootstraps, `${run.record.runId}.json`);
@@ -185,6 +186,7 @@ export class RunHost {
       }
     } catch (error) {
       if (current) {
+        this.dependencies.closed?.(current.run);
         current.status = 'error';
         await this.dependencies.update(current.run, 'error');
       }
@@ -196,6 +198,7 @@ export class RunHost {
   private async checkLiveness() {
     for (const [key, live] of this.live)
       if ((live.pid && !processAlive(live.pid)) || Date.now() - live.heartbeat > 20000) {
+        this.dependencies.closed?.(live.run);
         live.status = closedRunStatus(live.status);
         await this.dependencies.update(live.run, live.status).catch(() => {});
         this.channel.remove(live.run.record.runId);
@@ -208,8 +211,10 @@ export class RunHost {
   }
   close() {
     clearInterval(this.monitor);
-    for (const live of this.live.values())
+    for (const live of this.live.values()) {
+      this.dependencies.closed?.(live.run);
       if (live.pid && processAlive(live.pid)) process.kill(live.pid, 'SIGTERM');
+    }
     this.channel.close();
     this.live.clear();
   }
@@ -230,6 +235,7 @@ export class RunHost {
     if (this.opening.has(key)) throw new Error('Дождитесь открытия Pi перед удалением агента.');
     const live = this.live.get(key);
     if (!live) return;
+    this.dependencies.closed?.(live.run);
     if (live.pid && processAlive(live.pid)) {
       process.kill(live.pid, 'SIGTERM');
       for (let i = 0; i < 100 && processAlive(live.pid); i++)

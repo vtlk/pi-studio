@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.14",
+  "version": "0.2.0-alpha.15",
   "private": true,
   "description": "Pi Studio для macOS — локальные проекты и конструктор агентов",
   "type": "module",
@@ -17,6 +17,8 @@
     "test:connections": "npm run build && electron scripts/smoke-connections.cjs",
     "test:launch-configuration": "npm run build && electron scripts/smoke-launch-configuration.cjs",
     "test:pi-current-model": "node --experimental-strip-types scripts/smoke-pi-current-model.ts",
+    "test:images": "npm run build && electron scripts/smoke-image-settings.cjs",
+    "test:pi-images": "node --experimental-strip-types scripts/smoke-pi-images.ts",
     "test:pi-library": "node --experimental-strip-types scripts/smoke-pi-session.ts --library",
     "test:pi-library-agents": "node --experimental-strip-types scripts/smoke-pi-library-agents.ts",
     "test:system-agents": "npm run build && electron scripts/smoke-system-agents.cjs",

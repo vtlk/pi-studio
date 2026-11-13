@@ -18,7 +18,9 @@ export interface RunDependencies {
   openTerminal?: typeof openSessionTerminal;
   headless?: boolean;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
-  tools?: readonly SessionTool[];
+  tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
+  closed?: (run: PreparedRun) => void;
+  capabilities?: (run: PreparedRun, executableExtensions: boolean) => void;
   tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
   serviceAgent?: boolean;
   completed?: (

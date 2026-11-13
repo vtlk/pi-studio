@@ -207,6 +207,7 @@ export async function runSession(bootstrapPath) {
         settings,
         envelope.resources.plugins,
       );
+      await event({ type: 'capabilities', executableExtensions: packages.extensions.length > 0 });
       const services = await createAgentSessionServices({
         cwd,
         settingsManager: settings,
@@ -226,7 +227,8 @@ export async function runSession(bootstrapPath) {
           appendSystemPrompt: [sessionSystemPrompt(envelope)],
           extensionFactories: [
             control,
-            createCodemodeExtension(),
+            // The agent has one selected LLM; no implicit calls to other globally authenticated models.
+            createCodemodeExtension({ models: false }),
             createToolSearchExtension(),
             createMcpExtension({
               loadConfig: () => ({ servers, errors: [] }),

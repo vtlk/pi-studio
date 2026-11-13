@@ -11,6 +11,7 @@ import { agentDirectory } from '../../shared/agentPaths.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 
 export interface PreparedRun {
+  requestSequence?: number;
   record: RunContextRecord;
   instructions: string;
   resources: ResolvedResources;

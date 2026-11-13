@@ -18,6 +18,7 @@ import type { LibraryListing } from './library';
 import type { LibraryKind } from './library';
 import type { ReferenceFile } from './attachments';
 import type { LibraryCharacter } from './characterRig';
+import type { ImageConnectionRequest, ImageConnectionStatus } from './connections';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -27,6 +28,10 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  readImageConnection(request: ImageConnectionRequest): Promise<ImageConnectionStatus>;
+  saveImageKey(request: ImageConnectionRequest & { key: string }): Promise<ImageConnectionStatus>;
+  removeImageKey(request: ImageConnectionRequest): Promise<ImageConnectionStatus>;
+  checkImageConnection(request: ImageConnectionRequest): Promise<ImageConnectionStatus>;
   getInfo(): Promise<DesktopInfo>;
   loadStudio(): Promise<StudioBootstrap>;
   chooseStudio(): Promise<StudioBootstrap | null>;
@@ -86,6 +91,10 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  readImageConnection: 'studio:image-connection',
+  saveImageKey: 'studio:image-key-save',
+  removeImageKey: 'studio:image-key-remove',
+  checkImageConnection: 'studio:image-connection-check',
   listLibrary: 'studio:list-library',
   readLibraryCharacter: 'studio:read-library-character',
   chooseReferenceFiles: 'studio:choose-reference-files',

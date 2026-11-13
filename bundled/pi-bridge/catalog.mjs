@@ -14,6 +14,7 @@ try {
     name: model.name || model.id,
     reasoning: model.reasoning === true,
     imageInput: model.input?.includes('image') === true,
+    api: model.api,
   }));
   const settings = SettingsManager.create(process.argv[3] || process.cwd());
   const provider = settings.getDefaultProvider(),

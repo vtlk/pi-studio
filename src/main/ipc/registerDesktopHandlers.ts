@@ -30,6 +30,7 @@ import { ReferenceFiles } from '../pi/ReferenceFiles';
 import { referenceImage } from '../pi/referenceImage';
 import { createLibraryRunHost } from '../pi/createLibraryRunHost';
 import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
+import { createImageServices, registerImageHandlers } from '../images/registerImageHandlers';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -53,12 +54,14 @@ export function registerDesktopHandlers(): StudioService {
     },
   });
   const references = new ReferenceFiles(referenceImage);
+  const { connections: imageConnections, images } = createImageServices(service);
   const runs = createStudioRunHost(service, {
     bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
     references,
+    images,
   });
   const resources = new StudioResources(service, {
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
@@ -78,6 +81,7 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
     references,
+    images,
   });
   app.on('before-quit', () => {
     browserAuth.close();
@@ -103,6 +107,7 @@ export function registerDesktopHandlers(): StudioService {
     });
   }
   registerLibraryHandlers(service, references, generators, caller);
+  registerImageHandlers(imageConnections, caller);
   ipcMain.handle(desktopChannels.beginCodexLogin, async (event) => {
     caller(event);
     const path = await service.serialize(async () =>
@@ -240,6 +245,7 @@ export function registerDesktopHandlers(): StudioService {
     runs.assertIdle();
     setup.assertIdle();
     generators.assertIdle();
+    images.assertIdle();
     return service.open(folder);
   });
   handle(desktopChannels.chooseStudio, async (event) => {
@@ -258,6 +264,7 @@ export function registerDesktopHandlers(): StudioService {
     runs.assertIdle();
     setup.assertIdle();
     generators.assertIdle();
+    images.assertIdle();
     return service.open(result.filePaths[0]);
   });
   handle(
@@ -280,7 +287,10 @@ export function registerDesktopHandlers(): StudioService {
       return current;
     };
     if (command.kind === 'remove-agent') await runs.stopAgent(command.projectId, command.agentId);
-    else if ('projectId' in command) runs.assertIdle(command.projectId);
+    else if ('projectId' in command) {
+      runs.assertIdle(command.projectId);
+      images.assertIdle(command.projectId);
+    }
     if (command.kind === 'update-agents') {
       const removed = await service.serialize(async () => {
         const store = await service.load();

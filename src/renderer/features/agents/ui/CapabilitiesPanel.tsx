@@ -22,23 +22,40 @@ export function CapabilitiesPanel() {
   const field = agentTab === 'Skills' ? 'skills' : agentTab === 'MCP' ? 'mcps' : 'plugins';
   return (
     <div className="agent-settings-content">
-      {field === 'mcps' && selectedSystemRole && (
+      {field === 'mcps' && (
         <div className="resource-binding" data-builtin-mcp>
           <Disclosure
-            label={systemAgentDefinitions[selectedSystemRole].mcp}
+            label={
+              selectedSystemRole
+                ? systemAgentDefinitions[selectedSystemRole].mcp
+                : 'Pi Studio · Проект'
+            }
             leading={<LockKeyhole size={16} aria-hidden="true" />}
           >
-            <p>{systemAgentDefinitions[selectedSystemRole].description}</p>
+            <p>
+              {selectedSystemRole
+                ? systemAgentDefinitions[selectedSystemRole].description
+                : 'Контекст и чтение файлов текущего проекта, библиотека, веб-поиск и проверка результата.'}
+            </p>
             <p className="subtle">Встроенный обязательный MCP. Отключение и удаление недоступны.</p>
             <p className="subtle">
               {selectedSystemRole === 'assistant'
                 ? 'Подключается при запуске помощника.'
-                : 'Подключается при запуске библиотечного агента.'}
+                : selectedSystemRole
+                  ? 'Подключается при запуске библиотечного агента.'
+                  : 'Подключается при запуске проектного агента.'}
             </p>
+            {selectedSystemRole !== 'assistant' && (
+              <p className="subtle">
+                Общий инструмент изображений использует API-подключение из настроек студии. Его
+                доступность проверяется при открытии Pi; ключ и вторая модель в профиль агента не
+                добавляются.
+              </p>
+            )}
           </Disclosure>
         </div>
       )}
-      {!selectedAgent[field].length && !(field === 'mcps' && selectedSystemRole) && (
+      {!selectedAgent[field].length && field !== 'mcps' && (
         <p>Ресурсы не добавлены. Выберите их из общего каталога.</p>
       )}
       {selectedAgent[field].map((id) => {

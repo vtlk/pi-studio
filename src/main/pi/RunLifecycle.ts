@@ -54,11 +54,16 @@ export class RunLifecycle {
       };
       const project = await this.dependencies.update(live.run, live.status, live.bound);
       live.ready({ runId: live.run.record.runId, project });
+    } else if (event.type === 'capabilities') {
+      if (typeof event.executableExtensions !== 'boolean')
+        throw new Error('Invalid runtime capabilities');
+      this.dependencies.capabilities?.(live.run, event.executableExtensions);
     } else if (event.type === 'opened' && this.dependencies.serviceAgent) {
       live.ready({ runId: live.run.record.runId, project: await this.dependencies.read(live.run) });
     } else if (event.type === 'request') {
       await this.dependencies.beforeRequest?.(live.run);
       live.sequence++;
+      live.run.requestSequence = live.sequence;
       live.userMessage =
         typeof event.message === 'string' ? event.message.slice(0, 200_000) : undefined;
       live.completion = undefined;
@@ -121,6 +126,7 @@ export class RunLifecycle {
           });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {
+      this.dependencies.closed?.(live.run);
       live.status = event.type === 'error' ? 'error' : closedRunStatus(live.status);
       await this.dependencies.update(live.run, live.status);
       live.fail(

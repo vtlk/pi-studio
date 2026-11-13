@@ -2,15 +2,9 @@ import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { useContext, type ReactNode } from 'react';
 import { ConnectionsContext } from './Connections.context';
 import { useProviderStatuses } from './useProviderStatuses';
-export interface Connection {
-  id: string;
-  name: string;
-  purpose: 'codex' | 'images' | 'pi' | 'compatible' | 'local';
-  providerId: string;
-  endpoint: string;
-  account: string;
-  createdAt: number;
-}
+import type { Connection } from '../../../../shared/connections';
+import { useImageConnections } from './useImageConnections';
+export type { Connection } from '../../../../shared/connections';
 export const exampleConnections: Connection[] = [
   {
     id: 'codex-subscription',
@@ -44,12 +38,19 @@ function useConnectionsState() {
       .map((connection) => connection.providerId),
     `${bootstrap?.folder ?? ''}\n${String(bootstrap?.sections.piPath ?? '')}`,
   );
+  const images = useImageConnections(
+    connections
+      .filter((connection) => connection.purpose === 'images')
+      .map((connection) => connection.id),
+    bootstrap?.folder,
+  );
   return {
     connections,
     imageTool,
     setImageTool,
     providerStatuses,
     setProviderStatus,
+    ...images,
     saveConnection: (connection: Connection) =>
       setConnections((previous) =>
         [connection, ...previous.filter((item) => item.id !== connection.id)].sort(

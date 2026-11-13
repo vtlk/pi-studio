@@ -12,6 +12,7 @@ import { libraryTools, libraryTool } from '../library/tools.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 import type { openSessionTerminal } from './terminal.ts';
+import type { ImageGeneration } from '../images/ImageGeneration.ts';
 
 interface Options {
   bootstraps: string;
@@ -19,13 +20,19 @@ interface Options {
   catalog: string;
   piPath: () => string;
   references?: ReferenceFiles;
+  images?: ImageGeneration;
   headless?: boolean;
   openTerminal?: typeof openSessionTerminal;
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
-    tools: [...productionTools, ...libraryTools],
-    tool: (run, name, args) => libraryTool(service, run, name, args),
+    tools: (run) => [...productionTools, ...libraryTools, ...(options.images?.tools(run) ?? [])],
+    closed: (run) => options.images?.cancel(run),
+    capabilities: (run, extensions) => options.images?.runtime(run, extensions),
+    tool: (run, name, args) =>
+      ['generate_image', 'get_image_operation'].includes(name) && options.images
+        ? options.images.tool(run, name, args)
+        : libraryTool(service, run, name, args),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,
@@ -102,6 +109,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           store.folder,
           selectedModel.imageInput,
         );
+        options.images?.bind(run, store.folder, selectedModel);
         return { run, piPath };
       }),
     update: (run, status, session) =>

@@ -2,6 +2,12 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 
 const desktopApi: DesktopApi = {
+  readImageConnection: (request) =>
+    ipcRenderer.invoke(desktopChannels.readImageConnection, request),
+  saveImageKey: (request) => ipcRenderer.invoke(desktopChannels.saveImageKey, request),
+  removeImageKey: (request) => ipcRenderer.invoke(desktopChannels.removeImageKey, request),
+  checkImageConnection: (request) =>
+    ipcRenderer.invoke(desktopChannels.checkImageConnection, request),
   readLibraryCharacter: (id, version, revision) =>
     ipcRenderer.invoke(desktopChannels.readLibraryCharacter, id, version, revision),
   chooseReferenceFiles: () => ipcRenderer.invoke(desktopChannels.chooseReferenceFiles),

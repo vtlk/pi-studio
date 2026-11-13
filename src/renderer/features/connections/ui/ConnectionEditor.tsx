@@ -7,6 +7,8 @@ import { useConnections, type Connection } from '../model/Connections';
 import type { ProviderStatus } from '../../../../shared/contracts';
 import type { AuthLoginState } from '../../../../shared/auth';
 import { usePiCatalog } from '../model/usePiCatalog';
+import { useStorage } from '@/shared/storage/Storage';
+import { ImageKeyFields } from './ImageKeyFields';
 export function ConnectionEditor({
   connection,
   onClose,
@@ -21,7 +23,10 @@ export function ConnectionEditor({
     error: catalogError,
     reload: reloadCatalog,
   } = usePiCatalog();
-  const { saveConnection, setProviderStatus, providerStatuses } = useConnections();
+  const { saveConnection, setProviderStatus, providerStatuses, refreshImageConnection } =
+    useConnections();
+  const { bootstrap, saveNow } = useStorage();
+  const [imageKey, setImageKey] = useState('');
   const { demo } = useNotice();
   const [checkedStatus, setStatus] = useState<ProviderStatus>();
   const currentStatus = providerStatuses[draft.providerId];
@@ -68,6 +73,7 @@ export function ConnectionEditor({
     };
   }, [auth?.id]);
   const close = () => {
+    if (busy) return;
     if (authActive && auth) void window.studio?.cancelAuthLogin(auth.id);
     onClose();
   };
@@ -96,13 +102,32 @@ export function ConnectionEditor({
       onClose={close}
       footer={
         <>
-          <Button onClick={close}>Отмена</Button>
+          <Button disabled={busy} onClick={close}>
+            Отмена
+          </Button>
           <Button
             kind="primary"
             disabled={authActive || busy || !draft.name.trim() || !draft.providerId.trim()}
-            onClick={() => {
-              saveConnection(draft);
-              onClose();
+            onClick={async () => {
+              setBusy(true);
+              try {
+                saveConnection(draft);
+                if (!(await saveNow())) throw new Error('Сначала сохраните настройки подключения.');
+                if (draft.purpose === 'images' && imageKey && window.studio && bootstrap) {
+                  await window.studio.saveImageKey({
+                    folder: bootstrap.folder,
+                    connectionId: draft.id,
+                    key: imageKey,
+                  });
+                  setImageKey('');
+                  await refreshImageConnection(draft.id);
+                }
+                onClose();
+              } catch (error) {
+                demo(error instanceof Error ? error.message : 'Не удалось сохранить подключение.');
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             Сохранить
@@ -123,10 +148,12 @@ export function ConnectionEditor({
           label="Назначение подключения"
           value={draft.purpose}
           onValueChange={(purpose) => {
+            setImageKey('');
             const value = purpose as Connection['purpose'];
             setDraft({
               ...draft,
               purpose: value,
+              endpoint: value === 'compatible' || value === 'local' ? draft.endpoint : '',
               providerId: value === 'codex' ? 'openai-codex' : value === 'images' ? 'openai' : '',
             });
           }}
@@ -219,26 +246,13 @@ export function ConnectionEditor({
           )}
         </>
       ) : draft.purpose === 'images' ? (
-        <>
-          <p>API оплачивается отдельно от подписки.</p>
-          <label className="field-label">
-            API-ключ
-            <input
-              type="password"
-              disabled
-              placeholder="Ввод ключа будет доступен после подключения защищённого хранилища"
-            />
-          </label>
-          <Button
-            onClick={() =>
-              demo(
-                'Сохранение и замена секретов пока не подключены. В прототипе ключи не вводятся.',
-              )
-            }
-          >
-            Заменить ключ
-          </Button>
-        </>
+        <ImageKeyFields
+          id={draft.id}
+          value={imageKey}
+          setValue={setImageKey}
+          busy={busy}
+          setBusy={setBusy}
+        />
       ) : (
         <>
           {(draft.purpose === 'local' || draft.purpose === 'compatible') && (
@@ -267,7 +281,13 @@ export function ConnectionEditor({
           disabled={
             busy ||
             !draft.providerId.trim() ||
-            draft.purpose === 'images' ||
+            (draft.purpose === 'images' &&
+              (!window.studio ||
+                !bootstrap?.sections.connections ||
+                !(bootstrap.sections.connections as Connection[]).some(
+                  (item) => item.id === draft.id,
+                ) ||
+                !!imageKey)) ||
             draft.purpose === 'compatible' ||
             draft.purpose === 'local'
           }
@@ -279,10 +299,20 @@ export function ConnectionEditor({
             setBusy(true);
             setStatus(undefined);
             try {
+              if (draft.purpose === 'images' && bootstrap) {
+                await window.studio.checkImageConnection({
+                  folder: bootstrap.folder,
+                  connectionId: draft.id,
+                });
+                await refreshImageConnection(draft.id);
+                return;
+              }
               const result = await window.studio.getProviderStatus(draft.providerId);
               setStatus(result);
               setProviderStatus(result);
             } catch (error) {
+              if (draft.purpose === 'images')
+                await refreshImageConnection(draft.id).catch(() => {});
               demo(error instanceof Error ? error.message : 'Проверка не выполнена.');
             } finally {
               setBusy(false);
@@ -292,19 +322,21 @@ export function ConnectionEditor({
           Проверить подключение
         </Button>
       </div>
-      <p role="status">
-        {status
-          ? status.status === 'ready'
-            ? `Подключено через Pi · ${status.provider}.`
-            : status.status === 'invalid'
-              ? 'Pi: некорректная авторизация или провайдер.'
-              : 'Pi: требуется вход или обновление авторизации.'
-          : currentStatus === 'checking'
-            ? 'Проверяем подключение…'
-            : currentStatus === 'unavailable'
-              ? 'Не удалось проверить подключение. Повторите проверку.'
-              : 'Авторизация ещё не проверена. Сохранение формы не подтверждает доступ аккаунта.'}
-      </p>
+      {draft.purpose !== 'images' && (
+        <p role="status">
+          {status
+            ? status.status === 'ready'
+              ? `Подключено через Pi · ${status.provider}.`
+              : status.status === 'invalid'
+                ? 'Pi: некорректная авторизация или провайдер.'
+                : 'Pi: требуется вход или обновление авторизации.'
+            : currentStatus === 'checking'
+              ? 'Проверяем подключение…'
+              : currentStatus === 'unavailable'
+                ? 'Не удалось проверить подключение. Повторите проверку.'
+                : 'Авторизация ещё не проверена. Сохранение формы не подтверждает доступ аккаунта.'}
+        </p>
+      )}
       <p className="subtle">
         При отказе или исчерпании лимита подключение не меняется автоматически. Секреты не входят в
         проект и его снимки.

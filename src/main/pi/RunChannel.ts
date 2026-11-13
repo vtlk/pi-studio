@@ -18,6 +18,7 @@ export interface ChannelEvent {
   sessionFile?: string;
   outcome?: string;
   message?: string;
+  executableExtensions?: boolean;
 }
 export interface SessionTool {
   name: string;
@@ -29,7 +30,7 @@ interface Lease {
   envelope: SessionEnvelope;
   event: (event: ChannelEvent) => Promise<void>;
   tool: (name: string, args: Record<string, unknown>) => Promise<unknown>;
-  tools: readonly SessionTool[];
+  tools: readonly SessionTool[] | (() => readonly SessionTool[]);
 }
 export const productionTools: SessionTool[] = [
   {
@@ -142,7 +143,7 @@ export class RunChannel {
     envelope: SessionEnvelope,
     event: Lease['event'],
     tool: Lease['tool'],
-    tools: readonly SessionTool[] = productionTools,
+    tools: Lease['tools'] = productionTools,
   ) {
     this.started ??= new Promise((resolve, reject) => {
       this.server.once('error', reject);
@@ -207,11 +208,13 @@ export class RunChannel {
           serverInfo: { name: 'Pi Studio session tools', version: '1.0.0' },
         };
       else if (data.method === 'ping') result = {};
-      else if (data.method === 'tools/list') result = { tools: lease.tools };
+      else if (data.method === 'tools/list')
+        result = { tools: typeof lease.tools === 'function' ? lease.tools() : lease.tools };
       else if (data.method === 'tools/call') {
         const params = data.params as
           { name?: string; arguments?: Record<string, unknown> } | undefined;
-        if (!params?.name || !lease.tools.some((tool) => tool.name === params.name))
+        const available = typeof lease.tools === 'function' ? lease.tools() : lease.tools;
+        if (!params?.name || !available.some((tool) => tool.name === params.name))
           throw new Error('Tool unavailable in this session');
         try {
           result = {

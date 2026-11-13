@@ -4,6 +4,7 @@ export interface PiModelSummary {
   name: string;
   reasoning: boolean;
   imageInput: boolean;
+  api?: string;
 }
 export interface PiProviderSummary {
   id: string;

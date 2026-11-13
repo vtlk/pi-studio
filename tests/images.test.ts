@@ -1,0 +1,394 @@
+import assert from 'node:assert/strict';
+import test, { type TestContext } from 'node:test';
+import { mkdtemp, readFile, readdir, rm, mkdir, rename, symlink } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { inspect } from 'node:util';
+import { SecretVault, type StringProtector } from '../src/main/storage/SecretVault.ts';
+import { StudioService } from '../src/main/storage/StudioStore.ts';
+import { ImageConnections } from '../src/main/images/ImageConnections.ts';
+import { ImagesApi, imageParameters } from '../src/main/images/ImagesApi.ts';
+import { ImageGeneration } from '../src/main/images/ImageGeneration.ts';
+import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
+import type { Agent } from '../src/shared/studio.ts';
+import { libraryPng } from '../scripts/fixtures/library.mjs';
+
+const KEY = 'QA_SYNTHETIC_KEY_NOT_A_REAL_CREDENTIAL';
+const params = { prompt: 'Draw a blue circle', background: 'transparent' };
+const model = {
+  provider: 'openai-codex',
+  id: 'qa-model',
+  name: 'QA',
+  api: 'openai-codex-responses',
+  reasoning: true,
+  imageInput: true,
+};
+function protector(): StringProtector {
+  const key = randomBytes(32);
+  return {
+    isAsyncEncryptionAvailable: async () => true,
+    encryptStringAsync: async (text) => {
+      const iv = randomBytes(12),
+        cipher = createCipheriv('aes-256-gcm', key, iv);
+      const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
+      return Buffer.concat([iv, cipher.getAuthTag(), encrypted]);
+    },
+    decryptStringAsync: async (bytes) => {
+      const decipher = createDecipheriv('aes-256-gcm', key, bytes.subarray(0, 12));
+      decipher.setAuthTag(bytes.subarray(12, 28));
+      return {
+        result: Buffer.concat([decipher.update(bytes.subarray(28)), decipher.final()]).toString(
+          'utf8',
+        ),
+        shouldReEncrypt: false,
+      };
+    },
+  };
+}
+const imageResponse = () =>
+  Response.json({
+    data: [{ b64_json: libraryPng().toString('base64') }],
+    usage: { total_tokens: 4, input_tokens: 1, output_tokens: 3, key: KEY },
+  });
+async function fixture(t: TestContext, request: typeof fetch = async () => imageResponse()) {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-images-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
+  const store = await service.load(),
+    crypto = protector();
+  const vault = new SecretVault(join(root, 'vault'), crypto),
+    api = new ImagesApi(request);
+  const connections = new ImageConnections(service, vault, api);
+  await store.saveSection('connections', [
+    {
+      id: 'images',
+      name: 'QA Images',
+      purpose: 'images',
+      providerId: 'openai',
+      endpoint: '',
+      account: '',
+      createdAt: 1,
+    },
+  ]);
+  await store.saveSection('imageTool', { connectionId: 'images', modelId: 'gpt-image-2.5-flare' });
+  const connection = { folder: store.folder, connectionId: 'images' };
+  const agent: Agent = {
+    id: 'qa-agent',
+    name: 'QA images',
+    enabled: true,
+    mainInstruction: '',
+    instructions: [],
+    skills: [],
+    mcps: [],
+    plugins: [],
+    model: {
+      connectionId: 'llm',
+      provider: 'openai-codex',
+      id: model.id,
+      reasoning: 'Средний',
+      temperature: '',
+    },
+  };
+  const project = (await store.command({ kind: 'create', name: 'QA project', agents: [agent] }))
+    .projects[0];
+  const run = await buildRunContext(
+    await store.projects.directory(project.id),
+    project,
+    agent.id,
+    [agent],
+    [],
+  );
+  run.requestSequence = 1;
+  const images = new ImageGeneration(service, connections, join(root, 'operations'));
+  images.bind(run, store.folder, model);
+  return { root, service, store, vault, crypto, connections, connection, run, images, agent };
+}
+
+test('app secrets are ciphertext, isolated by studio/connection, survive reopen, rotate and never use plaintext fallback', async (t) => {
+  const f = await fixture(t);
+  await f.connections.save({ ...f.connection, key: KEY });
+  const files = await readdir(join(f.root, 'vault'));
+  assert.equal(files.length, 1);
+  const ciphertext = await readFile(join(f.root, 'vault', files[0]), 'utf8');
+  assert.equal(ciphertext.includes(KEY), false);
+  const reopened = new SecretVault(join(f.root, 'vault'), f.crypto);
+  assert.equal(await reopened.read(f.store.folder, 'images'), KEY);
+  await mkdir(join(f.root, 'Other'));
+  await assert.rejects(reopened.read(join(f.root, 'Other'), 'images'), /сохраните API-ключ/);
+  await assert.rejects(reopened.read(f.store.folder, 'other'), /сохраните API-ключ/);
+  await assert.rejects(reopened.read(f.store.folder, '../outside'));
+  const unavailable = new SecretVault(join(f.root, 'vault'), {
+    ...f.crypto,
+    isAsyncEncryptionAvailable: async () => false,
+  });
+  await assert.rejects(
+    unavailable.save(f.store.folder, 'images', 'QA_REPLACEMENT_KEY'),
+    /недоступно/,
+  );
+  assert.equal(await readFile(join(f.root, 'vault', files[0]), 'utf8'), ciphertext);
+  const state = await f.connections.status(f.connection);
+  assert.equal(state.keyStored, true);
+  assert.equal(state.authentication, 'unchecked');
+  assert.equal(JSON.stringify(state).includes(KEY), false);
+  await f.connections.save({ ...f.connection, key: 'QA_REPLACEMENT_KEY' });
+  assert.equal(await reopened.read(f.store.folder, 'images'), 'QA_REPLACEMENT_KEY');
+  await f.connections.remove(f.connection);
+  assert.equal((await f.connections.status(f.connection)).keyStored, false);
+  assert.equal(
+    await readFile(join(f.store.folder, '.pistudio/studio.json'), 'utf8').then((text) =>
+      text.includes(KEY),
+    ),
+    false,
+  );
+});
+
+test('connection check only reads the fixed HTTPS model endpoint; key replacement invalidates its result', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async (url, init) => {
+    calls++;
+    assert.equal(url, 'https://api.openai.com/v1/models');
+    assert.equal(init?.method, undefined);
+    assert.equal(init?.redirect, 'error');
+    assert.equal(new Headers(init?.headers).get('Authorization'), `Bearer ${KEY}`);
+    return Response.json({
+      data: [{ id: 'gpt-image-2.5-flare' }, { id: 'gpt-6' }, { id: 'gpt-image-2.5-flare' }],
+    });
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const checked = await f.connections.check(f.connection);
+  assert.equal(checked.authentication, 'ready');
+  assert.deepEqual(checked.modelIds, ['gpt-image-2.5-flare']);
+  assert.equal(calls, 1);
+  await f.connections.save({ ...f.connection, key: 'QA_REPLACEMENT_KEY' });
+  assert.equal((await f.connections.status(f.connection)).authentication, 'unchecked');
+  await assert.rejects(f.connections.status({ ...f.connection, folder: f.root }), /Папка студии/);
+  await assert.rejects(f.connections.save({ ...f.connection, key: 'bad\nkey' }), /корректный/);
+  await f.store.saveSection('connections', []);
+  await assert.rejects(f.connections.key(f.connection), /отсутствует/);
+});
+
+test('only a confirmed eligible runtime exposes image tools; unknown/native/extension sessions and idle resumes spend nothing', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return imageResponse();
+  });
+  for (const candidate of [
+    { ...model, api: undefined },
+    { ...model, api: 'other-native-api' },
+  ]) {
+    f.images.bind(f.run, f.store.folder, candidate);
+    f.images.runtime(f.run, false);
+    assert.deepEqual(f.images.tools(f.run), []);
+    await assert.rejects(f.images.tool(f.run, 'generate_image', params), /не подтверждены/);
+  }
+  f.run.resources.plugins.push({ id: 'opaque-extension', source: '/not-loaded' } as never);
+  f.images.bind(f.run, f.store.folder, model);
+  assert.deepEqual(f.images.tools(f.run), []);
+  f.images.runtime(f.run, true);
+  assert.deepEqual(f.images.tools(f.run), []);
+  f.images.runtime(f.run, false);
+  assert.equal(
+    f.images.tools(f.run).length,
+    2,
+    'A resolved skill-only package does not change native capabilities.',
+  );
+  f.run.resources.plugins = [];
+  f.images.bind(f.run, f.store.folder, model);
+  assert.equal(f.images.tools(f.run).length, 2);
+  f.run.requestSequence = 0;
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /нового пользовательского/);
+  assert.equal(calls, 0);
+});
+
+test('generation writes one validated PNG to the bound output, keeps the agent model, and deduplicates retries within a user request', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async (url, init) => {
+    calls++;
+    assert.equal(url, 'https://api.openai.com/v1/images/generations');
+    const body = JSON.parse(String(init?.body));
+    assert.equal(body.model, 'gpt-image-2.5-flare');
+    assert.equal(body.output_format, 'png');
+    assert.equal(body.n, 1);
+    assert.equal(body.background, 'transparent');
+    return imageResponse();
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const before = structuredClone(f.run.record.model);
+  const result = (await f.images.tool(f.run, 'generate_image', params)) as {
+    operationId: string;
+    path: string;
+    projectPath: string;
+    usage: unknown;
+  };
+  assert.ok(result.projectPath.startsWith(f.run.agent.outputPath + '/image-'));
+  assert.ok(result.path.startsWith('image-'));
+  assert.deepEqual(await readFile(join(f.run.projectRoot, result.projectPath)), libraryPng());
+  assert.deepEqual(f.run.record.model, before);
+  assert.deepEqual(result.usage, { input_tokens: 1, output_tokens: 3, total_tokens: 4 });
+  assert.equal(JSON.stringify(result).includes(KEY), false);
+  const repeated = (await f.images.tool(f.run, 'generate_image', params)) as {
+    operationId: string;
+    reused: boolean;
+  };
+  assert.equal(repeated.operationId, result.operationId);
+  assert.equal(repeated.reused, true);
+  assert.equal(calls, 1);
+  f.run.requestSequence++;
+  const variant = (await f.images.tool(f.run, 'generate_image', params)) as { path: string };
+  assert.notEqual(variant.path, result.path);
+  assert.equal(calls, 2);
+  const operations = await readdir(join(f.root, 'operations'));
+  const metadata = await readFile(join(f.root, 'operations', operations[0]), 'utf8');
+  assert.equal(metadata.includes(KEY), false);
+  assert.equal(metadata.includes(params.prompt), false);
+  const created = await f.store.command({
+    kind: 'create',
+    name: 'Other project',
+    agents: [f.agent],
+  });
+  const other = created.projects.find((project) => project.id === created.selectedId)!;
+  const otherRun = await buildRunContext(
+    await f.store.projects.directory(other.id),
+    other,
+    f.agent.id,
+    [f.agent],
+    [],
+  );
+  f.images.bind(otherRun, f.store.folder, model);
+  await assert.rejects(
+    f.images.tool(otherRun, 'get_image_operation', { operationId: result.operationId }),
+    /отсутствует/,
+  );
+  await assert.rejects(
+    f.images.tool(f.run, 'generate_image', { ...params, path: '../escape' }),
+    /не принимает/,
+  );
+  await assert.rejects(
+    f.images.tool(f.run, 'generate_image', { ...params, model: 'other' }),
+    /не принимает/,
+  );
+});
+
+test('an uncertain paid request cannot be repeated silently, including after a new host binding', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    if (++calls === 1) throw new Error('Network lost ' + KEY);
+    return imageResponse();
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  let operationId = '';
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), (error: Error) => {
+    assert.equal(error.message.includes(KEY), false);
+    assert.equal(inspect(error).includes(KEY), false);
+    operationId = error.message.match(/[a-f0-9]{8}-[a-f0-9-]{27}/)![0];
+    return error.message.includes('uncertain');
+  });
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /мог быть оплачен/);
+  await assert.rejects(
+    f.images.tool(f.run, 'generate_image', { ...params, prompt: params.prompt + ' variant' }),
+    /мог быть оплачен/,
+  );
+  await assert.rejects(
+    f.images.tool(f.run, 'generate_image', { ...params, retryOperationId: operationId }),
+    /мог быть оплачен/,
+  );
+  const reopened = new ImageGeneration(f.service, f.connections, join(f.root, 'operations'));
+  reopened.bind(f.run, f.store.folder, model);
+  await assert.rejects(reopened.tool(f.run, 'generate_image', params), /мог быть оплачен/);
+  assert.equal(calls, 1);
+  assert.equal(
+    ((await reopened.tool(f.run, 'get_image_operation', { operationId })) as { state: string })
+      .state,
+    'uncertain',
+  );
+  f.run.requestSequence++;
+  await reopened.tool(f.run, 'generate_image', { ...params, retryOperationId: operationId });
+  assert.equal(calls, 2);
+});
+
+test('closing Pi cancels an active image request and leaves an explicit uncertain operation', async (t) => {
+  let started!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const f = await fixture(t, async (_url, init) => {
+    started();
+    return new Promise<Response>((_resolve, reject) =>
+      init!.signal!.addEventListener('abort', () => reject(new Error('aborted')), { once: true }),
+    );
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const job = f.images.tool(f.run, 'generate_image', params);
+  const check = assert.rejects(job, /uncertain/);
+  await pending;
+  assert.throws(() => f.images.assertIdle(), /Дождитесь/);
+  f.images.cancel(f.run);
+  await check;
+  assert.deepEqual(f.images.tools(f.run), []);
+  const files = await readdir(join(f.root, 'operations'));
+  const operation = JSON.parse(await readFile(join(f.root, 'operations', files[0]), 'utf8'))
+    .operations[0];
+  assert.equal(operation.state, 'uncertain');
+  assert.equal(operation.reason, 'cancelled');
+  f.images.assertIdle();
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /Pi закрыт/);
+});
+
+test('output symlinks are rejected after the API response; an already paid result is never called a successful save', async (t) => {
+  let f: Awaited<ReturnType<typeof fixture>>;
+  f = await fixture(t, async () => {
+    const output = join(f.run.projectRoot, f.run.agent.outputPath);
+    await rename(output, output + '-original');
+    await symlink(join(f.root, 'outside'), output);
+    return imageResponse();
+  });
+  await mkdir(join(f.root, 'outside'));
+  await f.connections.save({ ...f.connection, key: KEY });
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /save_failed/);
+  assert.deepEqual(await readdir(join(f.root, 'outside')), []);
+});
+
+test('API failures and invalid PNG never expose response secrets or silently change parameters', async () => {
+  for (const status of [401, 403, 429, 400, 500]) {
+    const api = new ImagesApi(async () =>
+      Response.json({ error: { message: KEY, code: 'insufficient_quota' } }, { status }),
+    );
+    await assert.rejects(
+      api.generate(
+        KEY,
+        'gpt-image-2.5-flare',
+        imageParameters(params),
+        new AbortController().signal,
+      ),
+      (error: Error) => !error.message.includes(KEY),
+    );
+  }
+  const broken = new ImagesApi(async () =>
+    Response.json({ data: [{ b64_json: Buffer.from('not a PNG ' + KEY).toString('base64') }] }),
+  );
+  await assert.rejects(
+    broken.generate(
+      KEY,
+      'gpt-image-2.5-flare',
+      imageParameters(params),
+      new AbortController().signal,
+    ),
+    /не получено полностью/,
+  );
+  assert.throws(() => imageParameters({ ...params, quality: 'invented' }), /Неподдерживаемые/);
+});
+
+test('generation auth failures update connection health, and a stale result never labels a replacement key', async (t) => {
+  const f = await fixture(t, async () =>
+    Response.json({ error: { message: KEY } }, { status: 401 }),
+  );
+  await f.connections.save({ ...f.connection, key: KEY });
+  const old = await f.connections.authorization(f.connection);
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /ключ не принят/);
+  assert.equal((await f.connections.status(f.connection)).authentication, 'invalid');
+  await f.connections.save({ ...f.connection, key: 'QA_REPLACEMENT_KEY' });
+  await f.connections.reportAuthorization(f.connection, old.revision, false);
+  assert.equal((await f.connections.status(f.connection)).authentication, 'unchecked');
+});
