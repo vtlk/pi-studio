@@ -47,7 +47,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'authenticate_mcp',
     description:
-      'For OAuth, open native Pi login in Terminal/browser; user completes it there. For HTTP/stdio key references, returns guidance to Settings → MCP servers → Protected parameters, never a key. Never request tokens/codes in chat. Configure native header/env references first; the app securely supplies them to assigned sessions. Returns opened or guidance, not authenticated; check_resource verifies afterward.',
+      'For OAuth, start the native Pi SDK browser login; the user completes consent in the system browser. Studio checks actual MCP availability afterward. Settings → MCP servers → Sign in through Pi shows progress/cancellation and a protected redirect fallback. For HTTP/stdio keys or a registered OAuth clientSecret, configure native ${ENV} references and direct the user to Protected parameters, never request values or codes in chat. Returns opened/loginId or guidance, not authenticated. Use check_resource to read actual access after consent.',
     inputSchema: object({ resourceId: string }, ['resourceId']),
   },
   {

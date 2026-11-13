@@ -217,7 +217,6 @@ test('configuration changes never send an old key to a new endpoint; stale saves
   const native = new StudioResources(f.service, {
     piPath: () => '',
     script: 'unused',
-    logins: 'unused',
     mcpSecrets: f.secrets,
     operation: async (_pi, _script, request) => ({ name: request.name, transport: 'HTTP' }),
   });
@@ -273,7 +272,6 @@ test('an in-flight native MCP check cannot publish readiness after the protected
   const native = new StudioResources(f.service, {
     piPath: () => '',
     script: 'unused',
-    logins: 'unused',
     mcpSecrets: f.secrets,
     operation: async (_pi, _script, request) => {
       assert.deepEqual(request.config?.headers, { Authorization: 'Bearer SYNTHETIC_FIRST' });
@@ -353,7 +351,6 @@ test('only saved variables are managed; native environment remains native and de
   const native = new StudioResources(f.service, {
     piPath: () => '',
     script: 'unused',
-    logins: 'unused',
     mcpSecrets: f.secrets,
     operation: async () => ({ name: 'protected', transport: 'HTTP' }),
   });
@@ -398,4 +395,26 @@ test('changed endpoints require every previously managed current variable, witho
     (await f.secrets.status(f.request)).fields.find((field) => field.name === 'HOME')?.stored,
     false,
   );
+});
+test('registered OAuth client secrets use the same protected storage and native literal escaping', async (t) => {
+  const f = await fixture(t);
+  const config = {
+    url: 'https://service.example/mcp',
+    oauth: { clientId: 'public-id', clientSecret: '${CLIENT_SECRET}', scope: 'qa:read' },
+  };
+  await f.writeConfig(config);
+  const state = await f.secrets.status(f.request);
+  assert.deepEqual(state.fields, [{ name: 'CLIENT_SECRET', stored: false }]);
+  await f.secrets.save({
+    ...f.request,
+    revision: state.revision,
+    values: { CLIENT_SECRET: '!SYNTHETIC_${HOME}' },
+  });
+  const prepared = await f.secrets.resolver(f.store.folder, '')(f.current(), config);
+  assert.deepEqual(prepared.oauth, {
+    clientId: 'public-id',
+    clientSecret: '$!SYNTHETIC_$${HOME}',
+    scope: 'qa:read',
+  });
+  assert.ok(!JSON.stringify(f.store.bootstrap()).includes('!SYNTHETIC_'));
 });

@@ -70,6 +70,7 @@
 
 - Commit meaningful intermediate changes. Keep GitHub CI/Actions disabled as explicitly requested by the user on 2026-11-13; continue typecheck, lint, architecture and appropriate tests locally.
 - Keep CRUD straightforward, as requested on 2026-11-13. Prefer existing storage/UI and a simple stale-write check; do not add custom automatic merge engines, conflict editors or unrequested workflow layers.
+- External MCP browser sign-in uses the pinned native Pi SDK and shared main BrowserAuth controller, including protected oauth.clientSecret references. Pass configuration only through stdin; never Terminal argv or login files. Show ready only after an actual native MCP check with unchanged resource/config/secret scope. Checks/resume never open consent automatically; cancellation, scope expansion, token refresh and revocation remain native Pi behavior.
 - Do not create application backups or retain old build/release copies. Commit and push source changes to GitHub instead. Keep only the installed app and current downloadable ZIP(s); packaging/install staging is temporary and must be cleaned. Never remove user projects, materials, settings or Pi histories as part of build cleanup.
 - After a macOS update, open the updated installed application and verify its process/bundle version; do not leave the user working in an older running build. Quit normally after saved changes and when agent work is idle. A previously open Pi dialogue must be reopened through Studio to load current tool schemas, preserving its exact session and sending no automatic request.
 

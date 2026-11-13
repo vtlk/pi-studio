@@ -30,11 +30,14 @@ export const mcpConfigRevision = (config: Record<string, unknown>) =>
   createHash('sha256').update(JSON.stringify(config)).digest('hex');
 
 function entries(config: Record<string, unknown>) {
-  return ['headers', 'env'].flatMap((section) => {
+  return ['headers', 'env', 'oauth'].flatMap((section) => {
     const value = config[section];
     return value && typeof value === 'object' && !Array.isArray(value)
       ? Object.entries(value)
-          .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+          .filter(
+            (entry): entry is [string, string] =>
+              typeof entry[1] === 'string' && (section !== 'oauth' || entry[0] === 'clientSecret'),
+          )
           .map(([key, text]) => ({ section, key, text }))
       : [];
   });

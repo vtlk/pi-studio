@@ -111,8 +111,8 @@ export function McpSecretsDialog({
           {!status.fields.length && (
             <p>
               В настройках Pi нет переменных для защищённого ввода. Помощник может настроить
-              HTTP-заголовки или окружение stdio с ссылками на параметры. Для OAuth используйте
-              «Войти через Pi».
+              HTTP-заголовки, окружение stdio или OAuth clientSecret со ссылками на параметры. Для
+              OAuth используйте «Войти через Pi».
             </p>
           )}
           {status.fields.map((field) => (

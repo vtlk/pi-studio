@@ -23,7 +23,26 @@ export function validateCodexAuthUrl(value: unknown): string {
 interface Login {
   state: AuthLoginState;
   child: ChildProcessWithoutNullStreams;
-  path: string;
+  key: string;
+  validateUrl: (value: unknown) => string;
+  verify: () => Promise<boolean>;
+  success: string;
+  failure: string;
+}
+export function validateMcpAuthUrl(value: unknown): string {
+  if (typeof value !== 'string' || value.length > 12000 || /[\r\n\0]/.test(value))
+    throw new Error('Неподдерживаемая ссылка OAuth MCP.');
+  const url = new URL(value);
+  if (
+    url.username ||
+    url.password ||
+    !(
+      url.protocol === 'https:' ||
+      (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))
+    )
+  )
+    throw new Error('Для OAuth MCP нужен HTTPS или локальный callback.');
+  return url.href;
 }
 export async function resolvePiSdk(cli: string) {
   let directory = dirname(cli);
@@ -52,8 +71,51 @@ export class BrowserAuth {
   private readonly script: string;
   private readonly openUrl: (url: string) => Promise<unknown>;
   async start(path: string): Promise<AuthLoginState> {
-    const active = [...this.logins.values()].find((login) =>
-      ['opening', 'waiting', 'verifying'].includes(login.state.phase),
+    return this.begin(path, {
+      key: 'codex',
+      script: this.script,
+      validateUrl: validateCodexAuthUrl,
+      message: 'Открываем вход через ChatGPT…',
+      success: 'Вход через ChatGPT выполнен.',
+      failure: 'Не удалось войти через ChatGPT. Проверьте подключение и повторите вход.',
+      verify: async (resolvedPath) =>
+        (await getProviderStatus(resolvedPath, 'openai-codex')).status === 'ready',
+    });
+  }
+  startMcp(
+    path: string,
+    scope: string,
+    request: { name: string; config: Record<string, unknown> },
+    verify: () => Promise<boolean>,
+  ) {
+    return this.begin(path, {
+      key: `mcp:${scope}`,
+      script: join(dirname(this.script), 'mcp-login.mjs'),
+      validateUrl: validateMcpAuthUrl,
+      verify,
+      payload: request,
+      message: 'Открываем OAuth-вход MCP…',
+      success: 'Вход выполнен. MCP доступен.',
+      failure: 'Не удалось подтвердить вход MCP. Проверьте настройки OAuth и повторите вход.',
+    });
+  }
+  private async begin(
+    path: string,
+    options: {
+      key: string;
+      script: string;
+      validateUrl: Login['validateUrl'];
+      verify: (path: string) => Promise<boolean>;
+      message: string;
+      success: string;
+      failure: string;
+      payload?: Record<string, unknown>;
+    },
+  ): Promise<AuthLoginState> {
+    const active = [...this.logins.values()].find(
+      (login) =>
+        login.key === options.key &&
+        ['opening', 'waiting', 'verifying'].includes(login.state.phase),
     );
     if (active) return { ...active.state };
     const pi = await checkPi(path);
@@ -62,14 +124,18 @@ export class BrowserAuth {
     const cli = await realpath(pi.path);
     const sdk = await resolvePiSdk(cli);
     const id = randomUUID();
-    const child = spawn(join(dirname(pi.path), 'node'), [this.script, sdk], {
+    const child = spawn(join(dirname(pi.path), 'node'), [options.script, sdk], {
       env: { ...process.env, PI_TELEMETRY: '0', PI_OFFLINE: '1' },
       stdio: 'pipe',
     });
     const login: Login = {
-      state: { id, phase: 'opening', message: 'Открываем вход через ChatGPT…' },
+      state: { id, phase: 'opening', message: options.message },
       child,
-      path: pi.path,
+      key: options.key,
+      validateUrl: options.validateUrl,
+      verify: () => options.verify(pi.path),
+      success: options.success,
+      failure: options.failure,
     };
     this.logins.set(id, login);
     const lines = createInterface({ input: child.stdout });
@@ -77,6 +143,9 @@ export class BrowserAuth {
       void this.event(login, line);
     });
     child.stderr.resume(); // Never forward raw OAuth output to renderer or logs.
+    child.stdin.on('error', () => {});
+    if (options.payload)
+      child.stdin.write(`${JSON.stringify({ type: 'init', ...options.payload })}\n`);
     child.on('error', () => this.fail(login, 'Не удалось запустить штатный вход Pi.'));
     child.on('close', () => {
       if (login.state.phase === 'opening' || login.state.phase === 'waiting')
@@ -93,7 +162,7 @@ export class BrowserAuth {
     try {
       const event = JSON.parse(line) as Record<string, unknown>;
       if (event.type === 'auth_url') {
-        await this.openUrl(validateCodexAuthUrl(event.url));
+        await this.openUrl(login.validateUrl(event.url));
         if (['opening', 'waiting'].includes(login.state.phase))
           login.state = {
             ...login.state,
@@ -115,22 +184,16 @@ export class BrowserAuth {
           phase: 'verifying',
           message: 'Проверяем сохранённый вход…',
         };
-        const result = await getProviderStatus(login.path, 'openai-codex');
+        const ready = await login.verify();
+        if (login.state.phase !== 'verifying') return;
         login.state = {
           id: login.state.id,
-          phase: result.status === 'ready' ? 'ready' : 'error',
-          message:
-            result.status === 'ready'
-              ? 'Вход через ChatGPT выполнен.'
-              : 'Pi не подтвердил авторизацию. Повторите вход.',
+          phase: ready ? 'ready' : 'error',
+          message: ready ? login.success : login.failure,
         };
       } else if (event.type === 'cancelled')
         login.state = { id: login.state.id, phase: 'cancelled', message: 'Вход отменён.' };
-      else if (event.type === 'failed')
-        this.fail(
-          login,
-          'Не удалось войти через ChatGPT. Повторите вход и проверьте доступ к аккаунту.',
-        );
+      else if (event.type === 'failed') this.fail(login, login.failure);
     } catch {
       this.fail(login, 'Не удалось обработать ответ входа Pi.');
     }

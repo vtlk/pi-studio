@@ -68,8 +68,8 @@ export function registerDesktopHandlers(): StudioService {
   });
   const resources = new StudioResources(service, {
     mcpSecrets,
+    browserAuth,
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
-    logins: join(app.getPath('userData'), 'resource-logins'),
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {

@@ -192,7 +192,6 @@ test('Studio resource metadata stays scoped, records real checks, deduplicates i
   const store = await service.load();
   const resources = new StudioResources(service, {
     script: '',
-    logins: join(root, 'logins'),
     piPath: () => '',
     operation: async (_pi, _script, request) =>
       request.action === 'list-mcp'

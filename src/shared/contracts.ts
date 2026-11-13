@@ -80,7 +80,7 @@ export interface DesktopApi {
   installResource(resourceId: string): Promise<Resource>;
   openResourceLogin(
     resourceId: string,
-  ): Promise<{ opened: boolean; authorized: boolean; next: string }>;
+  ): Promise<{ opened: boolean; authorized: boolean; next: string; loginId?: string }>;
 }
 
 export interface ProviderStatus {

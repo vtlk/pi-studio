@@ -5,7 +5,11 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { validateCodexAuthUrl, resolvePiSdk } from '../src/main/pi/BrowserAuth.ts';
+import {
+  validateCodexAuthUrl,
+  validateMcpAuthUrl,
+  resolvePiSdk,
+} from '../src/main/pi/BrowserAuth.ts';
 
 test('SDK discovery resolves the official bundled CLI layout and rejects other packages', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-sdk-'));
@@ -35,6 +39,23 @@ test('Codex login only opens native OpenAI HTTPS authentication URLs', () => {
     'https://user:secret@auth.openai.com/',
   ])
     assert.throws(() => validateCodexAuthUrl(url));
+});
+test('MCP OAuth permits discovered HTTPS providers and loopback, never credentials or non-web schemes', () => {
+  for (const url of [
+    'https://accounts.example/authorize?state=test',
+    'http://127.0.0.1:12345/authorize',
+    'http://localhost:12345/callback',
+    'http://[::1]:12345/callback',
+  ])
+    assert.equal(validateMcpAuthUrl(url), url);
+  for (const url of [
+    'http://remote.example/authorize',
+    'javascript:alert(1)',
+    'file:///tmp/x',
+    'https://user:secret@accounts.example/authorize',
+    'https://accounts.example/\nredirect',
+  ])
+    assert.throws(() => validateMcpAuthUrl(url));
 });
 test('the Pi SDK bridge delegates login and emits no credentials or raw errors', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-auth-bridge-'));

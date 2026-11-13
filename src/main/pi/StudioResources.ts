@@ -1,14 +1,7 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, realpath } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { createHash } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Resource, ResourceCheck } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
-import { atomicText } from '../storage/files.ts';
-import { shellQuote } from './provider.ts';
-import { checkPi } from './checkPi.ts';
 import {
   nativeResourceOperation,
   type NativeResourceRequest,
@@ -17,10 +10,12 @@ import {
 import { assertCredentialReferences, packageSource } from './resourceConfig.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import { nativeMcpConfig } from './nativeMcp.ts';
+import { mcpConfigRevision } from './mcpSecretValues.ts';
+import type { BrowserAuth } from './BrowserAuth.ts';
 
 interface Options {
   script: string;
-  logins: string;
+  browserAuth?: BrowserAuth;
   piPath: () => string;
   operation?: typeof nativeResourceOperation;
   mcpSecrets?: McpSecrets;
@@ -254,39 +249,51 @@ export class StudioResources {
       throw new Error('Сначала настройте сервер через помощника как native Pi MCP (pi:имя).');
     const name = resource.source.slice(3);
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Некорректное имя MCP.');
-    if (this.options.mcpSecrets) {
-      const status = await this.options.mcpSecrets.status({ folder: scope.folder, resourceId: id });
-      if (
-        status.managed ||
-        status.fields.some((field) =>
-          /token|secret|password|credential|auth|key|(?:^|_)pat(?:_|$)/i.test(field.name),
-        )
-      )
-        return {
-          opened: false,
-          authorized: false,
-          next: 'Откройте «Настройки → MCP-серверы → Защищённые параметры» у этого ресурса, сохраните необходимые значения и проверьте подключение. Ключи не передаются в чат или Terminal.',
-        };
-    }
-    const pi = await checkPi(scope.piPath);
-    if (!pi.supported) throw new Error('Требуется поддерживаемый Pi.');
-    await mkdir(this.options.logins, { recursive: true });
-    const launcher = join(this.options.logins, `${randomUUID()}.command`);
-    const path = `${dirname(pi.path)}:${dirname(await realpath(pi.path))}:/opt/homebrew/bin:/usr/local/bin`;
-    await atomicText(
-      launcher,
-      `#!/bin/zsh\n/bin/rm -- "$0"\nexport PATH=${shellQuote(path)}:"$PATH"\ncd ${shellQuote(scope.folder)}\nexec ${shellQuote(pi.path)} mcp login ${shellQuote(name)} --timeout 300\n`,
+    const raw = await nativeMcpConfig(name);
+    if (raw.enabled === false) throw new Error('Сервер выключен в Pi.');
+    if (raw.auth && typeof raw.auth === 'object' && 'provider' in raw.auth)
+      return {
+        opened: false,
+        authorized: false,
+        next: 'Этот MCP использует авторизацию провайдера Pi. Настройте его в «Подключениях», затем проверьте MCP.',
+      };
+    const headers = raw.headers && typeof raw.headers === 'object' ? Object.keys(raw.headers) : [];
+    if (!raw.url || headers.some((key) => key.toLowerCase() === 'authorization'))
+      return {
+        opened: false,
+        authorized: false,
+        next: 'Откройте «Настройки → MCP-серверы → Защищённые параметры», сохраните необходимые значения и проверьте подключение. Ключи не передаются в чат или Terminal.',
+      };
+    if (!this.options.browserAuth) throw new Error('Браузерный вход MCP недоступен.');
+    const config = this.options.mcpSecrets
+      ? await this.options.mcpSecrets.resolver(scope.folder, scope.piPath)(resource, raw)
+      : raw;
+    const revision = await this.options.mcpSecrets?.revision(scope.folder, resource);
+    const unchanged = async () => {
+      const current = await this.scope(scope.folder);
+      const selected = current.resources.find((item) => item.id === id);
+      return (
+        !!selected &&
+        signature(selected) === signature(resource) &&
+        mcpConfigRevision(await nativeMcpConfig(name)) === mcpConfigRevision(raw) &&
+        revision === (await this.options.mcpSecrets?.revision(scope.folder, selected))
+      );
+    };
+    const state = await this.options.browserAuth.startMcp(
+      scope.piPath,
+      `${scope.folder}\0${id}`,
+      { name, config },
+      async () => {
+        if (!(await unchanged())) throw new Error('Настройки MCP изменились во время входа.');
+        const check = await this.check(id);
+        return (await unchanged()) && check.status === 'available';
+      },
     );
-    const { chmod } = await import('node:fs/promises');
-    await chmod(launcher, 0o700);
-    await promisify(execFile)('/usr/bin/open', ['-a', 'Terminal', launcher], {
-      timeout: 10000,
-      maxBuffer: 1000,
-    });
     return {
       opened: true,
       authorized: false,
-      next: 'Complete native Pi/browser sign-in, then check_resource.',
+      loginId: state.id,
+      next: 'Завершите вход в браузере. Pi сохранит OAuth; Studio проверит фактическую доступность MCP.',
     };
   }
 }

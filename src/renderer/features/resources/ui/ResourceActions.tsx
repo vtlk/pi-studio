@@ -3,6 +3,7 @@ import type { Resource } from '../../../../shared/resources';
 import { useStorage } from '@/shared/storage/Storage';
 import { Button } from '@/shared/ui';
 import { McpSecretsDialog } from './McpSecretsDialog';
+import { ResourceAuthDialog } from './ResourceAuthDialog';
 
 export function ResourceActions({ resource }: { resource: Resource }) {
   const { saveNow } = useStorage();
@@ -10,6 +11,7 @@ export function ResourceActions({ resource }: { resource: Resource }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [secretsOpen, setSecretsOpen] = useState(false);
+  const [loginId, setLoginId] = useState<string>();
   if (!window.studio) return null;
   const action = async (kind: 'check' | 'install' | 'login') => {
     if (busy) return;
@@ -20,11 +22,8 @@ export function ResourceActions({ resource }: { resource: Resource }) {
       if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
       if (kind === 'login') {
         const result = await window.studio!.openResourceLogin(resource.id);
-        setMessage(
-          result.opened
-            ? 'Завершите вход в Pi/браузере, затем проверьте подключение.'
-            : result.next,
-        );
+        setLoginId(result.loginId);
+        setMessage(result.loginId ? '' : result.next);
       } else if (kind === 'install') {
         await window.studio!.installResource(resource.id);
         setMessage('Пакет доступен в Pi. Назначенные агенты загрузят его при следующем открытии.');
@@ -103,6 +102,13 @@ export function ResourceActions({ resource }: { resource: Resource }) {
       )}
       {secretsOpen && (
         <McpSecretsDialog resource={resource} onClose={() => setSecretsOpen(false)} />
+      )}
+      {loginId && (
+        <ResourceAuthDialog
+          id={loginId}
+          name={resource.name}
+          onClose={() => setLoginId(undefined)}
+        />
       )}
     </div>
   );

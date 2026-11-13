@@ -44,7 +44,6 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     options.resources ??
       new StudioResources(service, {
         script: join(dirname(options.catalog), 'resources.mjs'),
-        logins: join(options.bootstraps, 'resource-logins'),
         piPath: options.piPath,
         mcpSecrets: options.mcpSecrets,
       }),
