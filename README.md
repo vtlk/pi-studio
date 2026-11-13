@@ -38,7 +38,7 @@ npm run test:desktop  # реальный Electron, изолированная в
 npm run package:mac  # .app с локальной ad-hoc подписью и ZIP для архитектуры текущего Mac
 ```
 
-Сборка `.app` находится в `~/Library/Caches/Pi Studio/builds/<версия>/mac-<архитектура>/Pi Studio.app`, ZIP — в `dist/`. Пакет собирается вне Documents, чтобы служебные атрибуты синхронизации не мешали подписи. Apple notarization/Developer ID не настроены. Самостоятельный запуск production-кода: `npm run build`, затем `npm start`.
+Сборка `.app` находится в `~/Library/Caches/Pi Studio/builds/<версия>/mac-<архитектура>/Pi Studio.app`, ZIP — в `dist/`. Пакет временно собирается вне Documents, чтобы служебные атрибуты синхронизации не мешали подписи. `node scripts/install-mac.mjs` ставит проверенную сборку в ~/Applications, не создаёт резервных .app и удаляет упаковочную копию; история исходников сохраняется коммитами/push в GitHub. Старые ZIP при выпуске новой версии удаляются. Apple notarization/Developer ID не настроены. Самостоятельный запуск production-кода: `npm run build`, затем `npm start`.
 
 Папка по умолчанию: `~/Movies/Pi Studio`. Текущие настройки — `.pistudio/studio.json`; проекты — `projects/<имя>/project.json`; результаты и будущая история Pi — `agents/<id>/output` и `sessions`. Удалённые проекты целиком сохраняются в `.pistudio/trash` и восстанавливаются из списка проектов. При повреждённом/несовместимом файле студии приложение показывает ошибку, не перезаписывая файл. Переименование проекта с привязанной Pi-сессией пока блокируется до реализации штатного fork/cwd; клонированная история не подменяется новой.
 

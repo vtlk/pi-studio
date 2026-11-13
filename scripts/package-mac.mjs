@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { constants } from 'node:fs';
@@ -78,6 +78,13 @@ const archive = join(root, 'dist', `Pi-Studio-${metadata.version}-mac-${process.
 await mkdir(join(root, 'dist'), { recursive: true });
 await rm(archive, { force: true });
 execFileSync('/usr/bin/ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', bundle, archive]);
+for (const file of await readdir(join(root, 'dist'))) {
+  if (
+    /^Pi-Studio-.*-mac-(arm64|x64)\.zip$/.test(file) &&
+    !file.startsWith(`Pi-Studio-${metadata.version}-`)
+  )
+    await rm(join(root, 'dist', file));
+}
 console.log(
   `Application: ${bundle}\nArchive: ${archive}\nSignature: local ad-hoc (not notarized).`,
 );

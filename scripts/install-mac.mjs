@@ -18,7 +18,6 @@ await access(source);
 await mkdir(join(homedir(), 'Applications'), { recursive: true });
 await mkdir(cache, { recursive: true });
 const stage = join(homedir(), 'Applications', `.PiStudio-update-${randomUUID()}.app`);
-const backup = join(cache, 'previous-application.app');
 try {
   await cp(source, stage, {
     recursive: true,
@@ -26,23 +25,11 @@ try {
     mode: constants.COPYFILE_FICLONE,
   });
   execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', stage]);
-  let exists = false;
-  try {
-    await access(target);
-    exists = true;
-  } catch {}
-  if (exists) {
-    await rm(backup, { recursive: true, force: true });
-    await rename(target, backup);
-  }
-  try {
-    await rename(stage, target);
-  } catch (error) {
-    if (exists) await rename(backup, target);
-    throw error;
-  }
+  await rm(target, { recursive: true, force: true });
+  await rename(stage, target);
+  await rm(source, { recursive: true, force: true });
   console.log(
-    `Installed ${version}: ${target}\nPrevious application kept at: ${backup}\nProjects and user data were not changed.`,
+    `Installed ${version}: ${target}\nNo application backups created; temporary packaged app removed. Projects and user data were not changed.`,
   );
 } finally {
   await rm(stage, { recursive: true, force: true });
