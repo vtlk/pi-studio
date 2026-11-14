@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-14T19:39:10.845Z",
+  "sourceBaseVersion": "0.2.0-alpha.54",
+  "sourceFixUnreleased": true,
+  "before": {
+    "scenario": "Saved PNG replaced by FIFO with no writer, then identical generate_image in the same user request",
+    "result": "blocked",
+    "regressionFailed": true
+  },
+  "after": {
+    "result": "rejected without waiting for writer",
+    "noSecondImagesHttpCall": true,
+    "scopeNotBusyAfterFailure": true,
+    "usesBoundedRegularImageReader": true,
+    "unitFsTests": 180,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 284,
+    "productionBuild": true,
+    "nativePiReferenceProof": "artifacts/image-mcp-runtime-proof.json"
+  },
+  "limits": "Filesystem/API fixture regression; no real paid image generation. Native Pi reference flow uses injected Images HTTP and test AES, not real Keychain. User studio untouched.",
+  "sourceSha256": {
+    "src/main/images/ImageGeneration.ts": "20881cb9ab61da1c0f67e9cbe29974b211551c609a317cd87f5e5856aad106d3",
+    "src/main/images/imageReferences.ts": "e17a2348b8628a103795e34d84abc28cafa121aea3b38a5ed2e26dbc63b05d64",
+    "tests/images.test.ts": "c8d66e6daec3eb0431c7748007540a711aa3f27f9e8c548aa25068060575c285",
+    "scripts/smoke-pi-images.ts": "f2c03b9ef7941ad7dbd83ffc8dce4da629c4fabb9bed02f3b6fe30dd7363d202"
+  }
+}

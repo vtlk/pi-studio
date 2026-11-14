@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { open, readFile } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { safePath } from '../storage/files.ts';
@@ -139,10 +139,10 @@ export class ImageGeneration {
           `Операция ${previous.id}: результат ${previous.state}. Запрос мог быть оплачен. Прочитайте get_image_operation и спросите пользователя перед новым платным повтором.`,
         );
       if (previous?.requestId === requestId && previous.state === 'saved') {
-        if (
-          !previous.path ||
-          hash(await readFile(await safePath(run.projectRoot, previous.path))) !== previous.sha256
-        )
+        const saved = previous.path
+          ? (await readImageReferences(run.projectRoot, [previous.path]).catch(() => []))[0]
+          : undefined;
+        if (!previous.path || !saved || saved.sha256 !== previous.sha256)
           throw new Error(
             `Результат операции ${previous.id} изменён или удалён. Автоматической повторной генерации нет.`,
           );

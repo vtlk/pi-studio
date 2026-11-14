@@ -10,7 +10,10 @@ import {
   symlink,
   writeFile,
   truncate,
+  open,
 } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
@@ -733,6 +736,46 @@ test('reference images use the edits multipart endpoint with exact ordered proje
       !meta.includes(params.prompt) &&
       !meta.includes(KEY),
   );
+});
+
+test('reusing an image rejects a replaced FIFO without waiting for a writer or paying again', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return imageResponse();
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  const result = (await f.images.tool(f.run, 'generate_image', params)) as { projectPath: string };
+  const path = join(f.run.projectRoot, result.projectPath);
+  await rm(path);
+  execFileSync('mkfifo', [path]);
+  const retry = f.images.tool(f.run, 'generate_image', params).then(
+    () => ({ state: 'saved' }),
+    (error: Error) => ({ state: 'rejected', message: error.message }),
+  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const settled = await Promise.race([
+      retry,
+      new Promise<{ state: string }>((resolve) => {
+        timer = setTimeout(() => resolve({ state: 'blocked' }), 1000);
+      }),
+    ]);
+    assert.equal(
+      settled.state,
+      'rejected',
+      'Replacing an output with a FIFO must not block the tool',
+    );
+    assert.equal(calls, 1, 'A modified output must never be regenerated automatically');
+  } finally {
+    clearTimeout(timer);
+    // Release the old implementation's blocked FIFO read so the regression can fail cleanly.
+    const writer = await open(path, constants.O_RDWR | constants.O_NONBLOCK);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    await writer.close();
+    await retry;
+  }
+  assert.doesNotThrow(() => f.images.assertIdle(f.run.project.id));
 });
 
 test('reference content changes invalidate reuse and a text-only call retains its original endpoint', async (t) => {

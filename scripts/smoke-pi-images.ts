@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, readdir, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'node:crypto';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { SecretVault } from '../src/main/storage/SecretVault.ts';
@@ -215,6 +215,47 @@ try {
   assert.equal(
     messages(await readFile(join(directory, session.path), 'utf8')),
     messages(transcript),
+  );
+  const proof = {
+    checkedAt: new Date().toISOString(),
+    applicationVersion: JSON.parse(await readFile(resolve('package.json'), 'utf8')).version,
+    piVersion: pi.version,
+    selectedModel: agent.model!.id,
+    referenceMode,
+    passed: {
+      currentNativeMcpSchemaAndCall: true,
+      actualOrderedReferenceBytesInMultipart: referenceMode,
+      outputBoundToAgentAndValidated: true,
+      operationMetadataOmitsKeysAndPrompts: true,
+      modelUnchanged: true,
+      completionValidated: true,
+      exactIdleResumeWithoutReplay: true,
+    },
+    imagesHttpCalls: calls,
+    paidImagesApiRequests: 0,
+    limits:
+      'Actual configured Codex subscription request and native Pi SDK/production bridge; Images HTTP is an injected fixture, no real image generation. Secret protection uses test AES, not macOS Keychain. Own temporary studio only; no Terminal UI or user studio changes.',
+    sourceSha256: Object.fromEntries(
+      await Promise.all(
+        [
+          'scripts/smoke-pi-images.ts',
+          'src/main/images/ImageGeneration.ts',
+          'src/main/images/ImagesApi.ts',
+          'src/main/images/imageReferences.ts',
+          'src/main/images/tools.ts',
+          'bundled/pi-bridge/session.mjs',
+        ].map(async (path) => [
+          path,
+          createHash('sha256')
+            .update(await readFile(resolve(path)))
+            .digest('hex'),
+        ]),
+      ),
+    ),
+  };
+  await writeFile(
+    resolve('artifacts/image-mcp-runtime-proof.json'),
+    JSON.stringify(proof, null, 2) + '\n',
   );
   console.log(
     `Real Pi Images MCP passed (${referenceMode ? 'multipart reference edits' : 'text generation'}): selected Codex model calls the session-bound production tool, fixture HTTP produces a validated local PNG in its own output, usage/operation metadata omit keys and prompts, validated completion and exact idle resume work without repeating a request. No paid Images API request was made.`,
