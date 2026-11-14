@@ -10,12 +10,7 @@
 @import './controls.css';
 @import './outputs.css';
 
-@import './prototype.css';
+@import './workspace.css';
 @import './startup.css';
 
-/* Flat fields across screens, including shared Radix selects. */
-.app-shell :is(input:not([type='range']), textarea, .ui-select-trigger) {
-  border-radius: 0;
-  border-color: #d4d4d8;
-  box-shadow: none;
-}
+@import '../shared/ui/fields.css';

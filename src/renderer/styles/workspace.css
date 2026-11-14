@@ -1,4 +1,4 @@
-/* Shared layout for the prototype's editable panels and resource lists. */
+/* Shared workspace, resource and viewer layouts used by native and web entries. */
 .studio-root {
   min-height: 100vh;
 }

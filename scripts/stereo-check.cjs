@@ -39,7 +39,15 @@ const stereoProbe = `(() => {
   };
 })();`;
 
-async function verifyStereoPlayback({ js, until, click, output, verifyVisibility, capture }) {
+async function verifyStereoPlayback({
+  js,
+  until,
+  click,
+  output,
+  verifyVisibility,
+  capture,
+  visibilityMode,
+}) {
   const original = JSON.parse(await readFile(join(output, 'timeline.json'), 'utf8'));
   // Stereo source deliberately has unequal channels; center must preserve their balance.
   const rate = 44100,
@@ -227,6 +235,7 @@ async function verifyStereoPlayback({ js, until, click, output, verifyVisibility
     cases: evidence,
     pauseSeekResumeMuteFullscreen: true,
     hiddenPausesPlayback: true,
+    visibilityMode,
     allPannersDisconnected: true,
     nativeOsOutputMuted: true,
   };

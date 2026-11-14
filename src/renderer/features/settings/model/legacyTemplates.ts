@@ -1,11 +1,6 @@
 import { canonicalJson } from '../../../../shared/canonicalJson.ts';
 import hashes from './legacyTemplateHashes.json' with { type: 'json' };
 
-/** Full equality helper retained for tests of the historical comparison contract. */
-export function matchesTemplate(value: unknown, example: unknown) {
-  return example !== undefined && canonicalJson(value) === canonicalJson(example);
-}
-
 /** Match the full historical value, including instructions/model/settings, without bundling it. */
 export async function matchesLegacyTemplate(
   value: { id: string; kind?: string },

@@ -1,0 +1,6 @@
+/* Common flat geometry, after workspace/theme rules; feature spacing stays local. */
+:is(.app-shell, .startup-screen) :is(input:not([type='range']), textarea, .ui-select-trigger) {
+  border-radius: 0;
+  border-color: #d4d4d8;
+  box-shadow: none;
+}

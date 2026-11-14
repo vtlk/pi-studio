@@ -31,6 +31,7 @@
 }
 .native-video-viewer .editor-clip {
   min-width: 2px;
+  height: 32px;
 }
 .native-video-viewer .editor-track-name > span {
   display: block;

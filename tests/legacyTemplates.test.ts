@@ -1,29 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  matchesTemplate,
-  matchesLegacyTemplate,
-} from '../src/renderer/features/settings/model/legacyTemplates.ts';
+import { matchesLegacyTemplate } from '../src/renderer/features/settings/model/legacyTemplates.ts';
 import { initialAgents } from '../src/renderer/fixtures/agents.ts';
 import { exampleConnections } from '../src/renderer/fixtures/connections.ts';
 import { exampleResources } from '../src/renderer/fixtures/resources.ts';
 
-test('legacy cleanup recognizes unchanged normalized templates but preserves every custom edit', () => {
+test('legacy cleanup recognizes unchanged normalized templates but preserves every custom edit', async () => {
   const template = initialAgents[0];
   const normalized = {
     ...template,
     model: Object.fromEntries(Object.entries(template.model!).reverse()),
   };
-  assert.equal(matchesTemplate(normalized, template), true);
-  assert.equal(matchesTemplate({ ...normalized, name: 'My agent' }, template), false);
+  assert.equal(await matchesLegacyTemplate(normalized, 'agents'), true);
+  assert.equal(await matchesLegacyTemplate({ ...normalized, name: 'My agent' }, 'agents'), false);
   assert.equal(
-    matchesTemplate({ ...normalized, mainInstruction: 'My instructions' }, template),
+    await matchesLegacyTemplate({ ...normalized, mainInstruction: 'My instructions' }, 'agents'),
     false,
   );
-  assert.equal(matchesTemplate({ ...normalized, enabled: false }, template), false);
-  assert.equal(matchesTemplate({ ...normalized, skills: [] }, template), false);
-  assert.equal(matchesTemplate({ ...normalized, id: 'custom' }, template), false);
-  assert.equal(matchesTemplate(normalized, undefined), false);
+  assert.equal(await matchesLegacyTemplate({ ...normalized, enabled: false }, 'agents'), false);
+  assert.equal(await matchesLegacyTemplate({ ...normalized, skills: [] }, 'agents'), false);
+  assert.equal(await matchesLegacyTemplate({ ...normalized, id: 'custom' }, 'agents'), false);
+  assert.equal(await matchesLegacyTemplate(normalized, 'resources'), false);
 });
 
 test('native hashes recognize every historical template without bundling its text and preserve custom data', async () => {

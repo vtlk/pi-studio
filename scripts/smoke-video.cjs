@@ -21,18 +21,26 @@ const deadline = setTimeout(() => {
   }
   const loaded = new Promise((resolve, reject) =>
     app.once('browser-window-created', (_, window) => {
+      window.webContents.setBackgroundThrottling(false);
+      window.hide();
+      window.on('show', () => window.hide());
       window.webContents.once('did-finish-load', () => resolve(window));
       window.webContents.once('did-fail-load', (_, code, description) =>
         reject(new Error(`${code}: ${description}`)),
       );
     }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
   window.webContents.setBackgroundThrottling(false); // Keep owned QA deterministic when the user works in another window.
   window.webContents.setAudioMuted(true); // QA measures Web Audio, without playing tones on the user's speakers.
   window.webContents.on('console-message', (event) => {
     if (event.level === 'error') console.error(event.message);
+  });
+  window.webContents.removeAllListeners('will-prevent-unload');
+  window.webContents.on('will-prevent-unload', () => {
+    console.error('QA reload before saved');
+    app.exit(1);
   });
   const js = (code) => window.webContents.executeJavaScript(code, true);
   async function until(code) {
@@ -67,6 +75,7 @@ const deadline = setTimeout(() => {
   };
   const inspected = await js(`window.studio.inspectVideoProject(${JSON.stringify(request)})`);
   assert.equal(inspected.ok, true, inspected.error);
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   window.webContents.reload();
   await until(
     `Array.from(document.querySelectorAll('button')).some(b => b.textContent.includes('Видео smoke'))`,
@@ -84,7 +93,10 @@ const deadline = setTimeout(() => {
   await until(
     `Array.from(document.querySelectorAll('button')).some(b => b.textContent.trim() === 'Открыть монтаж')`,
   );
-  assert.equal(await js(`!!document.querySelector('.project-file-toolbar [aria-label="Показать в Finder"]')`), false);
+  assert.equal(
+    await js(`!!document.querySelector('.project-file-toolbar [aria-label="Показать в Finder"]')`),
+    false,
+  );
   await js(
     `window.__audioStarted=0; const originalAudioStart=AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start=function(...args){ if(this.buffer?.length>0) window.__audioStarted++; return originalAudioStart.apply(this,args); }; void 0;`,
   );
@@ -208,6 +220,7 @@ const deadline = setTimeout(() => {
   await until(`document.querySelector('[data-video-frame]')?.dataset.videoFrame === '0'`);
   if (process.argv.includes('--stereo'))
     await verifyStereoPlayback({
+      visibilityMode: 'simulated-event-offscreen',
       js,
       until,
       click,
@@ -215,8 +228,10 @@ const deadline = setTimeout(() => {
       capture: async () =>
         writeFile(resolve('artifacts/stereo-viewer.png'), (await window.capturePage()).toPNG()),
       verifyVisibility: async () => {
-        window.webContents.setBackgroundThrottling(true);
-        window.hide();
+        // Offscreen windows have no OS occlusion; drive the visibility event explicitly.
+        await js(
+          `Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));`,
+        );
         await until(
           `document.hidden && window.__readStereo().state==='suspended' && !!document.querySelector('[aria-label="Воспроизвести"]')`,
         );
@@ -226,13 +241,12 @@ const deadline = setTimeout(() => {
           await js(`document.querySelector('[data-video-frame]').dataset.videoFrame`),
           frame,
         );
-        window.webContents.setBackgroundThrottling(false);
-        window.showInactive();
+        await js(`delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));`);
         await until(`!document.hidden`);
       },
     });
   console.log(
-    'Official Remotion Player passed: safe manifest/assets, SVG keyframes, video pixel decoding, real decoded audio playback, read-only clips, fullscreen/Escape, preserved view state and dependency revision.',
+    'Offscreen Electron (visibility event simulated) / official Remotion Player passed: safe manifest/assets, SVG keyframes, video pixel decoding, real decoded audio playback, read-only clips, fullscreen/Escape, preserved view state and dependency revision.',
   );
   clearTimeout(deadline);
   await rm(temporary, { recursive: true, force: true });

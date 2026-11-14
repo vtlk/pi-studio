@@ -3,11 +3,11 @@ import { Maximize2, Minimize2, SkipBack, SkipForward } from 'lucide-react';
 import { Player, type PlayerRef, type CallbackListener } from '@remotion/player';
 import type { ValidatedVideoProject } from '../../../../shared/video';
 import { Button, IconButton } from '@/shared/ui';
-import { Tooltip } from '@/shared/ui/Tooltip';
 import { readVideoView, rememberVideoView } from '../model/viewState';
 import { VideoComposition } from '../player/VideoComposition';
 import { remotionMuteControl, renderRemotionPlay } from './RemotionControls';
-import { timelineLanes } from '../model/timelineLanes';
+import { TimelineTrack } from './TimelineTrack';
+import { ClipProperties } from './ClipProperties';
 import './videoViewer.css';
 
 export function VideoViewer({
@@ -150,83 +150,19 @@ export function VideoViewer({
               <span>00:00</span>
               <span>{(total / timeline.fps).toFixed(2)} с</span>
             </div>
-            {timeline.tracks.map((track) => {
-              const layout = timelineLanes(track.items);
-              return (
-                <div className="editor-track" key={track.id}>
-                  <Tooltip label={track.name} onlyWhenTruncated overflowSelector="span">
-                    <div className="editor-track-name">
-                      <span>{track.name}</span>
-                    </div>
-                  </Tooltip>
-                  <div className="editor-track-clips" style={{ height: layout.count * 40 }}>
-                    {track.items.map((item) => (
-                      <Tooltip key={item.id} label={item.name} onlyWhenTruncated>
-                        <button
-                          className={`editor-clip${view.selected === item.id ? ' selected' : ''}`}
-                          aria-label={`Клип ${item.name}`}
-                          aria-pressed={view.selected === item.id}
-                          onClick={() =>
-                            setView((previous) => ({ ...previous, selected: item.id }))
-                          }
-                          style={{
-                            left: `${(item.from / total) * 100}%`,
-                            width: `${(item.duration / total) * 100}%`,
-                            top: (layout.lanes.get(item.id) ?? 0) * 40 + 4,
-                            height: 32,
-                          }}
-                        >
-                          <span>{item.name}</span>
-                        </button>
-                      </Tooltip>
-                    ))}
-                    <div
-                      className="editor-playhead"
-                      style={{ left: `${(view.frame / total) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+            {timeline.tracks.map((track) => (
+              <TimelineTrack
+                key={track.id}
+                track={track}
+                total={total}
+                frame={view.frame}
+                selected={view.selected}
+                onSelect={(id) => setView((previous) => ({ ...previous, selected: id }))}
+              />
+            ))}
           </div>
         </div>
-        <aside className="editor-inspector">
-          <h3>Свойства клипа</h3>
-          {selected ? (
-            <>
-              <p>{selected.name}</p>
-              <dl className="data-list">
-                <dt>Начало, кадры</dt>
-                <dd>{selected.from}</dd>
-                <dt>Длительность, кадры</dt>
-                <dd>{selected.duration}</dd>
-                <dt>Громкость</dt>
-                <dd>{Math.round((selected.volume ?? 1) * 100)}%</dd>
-                {document.assets.some(
-                  (asset) => asset.id === selected.assetId && asset.type !== 'image',
-                ) && (
-                  <>
-                    <dt>Панорама</dt>
-                    <dd>
-                      {!selected.pan
-                        ? 'Центр'
-                        : `${selected.pan < 0 ? 'Влево' : 'Вправо'} ${Math.round(Math.abs(selected.pan) * 100)}%`}
-                    </dd>
-                  </>
-                )}
-              </dl>
-              {selected.text && (
-                <>
-                  <h3>Субтитры</h3>
-                  <p>{selected.text.toUpperCase()}</p>
-                </>
-              )}
-            </>
-          ) : (
-            <p>Выберите клип на таймлайне.</p>
-          )}
-          <p className="subtle">Правки монтажа выполняются в диалоге агента в Pi.</p>
-        </aside>
+        <ClipProperties selected={selected} assets={document.assets} />
       </div>
     </section>
   );
