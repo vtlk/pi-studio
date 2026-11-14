@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0-alpha.46",
+  "verifiedAt": "2026-11-14T15:16:30.317Z",
+  "packagedMainSha256": "d73ffef69658715e084e4e8b93bf2a9daaa34a9b2c13c103bfd08a6860dc61aa",
+  "first": {
+    "phases": [
+      "checking",
+      "downloading",
+      "installing",
+      "verifying",
+      "ready"
+    ],
+    "progressVisible": true,
+    "iconDecoded": true,
+    "nodeFetchOrigins": [
+      "https://nodejs.org"
+    ],
+    "pi": {
+      "version": "1.5.2",
+      "supported": true,
+      "nativeMcp": true,
+      "exactSessions": true
+    },
+    "emptyStudio": true,
+    "onlySystemHelper": true,
+    "stagingCleaned": true,
+    "runtimeLockSha256": "0a64150501e5db6eb5b4c9a23b2c31fe6dd96ad3d4098dca8b97dafcff97ceef",
+    "studioSha256": "af70a80cd0d123e0383f1d140538b21a56a9951ecb5a92902c8031ffc493b2bd"
+  },
+  "second": {
+    "phases": [
+      "checking",
+      "ready"
+    ],
+    "progressVisible": false,
+    "iconDecoded": false,
+    "nodeFetchOrigins": [],
+    "pi": {
+      "version": "1.5.2",
+      "supported": true,
+      "nativeMcp": true,
+      "exactSessions": true
+    },
+    "emptyStudio": true,
+    "onlySystemHelper": true,
+    "stagingCleaned": true,
+    "runtimeLockSha256": "0a64150501e5db6eb5b4c9a23b2c31fe6dd96ad3d4098dca8b97dafcff97ceef",
+    "studioSha256": "af70a80cd0d123e0383f1d140538b21a56a9951ecb5a92902c8031ffc493b2bd"
+  },
+  "scope": "Actual packaged main/preload/renderer and real pinned runtime download/install; offscreen presentation only. Separate process reuse with Node fetch denied. No credentials, Terminal or model calls; isolated HOME/workspace/userData removed."
+}

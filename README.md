@@ -41,6 +41,7 @@ npm run lint
 npm run check:architecture
 npm test
 npm run test:startup  # экран подготовки и открытие пустой студии
+npm run test:fresh-startup # реальная установка Pi и повторный запуск main/preload/UI текущей упакованной .app; временные HOME/студия
 npm run test:pi-film # opt-in: три реальных агента создают тестовый мультфильм, без платных media API
 npm run test:film-viewer # после test:pi-film: просмотр этого результата в изолированном Electron
 npm run test:stereo # реальный звук PCM/AAC: оба канала, pan/volume/trim, pause/seek/mute и очистка узлов

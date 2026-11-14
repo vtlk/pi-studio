@@ -32,6 +32,7 @@
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "format": "prettier --write src electron.vite.config.ts vite.config.ts",
     "test:startup": "npm run build && electron scripts/smoke-startup.cjs",
+    "test:fresh-startup": "node scripts/smoke-fresh-startup.cjs",
     "test:pi-install": "node --experimental-strip-types scripts/smoke-pi-install.ts",
     "test:pi-auth": "node --experimental-strip-types scripts/smoke-pi-auth.ts",
     "test:pi-session": "node --experimental-strip-types scripts/smoke-pi-session.ts",

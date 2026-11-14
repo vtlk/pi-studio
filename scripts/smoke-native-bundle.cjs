@@ -26,7 +26,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
   window.webContents.removeAllListeners('will-prevent-unload');
   window.webContents.on('will-prevent-unload', () => {
@@ -64,6 +64,25 @@ const deadline = setTimeout(() => {
   assert.equal(empty.sections.systemAgents[0].systemRole, 'assistant');
   assert.deepEqual(empty.projects, []);
   assert.deepEqual((await js('window.studio.listLibrary()')).assets, []);
+  assert.equal(empty.sections.baseInstruction, '');
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.topbar nav button')).map(button=>button.textContent.trim())`,
+    ),
+    ['Проекты', 'Библиотека', 'Агенты'],
+  );
+  await click('Библиотека');
+  await until(`!!document.querySelector('[aria-label="Создать персонажа"]')`);
+  await click('Агенты');
+  await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);
+  await js(`document.querySelector('.topbar [aria-label="Настройки"]').click()`);
+  await until(`!!document.querySelector('[aria-label="Настройки студии"]')`);
+  assert.equal(
+    await js(`document.querySelector('.settings-content h2')?.textContent`),
+    'Рабочее пространство',
+  );
+  await click('Проекты');
+  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   assert.equal(await js(`document.body.innerText.includes('Посылка с характером')`), false);
   const report = JSON.parse(await readFile(resolve('out/renderer/native-build.json'), 'utf8'));
   assert.equal(report.webExampleModules, 0);
@@ -175,7 +194,7 @@ const deadline = setTimeout(() => {
   assert.equal(await readFile(projectFile, 'utf8'), projectBefore);
   clearTimeout(deadline);
   console.log(
-    'Native bundle passed: empty install, no demo module/data graph, explicit missing-preload screen, SHA-256 legacy match with cancel/confirmation/undo, edited profiles and project files preserved. No model or Terminal requests.',
+    'Native bundle passed: empty install, three-page navigation and settings, no demo module/data graph, explicit missing-preload screen, SHA-256 legacy match with cancel/confirmation/undo, edited profiles and project files preserved. No model or Terminal requests.',
   );
   await rm(root, { recursive: true, force: true });
   app.exit(0);

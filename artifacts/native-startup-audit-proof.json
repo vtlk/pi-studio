@@ -1,0 +1,61 @@
+{
+  "version": "0.2.0-alpha.46",
+  "verifiedAt": "2026-11-14T15:19:38.117Z",
+  "mainSha256": "d73ffef69658715e084e4e8b93bf2a9daaa34a9b2c13c103bfd08a6860dc61aa",
+  "freshStartupProofSha256": "db78fa6ae1cf9fb8aa59cd52f87a57f6674edc1e01373ea90a8a6a44ab6c1607",
+  "checks": {
+    "nativeBundle": {
+      "passed": true,
+      "logSha256": "567ec3255aef28158e461beb40306b8824c495912e36553009df43ab76f16423",
+      "evidence": "Native bundle passed: empty install, three-page navigation and settings, no demo module/data graph, explicit missing-preload screen, SHA-256 legacy match with cancel/confirmation/undo, edited profiles and project files preserved. No model or Terminal requests."
+    },
+    "launchConfiguration": {
+      "passed": true,
+      "logSha256": "1aa308b0ebf0bea1796eb6b85b9898ab3d00a0dafb73f85d1815b83fe89d513f",
+      "evidence": "Launch row configuration passed: missing connection/model/effort/profile, stale snapshots, existing dialogue, live constructor/account changes without refresh; SplitButton/menu/first-message cancel and Escape create nothing; safe scoped continuation notice through preload; no session/context/model requests."
+    },
+    "startupPresentation": {
+      "passed": true,
+      "logSha256": "871bd0922e814695825252e5a19af096c91375a769f2e392fdf45f1232609d91",
+      "evidence": "Startup UI passed: fixture download progress presentation, branding, skip and empty studio. Real installation is covered separately by test:fresh-startup."
+    },
+    "startupStorageGuardUnit": {
+      "passed": true,
+      "logSha256": "32715fd0ef09c47ef4e5cba6b620184194f04aa0f8322416465ac2a8b6b4383d",
+      "evidence": "# pass 21"
+    },
+    "modelConfigurationUnit": {
+      "passed": true,
+      "logSha256": "5a0c16ffe08a9048662e4a50615dade14e5a31292eef525b7c33fc03ba59f492",
+      "evidence": "# pass 2"
+    },
+    "typecheck": {
+      "passed": true,
+      "logSha256": "b875491eb8a8726cf84ef5e3e75f0101c5618fba81b112eb77e4a3f5075c37d8",
+      "evidence": "> tsc --noEmit"
+    },
+    "lint": {
+      "passed": true,
+      "logSha256": "b5f93ffc35586e186632d5aa408175b205ab5b4d8d67e6a56665190cb9685c37",
+      "evidence": "> eslint src"
+    },
+    "architecture": {
+      "passed": true,
+      "logSha256": "c0ae9cbd17ac242afcf016d2839dc7d302505abed6a16986577d5d64b5297ed5",
+      "evidence": "Architecture checked: 282 modules; no runtime import cycles or process/layer boundary violations."
+    }
+  },
+  "sourceSha256": {
+    "scripts/smoke-fresh-startup.cjs": "c06cdb8a6bfaccc934abc39876f4371795fd85aeafaf039b2c95fd48ea8301c5",
+    "scripts/offscreen-main.cjs": "a5f0ca73e4f35b0987b387099e009cadf01c7b5f42bc4d063593d9cd73a6fbfd",
+    "scripts/smoke-native-bundle.cjs": "f15ef28b1571e7a36eaf1f171e66d253c2bb006841bb7896f6db079f43d17a43",
+    "scripts/smoke-startup.cjs": "6247d13bb4caa4b0c2d542a5ceb74630f20638e2082b3dcf012d0d78f5a27132",
+    "scripts/smoke-launch-configuration.cjs": "e39c420aced50e7201ebdfd8d9a032ca6690ff0b7d7ca879fe7cd047b3b35f03",
+    "src/main/pi/Startup.ts": "5b21d143d61175e3c721ac059b1f84714043673210e7af7c48487aca7805522f",
+    "src/main/pi/installRuntime.ts": "baf08384508ecf9388fc0536e244ba3bfe0a7318e6be0994f12834a87f3a430d",
+    "src/main/pi/checkPi.ts": "f743c145cb77690e3a03387fd0e0a66e0ef42eb1973601f0c218a97c3d93bee4",
+    "src/main/pi/resolveAgentLaunchConfig.ts": "26216f0ec6359656a0e126df608e6e753c0b95cb68fb139cad9a4ca505548f83",
+    "src/renderer/app/layout/Topbar.tsx": "9395cb04bf46b9cb1f585a5544d5e9d68b6e273ca8d4cab3d5cc235f6f516c1b"
+  },
+  "scope": "APP-01/02/04/05 and PRJ-12 targeted audit. Fresh startup executes actual packaged resources with only an offscreen BrowserWindow override; other native smoke tests run the matching compiled main. Test fixtures are explicit; current user application/studio and credentials are untouched. Does not establish external OAuth consent, Keychain restart behavior, notarization or whole-MVP completion."
+}

@@ -17,6 +17,9 @@ const deadline = setTimeout(() => app.exit(1), 20000);
   }
   const loaded = new Promise((resolve) =>
     app.once('browser-window-created', (_event, window) => {
+      window.webContents.setBackgroundThrottling(false);
+      window.hide();
+      window.on('show', () => window.hide());
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
@@ -37,7 +40,7 @@ const deadline = setTimeout(() => app.exit(1), 20000);
       }));
     return originalHandle(channel, action);
   };
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
   const js = (code) => window.webContents.executeJavaScript(code, true);
   async function until(code) {
@@ -66,7 +69,7 @@ const deadline = setTimeout(() => app.exit(1), 20000);
   );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   console.log(
-    'Startup UI passed: real download progress presentation, branding, skip and empty studio.',
+    'Startup UI passed: fixture download progress presentation, branding, skip and empty studio. Real installation is covered separately by test:fresh-startup.',
   );
   clearTimeout(deadline);
   await rm(temporary, { recursive: true, force: true });
