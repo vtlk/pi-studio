@@ -99,6 +99,7 @@ export class RunLifecycle {
       await this.dependencies.update(live.run, 'running');
       this.dependencies.failureChanged?.(live.run);
     } else if (event.type === 'running') {
+      if (event.usage) await this.dependencies.accounting?.(live.run, event.usage).catch(() => {});
       this.dependencies.activityChanged?.(live.run, true);
       live.status = 'running';
       await this.dependencies.update(live.run, 'running');

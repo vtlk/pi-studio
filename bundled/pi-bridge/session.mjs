@@ -196,8 +196,8 @@ export async function runSession(bootstrapPath) {
         return { action: 'continue' };
       });
       pi.on('agent_start', async () => {
-        accounting?.start();
-        await event({ type: 'running' });
+        const time = accounting?.start();
+        await event({ type: 'running', ...(time ? { usage: { records: [], time } } : {}) });
         await accounting?.flush().catch(() => {});
       });
       pi.on('agent_settled', async (settled, ctx) => {

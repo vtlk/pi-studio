@@ -108,6 +108,18 @@ test('crash/restart keeps only confirmed time and marks its unknown tail, withou
   assert.deepEqual(restarted.summary().total.duration, { value: 2000, partial: true });
 });
 
+test('a crash immediately after runtime start marks unknown time even before the first periodic sample', async (t) => {
+  const { ledger } = await fixture(t);
+  await ledger.begin('a', 'early-crash');
+  await ledger.apply('a', 'early-crash', {
+    records: [],
+    time: { sample: 1, elapsedMs: 0, intervals: 1, active: true },
+  });
+  await ledger.lost('a', 'early-crash');
+  assert.deepEqual(ledger.summary().agents.a.duration, { value: 0, partial: true });
+  assert.deepEqual(ledger.summary().agents.b.duration, { value: 0, partial: false });
+});
+
 test('clone and rename keep historical totals/cursors but future clone spend is independent', async (t) => {
   const { root, ledger } = await fixture(t);
   await ledger.begin('a', 'original');

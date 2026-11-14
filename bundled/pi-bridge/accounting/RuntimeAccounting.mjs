@@ -11,6 +11,7 @@ export class RuntimeAccounting {
   }
   start() {
     this.clock.start();
+    return this.clock.read();
   }
   stop() {
     this.clock.stop();
