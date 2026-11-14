@@ -115,7 +115,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded,
     js = (code) => window.webContents.executeJavaScript(code, true);
   const until = async (code) => {
@@ -165,6 +165,33 @@ const deadline = setTimeout(() => {
   await js(`${row('valid')}.querySelector('button[aria-label="Запустить"]').click()`);
   await until(`!!document.querySelector('.agent-first-message')`);
   await click('Отмена');
+  const menu = () =>
+    js(
+      `${row('valid')}.querySelector('button[aria-label="Другие варианты запуска"]').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+    );
+  await menu();
+  await until(`!!document.querySelector('[role="menuitem"]')`);
+  await js(
+    `document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`,
+  );
+  await until(`!document.querySelector('[role="menuitem"]')`);
+  assert.equal(await js(`!!document.querySelector('.agent-first-message')`), false);
+  await menu();
+  await until(`!!document.querySelector('[role="menuitem"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(el=>el.textContent==='Запустить и продолжить').click()`,
+  );
+  await until(`!!document.querySelector('.agent-first-message')`);
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('[role="dialog"] button')).find(el=>el.textContent==='Запустить и продолжить').disabled`,
+    ),
+    true,
+  );
+  await js(
+    `document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`,
+  );
+  await until(`!document.querySelector('.agent-first-message')`);
   const save = async (key, value) => {
     const before = await js('window.studio.loadStudio()');
     const result = await js(
@@ -195,13 +222,38 @@ const deadline = setTimeout(() => {
   );
   await save('connections', [account]);
   await until(`!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')`);
+  const notice = {
+    projectRoot: (await js('window.studio.loadStudio()')).folder + '/projects/launch-states',
+    projectId: 'qa-project',
+    agentId: 'bound',
+    agentName: 'Completed agent',
+    failure: 'continuation',
+    rawError: 'PRIVATE_HANDOFF_ERROR',
+  };
+  window.webContents.send('studio:run-failure', notice);
+  await until(
+    `document.querySelector('.run-failure-notice')?.textContent.includes('Предыдущий результат готов и сохранён')`,
+  );
+  const message = await js(`document.querySelector('.run-failure-notice').textContent`);
+  assert.ok(message.includes('следующего агента'));
+  assert.ok(message.includes('Автоматического повтора нет'));
+  assert.ok(!message.includes('PRIVATE_HANDOFF_ERROR'));
+  window.webContents.send('studio:run-failure', {
+    ...notice,
+    agentId: 'other',
+    failure: undefined,
+  });
+  await js(`new Promise(resolve=>requestAnimationFrame(resolve))`);
+  assert.equal(await js(`!!document.querySelector('.run-failure-notice')`), true);
+  window.webContents.send('studio:run-failure', { ...notice, failure: undefined });
+  await until(`!document.querySelector('.run-failure-notice')`);
   assert.equal(await readFile(file, 'utf8'), before);
   assert.equal(await readFile(join(projectDir, bound.session.path), 'utf8'), transcript);
   await assert.rejects(access(join(projectDir, '.pistudio/context')));
   assert.equal(launches, 0);
   clearTimeout(deadline);
   console.log(
-    'Launch row configuration passed: missing connection/model/effort/profile, stale snapshots, existing dialogue, live constructor/account changes without refresh; launch and menu hidden, Finder/delete preserved; no session/context/model requests.',
+    'Launch row configuration passed: missing connection/model/effort/profile, stale snapshots, existing dialogue, live constructor/account changes without refresh; SplitButton/menu/first-message cancel and Escape create nothing; safe scoped continuation notice through preload; no session/context/model requests.',
   );
   for (const window of BrowserWindow.getAllWindows()) window.destroy();
   await rm(temporary, { recursive: true, force: true });

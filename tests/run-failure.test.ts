@@ -110,3 +110,67 @@ test('project status distinguishes a provider limit and keeps disabled agents di
     'Агент выключен',
   );
 });
+
+test('a failed handoff preserves the completed stage and reports a safe actionable notice once', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-handoff-failure-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const output = join(root, 'output');
+  await mkdir(output);
+  await writeFile(join(output, 'result.txt'), 'Completed previous result');
+  const live = {
+    run: { projectRoot: root, record: { runId: 'handoff', output } },
+    request: { autoContinue: true },
+    sequence: 0,
+    blocked: false,
+    status: 'waiting',
+    heartbeat: 0,
+  } as LiveRun;
+  const notices: (string | undefined)[] = [];
+  const statuses: string[] = [];
+  let attempts = 0;
+  const lifecycle = new RunLifecycle({
+    bootstraps: '',
+    bridge: '',
+    prepare: async () => {
+      throw new Error('unused');
+    },
+    read: async () => live.run.project,
+    update: async (_run, status) => {
+      statuses.push(status);
+      return live.run.project;
+    },
+    completed: async () => {
+      attempts++;
+      throw new Error('PRIVATE_PROVIDER_DETAIL: next agent configuration is invalid');
+    },
+    failureChanged: (_run, failure) => {
+      notices.push(failure);
+    },
+  });
+  await lifecycle.event(live, { type: 'request', message: 'Complete and continue' });
+  await lifecycle.tool(live, 'complete_stage', { outputs: ['result.txt'] });
+  await lifecycle.event(live, { type: 'settled', outcome: 'completed' });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(live.status, 'ready', 'A next-stage error must not undo the completed stage');
+  assert.equal(live.failure, undefined);
+  assert.equal(live.blocked, true);
+  assert.equal(live.request.autoContinue, false);
+  assert.equal(statuses.at(-1), 'ready');
+  assert.deepEqual(notices, [undefined, 'continuation']);
+  assert.equal(JSON.stringify(notices).includes('PRIVATE'), false);
+  const result = JSON.parse(
+    await readFile(join(root, '.pistudio/context/handoff/result.json'), 'utf8'),
+  );
+  assert.equal(result.status, 'ready');
+  assert.equal(result.outputs.length, 1);
+  assert.equal(await readFile(join(output, 'result.txt'), 'utf8'), 'Completed previous result');
+  await lifecycle.event(live, { type: 'settled', outcome: 'completed' });
+  assert.equal(attempts, 1);
+  assert.deepEqual(notices, [undefined, 'continuation']);
+  await lifecycle.event(live, { type: 'request', message: 'An explicit new request' });
+  assert.equal(notices.at(-1), undefined);
+  assert.equal(live.blocked, false);
+  await lifecycle.tool(live, 'complete_stage', { outputs: ['result.txt'] });
+  await lifecycle.event(live, { type: 'settled', outcome: 'completed' });
+  assert.equal(attempts, 1, 'A new request does not silently rearm a failed chain');
+});

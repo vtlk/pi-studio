@@ -141,11 +141,13 @@ export class RunLifecycle {
         const sequence = live.sequence;
         void this.dependencies
           .completed?.(live.run, live.completion!, live.userMessage)
-          .catch(async () => {
+          .catch(() => {
             if (live.sequence !== sequence) return;
-            live.status = 'waiting';
+            // The current output remains validated. Report the failed handoff
+            // separately and disarm it until the next explicit Studio action.
             live.blocked = true;
-            await this.dependencies.update(live.run, 'waiting').catch(() => {});
+            live.request.autoContinue = false;
+            this.dependencies.failureChanged?.(live.run, 'continuation');
           });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {

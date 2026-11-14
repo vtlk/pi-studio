@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-11-14T12:37:45.934049+00:00",
+  "applicationVersion": "0.2.0-alpha.39",
+  "regressionBefore": "A failed handoff changed the completed stage from ready to waiting.",
+  "regressionAfter": {
+    "priorResultRemainsReady": true,
+    "outputsRemainUnchanged": true,
+    "safeScopedNotice": "continuation",
+    "automaticRetry": false,
+    "explicitRequestClearsNotice": true
+  },
+  "checks": {
+    "allUnitFsTests": 156,
+    "focusedLifecycleTransportTests": 9,
+    "nativeUi": "offscreen Electron, own isolated studio, fixture notice through real preload",
+    "uiMenuAndFirstMessageCancelCreateNothing": true,
+    "modelRequestsInNewChecks": 0,
+    "typecheckBuildLintArchitecture": true
+  },
+  "sourceSha256": {
+    "src/main/pi/RunLifecycle.ts": "23382e69b72d09f622a0074deab05dd7701a1599d712957df76c6df46834dfc8",
+    "src/shared/runFailure.ts": "0697f678baec14a9d2bff4ca4c2f1858a3121c9465688a2dc59d828175930a38",
+    "tests/run-failure.test.ts": "9a1e3a87a72d2ef9364cec047289d21e628744eb048735c1e7cc9c589d07797a",
+    "tests/run-mode.test.ts": "6a69403a9607201d66c0d60bea9082ebc49e12d28f645d9366e2259f915856ad",
+    "scripts/smoke-launch-configuration.cjs": "e39c420aced50e7201ebdfd8d9a032ca6690ff0b7d7ca879fe7cd047b3b35f03"
+  },
+  "limits": [
+    "New checks use a deterministic loopback bridge and a fixture notice, not a new live subscription completion.",
+    "Normal actual model chain and cartoon evidence is in artifacts/manual-mvp/proof.json and reverification.json."
+  ]
+}

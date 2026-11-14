@@ -6,6 +6,7 @@ export const runFailureCodes = [
   'provider',
   'outputs',
   'opening',
+  'continuation',
 ] as const;
 export type RunFailure = (typeof runFailureCodes)[number];
 export function runFailure(value: unknown): RunFailure {
@@ -19,6 +20,7 @@ export const runFailureLabels: Record<RunFailure, string> = {
   provider: 'Ошибка провайдера',
   outputs: 'Ошибка результата',
   opening: 'Ошибка запуска Pi',
+  continuation: 'Цепочка остановлена',
 };
 export const runFailureMessages: Record<RunFailure, string> = {
   usage_limit:
@@ -32,6 +34,8 @@ export const runFailureMessages: Record<RunFailure, string> = {
   outputs:
     'Выходные файлы отсутствуют или изменились после сообщения о готовности. Проверьте результат в том же диалоге Pi.',
   opening: 'Не удалось открыть Pi. Проверьте выбранную модель, авторизацию и назначенные ресурсы.',
+  continuation:
+    'Не удалось запустить следующего агента цепочки. Предыдущий результат готов и сохранён. Проверьте подключение, модель и ресурсы следующего агента, затем запустите его вручную. Автоматического повтора нет.',
 };
 export interface RunFailureNotice {
   projectRoot: string;

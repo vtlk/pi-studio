@@ -62,6 +62,7 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
     exits: Promise<unknown>[] = [];
   const launches: { project: string; agent: string; message?: string }[] = [];
   const tasks: Promise<unknown>[] = [];
+  const notices: (string | undefined)[] = [];
   let activated = 0;
   const host: RunHost = new RunHost({
     bridge,
@@ -100,6 +101,9 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
       return run.project;
     },
     read: async (run) => run.project,
+    failureChanged: (_run, failure) => {
+      notices.push(failure);
+    },
     beforeRequest: async (run) => hooks.request?.(run),
     activateTerminal: async () => {
       activated++;
@@ -192,11 +196,41 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
     event,
     launches,
     tasks,
+    notices,
     status,
     children,
     activated: () => activated,
   };
 }
+
+test(
+  'a next-stage preparation refusal reports the paused chain without losing prior readiness',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    let attempts = 0;
+    f.hooks.prepare = async (_project, agent) => {
+      if (agent === 'next') {
+        attempts++;
+        throw new Error('PRIVATE_NEXT_AGENT_AUTH_ERROR');
+      }
+    };
+    await f.launch(true);
+    await f.request();
+    await f.finish();
+    await until(() => f.notices.includes('continuation'));
+    assert.equal(f.status.get('p/first'), 'ready');
+    assert.equal(f.launches.length, 1);
+    assert.equal(attempts, 1);
+    assert.equal(JSON.stringify(f.notices).includes('PRIVATE'), false);
+    await f.event('p', 'first', { type: 'stopped' });
+    await until(() => f.status.get('p/first') === 'ready');
+    await f.request();
+    await f.finish();
+    assert.equal(attempts, 1, 'A failed chain must stay disarmed on subsequent input');
+    assert.equal(f.status.get('p/first'), 'ready');
+  },
+);
 
 test(
   'clearing output cancels a pending chain and readiness without killing the bound dialogue',
