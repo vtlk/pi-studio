@@ -368,3 +368,70 @@ test(
     );
   },
 );
+
+test(
+  'manual requests of different agents in one project run concurrently while project mutations stay guarded',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    await f.launch(false, 'p', 'first');
+    await f.request('p', 'first');
+    await f.launch(false, 'p', 'second');
+    await f.request('p', 'second');
+    assert.equal(f.status.get('p/first'), 'running');
+    assert.equal(f.status.get('p/second'), 'running');
+    assert.throws(() => f.host.assertIdle('p'), /Дождитесь/);
+    await f.launch(false, 'p', 'first');
+    assert.equal(f.children.length, 2, 'Reopening an active agent activates its existing dialogue');
+    assert.equal(f.activated(), 1);
+    await f.finish('p', 'first');
+    assert.equal(f.status.get('p/first'), 'ready');
+    assert.equal(f.status.get('p/second'), 'running');
+    assert.throws(() => f.host.assertIdle('p'), /Дождитесь/);
+    await f.request('p', 'second');
+    await f.finish('p', 'second');
+    assert.equal(f.status.get('p/second'), 'ready');
+    f.host.assertIdle('p');
+    assert.equal(f.launches.length, 2);
+  },
+);
+
+test(
+  'opening a separate manual agent preserves the running automatic chain',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    await f.launch(true);
+    await f.request();
+    await f.launch(false, 'p', 'side');
+    await f.request('p', 'side');
+    await f.finish();
+    await Promise.all(f.tasks);
+    assert.equal(f.launches.filter((l) => l.agent === 'next').length, 1);
+    assert.equal(f.status.get('p/side'), 'running');
+    assert.equal(f.children[1].exitCode, null);
+  },
+);
+
+test(
+  'an automatic chain never replaces an independently opened idle or running next dialogue',
+  { timeout: 15000 },
+  async (t) => {
+    for (const running of [false, true]) {
+      const f = await fixture(t);
+      await f.launch(false, 'p', 'next');
+      if (running) await f.request('p', 'next');
+      const child = f.children[0];
+      await f.launch(true);
+      await f.request();
+      await f.finish();
+      await until(() => f.notices.includes('continuation'));
+      await Promise.allSettled(f.tasks);
+      assert.equal(f.status.get('p/first'), 'ready');
+      assert.equal(child.exitCode, null, 'Manually opened Pi remains alive');
+      assert.equal(f.launches.length, 2, 'No automatic second instance or message');
+      await f.request('p', 'next');
+      await f.finish('p', 'next');
+    }
+  },
+);

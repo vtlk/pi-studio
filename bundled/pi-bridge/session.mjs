@@ -170,7 +170,7 @@ export async function runSession(bootstrapPath) {
           await event({ type: 'request', message: input.text });
         } catch {
           ctx.ui.notify(
-            'Другой этап проекта ещё работает или связь со Studio недоступна. Запрос не отправлен. Повторите после его завершения.',
+            'Studio недоступна или выполняется операция с папкой проекта. Запрос не отправлен. Повторите после восстановления связи или завершения операции.',
             'error',
           );
           return { action: 'handled' };

@@ -51,16 +51,6 @@ export class RunHost {
           }
         };
         check();
-        if (
-          [...this.live.values()].some(
-            (other) =>
-              other.run.project.id === run.project.id &&
-              other.run.agent.profile.id !== run.agent.profile.id &&
-              other.status === 'running',
-          ) ||
-          [...this.opening].some((key) => key.startsWith(`${run.project.id}/`) && key !== own)
-        )
-          throw new Error('Другой этап этого проекта ещё работает.');
         await dependencies.beforeRequest?.(run);
         this.assertUnchanged(run.project.id);
         check();
@@ -137,10 +127,13 @@ export class RunHost {
     continuation?.check();
     const chain = continuation?.token ?? (request.autoContinue ? Symbol() : undefined);
     if (!continuation) {
-      this.chains.delete(request.projectId);
+      const target = this.live.get(key);
+      if (chain || (target?.chain && target.chain === this.chains.get(request.projectId)))
+        this.chains.delete(request.projectId);
       if (chain) this.chains.set(request.projectId, chain);
       for (const live of this.live.values())
-        if (live.run.project.id === request.projectId) live.request.autoContinue = false;
+        if (live.run.project.id === request.projectId && (chain || live === target))
+          live.request.autoContinue = false;
     }
     if (this.opening.has(key)) throw new Error('Этот агент уже открывается.');
     this.opening.add(key);
@@ -148,6 +141,8 @@ export class RunHost {
     try {
       const active = this.live.get(key);
       if (active?.pid && processAlive(active.pid)) {
+        if (automaticMessage && active.chain !== chain)
+          throw new Error('Диалог следующего агента уже открыт вручную. Цепочка приостановлена.');
         if (request.firstMessage !== undefined)
           throw new Error(
             'У агента уже открыт диалог. Первое сообщение и референсы не отправлялись повторно.',
