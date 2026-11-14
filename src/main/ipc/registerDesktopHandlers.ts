@@ -113,7 +113,8 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
   });
-  app.on('before-quit', () => {
+  // before-quit precedes the renderer's unsaved-changes confirmation: Stay must keep Pi alive.
+  app.on('will-quit', () => {
     for (const controller of [browserAuth, startup, runs, setup, generators]) controller.close();
   });
   function caller(event: IpcMainInvokeEvent) {

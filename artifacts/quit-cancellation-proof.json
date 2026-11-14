@@ -1,0 +1,21 @@
+{
+  "sourceVersion": "0.2.0-alpha.52",
+  "electronVersion": "45.3.1",
+  "piVersion": "1.5.2",
+  "beforeFix": "Actual cancelled app.quit destroyed the live native request: expected stream.closed=false, got true.",
+  "passed": {
+    "cancelledQuitKeepsWindowAndRequest": true,
+    "cancelledQuitDoesNotEmitWillQuit": true,
+    "nativeResponsePersistsAndUpdatesStatus": true,
+    "exactBindingAndTranscriptOnIdleResume": true,
+    "idleResumeDoesNotReplay": true,
+    "confirmedQuitClosesWindowRequestAndChild": true
+  },
+  "modelRequests": 2,
+  "limits": "Actual production main/preload/Electron quit lifecycle and native Pi SDK. Only OS confirmation and Terminal dispatch intercepted; model SSE is loopback, no cloud requests or user studio access. Unsaved state supplied by a test renderer beforeunload guard.",
+  "sourceSha256": {
+    "src/main/ipc/registerDesktopHandlers.ts": "c60a57a102bcc656273100227f85ab7c0570fe418af993c8ccb0ae7ffa261cc3",
+    "src/main/windows/createStudioWindow.ts": "db71c5255149d7cf84034e00673bbbd028882d3eabdc977be7f1206fd4466228",
+    "scripts/smoke-quit-cancel.cjs": "ed4575f548ba150d2d09c720f77f453a279e2a45c1e8025ec25bcfa7643e57be"
+  }
+}
