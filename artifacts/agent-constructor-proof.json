@@ -29,5 +29,24 @@
     "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "d8aec3cb66fd303d4c5e7586af5a00eee897dfa3156859cf9b6b72cfab87aba0",
     "scripts/smoke-agent-constructor.cjs": "fb1a71f653a1b4012d58766ec5c17fa24e8ff430ba46717c33eb4b7eef669a70"
   },
-  "scope": "Real compiled main/preload/React CRUD and disk persistence in two offscreen processes. Model catalog/status/startup are explicit IPC fixtures; no model, Pi Terminal, MCP execution or user studio changes."
+  "scope": "Real compiled main/preload/React CRUD and disk persistence in two offscreen processes. Model catalog/status/startup are explicit IPC fixtures; no model, Pi Terminal, MCP execution or user studio changes.",
+  "relatedChecks": {
+    "unitFs": 172,
+    "typecheck": true,
+    "build": true,
+    "lint": true,
+    "architectureModules": 282,
+    "disclosureKeyboardDndAndSwitch": true,
+    "persistenceCompetingWrites": true,
+    "instructionUndoFailedBeforeFix": true,
+    "resourceUndoFailedBeforeFix": true
+  },
+  "logSha256": {
+    "/tmp/pistudio-alpha47-constructor.log": "65ab86ec42e6e92aaad20e72b59f48f5633df1b30453865c29119f333b8e73d3",
+    "/tmp/pistudio-constructor-disclosures.log": "1ca678de9657373321cfeb87af7cc05367bb9c6b42ea641e17e44bf3f3c2f530",
+    "/tmp/pistudio-constructor-persistence.log": "73006d03b4e091f56ac65e33f55803333352374a72767888a06fda6442f7c6b7",
+    "/tmp/pistudio-constructor-unit.log": "9a1a62e2667ff2971dabc9913feb2f532b676d23d3d01c697ef745befb3b908d",
+    "/tmp/pistudio-constructor-before.log": "7088c9a09fdabecf0884d7010677c34b789d6e9c5d43e4e4f8645c67d3ecd71e",
+    "/tmp/pistudio-resource-undo-before.log": "eec346576e850b0bcb7aeb508b91595521b7c1ff395b61beb8b9072110247cdd"
+  }
 }
