@@ -1,6 +1,6 @@
 # Pi Studio
 
-- Latest user clarification (2026-11-14): load the installed native Pi extensions, including provider extensions, while preserving Studio's required status/control extension. These are distinct from MCP/skills/plugin resource assignments, which remain explicit and scoped to the intended agent. Do not treat native Pi extensions as opt-in Studio resource packages. The user is continuing work and has deferred application restarts/installation until later.
+- Latest user clarification (2026-11-14): load the installed native Pi extensions, including provider extensions, while preserving Studio's required status/control extension. These are distinct from MCP/skills/plugin resource assignments, which remain explicit and scoped to the intended agent. Do not treat native Pi extensions as opt-in Studio resource packages.
 
 - Latest project-row refinement: when the current constructor profile lacks a valid selected connection, model or reasoning effort, show «Не подключена модель» and omit the entire launch/resume SplitButton including its menu. Keep Finder/delete actions and file browsing. Use the current profile by stable ID, never stale snapshot model settings; changes appear without «Перечитать агентов». Retain defensive launch preflight in main/UI.
 
