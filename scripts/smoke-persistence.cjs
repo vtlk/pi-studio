@@ -103,10 +103,12 @@ const deadline = setTimeout(() => {
   console.log(
     'Persistence UI passed: actual competing IPC save, retained local draft, cancel, explicit reload, subsequent autosave and disk hydration; isolated hidden window.',
   );
+  await rm(root, { recursive: true, force: true });
   app.exit(0);
-})().catch((error) => {
+})().catch(async (error) => {
   clearTimeout(deadline);
   console.error(error);
+  if (root) await rm(root, { recursive: true, force: true });
   app.exit(1);
 });
 app.on('will-quit', () => {
