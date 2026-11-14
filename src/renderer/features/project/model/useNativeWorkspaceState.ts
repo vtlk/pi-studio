@@ -105,6 +105,29 @@ export function useNativeWorkspaceState() {
       reading.current = false;
     }
   }, [projectId, isDesktop, demo]);
+  const clearAgentOutput = async (target: string, agentId: string) => {
+    if (!window.studio || !bootstrap || mutating.current) return false;
+    mutating.current = true;
+    setBusy(true);
+    generation.current++;
+    try {
+      const project = await window.studio.clearAgentOutput({
+        folder: bootstrap.folder,
+        projectId: target,
+        agentId,
+      });
+      setProjects((previous) => previous.map((item) => (item.id === project.id ? project : item)));
+      demo('Файлы агента перемещены в Корзину macOS. Их можно восстановить через Finder.');
+      return true;
+    } catch (error) {
+      demo(error instanceof Error ? error.message : 'Не удалось удалить результаты.');
+      return false;
+    } finally {
+      mutating.current = false;
+      setBusy(false);
+      generation.current++;
+    }
+  };
   useEffect(() => {
     void reload();
     const timer = setInterval(() => {
@@ -119,6 +142,7 @@ export function useNativeWorkspaceState() {
     selectedProject,
     setProjectId,
     busy,
+    clearAgentOutput,
     createProject: async (name: string) =>
       (await saveNow()) ? command({ kind: 'create', name, agents }) : false,
     refreshAgents: async (updateExisting: boolean) =>

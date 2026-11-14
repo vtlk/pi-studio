@@ -50,7 +50,8 @@
     "test:pi-connections": "node --experimental-strip-types scripts/smoke-pi-connections.ts",
     "test:endpoints": "npm run build && electron scripts/smoke-endpoints.cjs",
     "test:pi-endpoints": "node --experimental-strip-types scripts/smoke-pi-endpoints.ts",
-    "test:library-assignments": "npm run build && electron scripts/smoke-library-assignments.cjs"
+    "test:library-assignments": "npm run build && electron scripts/smoke-library-assignments.cjs",
+    "test:clear-output": "npm run build && electron scripts/smoke-clear-output.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

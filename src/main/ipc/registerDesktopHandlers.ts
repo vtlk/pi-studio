@@ -338,6 +338,12 @@ export function registerDesktopHandlers(): StudioService {
       };
     }
   });
-  registerProjectActions(service, caller);
+  registerProjectActions(service, caller, {
+    change: (projectId, action) => {
+      images.assertIdle(projectId);
+      return runs.withProjectChange(projectId, false, action);
+    },
+    cleared: (projectId, agentId) => runs.outputsCleared(projectId, agentId),
+  });
   return service;
 }

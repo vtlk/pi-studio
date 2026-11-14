@@ -45,3 +45,8 @@ export interface FileRequest {
   projectId: string;
   path: string;
 }
+export interface ClearAgentOutputRequest {
+  folder: string;
+  projectId: string;
+  agentId: string;
+}

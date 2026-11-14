@@ -60,6 +60,7 @@ export interface DesktopApi {
   inspectVideoProject(request: FileRequest): Promise<VideoProjectInspection>;
   revealOutput(request: FileRequest): Promise<void>;
   revealAgentOutput(request: { projectId: string; agentId: string }): Promise<void>;
+  clearAgentOutput(request: import('./storage').ClearAgentOutputRequest): Promise<WorkspaceProject>;
   checkPi(path: string): Promise<PiCheck>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
   getConnectionStatus(request: ModelConnectionRequest): Promise<ModelConnectionStatus>;
@@ -124,6 +125,7 @@ export const desktopChannels = {
   chooseReferenceFiles: 'studio:choose-reference-files',
   createLibraryAsset: 'studio:create-library-asset',
   saveSkill: 'studio:save-skill',
+  clearAgentOutput: 'studio:clear-agent-output',
   getInfo: 'studio:get-info',
   loadStudio: 'studio:load',
   chooseStudio: 'studio:choose',

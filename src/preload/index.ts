@@ -39,6 +39,7 @@ const desktopApi: DesktopApi = {
   chooseReferenceFiles: () => ipcRenderer.invoke(desktopChannels.chooseReferenceFiles),
   createLibraryAsset: (request) => ipcRenderer.invoke(desktopChannels.createLibraryAsset, request),
   saveSkill: (request) => ipcRenderer.invoke(desktopChannels.saveSkill, request),
+  clearAgentOutput: (request) => ipcRenderer.invoke(desktopChannels.clearAgentOutput, request),
   listLibrary: () => ipcRenderer.invoke(desktopChannels.listLibrary),
   getInfo: () => ipcRenderer.invoke(desktopChannels.getInfo),
   loadStudio: () => ipcRenderer.invoke(desktopChannels.loadStudio),

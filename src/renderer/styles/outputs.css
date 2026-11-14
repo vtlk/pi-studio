@@ -50,6 +50,35 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.output-files-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px 8px 20px;
+}
+.output-files-heading h2 {
+  margin: 0;
+  font: inherit;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.output-files-heading .clear-agent-outputs {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #52525b;
+  background: transparent;
+}
+.output-files-heading .clear-agent-outputs:hover:not(:disabled) {
+  border-color: #a1a1aa;
+  background: transparent;
+}
 .project-agent-menu .section-menu {
   flex: 1;
   min-height: 0;

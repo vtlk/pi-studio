@@ -13,6 +13,8 @@ import { useOutputFile } from '../model/useOutputFile';
 import { useStorage } from '@/shared/storage/Storage';
 import { useVideoInspection } from '@/features/editor/model/useVideoInspection';
 import { NativeMontageCard } from '@/features/editor/ui/NativeMontageCard';
+import { ClearAgentOutputsButton } from './ClearAgentOutputsButton';
+import { Tooltip } from '@/shared/ui/Tooltip';
 
 export function AgentOutputsView({
   agent,
@@ -45,7 +47,12 @@ export function AgentOutputsView({
       style={{ gridTemplateColumns: `${actualWidth}px 8px minmax(0, 1fr)` }}
     >
       <aside className="output-files-pane">
-        <h2 className="project-column-heading">Файлы агента</h2>
+        <div className="project-column-heading output-files-heading">
+          <Tooltip label="Файлы агента" onlyWhenTruncated>
+            <h2>Файлы агента</h2>
+          </Tooltip>
+          <ClearAgentOutputsButton agent={agent} />
+        </div>
         <OutputFileTree
           entries={agent.entries}
           selectedFileId={selected?.file.id ?? ''}

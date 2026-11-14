@@ -12,6 +12,11 @@ import { closedRunStatus } from './closedRunStatus.ts';
 import { runFailure } from '../../shared/runFailure.ts';
 
 export class RunLifecycle {
+  outputsCleared(live: LiveRun) {
+    live.status = 'idle';
+    live.completion = undefined;
+    live.request.autoContinue = false;
+  }
   private readonly dependencies: RunDependencies;
   constructor(dependencies: RunDependencies) {
     this.dependencies = dependencies;

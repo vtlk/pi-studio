@@ -11,6 +11,7 @@ import type { PreparedRun } from './ContextBuilder.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
 import { closedRunStatus } from './closedRunStatus.ts';
+import { stopRunProcess } from './stopRunProcess.ts';
 
 class ContinuationCancelled extends Error {}
 interface Continuation {
@@ -313,6 +314,11 @@ export class RunHost {
         'Дождитесь завершения или остановите работающий Pi перед изменением папки проекта/студии.',
       );
   }
+  outputsCleared(projectId: string, agentId: string) {
+    this.chains.delete(projectId);
+    const live = this.live.get(this.key({ projectId, agentId }));
+    if (live) this.lifecycle.outputsCleared(live);
+  }
   private assertUnchanged(projectId: string) {
     if (this.changing.has(projectId))
       throw new Error('Файлы проекта переносятся или копируются. Повторите позже.');
@@ -337,14 +343,7 @@ export class RunHost {
     if (this.opening.has(key)) throw new Error('Дождитесь открытия Pi перед удалением агента.');
     const live = this.live.get(key);
     if (!live) return;
-    this.dependencies.closed?.(live.run);
-    if (live.pid && processAlive(live.pid)) {
-      process.kill(live.pid, 'SIGTERM');
-      for (let i = 0; i < 100 && processAlive(live.pid); i++)
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      if (processAlive(live.pid))
-        throw new Error('Pi ещё закрывается. Агент не удалён; повторите через несколько секунд.');
-    }
+    await stopRunProcess(live, this.dependencies.closed);
     this.channel.remove(live.run.record.runId);
     this.live.delete(key);
     await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true });

@@ -199,6 +199,30 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
 }
 
 test(
+  'clearing output cancels a pending chain and readiness without killing the bound dialogue',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    f.hooks.completed = async (run) => {
+      const file = join(run.record.sessionDirectory, 'history.jsonl');
+      const before = await readFile(file);
+      f.host.outputsCleared(run.project.id, run.agent.profile.id);
+      assert.equal(f.host.continuation(run), undefined);
+      assert.deepEqual(await readFile(file), before);
+    };
+    await f.launch(true);
+    await f.request();
+    assert.throws(() => f.host.assertIdle('p'), /Дождитесь завершения/);
+    await f.finish();
+    await Promise.all(f.tasks);
+    assert.equal(f.launches.length, 1, 'No next stage after outputs were cleared');
+    await f.event('p', 'first', { type: 'stopped' });
+    await until(() => f.status.get('p/first') === 'idle');
+    assert.equal(f.children[0].exitCode, null);
+  },
+);
+
+test(
   'ordinary opening of a running dialogue disables the chain; rearming waits for a new request',
   { timeout: 15000 },
   async (t) => {

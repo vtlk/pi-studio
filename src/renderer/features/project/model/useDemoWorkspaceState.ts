@@ -150,6 +150,7 @@ export function useDemoWorkspaceState() {
             : project,
         ),
       ),
+    clearAgentOutput: async (_projectId: string, _agentId: string) => false,
     cloneProject: (source: WorkspaceProject, name: string) => {
       const cloned = structuredClone(source);
       cloned.agents = cloned.agents.map((agent) => ({

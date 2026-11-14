@@ -1,5 +1,7 @@
 # Pi Studio
 
+- The agent-files column header has a clear-output Trash2 action: transparent border at rest, visible border on hover, accessible shared Tooltip and explicit confirmation. Main moves only the selected trusted output directory to macOS Trash and recreates it; never delete sessions/settings/other agents or make backup copies. Block during running Pi/images, cancel pending continuation and invalidate old completion. Recovery uses Finder Trash.
+
 - Settings catalogs show all user and bundled resources from the shared built-in registry, with no agent profiles. Built-in MCP entries expose read-only information and cannot be removed from the catalog; only optional agent assignments can be removed. Do not invent preinstalled skills/instructions. The setup assistant alone has a hover/focus Play action in its system-agent row, using the same save-before-open operation as Settings and the exact canonical dialogue without a user message.
 
 - Constructor group headings are «Мои агенты» and «Системные» in the same style. A pinned MCP lock belongs in ListRow/Disclosure's right control slot, aligned with Switch rows, with reserved action space; never restore the lock as a left leading icon.
