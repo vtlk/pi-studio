@@ -33,6 +33,8 @@ import { createImageServices, registerImageHandlers } from '../images/registerIm
 import { registerModelConnectionHandlers } from '../pi/registerModelConnectionHandlers';
 import { registerMcpSecretHandlers } from '../pi/registerMcpSecretHandlers';
 import type { RunDependencies } from '../pi/RunTypes';
+import { saveManagedSkill } from '../storage/managedSkills';
+import type { SkillWriteRequest } from '../../shared/resources';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -232,6 +234,9 @@ export function registerDesktopHandlers(): StudioService {
     if (!resource) throw new Error('Локальный skill не найден в каталоге.');
     return inspectSkill(resource.source);
   });
+  handle(desktopChannels.saveSkill, async (_event, request: SkillWriteRequest) =>
+    saveManagedSkill(await service.load(), request),
+  );
   handle(desktopChannels.loadStudio, async () => (await service.load()).bootstrap());
   handle(desktopChannels.openStudio, (_event, folder: string) => {
     runs.assertIdle();

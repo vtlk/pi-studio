@@ -8,7 +8,7 @@ import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
 import { createLibraryRunHost } from '../src/main/pi/createLibraryRunHost.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
-import type { SystemAgent } from '../src/shared/systemAgents.ts';
+import type { Agent } from '../src/shared/studio.ts';
 
 // A real subscription request, isolated from the user's studio. No external paid generator.
 const root = await mkdtemp(join(tmpdir(), 'pistudio-live-library-agents-'));
@@ -28,25 +28,25 @@ await store.saveSection('connections', [
   },
 ]);
 const proof = 'QA_EDITED_LIBRARY_ROLE';
-await store.saveSection(
-  'systemAgents',
-  (store.bootstrap().sections.systemAgents as SystemAgent[]).map((agent) =>
-    agent.systemRole === 'assistant'
-      ? agent
-      : {
-          ...agent,
-          mainInstruction:
-            agent.mainInstruction + `\nInclude roleProof ${proof} in observation.json.`,
-          model: {
-            connectionId: 'qa',
-            provider: 'openai-codex',
-            id: 'gpt-6.1-sol',
-            reasoning: 'Низкий',
-            temperature: '',
-          },
-        },
-  ),
-);
+const artist: Agent = {
+  id: 'qa-library-artist',
+  name: 'QA library artist',
+  enabled: true,
+  instructions: [],
+  skills: [],
+  mcps: ['pistudio-library'],
+  plugins: [],
+  mainInstruction: `Follow the explicit test task and include roleProof ${proof} in observation.json.`,
+  model: {
+    connectionId: 'qa',
+    provider: 'openai-codex',
+    id: 'gpt-5.6-luna',
+    reasoning: 'Низкий',
+    temperature: '',
+  },
+};
+await store.saveSection('agents', [artist]);
+
 function image() {
   const chunk = (name: string, data: Buffer) => {
     const type = Buffer.from(name),
@@ -105,6 +105,7 @@ try {
     const files = await references.select([imagePath], store.folder);
     const launched = await host.create({
       kind,
+      agentId: artist.id,
       attachments: files.map((file) => file.id),
       description: `This is an isolated publication test. Inspect the image already attached to this message. Write output/observation.json with English keys shape and color identifying the dominant geometric shape and its color from the visual input, plus roleProof required by your current role. Do not infer its content from the filename. Call library_get_contract and library_prepare_asset for kind ${kind} and title "QA ${kind}". For this test only, copy the saved input image to reference.png and preview.png in the returned staging directory using native bash. Then call library_validate_asset and library_publish_asset, save their returned asset ID/version to output/publication.json, and call complete_stage with observation.json and publication.json. No external generation, no network lookup, no changes outside this isolated service workspace. Do not ask questions.`,
     });
@@ -164,10 +165,10 @@ try {
     'locations',
   ]);
   assert.deepEqual(store.bootstrap().projects, []);
-  assert.deepEqual(store.bootstrap().sections.agents, []);
+  assert.deepEqual(store.bootstrap().sections.agents, [artist]);
   assert.equal((await readdir(join(store.folder, '.pistudio/library-runs'))).length, 2);
   console.log(
-    'Real library system agents passed: matching edited profiles, visual image content recognized without textual clues, native bash and successful library validation/publication for both kinds, canonical sessions outside project list, no administrative tools.',
+    'Real assigned ordinary library agent passed for both kinds: matching current profile, visual image content recognized without textual clues, native bash and successful library validation/publication for both kinds, canonical sessions outside project list, no administrative tools.',
   );
 } finally {
   host.close();

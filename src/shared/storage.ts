@@ -4,6 +4,7 @@ import type { WorkspaceProject } from './project';
 export const storageSections = [
   'agents',
   'systemAgents',
+  'libraryAgents',
   'resources',
   'connections',
   'imageTool',

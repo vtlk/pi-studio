@@ -9,20 +9,20 @@ import { SetupAdministration } from '../src/main/pi/SetupAdministration.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 
-test('three editable service profiles persist separately and cannot be removed, replaced or copied into projects', async (t) => {
+test('one editable setup profile persists separately and cannot be removed, replaced or copied into projects', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-systems-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   let store = await StudioStore.open(root);
   const systems = store.bootstrap().sections.systemAgents as SystemAgent[];
   assert.deepEqual(
     systems.map((agent) => agent.systemRole),
-    ['character', 'location', 'assistant'],
+    ['assistant'],
   );
-  assert.equal(new Set(systems.map((agent) => agent.id)).size, 3);
+  assert.equal(new Set(systems.map((agent) => agent.id)).size, 1);
   for (const agent of systems) assert.match(agent.id, /^[a-f0-9-]{36}$/);
   assert.deepEqual(store.bootstrap().sections.agents, []);
   const edited = systems.map((agent) =>
-    agent.systemRole === 'character'
+    agent.systemRole === 'assistant'
       ? {
           ...agent,
           name: 'My character artist',
@@ -46,7 +46,7 @@ test('three editable service profiles persist separately and cannot be removed, 
     edited.slice(1),
     [...edited, edited[0]],
     edited.map((agent, index) => (index ? agent : { ...agent, id: 'replacement' })),
-    edited.map((agent, index) => (index ? agent : { ...agent, systemRole: 'assistant' })),
+    edited.map((agent, index) => (index ? agent : { ...agent, systemRole: 'character' })),
   ])
     await assert.rejects(() => store.saveSection('systemAgents', invalid));
   await assert.rejects(() => store.saveSection('agents', [edited[0]]));
@@ -105,7 +105,24 @@ test('the setup assistant edits existing system resources/instructions but creat
   const visible = (await admin.call(run, 'list_configuration', {})) as {
     systemAgents: { id: string; deletable: boolean; builtinMcp: string }[];
   };
-  assert.equal(visible.systemAgents.length, 3);
+  assert.equal(visible.systemAgents.length, 1);
+  await admin.call(run, 'assign_resource', {
+    agentId: a.agentId,
+    kind: 'mcps',
+    resourceId: 'pistudio-library',
+  });
+  assert.deepEqual((store.bootstrap().sections.agents as { mcps: string[] }[])[0].mcps, [
+    'pistudio-library',
+  ]);
+  await assert.rejects(
+    () =>
+      admin.call(run, 'assign_resource', {
+        agentId: helper.id,
+        kind: 'mcps',
+        resourceId: 'pistudio-library',
+      }),
+    /обычным агентам/,
+  );
   assert.ok(
     visible.systemAgents.every((agent) => !agent.deletable && agent.builtinMcp === 'pinned'),
   );

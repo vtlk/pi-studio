@@ -87,7 +87,7 @@ test('changed, missing, symlinked and unknown references fail explicitly and cle
   await assert.rejects(() => files.attach(run, [selected[0].id], root, true));
 });
 
-test('a library create request uses the matching system role and never creates a project or falls back to another model', async (t) => {
+test('a library create request uses an explicitly assigned ordinary agent and never creates a project or falls back to another model', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-library-launch-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
@@ -105,14 +105,30 @@ test('a library create request uses the matching system role and never creates a
     },
   });
   t.after(() => generator.close());
+  const agent: Agent = {
+    id: 'artist',
+    name: 'Artist',
+    enabled: true,
+    skills: [],
+    mcps: ['pistudio-library'],
+    plugins: [],
+    instructions: [],
+  };
+  await store.saveSection('agents', [agent]);
   for (const kind of ['characters', 'locations'] as const)
     await assert.rejects(
-      () => generator.create({ kind, description: 'Make an asset', attachments: [] }),
+      () =>
+        generator.create({
+          kind,
+          agentId: 'artist',
+          description: 'Make an asset',
+          attachments: [],
+        }),
       /Выберите подключение и модель/,
     );
   assert.equal(opened, false);
   assert.deepEqual(store.bootstrap().projects, []);
-  assert.deepEqual(store.bootstrap().sections.agents, []);
-  assert.equal((store.bootstrap().sections.systemAgents as SystemAgent[]).length, 3);
+  assert.deepEqual(store.bootstrap().sections.agents, [agent]);
+  assert.equal((store.bootstrap().sections.systemAgents as SystemAgent[]).length, 1);
   await assert.rejects(() => readdir(join(store.folder, '.pistudio/library-runs')));
 });

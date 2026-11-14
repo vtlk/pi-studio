@@ -235,13 +235,11 @@ globalThis.fetch=async(input,init)=>{
       helperSession.path,
     );
     await assert.rejects(() => stat(proof), { code: 'ENOENT' });
-    await store.saveSection(
-      'systemAgents',
-      (store.bootstrap().sections.systemAgents as SystemAgent[]).map((item) =>
-        item.systemRole === 'character' ? { ...item, model } : item,
-      ),
-    );
+    await store.saveSection('agents', [
+      { ...profile, model, mcps: [...profile.mcps, 'pistudio-library'] },
+    ]);
     const libraryRun = await library.create({
+      agentId: profile.id,
       kind: 'characters',
       description: 'QA: do not generate externally.',
       attachments: [],

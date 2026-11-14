@@ -1,5 +1,7 @@
 import type { SessionTool } from '../pi/RunChannel.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
+import { hasLibraryMcp } from '../../shared/builtinResources.ts';
+import type { Agent } from '../../shared/studio.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { stableId } from '../storage/validation.ts';
 import { libraryKind } from './manifest.ts';
@@ -110,6 +112,11 @@ export function libraryTool(
 ) {
   return service.serialize(async () => {
     const store = await service.load();
+    const current = (store.bootstrap().sections.agents as Agent[]).find(
+      (item) => item.id === run.agent.profile.id,
+    );
+    if (!run.libraryAccess || !current || !hasLibraryMcp(current))
+      throw new Error('Библиотечный MCP не назначен этому агенту или выключен.');
     const root =
       scope === 'library-service'
         ? await safePath(store.folder, `.pistudio/library-runs/${stableId(run.project.id)}`)

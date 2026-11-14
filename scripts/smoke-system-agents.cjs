@@ -50,21 +50,21 @@ const deadline = setTimeout(() => {
   assert.deepEqual(initial.sections.agents, []);
   assert.deepEqual(
     initial.sections.systemAgents.map((agent) => agent.systemRole),
-    ['character', 'location', 'assistant'],
+    ['assistant'],
   );
   await click('Агенты');
-  await until(`document.querySelectorAll('[data-system-role]').length===3`);
+  await until(`document.querySelectorAll('[data-system-role]').length===1`);
   assert.equal(await js(`document.querySelectorAll('[data-system-role] .hover-delete').length`), 0);
   const ordered = () =>
     js(
       `(()=>{const plus=document.querySelector('[aria-label="Добавить агента"]'),system=document.querySelector('[data-system-role]');return !!(plus.compareDocumentPosition(system)&Node.DOCUMENT_POSITION_FOLLOWING) && Array.from(document.querySelectorAll('.agent-list-entry:not([data-system-role])')).every(row=>!!(row.compareDocumentPosition(plus)&Node.DOCUMENT_POSITION_FOLLOWING));})()`,
     );
   assert.equal(await ordered(), true);
-  await field('Название агента', 'QA character creator');
+  await field('Название агента', 'QA setup helper');
   await field('Основной промпт агента', 'QA current system role');
   await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   let state = await js('window.studio.loadStudio()');
-  assert.equal(state.sections.systemAgents[0].name, 'QA character creator');
+  assert.equal(state.sections.systemAgents[0].name, 'QA setup helper');
   assert.equal(state.sections.systemAgents[0].mainInstruction, 'QA current system role');
   assert.deepEqual(state.sections.agents, []);
   await click('MCP');
@@ -75,7 +75,7 @@ const deadline = setTimeout(() => {
     ),
     0,
   );
-  await click('Pi Studio · Библиотека');
+  await click('Pi Studio · Ресурсы и агенты');
   assert.equal(
     await js(
       `document.querySelector('[data-builtin-mcp]').innerText.includes('Отключение и удаление недоступны')`,
@@ -86,7 +86,7 @@ const deadline = setTimeout(() => {
     `window.studio.saveSection('systemAgents',${JSON.stringify(state.sections.systemAgents.slice(1))},${JSON.stringify({ folder: state.folder, base: state.sections.systemAgents })}).then(()=>false,()=>true)`,
   );
   assert.equal(rejected, true);
-  assert.equal((await js('window.studio.loadStudio()')).sections.systemAgents.length, 3);
+  assert.equal((await js('window.studio.loadStudio()')).sections.systemAgents.length, 1);
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
   await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
   await field('Название агента', 'First project role');
@@ -108,15 +108,15 @@ const deadline = setTimeout(() => {
     state.sections.agents.map((agent) => agent.id),
   );
   assert.equal(created.projects[0].agents.length, 2);
-  await js(`document.querySelector('[data-system-role="character"] button').click()`);
+  await js(`document.querySelector('[data-system-role="assistant"] button').click()`);
   await click('Инструкции');
   await until(
-    `document.querySelector('[aria-label="Название агента"]')?.value==='QA character creator'`,
+    `document.querySelector('[aria-label="Название агента"]')?.value==='QA setup helper'`,
   );
   await mkdir(resolve('artifacts'), { recursive: true });
   await click('Итоговое задание');
   await until(
-    `document.querySelector('textarea[aria-label="Итоговые инструкции"]')?.value.includes('Pi Studio · Библиотека (встроенный, закреплён)')`,
+    `document.querySelector('textarea[aria-label="Итоговые инструкции"]')?.value.includes('Pi Studio · Ресурсы и агенты (встроенный, закреплён)')`,
   );
   await click('Закрыть');
   await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
@@ -188,7 +188,7 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Подключение модели"]')`);
   assert.equal(
     await js(`document.querySelector('[aria-label="Название агента"]').value`),
-    'Помощник настройки',
+    'QA setup helper',
   );
   const assistantState = await js('window.studio.loadStudio()');
   const configured = assistantState.sections.systemAgents.map((agent) =>
@@ -227,7 +227,7 @@ const deadline = setTimeout(() => {
   );
   assert.equal(
     await js(`document.querySelector('[aria-label="Название агента"]').value`),
-    'Помощник настройки',
+    'QA setup helper',
   );
   console.log(
     'System agents Electron passed: fixed service group/editor, pinned MCP/deletion guards, appended project profiles, snapshots exclude systems; confirmed project synchronization adds/removes IDs, cancellation preserves data, undo and repeated synchronization work.',

@@ -20,6 +20,7 @@ interface PendingEdit {
 const sectionNames: Record<StorageSection, string> = {
   agents: 'Агенты',
   systemAgents: 'Системные агенты',
+  libraryAgents: 'Агенты библиотеки',
   resources: 'Ресурсы',
   connections: 'Подключения',
   imageTool: 'Генерация изображений',

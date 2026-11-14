@@ -47,7 +47,7 @@ export function LocalSkillInfo({
             <dt>Папка навыка</dt>
             <dd>{skill.source}</dd>
             <dt>Состояние</dt>
-            <dd>Файл прочитан · загрузка в Pi-сессию ещё не подключена</dd>
+            <dd>Текущий файл · загрузка назначенным агентом при следующем запуске Pi</dd>
           </dl>
           <DisclosureList>
             <Disclosure label="Содержимое SKILL.md">

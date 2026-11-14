@@ -18,6 +18,7 @@ import { AgentListItem } from './AgentListItem';
 import { useNotice } from '@/shared/model/Notice';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { cx } from '@/shared/ui';
+import { AgentListLabel } from './AgentListLabel';
 
 export function AgentList() {
   const {
@@ -72,9 +73,13 @@ export function AgentList() {
       </DndContext>
       <AddArea label="Добавить агента" onClick={addAgent} />
       <h2 className="system-agents-heading">Системные</h2>
-      {systemAgents.map((agent) => (
+      {systemAgents.map((agent, index) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
-          <Tooltip label={agent.name || 'Без названия'} onlyWhenTruncated overflowSelector="span">
+          <Tooltip
+            label={agent.name || 'Без названия'}
+            onlyWhenTruncated
+            overflowSelector=".agent-list-name"
+          >
             <button
               type="button"
               className={cx(
@@ -83,10 +88,11 @@ export function AgentList() {
                 selectedAgent?.id === agent.id && 'active',
               )}
               data-enabled={agent.enabled}
+              aria-label={`${agent.name || 'Без названия'} · ${agent.enabled ? 'Включён' : 'Выключен'}`}
               aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
               onClick={() => setAgentId(agent.id)}
             >
-              <span>{agent.name || 'Без названия'}</span>
+              <AgentListLabel agent={agent} position={index + 1} />
             </button>
           </Tooltip>
         </div>

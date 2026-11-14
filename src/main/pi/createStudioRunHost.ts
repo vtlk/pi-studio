@@ -32,7 +32,11 @@ interface Options {
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
-    tools: (run) => [...productionTools, ...libraryTools, ...(options.images?.tools(run) ?? [])],
+    tools: (run) => [
+      ...productionTools,
+      ...(run.libraryAccess ? libraryTools : []),
+      ...(options.images?.tools(run) ?? []),
+    ],
     closed: (run) => options.images?.cancel(run),
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
     tool: (run, name, args) =>

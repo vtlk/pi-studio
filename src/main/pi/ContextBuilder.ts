@@ -9,10 +9,13 @@ import { atomicJson, safePath } from '../storage/files.ts';
 import { resolveResources, type ResolvedResources, type McpConfigResolver } from './resources.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
+import { hasLibraryMcp, libraryMcpId } from '../../shared/builtinResources.ts';
 
 import type { ModelAuthScope } from './modelAuth.ts';
 
 export interface PreparedRun {
+  libraryAccess?: boolean;
+  libraryKind?: 'characters' | 'locations';
   modelAuth?: ModelAuthScope;
   requestSequence?: number;
   record: RunContextRecord;
@@ -40,7 +43,23 @@ export async function buildRunContext(
   const model = current.model;
   if (!hasModelConfiguration(model))
     throw new Error('Выберите подключение, модель и уровень рассуждения агента в конструкторе.');
-  const agent = { ...saved, profile: { ...saved.profile, model: structuredClone(model) } };
+  // This app-owned capability is revoked from the current constructor on each explicit open.
+  const libraryAccess = hasLibraryMcp(current);
+  const agent: ProjectAgent = {
+    ...saved,
+    profile: {
+      ...saved.profile,
+      model: structuredClone(model),
+      mcps: [
+        ...saved.profile.mcps.filter((id) => id !== libraryMcpId),
+        ...(libraryAccess ? [libraryMcpId] : []),
+      ],
+      capabilitySettings: {
+        ...saved.profile.capabilitySettings,
+        [`mcps:${libraryMcpId}`]: { enabled: libraryAccess },
+      },
+    },
+  };
   project = { ...project, agents: project.agents.map((item) => (item === saved ? agent : item)) };
   const agentFolder = agentDirectory(agent.outputPath);
   const cwd = await safePath(projectRoot, agentFolder);
@@ -81,6 +100,7 @@ export async function buildRunContext(
   await mkdir(directory, { recursive: true });
   await atomicJson(join(directory, 'context.json'), record);
   return {
+    libraryAccess,
     record,
     instructions: [
       current.mainInstruction ?? '',

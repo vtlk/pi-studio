@@ -68,6 +68,7 @@ export interface DesktopApi {
   openProviderLogin(provider: string): Promise<void>;
   chooseSkill(): Promise<Resource | null>;
   readSkill(resourceId: string): Promise<SkillDocument>;
+  saveSkill(request: import('./resources').SkillWriteRequest): Promise<Resource>;
   beginCodexLogin(): Promise<AuthLoginState>;
   readAuthLogin(id: string): Promise<AuthLoginState>;
   cancelAuthLogin(id: string): Promise<void>;
@@ -86,6 +87,7 @@ export interface DesktopApi {
   chooseReferenceFiles(): Promise<ReferenceFile[]>;
   createLibraryAsset(request: {
     kind: LibraryKind;
+    agentId: string;
     description: string;
     attachments: string[];
   }): Promise<void>;
@@ -121,6 +123,7 @@ export const desktopChannels = {
   readLibraryCharacter: 'studio:read-library-character',
   chooseReferenceFiles: 'studio:choose-reference-files',
   createLibraryAsset: 'studio:create-library-asset',
+  saveSkill: 'studio:save-skill',
   getInfo: 'studio:get-info',
   loadStudio: 'studio:load',
   chooseStudio: 'studio:choose',

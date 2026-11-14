@@ -2,7 +2,8 @@ import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LibraryKind } from '../../shared/library.ts';
-import type { SystemAgent } from '../../shared/systemAgents.ts';
+import type { Agent } from '../../shared/studio.ts';
+import { hasLibraryMcp } from '../../shared/builtinResources.ts';
 import type { Resource } from '../../shared/resources.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { parseProject, snapshotAgent } from '../storage/validation.ts';
@@ -37,12 +38,16 @@ interface Options {
 export function createLibraryRunHost(service: StudioService, options: Options) {
   const requests = new Map<
     string,
-    { kind: LibraryKind; description: string; attachments: string[] }
+    { kind: LibraryKind; agentId: string; description: string; attachments: string[] }
   >();
   const host = new RunHost({
     ...options,
     serviceAgent: true,
-    tools: (run) => [...productionTools, ...libraryTools, ...(options.images?.tools(run) ?? [])],
+    tools: (run) => [
+      ...productionTools,
+      ...(run.libraryAccess ? libraryTools : []),
+      ...(options.images?.tools(run) ?? []),
+    ],
     closed: (run) => options.images?.cancel(run),
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
     tool: (run, name, args) =>
@@ -56,13 +61,10 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
           throw new Error('Некорректный запуск библиотечного агента.');
         const store = await service.load();
         const sections = store.bootstrap().sections;
-        const role = input.kind === 'characters' ? 'character' : 'location';
-        const agent = (sections.systemAgents as SystemAgent[]).find(
-          (agent) => agent.systemRole === role,
-        );
-        if (!agent || agent.id !== request.agentId || !agent.enabled)
+        const agent = (sections.agents as Agent[]).find((agent) => agent.id === input.agentId);
+        if (!agent || agent.id !== request.agentId || !agent.enabled || !hasLibraryMcp(agent))
           throw new Error(
-            'Библиотечный агент отсутствует или выключен. Включите его в конструкторе.',
+            'Выбранный агент отсутствует, выключен или не имеет библиотечного MCP. Выберите агента в форме библиотеки.',
           );
         const model = agent.model;
         const connections = (sections.connections ?? []) as Connection[];
@@ -77,7 +79,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
               connection.purpose !== 'images',
           )
         )
-          throw new Error('Выберите подключение и модель системного агента на странице «Агенты».');
+          throw new Error('Выберите подключение и модель агента на странице «Агенты».');
         const path = String(sections.piPath ?? '') || options.piPath();
         const modelAuth = await connectionAuthScope(
           join(dirname(options.bootstraps), 'model-auth'),
@@ -132,6 +134,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
           (sections.resources ?? []) as Resource[],
           options.mcpSecrets?.resolver(store.folder, path),
         );
+        run.libraryKind = input.kind;
         await options.references.attach(run, input.attachments, store.folder, selected.imageInput);
         options.images?.bind(run, store.folder, selected);
         await atomicJson(join(root, 'state.json'), { schemaVersion: 1, kind: input.kind, project });
@@ -151,13 +154,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         if (session) run.agent.session = session;
         await atomicJson(join(run.projectRoot, 'state.json'), {
           schemaVersion: 1,
-          kind:
-            run.project.agents[0].profile.id ===
-            (store.bootstrap().sections.systemAgents as SystemAgent[]).find(
-              (agent) => agent.systemRole === 'character',
-            )?.id
-              ? 'characters'
-              : 'locations',
+          kind: run.libraryKind,
           project: run.project,
         });
         return run.project;
@@ -165,9 +162,16 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
     read: async (run) => run.project,
   });
   return {
-    async create(input: { kind: LibraryKind; description: string; attachments: string[] }) {
+    async create(input: {
+      kind: LibraryKind;
+      agentId: string;
+      description: string;
+      attachments: string[];
+    }) {
       libraryKind(input?.kind);
       if (
+        typeof input.agentId !== 'string' ||
+        !input.agentId ||
         typeof input.description !== 'string' ||
         !input.description.trim() ||
         input.description.length > 200_000 ||
@@ -175,18 +179,11 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
       )
         throw new Error('Введите описание материала и проверьте референсы.');
       const id = randomUUID();
-      const agentId = await service.serialize(
-        async () =>
-          ((await service.load()).bootstrap().sections.systemAgents as SystemAgent[]).find(
-            (agent) =>
-              agent.systemRole === (input.kind === 'characters' ? 'character' : 'location'),
-          )!.id,
-      );
       requests.set(id, input);
       try {
         return await host.launch({
           projectId: id,
-          agentId,
+          agentId: input.agentId,
           autoContinue: false,
           firstMessage: input.description,
         });

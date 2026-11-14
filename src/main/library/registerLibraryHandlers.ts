@@ -36,7 +36,10 @@ export function registerLibraryHandlers(
   );
   ipcMain.handle(
     desktopChannels.createLibraryAsset,
-    async (event, request: { kind: LibraryKind; description: string; attachments: string[] }) => {
+    async (
+      event,
+      request: { kind: LibraryKind; agentId: string; description: string; attachments: string[] },
+    ) => {
       caller(event);
       await generators.create(request);
     },

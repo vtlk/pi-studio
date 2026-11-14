@@ -27,7 +27,7 @@ const agent: Agent = {
   name: 'Session smoke',
   enabled: true,
   skills: [],
-  mcps: ['qa-mcp'],
+  mcps: ['qa-mcp', ...(checkLibrary ? ['pistudio-library'] : [])],
   plugins: ['qa-package'],
   instructions: [],
   mainInstruction:

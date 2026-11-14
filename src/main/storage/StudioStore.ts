@@ -15,6 +15,7 @@ import { LibraryStore } from '../library/LibraryStore.ts';
 import { randomUUID } from 'node:crypto';
 import { createSystemAgents, type SystemAgent } from '../../shared/systemAgents.ts';
 import type { Agent } from '../../shared/studio.ts';
+import { migrateLibraryAgents } from './migrateLibraryAgents.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
@@ -45,9 +46,15 @@ export class StudioStore {
       await atomicJson(file, { schemaVersion: 1, sections: {} });
     }
     store.warnings = await store.projects.initialize();
+    const migrated = migrateLibraryAgents(store.sections);
+    if (migrated) {
+      await atomicJson(file, { schemaVersion: 1, sections: migrated });
+      store.sections = migrated;
+    }
     for (const [key, value] of [
       ['agents', []],
       ['systemAgents', createSystemAgents(randomUUID)],
+      ['libraryAgents', { characters: '', locations: '' }],
       ['connections', []],
       ['resources', []],
       ['baseInstruction', ''],
@@ -68,6 +75,11 @@ export class StudioStore {
   async saveSection(section: StorageSection, value: unknown) {
     const validated = parseSection(section, value);
     const systems = this.sections.systemAgents as SystemAgent[] | undefined;
+    if (
+      section === 'systemAgents' &&
+      (validated as SystemAgent[]).some((item) => item.systemRole !== 'assistant')
+    )
+      throw new Error('В системной группе остаётся только помощник настройки.');
     if (section === 'systemAgents' && systems) {
       const next = validated as SystemAgent[];
       if (

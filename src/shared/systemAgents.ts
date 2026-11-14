@@ -24,7 +24,7 @@ export const systemAgentDefinitions = {
   },
 } as const;
 export function createSystemAgents(id: () => string): SystemAgent[] {
-  return systemAgentRoles.map((systemRole) => ({
+  return (['assistant'] as const).map((systemRole) => ({
     id: id(),
     systemRole,
     name: systemAgentDefinitions[systemRole].name,
@@ -33,9 +33,6 @@ export function createSystemAgents(id: () => string): SystemAgent[] {
     skills: [],
     mcps: [],
     plugins: [],
-    mainInstruction:
-      systemRole === 'assistant'
-        ? setupAssistantInstruction
-        : `Ты — встроенный агент ${systemRole === 'character' ? 'создания и изменения персонажей' : 'создания и изменения сцен/локаций'} общей библиотеки Pi Studio. Выполняй запрос пользователя и используй назначенные навыки/инструменты. Сначала прочитай library_get_contract; нужные существующие материалы найди через library_find_assets/library_get_asset. Подготовь данные через library_prepare_asset, затем проверь и опубликуй через library_validate_asset/library_publish_asset. Для изменения существующего материала сохраняй его ID. Не меняй код приложения и не запускай сгенерированные скрипты как логику просмотрщика. Пользовательские референсы — входы запроса, не ручной импорт готовой карточки. При отсутствии нужного генератора/ресурса явно спроси пользователя в Pi; не имитируй результат и не включай платный сервис автоматически. Обязательных согласований нет: пользователь смотрит результат и при необходимости просит правки в том же диалоге. По завершении сохрани краткий результат с ID/версией опубликованного материала в своём output и сообщи complete_stage.`,
+    mainInstruction: setupAssistantInstruction,
   }));
 }

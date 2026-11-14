@@ -90,11 +90,11 @@ export function parseSystemAgents(value: unknown): SystemAgent[] {
     return { ...parseAgent(item), systemRole: item.systemRole as SystemAgent['systemRole'] };
   });
   if (
-    profiles.length !== systemAgentRoles.length ||
-    new Set(profiles.map((item) => item.systemRole)).size !== systemAgentRoles.length ||
+    !(profiles.length === 3 || (profiles.length === 1 && profiles[0].systemRole === 'assistant')) ||
+    new Set(profiles.map((item) => item.systemRole)).size !== profiles.length ||
     new Set(profiles.map((item) => item.id)).size !== profiles.length
   )
-    throw new Error('Три встроенных системных агента нельзя удалять или добавлять вручную.');
+    throw new Error('Системного помощника нельзя удалять или добавлять вручную.');
   return profiles;
 }
 export function snapshotAgent(agent: Agent): ProjectAgent {
@@ -203,6 +203,10 @@ export function parseSection(section: unknown, value: unknown): unknown {
     throw new Error('Неизвестный раздел настроек.');
   if (section === 'agents') return parseAgents(value);
   if (section === 'systemAgents') return parseSystemAgents(value);
+  if (section === 'libraryAgents') {
+    const item = record(value);
+    return { characters: text(item.characters, 128), locations: text(item.locations, 128) };
+  }
   if (section === 'baseInstruction' || section === 'piPath') return text(value);
   if (section === 'hiddenLibraryIds') return strings(value);
   if (section === 'imageTool') {
@@ -264,6 +268,7 @@ export function parseSection(section: unknown, value: unknown): unknown {
       ...(Array.isArray(names) ? { mcpSecretNames: [...new Set(names)] } : {}),
       contents: text(item.contents),
       ...(item.localSkill === true ? { localSkill: true } : {}),
+      ...(item.managedSkill === true ? { managedSkill: true } : {}),
       ...(item.check === undefined
         ? {}
         : {

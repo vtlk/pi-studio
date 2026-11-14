@@ -11,6 +11,8 @@ import { useAgentProfiles } from '../model/AgentProfiles';
 import { resourceStatus } from '@/features/resources/model/resourceStatus';
 import { systemAgentDefinitions } from '../../../../shared/systemAgents';
 import { LockKeyhole } from 'lucide-react';
+import { libraryMcp } from '../../../../shared/builtinResources';
+import { McpPicker } from './McpPicker';
 
 export function CapabilitiesPanel() {
   const { agentTab, selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
@@ -38,7 +40,7 @@ export function CapabilitiesPanel() {
               <p>
                 {selectedSystemRole
                   ? systemAgentDefinitions[selectedSystemRole].description
-                  : 'Контекст и чтение файлов текущего проекта, библиотека, веб-поиск и проверка результата.'}
+                  : 'Контекст и чтение файлов текущего проекта, веб-поиск и проверка результата.'}
               </p>
               <p className="subtle">
                 Встроенный обязательный MCP. Отключение и удаление недоступны.
@@ -62,7 +64,10 @@ export function CapabilitiesPanel() {
         )}
         {selectedAgent[field].map((id) => {
           const key = `${field}:${id}`;
-          const resource = resources.find((item) => item.kind === field && item.id === id);
+          const resource =
+            field === 'mcps' && id === libraryMcp.id
+              ? libraryMcp
+              : resources.find((item) => item.kind === field && item.id === id);
           const binding = selectedAgent.capabilitySettings?.[key] ?? { enabled: true };
           const updateBinding = (update: Partial<typeof binding>) =>
             updateAgent({
@@ -101,7 +106,9 @@ export function CapabilitiesPanel() {
                 </p>
                 <p className="subtle">
                   {resource
-                    ? `${resource.version ? `${resource.version} · ` : ''}${resourceStatus(resource, !!window.studio)}`
+                    ? resource.id === libraryMcp.id
+                      ? 'Встроенный · подключается при следующем запуске Pi'
+                      : `${resource.version ? `${resource.version} · ` : ''}${resourceStatus(resource, !!window.studio)}`
                     : 'Недоступен'}
                 </p>
               </Disclosure>
@@ -116,11 +123,19 @@ export function CapabilitiesPanel() {
           onClose={() => setCatalog(false)}
           footer={<Button onClick={() => setCatalog(false)}>Готово</Button>}
         >
-          <ResourceCatalog
-            kind={field}
-            attached={selectedAgent[field]}
-            onPick={(id) => updateAgent({ [field]: [id, ...selectedAgent[field]] })}
-          />
+          {field === 'mcps' ? (
+            <McpPicker
+              allowLibrary={selectedSystemRole !== 'assistant'}
+              attached={selectedAgent.mcps}
+              onPick={(id) => updateAgent({ mcps: [...selectedAgent.mcps, id] })}
+            />
+          ) : (
+            <ResourceCatalog
+              kind={field}
+              attached={selectedAgent[field]}
+              onPick={(id) => updateAgent({ [field]: [id, ...selectedAgent[field]] })}
+            />
+          )}
         </Modal>
       )}
     </div>

@@ -4,6 +4,7 @@ import type { Agent } from '@/entities/studio/types';
 import { cx } from '@/shared/ui';
 import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
+import { AgentListLabel } from './AgentListLabel';
 
 export function AgentListItem({
   agent,
@@ -29,19 +30,22 @@ export function AgentListItem({
       data-dragging={isDragging || undefined}
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
-      <Tooltip label={agent.name || 'Без названия'} onlyWhenTruncated overflowSelector="span">
+      <Tooltip
+        label={agent.name || 'Без названия'}
+        onlyWhenTruncated
+        overflowSelector=".agent-list-name"
+      >
         <button
           type="button"
           className={cx('section-menu-item', 'agent-list-item', selected && 'active')}
           {...attributes}
           {...listeners}
+          aria-label={`${position}. ${agent.name || 'Без названия'} · ${agent.enabled ? 'Включён' : 'Выключен'}`}
           aria-current={selected ? 'true' : undefined}
           data-enabled={agent.enabled}
           onClick={onSelect}
         >
-          <span>
-            {position}. {agent.name || 'Без названия'}
-          </span>
+          <AgentListLabel agent={agent} position={position} />
         </button>
       </Tooltip>
       <HoverDeleteButton

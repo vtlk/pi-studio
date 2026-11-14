@@ -19,7 +19,16 @@ export interface Resource {
   contents: string;
   createdAt: number;
   localSkill?: boolean;
+  managedSkill?: boolean;
   check?: ResourceCheck;
+}
+export interface SkillWriteRequest {
+  folder: string;
+  id?: string;
+  name: string;
+  description: string;
+  content: string;
+  previousContent?: string;
 }
 export interface SkillDocument {
   name: string;

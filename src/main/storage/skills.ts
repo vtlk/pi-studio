@@ -64,6 +64,7 @@ export async function importSkill(source: string, existing: Resource[]): Promise
     source: skill.source,
     kind: 'skills',
     localSkill: true,
+    ...(previous?.managedSkill ? { managedSkill: true } : {}),
     version: 'Текущий локальный файл',
     transport: '',
     args: '',

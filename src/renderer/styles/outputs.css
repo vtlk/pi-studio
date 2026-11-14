@@ -67,12 +67,12 @@
 .project-agent-menu .section-menu-item.active {
   background: var(--pill-active);
 }
-.project-agent-menu .section-menu-label {
+:is(.project-agent-menu, .agent-stages) .section-menu-label {
   font-size: 17px;
   font-weight: 600;
   line-height: 24px;
 }
-.project-agent-menu .section-menu-description {
+:is(.project-agent-menu, .agent-stages) .section-menu-description {
   display: block;
   white-space: normal;
   margin-top: 3px;
@@ -81,7 +81,7 @@
   line-height: 20px;
   color: #71717a;
 }
-.project-agent-menu .section-menu-item.active .section-menu-description {
+:is(.project-agent-menu, .agent-stages) .section-menu-item.active .section-menu-description {
   color: #52525b;
 }
 .project-agent-menu .section-menu-item[data-muted] .section-menu-text {

@@ -187,7 +187,7 @@ test('production tools use their bound studio; removed cards disappear from disc
     enabled: true,
     instructions: [],
     skills: [],
-    mcps: [],
+    mcps: ['pistudio-library'],
     plugins: [],
     model: {
       provider: 'provider',
@@ -197,6 +197,7 @@ test('production tools use their bound studio; removed cards disappear from disc
       temperature: '',
     },
   };
+  await store.saveSection('agents', [profile]);
   const project = (await store.command({ kind: 'create', name: 'Movie', agents: [profile] }))
     .projects[0];
   const run = await buildRunContext(

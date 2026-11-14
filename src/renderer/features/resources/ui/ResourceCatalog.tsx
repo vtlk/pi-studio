@@ -10,6 +10,7 @@ import { useResources, type Resource } from '../model/Resources';
 import { ResourceEditor } from './ResourceEditor';
 import { ResourceActions } from './ResourceActions';
 import { resourceStatus } from '../model/resourceStatus';
+import { ManagedSkillEditor } from './ManagedSkillEditor';
 
 export function ResourceCatalog({
   kind,
@@ -25,6 +26,7 @@ export function ResourceCatalog({
   const { projects } = useWorkspace();
   const { demo } = useNotice();
   const [edit, setEdit] = useState<Resource | null>(null);
+  const [creatingSkill, setCreatingSkill] = useState(false);
   const [query, setQuery] = useState('');
   const importing = useRef(false);
   const add = async () => {
@@ -73,12 +75,20 @@ export function ResourceCatalog({
     <AddArea
       label={
         kind === 'skills'
-          ? 'Импортировать skill'
+          ? 'Добавить навык'
           : kind === 'mcps'
             ? 'Добавить MCP-сервер'
             : 'Добавить пакет Pi'
       }
-      onClick={() => void add()}
+      onClick={window.studio && kind === 'skills' ? undefined : () => void add()}
+      actions={
+        window.studio && kind === 'skills'
+          ? [
+              { label: 'Создать', onSelect: () => setCreatingSkill(true) },
+              { label: 'Импортировать', onSelect: () => void add() },
+            ]
+          : undefined
+      }
     />
   );
   return (
@@ -103,7 +113,11 @@ export function ResourceCatalog({
               <ResourceActions resource={resource} />
             </div>
             <Button onClick={() => setEdit(resource)}>
-              {kind === 'skills' ? 'Сведения' : 'Настроить'}
+              {kind === 'skills'
+                ? resource.managedSkill
+                  ? 'Редактировать'
+                  : 'Сведения'
+                : 'Настроить'}
             </Button>
             {onPick && (
               <Button
@@ -131,6 +145,7 @@ export function ResourceCatalog({
         ))}
       {onPick && addArea}
       {edit && <ResourceEditor key={edit.id} resource={edit} onClose={() => setEdit(null)} />}
+      {creatingSkill && <ManagedSkillEditor onClose={() => setCreatingSkill(false)} />}
     </div>
   );
 }

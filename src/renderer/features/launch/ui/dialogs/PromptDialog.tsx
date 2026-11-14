@@ -7,6 +7,7 @@ import { useLaunch } from '../../model/Launch';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useProject } from '@/features/project/model/Project';
 import { useStorage } from '@/shared/storage/Storage';
+import { libraryMcp } from '../../../../../shared/builtinResources';
 function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {
   const { setDialog } = useLaunch();
   const { selectedAgent, selectedSystemRole } = useAgentProfiles();
@@ -14,8 +15,10 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
   const { isDesktop } = useStorage();
   const names = (kind: 'skills' | 'mcps' | 'plugins') =>
     selectedAgent
-      ? enabledResources(selectedAgent, kind).map(
-          (id) => resources.find((item) => item.kind === kind && item.id === id)?.name ?? id,
+      ? enabledResources(selectedAgent, kind).map((id) =>
+          kind === 'mcps' && id === libraryMcp.id
+            ? libraryMcp.name
+            : (resources.find((item) => item.kind === kind && item.id === id)?.name ?? id),
         )
       : [];
   const internalMcp = selectedSystemRole
