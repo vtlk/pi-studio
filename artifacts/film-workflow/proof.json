@@ -1,0 +1,52 @@
+{
+  "actualPi": "1.5.2",
+  "model": "gpt-5.6-luna",
+  "stages": [
+    {
+      "name": "Сценарий",
+      "status": "ready"
+    },
+    {
+      "name": "Рисунки",
+      "status": "ready"
+    },
+    {
+      "name": "Мультфильм",
+      "status": "ready"
+    }
+  ],
+  "actualAgentBashRender": true,
+  "paidMediaApiCalls": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "frames": 240,
+  "audio": "aac",
+  "sha256": "f3f23979abebfc1106646c9e10ccdfa4c4b6f58b648cadb5974748131e8019ee",
+  "revision": "8858baf4b041b20c652e020abb8c598c73f050e24470bda46b22df7377517cdc",
+  "exactIdleResume": true,
+  "outputBytes": 360524,
+  "nativeViewerVerified": true,
+  "nativeAudioDecoded": true,
+  "fullscreenPreservesFrame": true,
+  "currentViewerCheck": {
+    "applicationVersion": "0.2.0-alpha.54",
+    "checkedAt": "2026-11-14T19:16:42.475Z",
+    "unchangedAgentMovieHash": true,
+    "fullFfmpegDecode": true,
+    "nativeMovingVideo": true,
+    "nativeDecodedNonSilentAudio": true,
+    "sameFramePixelsAfterStepBackAndForward": true,
+    "fullscreenEscapePreservesFrame": true,
+    "readOnlyWithoutApprovalExport": true,
+    "newModelRequests": 0,
+    "scope": "Previously real-agent-created movie in an isolated offscreen native main/preload/renderer. Startup skipped; document visibility simulated for polling. User studio untouched; no Terminal or generation.",
+    "sourceSha256": {
+      "scripts/smoke-film-viewer.cjs": "10af0361184b83ae6463b5b0a0334a62174be819bb09ba3617a3fe2738e634cf",
+      "src/renderer/features/editor/player/VideoComposition.tsx": "67158fa4fdaebfb8cc6582acc57dd4c2f7ba523804fb02339d3f9e4121d583fc",
+      "src/renderer/features/editor/player/StereoPan.tsx": "a7a9860905fe8c34782ff6411f2f17e12d9a75bc7b47b3cc0c7fb8444ab82d53",
+      "src/renderer/features/editor/ui/VideoViewer.tsx": "600395c35964c926be4aa177076f3d2855e142f956ad685f10c3f66a4cac9321",
+      "src/main/video/readVideoProject.ts": "dab37ea6c4f40fac17302d9440ef11bf6818ca69024152dd573eeaed9da2a3ad"
+    }
+  }
+}

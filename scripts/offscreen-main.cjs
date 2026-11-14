@@ -1,9 +1,12 @@
 const electron = require('electron');
 const Module = require('node:module');
 const { resolve } = require('node:path');
+const { realpathSync } = require('node:fs');
 
 // Scope the constructor override to our compiled entry. Production Electron is unchanged.
 module.exports.loadOffscreenMain = (mainEntry) => {
+  // Offscreen QA must not appear as a second Studio in the user's Dock or app switcher.
+  if (process.platform === 'darwin') electron.app.setActivationPolicy('accessory');
   const OriginalWindow = electron.BrowserWindow;
   class OffscreenWindow extends OriginalWindow {
     constructor(options) {
@@ -20,7 +23,9 @@ module.exports.loadOffscreenMain = (mainEntry) => {
       return key === 'BrowserWindow' ? OffscreenWindow : Reflect.get(target, key);
     },
   });
-  const entry = mainEntry ? resolve(mainEntry) : resolve(__dirname, '../out/main/index.cjs');
+  const entry = realpathSync(
+    mainEntry ? resolve(mainEntry) : resolve(__dirname, '../out/main/index.cjs'),
+  );
   const originalLoad = Module._load;
   Module._load = function (id, parent, isMain) {
     if (id === 'electron' && parent?.filename === entry) return replacement;
