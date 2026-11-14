@@ -1,3 +1,6 @@
+import { renderLibraryPreview } from './renderLibraryPreview.ts';
+import type { PreviewRenderer } from './previewOptions.ts';
+import { rigActions, rigEmotions } from '../../shared/characterRig.ts';
 import type { SessionTool } from '../pi/RunChannel.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import { hasLibraryMcp } from '../../shared/builtinResources.ts';
@@ -60,6 +63,35 @@ export const libraryTools: SessionTool[] = [
     ),
   },
   {
+    name: 'library_render_preview',
+    description:
+      'Render a deterministic control PNG of this agent’s prepared asset with trusted Studio code. Reference PNG and declared SVG/rig must be valid; preview PNG may be absent. Supports rig pose/time or location camera. Returns a PNG path in this output for native read; copy a chosen frame to the manifest preview path before validate/publish. Never runs generated code, calls a model, publishes, or changes source/reference files.',
+    inputSchema: schema(
+      {
+        token: string,
+        width: { type: 'integer', minimum: 64, maximum: 2048 },
+        height: { type: 'integer', minimum: 64, maximum: 2048 },
+        character: schema({
+          action: { enum: rigActions },
+          emotion: { enum: rigEmotions },
+          time: { type: 'number', minimum: 0, maximum: 3600 },
+          intensity: { type: 'number', minimum: 0, maximum: 1 },
+          headTilt: { type: 'number', minimum: -10, maximum: 10 },
+          gazeX: { type: 'number', minimum: -1, maximum: 1 },
+          gazeY: { type: 'number', minimum: -1, maximum: 1 },
+          autoGaze: { type: 'boolean' },
+          blink: { type: 'boolean' },
+        }),
+        camera: schema({
+          zoom: { type: 'number', minimum: 1, maximum: 4 },
+          x: { type: 'number', minimum: -16384, maximum: 16384 },
+          y: { type: 'number', minimum: -16384, maximum: 16384 },
+        }),
+      },
+      ['token'],
+    ),
+  },
+  {
     name: 'library_validate_asset',
     description:
       'Check prepared PNG, SVG and optional character rig data without publishing. No human approval state; an unrigged character stays static.',
@@ -77,6 +109,7 @@ export const libraryContract = {
   workflow: [
     'library_prepare_asset',
     'Write generated data files into stagingDirectory with native tools',
+    'Optional library_render_preview to inspect a rig pose or camera; copy a selected PNG to the manifest preview path',
     'library_validate_asset',
     'library_publish_asset',
   ],
@@ -99,6 +132,7 @@ export const libraryContract = {
     'Only trusted application code performs previews. Generated JavaScript/HTML/TSX is never executed by the library viewer.',
     'Characters may add files.rig referencing a validated pistudio-character-1 rig.json and files.vector referencing compatible SVG. See characterRig below. No rig means explicitly static; location rigs are not supported.',
     'Updates use existingId and preserve earlier versions, not duplicate cards. No instruction copies are stored in asset packages.',
+    'library_render_preview accepts this agent preparation token before preview.png exists. Defaults: 512x512; rig idle/neutral at time 0, intensity 1, zero tilt/manual gaze, no auto blink/gaze. Camera x/y are pixels after fit, clamped like the UI; zoom 1-4. Copy the chosen returned PNG into the declared preview path before validate/publish.',
   ],
   characterRig: characterRigContract,
 };
@@ -109,6 +143,7 @@ export function libraryTool(
   name: string,
   args: Record<string, unknown>,
   scope: 'project' | 'library-service' = 'project',
+  previewRenderer?: PreviewRenderer,
 ) {
   return service.serialize(async () => {
     const store = await service.load();
@@ -157,6 +192,11 @@ export function libraryTool(
       );
     if (name === 'library_prepare_asset') return library.prepare(run.record.output, args);
     if (typeof args.token !== 'string') throw new Error('Нужен идентификатор подготовки.');
+    if (name === 'library_render_preview') {
+      if (!previewRenderer)
+        throw new Error('Штатный рендер контрольного кадра недоступен в этом запуске.');
+      return renderLibraryPreview(library, run.record.output, args, previewRenderer);
+    }
     if (name === 'library_validate_asset') return library.validate(run.record.output, args.token);
     if (name === 'library_publish_asset') return library.publish(run.record.output, args.token);
     throw new Error('Неизвестный инструмент библиотеки.');

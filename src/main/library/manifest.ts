@@ -79,14 +79,21 @@ async function png(root: string, relative: string) {
     await file.close();
   }
 }
-export async function validateLibraryDirectory(root: string) {
+export async function validateLibraryDirectory(root: string, skipPreview = false) {
   const manifestBefore = await signature(root, 'asset.json');
   const manifest = parseLibraryManifest(await readJson(await safePath(root, 'asset.json')));
-  const paths = ['asset.json', ...new Set(Object.values(manifest.files))];
+  const paths = [
+    'asset.json',
+    ...new Set([
+      manifest.files.reference,
+      ...(!skipPreview ? [manifest.files.preview] : []),
+      ...[manifest.files.vector, manifest.files.rig].filter((file): file is string => !!file),
+    ]),
+  ];
   const before = await Promise.all(paths.map((path) => signature(root, path)));
   if (before[0] !== manifestBefore) throw new Error('asset.json изменился во время чтения.');
   await png(root, manifest.files.reference);
-  await png(root, manifest.files.preview);
+  if (!skipPreview) await png(root, manifest.files.preview);
   if (manifest.files.vector)
     validateStaticSvg(await readText(await safePath(root, manifest.files.vector)));
   let character;

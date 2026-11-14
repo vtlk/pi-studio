@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
-import { clampCamera, type CameraPosition } from '../model/camera';
+import { clampCamera, type CameraPosition } from '../../../../shared/camera';
 
 export function LocationPreview({ src, title }: { src: string; title: string }) {
   const viewport = useRef<HTMLDivElement>(null);

@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.44",
+  "version": "0.2.0-alpha.45",
   "private": true,
   "description": "Pi Studio \u0434\u043b\u044f macOS \u2014 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b \u0438 \u043a\u043e\u043d\u0441\u0442\u0440\u0443\u043a\u0442\u043e\u0440 \u0430\u0433\u0435\u043d\u0442\u043e\u0432",
   "type": "module",
@@ -56,7 +56,8 @@
     "test:persistence": "npm run build && electron scripts/smoke-persistence.cjs",
     "test:fields": "npm run build && electron scripts/smoke-fields.cjs",
     "test:pi-reasoning": "node --experimental-strip-types scripts/smoke-pi-reasoning.ts",
-    "test:reasoning-ui": "npm run build && electron scripts/smoke-reasoning-ui.cjs"
+    "test:reasoning-ui": "npm run build && electron scripts/smoke-reasoning-ui.cjs",
+    "test:library-render": "electron scripts/smoke-library-render.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

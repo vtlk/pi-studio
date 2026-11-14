@@ -1,3 +1,4 @@
+import type { PreviewRenderer } from '../library/previewOptions.ts';
 import { RunHost } from './RunHost.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { stableId } from '../storage/validation.ts';
@@ -22,6 +23,7 @@ interface Options {
   piPath: () => string;
   references?: ReferenceFiles;
   images?: ImageGeneration;
+  libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
   failureChanged?: RunDependencies['failureChanged'];
@@ -31,7 +33,11 @@ export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
     tools: (run) => [
       ...productionTools,
-      ...(run.libraryAccess ? libraryTools : []),
+      ...(run.libraryAccess
+        ? libraryTools.filter(
+            (tool) => tool.name !== 'library_render_preview' || !!options.libraryPreview,
+          )
+        : []),
       ...(options.images?.tools(run) ?? []),
     ],
     closed: (run) => options.images?.cancel(run),
@@ -39,7 +45,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)
-        : libraryTool(service, run, name, args),
+        : libraryTool(service, run, name, args, 'project', options.libraryPreview),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,

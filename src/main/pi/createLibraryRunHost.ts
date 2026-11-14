@@ -1,3 +1,4 @@
+import type { PreviewRenderer } from '../library/previewOptions.ts';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -29,6 +30,7 @@ interface Options {
   piPath: () => string;
   references: ReferenceFiles;
   images?: ImageGeneration;
+  libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
   failureChanged?: RunDependencies['failureChanged'];
@@ -44,7 +46,11 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
     serviceAgent: true,
     tools: (run) => [
       ...productionTools,
-      ...(run.libraryAccess ? libraryTools : []),
+      ...(run.libraryAccess
+        ? libraryTools.filter(
+            (tool) => tool.name !== 'library_render_preview' || !!options.libraryPreview,
+          )
+        : []),
       ...(options.images?.tools(run) ?? []),
     ],
     closed: (run) => options.images?.cancel(run),
@@ -52,7 +58,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)
-        : libraryTool(service, run, name, args, 'library-service'),
+        : libraryTool(service, run, name, args, 'library-service', options.libraryPreview),
     prepare: (request) =>
       service.serialize(async () => {
         const input = requests.get(request.projectId);

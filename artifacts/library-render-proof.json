@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "transport": "production RunChannel MCP + scoped libraryTool + native Chromium rasterizer",
+  "deterministicPng": true,
+  "poseAndBlinkChangePixels": true,
+  "characterAlpha": true,
+  "locationCameraAndDimensions": true,
+  "missingPreviewSupported": true,
+  "explicitCopyValidatePublish": true,
+  "originalsUnchanged": true,
+  "wrongAgentAndRevokedGrantRefused": true,
+  "invalidDataRefusedBeforeRender": true,
+  "allRenderWindowsDestroyed": true,
+  "modelRequests": 0,
+  "generatedCodeExecuted": false,
+  "version": "0.2.0-alpha.45",
+  "unitFS": 168,
+  "unitCoverage": [
+    "missing preview vs ordinary publish gate",
+    "source changes during render refuse saving",
+    "invalid params/data/dimensions/PNG",
+    "symlink output refusal",
+    "deterministic posed SVG",
+    "activation never selects a background window (fake-window unit)"
+  ],
+  "sourceSha256": {
+    "src/main/library/renderLibraryPreview.ts": "0da128ae4f80ed71383ee228581bd55ca1e1dea5ea50d563ef6572a63105ee4d",
+    "src/main/library/rasterizePreview.ts": "738fea1b726634d4802be75c4d640f9f05d6cb520927cd32066000ebf230f7f4",
+    "src/shared/characterSvgFrame.ts": "b6b374311a73a8dda3bcff8cb917bf6c19c31b5a3c9143d23fa39fa10608ebc4",
+    "src/main/library/tools.ts": "3ab49d7469a88c204da7c164b01343a8d0d53b995d305fb80b31327bb68d1e16"
+  },
+  "limits": [
+    "MCP client is a local QA protocol client, not a new LLM request",
+    "Pose fixtures validate the data contract, not arbitrary artistic quality",
+    "Native data-only render is verified; installed user app update is recorded separately"
+  ]
+}

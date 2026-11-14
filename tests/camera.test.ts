@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clampCamera } from '../src/renderer/features/library/model/camera.ts';
+import { clampCamera } from '../src/shared/camera.ts';
 
 test('camera cannot pan at fit size and stays inside the zoomed image edges', () => {
   const viewport = { width: 1000, height: 500 };

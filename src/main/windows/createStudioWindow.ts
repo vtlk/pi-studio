@@ -1,11 +1,11 @@
 import { BrowserWindow, dialog, session, shell } from 'electron';
 import { join } from 'node:path';
 
+let studioWindow: BrowserWindow | undefined;
 export function createStudioWindow(): BrowserWindow {
-  const existing = BrowserWindow.getAllWindows()[0];
-  if (existing) {
-    existing.show();
-    return existing;
+  if (studioWindow && !studioWindow.isDestroyed()) {
+    studioWindow.show();
+    return studioWindow;
   }
   const window = new BrowserWindow({
     width: 1512,
@@ -23,6 +23,7 @@ export function createStudioWindow(): BrowserWindow {
       sandbox: true,
     },
   });
+  studioWindow = window;
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
     callback(false),
   );

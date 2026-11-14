@@ -1,3 +1,4 @@
+import { rasterizePreview } from '../library/rasterizePreview';
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
@@ -79,15 +80,14 @@ export function registerDesktopHandlers(): StudioService {
     for (const window of BrowserWindow.getAllWindows())
       if (!window.isDestroyed()) window.webContents.send(desktopChannels.runFailure, notice);
   };
+  const productionResources = { references, images, mcpSecrets, libraryPreview: rasterizePreview };
   const runs = createStudioRunHost(service, {
+    ...productionResources,
     failureChanged,
     bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
-    references,
-    images,
-    mcpSecrets,
   });
   const resources = new StudioResources(service, {
     mcpSecrets,
@@ -105,14 +105,12 @@ export function registerDesktopHandlers(): StudioService {
     mcpSecrets,
   });
   const generators = createLibraryRunHost(service, {
+    ...productionResources,
     failureChanged,
-    mcpSecrets,
     bootstraps: join(app.getPath('userData'), 'library-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
-    references,
-    images,
   });
   app.on('before-quit', () => {
     for (const controller of [browserAuth, startup, runs, setup, generators]) controller.close();

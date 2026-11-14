@@ -31,9 +31,7 @@ export class LibraryStore {
     this.scope = createHash('sha256').update(root).digest('hex').slice(0, 24);
   }
   private relative(kind: LibraryKind, id: string, version?: number) {
-    libraryKind(kind);
-    stableId(id);
-    return `library/${kind}/${id}/versions${version === undefined ? '' : `/${version}`}`;
+    return `library/${libraryKind(kind)}/${stableId(id)}/versions${version === undefined ? '' : `/${version}`}`;
   }
   private async versions(kind: LibraryKind, id: string) {
     let entries;
@@ -251,14 +249,29 @@ export class LibraryStore {
       previousDirectory: previous?.directory,
     };
   }
-  private async validateJob(outputRoot: string, token: string, job: Job, root?: string) {
-    const checked = await validateLibraryDirectory(root ?? (await this.stage(outputRoot, token)));
+  private async validateJob(
+    outputRoot: string,
+    token: string,
+    job: Job,
+    root?: string,
+    skipPreview = false,
+  ) {
+    const checked = await validateLibraryDirectory(
+      root ?? (await this.stage(outputRoot, token)),
+      skipPreview,
+    );
     for (const key of ['id', 'kind', 'version', 'createdAt'] as const)
       if (checked.manifest[key] !== job[key])
         throw new Error(
           'Нельзя изменять идентификатор, тип, версию или время создания подготовки.',
         );
     return checked;
+  }
+  async previewSource(outputRoot: string, token: string) {
+    const job = await this.job(outputRoot, token);
+    if (job.published) throw new Error('Для опубликованного материала подготовьте новую редакцию.');
+    const root = await this.stage(outputRoot, token);
+    return { ...(await this.validateJob(outputRoot, token, job, root, true)), root };
   }
   async validate(outputRoot: string, token: string) {
     const job = await this.job(outputRoot, token);
