@@ -78,17 +78,15 @@ export function ImageKeyFields({
       )}
       {status && (
         <p role="status">
-          {!status.secureStorageAvailable
-            ? 'Защищённое хранилище macOS недоступно.'
-            : !status.keyStored
-              ? 'Ключ не сохранён.'
-              : status.authentication === 'ready'
-                ? 'Ключ принят API. Доступ к генерации проверяется только при её вызове.'
-                : status.authentication === 'invalid'
-                  ? 'API не принял ключ.'
-                  : status.authentication === 'restricted'
-                    ? 'API ограничил доступ. Проверьте разрешения ключа и проекта OpenAI.'
-                    : 'Ключ сохранён. Авторизация ещё не проверена.'}
+          {!status.keyStored
+            ? 'Ключ не сохранён.'
+            : status.authentication === 'ready'
+              ? 'Ключ принят API. Доступ к генерации проверяется только при её вызове.'
+              : status.authentication === 'invalid'
+                ? 'API не принял ключ.'
+                : status.authentication === 'restricted'
+                  ? 'API ограничил доступ. Проверьте разрешения ключа и проекта OpenAI.'
+                  : 'Ключ сохранён. Авторизация ещё не проверена.'}
         </p>
       )}
     </>

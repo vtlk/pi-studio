@@ -55,7 +55,6 @@ export class ImageConnections {
     const cache = this.checked.get(scope.cache);
     return {
       keyStored: stored.stored,
-      secureStorageAvailable: await this.vault.available(),
       authentication: cache?.revision === stored.revision ? cache.authentication : 'unchecked',
       modelIds: cache?.revision === stored.revision ? cache.modelIds : [],
       ...(cache?.revision === stored.revision ? { checkedAt: cache.checkedAt } : {}),

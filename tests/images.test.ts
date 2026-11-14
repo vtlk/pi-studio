@@ -125,6 +125,50 @@ async function fixture(t: TestContext, request: typeof fetch = async () => image
   return { root, service, store, vault, crypto, connections, connection, run, images, agent };
 }
 
+test('passive image connection status never initializes Keychain; explicit secret actions still enforce protection', async (t) => {
+  let network = 0;
+  const f = await fixture(t, async () => {
+    network++;
+    throw Error('No API access expected');
+  });
+  assert.equal((await f.connections.status(f.connection)).keyStored, false);
+  await f.connections.save({ ...f.connection, key: KEY });
+  const [file] = await readdir(join(f.root, 'vault'));
+  const ciphertext = await readFile(join(f.root, 'vault', file));
+  let initialization = 0,
+    decryption = 0;
+  f.crypto.isAsyncEncryptionAvailable = async () => {
+    initialization++;
+    return false;
+  };
+  f.crypto.decryptStringAsync = async () => {
+    decryption++;
+    throw Error('No passive secret read');
+  };
+  const reopened = new ImageConnections(
+    f.service,
+    new SecretVault(join(f.root, 'vault'), f.crypto),
+    f.connections.api,
+  );
+  for (let i = 0; i < 3; i++) {
+    const status = await reopened.status(f.connection);
+    assert.deepEqual(status, { keyStored: true, authentication: 'unchecked', modelIds: [] });
+  }
+  assert.equal(initialization, 0);
+  assert.equal(decryption, 0);
+  await assert.rejects(reopened.check(f.connection), /хранилище macOS недоступно/);
+  await assert.rejects(
+    reopened.save({ ...f.connection, key: 'NEW_SYNTHETIC_IMAGE_KEY' }),
+    /хранилище macOS недоступно/,
+  );
+  assert.equal(initialization, 2);
+  assert.equal(decryption, 0);
+  assert.equal(network, 0);
+  assert.deepEqual(await readFile(join(f.root, 'vault', file)), ciphertext);
+  assert.equal((await reopened.remove(f.connection)).keyStored, false);
+  assert.equal(initialization, 2, 'Removing local ciphertext needs no Keychain access');
+});
+
 test('app secrets are ciphertext, isolated by studio/connection, survive reopen, rotate and never use plaintext fallback', async (t) => {
   const f = await fixture(t);
   await f.connections.save({ ...f.connection, key: KEY });

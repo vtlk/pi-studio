@@ -13,7 +13,6 @@ export interface Connection {
 
 export interface ImageConnectionStatus {
   keyStored: boolean;
-  secureStorageAvailable: boolean;
   authentication: 'unchecked' | 'ready' | 'invalid' | 'restricted';
   modelIds: string[];
   checkedAt?: number;

@@ -1,0 +1,22 @@
+{
+  "sourceVersion": "0.2.0-alpha.53",
+  "passed": {
+    "nativeCatalogAndEditorWithoutCryptoInitialization": true,
+    "noSecretReturnedToRenderer": true,
+    "reloadStatusWithoutCryptoInitialization": true,
+    "explicitCheckStillRejectsUnavailableStorage": true,
+    "ciphertextUnchanged": true
+  },
+  "passiveCryptoInitializations": 0,
+  "explicitCryptoInitializations": 1,
+  "decryptionCalls": 0,
+  "networkCalls": 0,
+  "limits": "Actual production main/preload/renderer, offscreen isolated studio. safeStorage uses tripwires and startup/catalog fixtures; real Keychain access, user Always Allow persistence and OS password prompts are not tested.",
+  "sourceSha256": {
+    "src/main/images/ImageConnections.ts": "82b9e79c085509f1164b756f93d536475e474fb977e49ae292ac5e3fc22fd2ff",
+    "src/shared/connections.ts": "652651e87769455470fef7968817f1a83ab638087ded097aa496757f116471ce",
+    "src/renderer/features/connections/ui/ImageKeyFields.tsx": "dd9d887c09cdd28c06435e5ef8a35f7911b68dd8b73e38e10e0c36d159479e23",
+    "tests/images.test.ts": "d62a9c93e432a30e48a98d26a75a6b814c5f4ceebfe69d2b2d6e0b18daa59b57",
+    "scripts/smoke-image-status.cjs": "e7d87aa74b080ad368da48839d1acbd9f18ceb70005c1f4feb795bda768ab6a4"
+  }
+}
