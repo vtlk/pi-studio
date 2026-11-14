@@ -1,0 +1,26 @@
+{
+  "pi": "1.5.2",
+  "sourceVersion": "0.2.0-alpha.52",
+  "passed": {
+    "nonVisualRejectedBeforeContextSessionOrRequest": true,
+    "realNativeImageWireMatchesOriginalPng": true,
+    "singleCanonicalUserImage": true,
+    "copiedPdfAndTextReadThroughInternalMcpAfterOriginalsRemoved": true,
+    "fileHashesPreserved": true,
+    "completionValidated": true,
+    "resumeRejectsNewAttachmentIds": true,
+    "exactIdleResumeNoReplayOrTranscriptChange": true,
+    "noInstructionSnapshots": true,
+    "currentRoleAndAbsoluteProjectRootInSystemPrompt": true,
+    "firstUserMessageSeparateFromRole": true
+  },
+  "localModelRequests": 5,
+  "externalModelRequests": 0,
+  "limits": "Real production RunHost/context/references/bridge/native Pi SDK and internal MCP. Synthetic loopback model chooses tools; no artistic/vision inference or PDF text extraction claimed. Terminal dispatch is a hidden child; user studio and cloud accounts are untouched.",
+  "sourceSha256": {
+    "scripts/smoke-pi-attachments.ts": "b6f5ad4644cfac2894bfc82e096cc4f8f2d883d111ebdf42712116e6db5ce81b",
+    "src/main/pi/ReferenceFiles.ts": "0cd9c0b8be5984b069f145a18fc0792c0fccacfe3839d6c6c1509c3c7b0d0618",
+    "src/main/pi/createStudioRunHost.ts": "850d84e733d2d793dc8c3a48af79180adbc4d29c0e2207cef9f954159cd2856e",
+    "bundled/pi-bridge/session.mjs": "bcfc9468f68807f5966a42d8f0840ea9b61f8a4fc7e837e81e526d82e73bcacb"
+  }
+}

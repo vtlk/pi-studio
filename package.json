@@ -65,7 +65,8 @@
     "test:pi-parallel": "node --experimental-strip-types scripts/smoke-pi-parallel.ts",
     "test:model-catalog": "node --experimental-strip-types scripts/smoke-model-catalog.ts",
     "test:first-message": "npm run build && electron scripts/smoke-first-message.cjs",
-    "test:quit-cancel": "npm run build && electron scripts/smoke-quit-cancel.cjs"
+    "test:quit-cancel": "npm run build && electron scripts/smoke-quit-cancel.cjs",
+    "test:pi-attachments": "node --experimental-strip-types scripts/smoke-pi-attachments.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
