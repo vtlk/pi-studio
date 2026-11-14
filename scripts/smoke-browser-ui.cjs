@@ -61,7 +61,7 @@ process.on('unhandledRejection', fail);
       window.webContents.once('did-finish-load', () => done(window));
     }),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   win = await loaded;
   const js = (code) => win.webContents.executeJavaScript(code, true);
   const until = async (code) => {
@@ -116,7 +116,7 @@ process.on('unhandledRejection', fail);
   assert.equal(win.webContents.isOffscreen(), true);
   await writeFile('artifacts/browser-catalog-ui.png', (await win.capturePage()).toPNG());
   await writeFile(
-    'artifacts/browser-ui-proof.json',
+    process.env.PI_STUDIO_QA_PROOF || 'artifacts/browser-ui-proof.json',
     JSON.stringify(
       {
         checkedAt: new Date().toISOString(),
@@ -130,6 +130,7 @@ process.on('unhandledRejection', fail);
         automaticNetworkRequests: network,
         offscreen: true,
         separateUserData: true,
+        packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
       },
       null,
       2,
