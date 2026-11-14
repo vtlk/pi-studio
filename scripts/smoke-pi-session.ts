@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, readdir, writeFile, mkdir, access } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -64,6 +64,8 @@ const packageToken = randomUUID(),
   skillToken = randomUUID(),
   mcpToken = randomUUID();
 const packageRoot = join(temporary, 'package');
+const loadReport = join(temporary, 'resource-loads.jsonl');
+const descriptions = ['QA_CURRENT_SKILL_DESCRIPTION_ONE', 'QA_CURRENT_SKILL_DESCRIPTION_TWO'];
 await mkdir(join(packageRoot, 'skill'), { recursive: true });
 await writeFile(
   join(packageRoot, 'package.json'),
@@ -76,12 +78,39 @@ await writeFile(
 );
 await writeFile(
   join(packageRoot, 'extension.ts'),
-  `import { Type } from 'typebox'; export default function(pi) { pi.registerTool({name:'qa_package_value',label:'QA package value',description:'Return the isolated package test token',parameters:Type.Object({}),async execute(){return {content:[{type:'text',text:${JSON.stringify(packageToken)}}]};}}); }`,
+  `import { Type } from 'typebox'; import {appendFile} from 'node:fs/promises';
+export default function(pi) {
+  pi.registerTool({name:'qa_package_value',label:'QA package value',description:'Return the isolated package test token',parameters:Type.Object({}),async execute(){return {content:[{type:'text',text:${JSON.stringify(packageToken)}}]};}});
+  pi.on('session_start',async(_event,ctx)=>{
+    const prompt=ctx.getSystemPrompt();
+    await appendFile(${JSON.stringify(loadReport)},JSON.stringify({
+      packageTool:pi.getAllTools().some(tool=>tool.name==='qa_package_value'),
+      firstDescription:prompt.includes(${JSON.stringify(descriptions[0])}),
+      secondDescription:prompt.includes(${JSON.stringify(descriptions[1])}),
+      unassignedSkill:prompt.includes('QA_UNASSIGNED_CWD_SKILL')
+    })+'\\n');
+  });
+}`,
 );
 await writeFile(
   join(packageRoot, 'skill/SKILL.md'),
-  `---\nname: qa-resource\ndescription: Contains the isolated skill test token\n---\n\nSkill test token: ${skillToken}\n`,
+  `---\nname: qa-resource\ndescription: ${descriptions[0]}\n---\n\nSkill test token: ${skillToken}\n`,
 );
+const unassigned = join(root, agentOutput, '../.pi');
+const leakedExtension = join(temporary, 'unassigned-extension-loaded');
+await mkdir(join(unassigned, 'skills/unassigned'), { recursive: true });
+await mkdir(join(unassigned, 'extensions'), { recursive: true });
+await writeFile(
+  join(unassigned, 'skills/unassigned/SKILL.md'),
+  '---\nname: qa-unassigned\ndescription: QA_UNASSIGNED_CWD_SKILL\n---\n\nNever load automatically.',
+);
+await writeFile(
+  join(unassigned, 'extensions/leak.ts'),
+  `import {writeFile} from 'node:fs/promises'; export default function(){void writeFile(${JSON.stringify(leakedExtension)},'unexpected');}`,
+);
+let listed = 0,
+  invoked = 0,
+  mcpUnavailable = false;
 const external = createServer(async (request, response) => {
   if (request.method !== 'POST') {
     response.writeHead(405);
@@ -91,9 +120,22 @@ const external = createServer(async (request, response) => {
   let content = '';
   for await (const chunk of request) content += chunk;
   const data = JSON.parse(content);
+  if (data.method === 'tools/list') listed++;
+  if (data.method === 'tools/call') invoked++;
   if (!('id' in data)) {
     response.writeHead(202);
     response.end();
+    return;
+  }
+  if (mcpUnavailable) {
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        id: data.id,
+        error: { code: -32603, message: 'QA_MCP_UNAVAILABLE' },
+      }),
+    );
     return;
   }
   const result =
@@ -278,6 +320,22 @@ try {
     'Native bash must succeed',
   );
   const beforeFiles = await readdir(join(root, agentSessions));
+  const firstLoads = (await readFile(loadReport, 'utf8'))
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  assert.ok(firstLoads.length > 0);
+  assert.deepEqual(firstLoads.at(-1), {
+    packageTool: true,
+    firstDescription: true,
+    secondDescription: false,
+    unassignedSkill: false,
+  });
+  const beforeList = listed;
+  await writeFile(
+    join(packageRoot, 'skill/SKILL.md'),
+    `---\nname: qa-resource\ndescription: ${descriptions[1]}\n---\n\nCurrent skill body changed for the next explicit open.\n`,
+  );
   const resumed = await host.launch({ projectId, agentId: agent.id, autoContinue: false });
   assert.equal(
     resumed.project.agents.find((item) => item.profile.id === agent.id)?.session?.path,
@@ -290,14 +348,76 @@ try {
     'Resume must not add any user message or replay generation',
   );
   assert.deepEqual(await readdir(join(root, agentSessions)), beforeFiles);
+  assert.ok(listed > beforeList, 'An explicit resume must reconnect its assigned MCP');
+  const resumedLoads = (await readFile(loadReport, 'utf8'))
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  assert.ok(resumedLoads.length > firstLoads.length);
+  assert.deepEqual(resumedLoads.at(-1), {
+    packageTool: true,
+    firstDescription: false,
+    secondDescription: true,
+    unassignedSkill: false,
+  });
+  await assert.rejects(access(leakedExtension), { code: 'ENOENT' });
   for (const id of [started.runId, resumed.runId]) {
     const context = await readFile(join(root, '.pistudio/context', id, 'context.json'), 'utf8');
     assert.equal(context.includes(agent.mainInstruction!), false);
     assert.equal(context.includes(token), false);
     assert.equal(context.includes(skillToken), false);
   }
+  agent.capabilitySettings = {
+    'plugins:qa-package': { enabled: false },
+    'mcps:qa-mcp': { enabled: false },
+  };
+  await store.command({
+    kind: 'update-agents',
+    projectId,
+    agents: constructor,
+    updateExisting: true,
+  });
+  const disabledList = listed,
+    disabledInvocations = invoked;
+  const disabled = await host.launch({ projectId, agentId: agent.id, autoContinue: false });
+  assert.equal(await children[2], 0);
+  assert.equal(listed, disabledList);
+  assert.equal(invoked, disabledInvocations);
+  assert.equal(
+    await readFile(loadReport, 'utf8'),
+    resumedLoads.map((item) => JSON.stringify(item)).join('\n') + '\n',
+  );
+  assert.equal(await readFile(join(root, binding.path), 'utf8'), transcript);
+  const disabledContext = JSON.parse(
+    await readFile(join(root, '.pistudio/context', disabled.runId, 'context.json'), 'utf8'),
+  );
+  assert.deepEqual(disabledContext.resourceIds.plugins, []);
+  assert.ok(!disabledContext.resourceIds.mcps.includes('qa-mcp'));
+  await assert.rejects(access(leakedExtension), { code: 'ENOENT' });
+  agent.capabilitySettings = {};
+  await store.command({
+    kind: 'update-agents',
+    projectId,
+    agents: constructor,
+    updateExisting: true,
+  });
+  mcpUnavailable = true;
+  const failed = host.launch({ projectId, agentId: agent.id, autoContinue: false });
+  await Promise.allSettled([failed]);
+  assert.equal(await children[3], 1, 'An assigned failed MCP must stop the bridge before work');
+  assert.equal(
+    (await store.projects.read(projectId)).agents.find((item) => item.profile.id === agent.id)
+      ?.runStatus,
+    'error',
+  );
+  assert.equal(
+    invoked,
+    disabledInvocations,
+    'A failed resume must never invoke model-selected tools',
+  );
+  assert.equal(await readFile(join(root, binding.path), 'utf8'), transcript);
   console.log(
-    'Real Pi session passed: assigned package tool + packaged skill + external MCP in the same session, native bash, internal project file access, explicit project root, validated completion and exact empty resume without instruction copies.',
+    'Real Pi session passed: actual package/skill/MCP use, native bash and project file reads; explicit resume reloads current skill and MCP; disabled assignments and unassigned cwd resources stay absent; failed MCP stops before work; exact history and no instruction copies.',
   );
   if (checkLibrary)
     console.log(

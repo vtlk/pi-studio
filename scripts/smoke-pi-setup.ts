@@ -11,6 +11,8 @@ import type { Agent } from '../src/shared/studio.ts';
 import type { Resource } from '../src/shared/resources.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
 import { resolvePiSdk } from '../src/main/pi/BrowserAuth.ts';
+import { libraryMcpId } from '../src/shared/builtinResources.ts';
+import type { LaunchAgentRequest, LaunchAgentResult } from '../src/shared/runtime.ts';
 
 // Opt-in: a real service-agent request through native Pi MCP in an empty isolated studio.
 const root = await mkdtemp(join(tmpdir(), 'pistudio-live-setup-'));
@@ -90,11 +92,24 @@ try {
     agentId: helperProfile.id,
     autoContinue: false,
   };
-  await helper.launch(
-    request,
-    `Use only the Pi Studio MCP tools. Read list_configuration and use the existing connection named "QA subscription" for provider openai-codex. Create exactly one project constructor agent named "QA configured agent" using that connection, model gpt-6.1-sol, reasoning Низкий, mainInstruction "QA current instruction". Install exactly the existing local Pi package at ${JSON.stringify(localPackage)} through install_package with name "QA local package", assign it to that one agent as kind plugins, then check_resource. Do not use bash or write files directly. Create no projects, connections or extra profiles/resources. Do not ask questions. Finish with a short confirmation.`,
-  );
+  await helper.launch(request);
   assert.equal(await children[0], 0);
+  assert.deepEqual(
+    (await service.load()).bootstrap().sections.agents,
+    [],
+    'The public helper entry point opens idle; it must not send a task or configure anything',
+  );
+  // QA only: the production entry point deliberately accepts no first message.
+  // Exercise the existing internal open path with one explicit synthetic user
+  // request instead of adding a test-only IPC/API or automating Terminal input.
+  const headlessRequest = helper as unknown as {
+    open(request: LaunchAgentRequest, message: string): Promise<LaunchAgentResult>;
+  };
+  await headlessRequest.open(
+    request,
+    `Use only the Pi Studio MCP tools. Read list_configuration and use the existing connection named "QA subscription" for provider openai-codex. Create exactly one ordinary constructor agent named "QA configured agent" using that connection, model gpt-6.1-sol, reasoning Низкий, mainInstruction "QA current instruction". Assign the existing built-in Pi Studio Library MCP (resourceId ${libraryMcpId}, kind mcps) to that ordinary agent. Do not assign it to the setup assistant. Install exactly the existing local Pi package at ${JSON.stringify(localPackage)} through install_package with name "QA local package", assign it to that one agent as kind plugins, then check_resource. Do not use bash or write files directly. Create no projects, connections or extra profiles/resources. Do not ask questions. Finish with a short confirmation.`,
+  );
+  assert.equal(await children[1], 0);
   const state = (await service.load()).bootstrap();
   const agents = state.sections.agents as Agent[];
   assert.equal(agents.length, 1);
@@ -102,6 +117,11 @@ try {
   assert.equal(agents[0].mainInstruction, 'QA current instruction');
   assert.equal(agents[0].model?.id, 'gpt-6.1-sol');
   assert.equal(agents[0].model?.provider, 'openai-codex');
+  assert.ok(agents[0].mcps.includes(libraryMcpId));
+  const remainingSystems = state.sections.systemAgents as SystemAgent[];
+  assert.equal(remainingSystems.length, 1);
+  assert.equal(remainingSystems[0].systemRole, 'assistant');
+  assert.ok(!remainingSystems[0].mcps.includes(libraryMcpId));
   assert.equal((state.sections.connections as unknown[]).length, 1);
   const resources = state.sections.resources as Resource[];
   assert.equal(resources.length, 1);
@@ -122,7 +142,7 @@ try {
   assert.ok(transcript.includes('mcp__pi_studio__install_package'));
   assert.ok(transcript.includes('mcp__pi_studio__check_resource'));
   await helper.launch(request);
-  assert.equal(await children[1], 0);
+  assert.equal(await children[2], 0);
   assert.equal(await readFile(join(directory, binding.path), 'utf8'), transcript);
   assert.equal(((await service.load()).bootstrap().sections.agents as Agent[]).length, 1);
   // Reproduce the previous helper's real SDK cwd/layout, without editing or fabricating JSONL.
@@ -159,7 +179,7 @@ try {
     ),
   );
   await helper.launch(request);
-  assert.equal(await children[2], 0);
+  assert.equal(await children[3], 0);
   assert.equal(await readFile(legacyFile, 'utf8'), legacyBytes);
   const legacyState = JSON.parse(await readFile(join(directory, 'state.json'), 'utf8'));
   assert.equal(legacyState.session.path, relative(directory, legacyFile));

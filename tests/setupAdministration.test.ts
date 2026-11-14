@@ -10,6 +10,8 @@ import { productionTools } from '../src/main/pi/RunChannel.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { Connection } from '../src/shared/connections.ts';
+import type { SystemAgent } from '../src/shared/systemAgents.ts';
+import { libraryMcpId } from '../src/shared/builtinResources.ts';
 
 test('setup tools change only current constructor/catalog links and never snapshots or instruction copies', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-setup-admin-'));
@@ -107,6 +109,36 @@ test('setup tools change only current constructor/catalog links and never snapsh
     (item) => item.id === created.agentId,
   )!;
   assert.deepEqual(changed.skills, [imported.resource.id]);
+  await admin.call(run, 'assign_resource', {
+    agentId: created.agentId,
+    resourceId: libraryMcpId,
+    kind: 'mcps',
+    enabled: true,
+  });
+  assert.ok(
+    (store.bootstrap().sections.agents as Agent[])
+      .find((agent) => agent.id === created.agentId)!
+      .mcps.includes(libraryMcpId),
+  );
+  const systems = store.bootstrap().sections.systemAgents as SystemAgent[];
+  assert.equal(systems.length, 1);
+  assert.equal(systems[0].systemRole, 'assistant');
+  await assert.rejects(
+    admin.call(run, 'assign_resource', {
+      agentId: systems[0].id,
+      resourceId: libraryMcpId,
+      kind: 'mcps',
+    }),
+    /обычным агентам/,
+  );
+  await assert.rejects(
+    admin.call(run, 'assign_resource', {
+      agentId: created.agentId,
+      resourceId: 'pistudio-administration',
+      kind: 'mcps',
+    }),
+    /отсутствует/,
+  );
   assert.deepEqual((await store.projects.read(project.id)).agents, snapshot);
   const metadata = JSON.stringify(await admin.call(run, 'list_configuration', {}));
   assert.equal(metadata.includes('Changed current role'), false);

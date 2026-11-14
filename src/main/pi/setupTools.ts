@@ -59,7 +59,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'configure_agent',
     description:
-      'Create a project agent only when requested (append after current project profiles), or update named fields of an existing project/system profile by stable ID. Exactly three built-in system roles exist; never create another system agent. Does not change existing project snapshots or launch work. Built-in MCP connections are pinned and are not external resource assignments.',
+      'Create an ordinary constructor agent only when requested (append after current ordinary profiles), or update named fields of an existing ordinary profile or the built-in setup assistant by stable ID. Only the setup assistant is a system agent; character and location generators are ordinary agents with optional Pi Studio Library access. Never create another system agent. Does not change existing project snapshots or launch work. Assign the built-in library MCP separately with assign_resource; the administrative MCP stays pinned to the assistant.',
     inputSchema: object({
       id: string,
       name: string,
@@ -136,7 +136,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'assign_resource',
     description:
-      'Assign an existing catalog resource to one constructor agent or toggle that link. Never changes old project snapshots.',
+      'Assign an existing catalog resource to one constructor agent or toggle that link. The built-in pistudio-library MCP can be assigned to ordinary agents only; the assistant administrative MCP is already pinned and cannot be granted to production agents. Never changes old project snapshots.',
     inputSchema: object(
       {
         agentId: string,

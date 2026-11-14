@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-11-14T13:01:52.468175+00:00",
+  "targetVersion": "0.2.0-alpha.40",
+  "nativePi": "1.5.2",
+  "resourceSession": {
+    "actualSubscriptionUserTask": true,
+    "model": "gpt-6.1-sol",
+    "actualPackageToolAndSkillAndExternalMcpUse": true,
+    "actualNativeBashAndProjectFileRead": true,
+    "resumeReloadsCurrentSkillDescription": true,
+    "resumeReconnectsAssignedMcp": true,
+    "disabledPackageAndMcpAbsent": true,
+    "unassignedCwdSkillsAndExtensionsAbsent": true,
+    "unavailableAssignedMcpStopsBeforeWork": true,
+    "exactHistoryOnAllResumes": true,
+    "instructionCopies": false
+  },
+  "helperSession": {
+    "publicOpenIdleCreatesNoAgentsAndSendsNoTask": true,
+    "qaSyntheticUserRequest": "QA-only existing internal open path, not a new production API or Terminal automation",
+    "actualSubscriptionModel": "gpt-6.1-sol",
+    "createdExactlyOneOrdinaryAgent": true,
+    "assignedLibraryOnlyToOrdinaryAgent": true,
+    "nativeLocalPackageInstallCheckAssign": true,
+    "currentEditedRoleReflectedInResponse": true,
+    "exactIdleResumeAndLegacyCwdPreserved": true
+  },
+  "oauthFixture": {
+    "ok": true,
+    "nativePi": "1.5.2",
+    "registeredClientSecret": true,
+    "pkce": true,
+    "cancelled": true,
+    "refresh": true,
+    "revoked": true,
+    "additionalScopeRequiresLogin": true,
+    "dynamicClientRegistration": true,
+    "exactIdleResume": true,
+    "resourcesReapplied": true,
+    "resumeRefresh": true,
+    "browserOpenedOnlyExplicitly": true,
+    "realExternalCredentials": false,
+    "modelRequests": 0
+  },
+  "nativeUi": "Offscreen own studio: built-in/custom picker, assign/disable/remove, managed skill create/edit/current file, independent character/location profile selection, persistence/reload.",
+  "publicSearch": {
+    "observedCliResult": true,
+    "query": "site:remotion.dev/docs player",
+    "provider": "DuckDuckGo public HTML search",
+    "resultCount": 8,
+    "firstUrl": "https://www.remotion.dev/docs/player/",
+    "paidFallback": false
+  },
+  "checks": {
+    "unitFs": 156,
+    "build": true,
+    "lint": true,
+    "architectureModules": 277
+  },
+  "sourceSha256": {
+    "scripts/smoke-pi-session.ts": "a55ec384c4921d94791c0f8b0a431c40ab27f87a5024d6684abac76e3fac62aa",
+    "scripts/smoke-pi-setup.ts": "8bd8bbdf44bfa30a1085b4c4c28d8a07fff1d370cca9b947aea13351f7887177",
+    "scripts/smoke-library-assignments.cjs": "7cb68b8837c6b6b742eac52e8d9624d84647bbc7c8cbbd4c2bae255a9089673d",
+    "src/main/pi/setupTools.ts": "74af5f9045d8683722cbef06e1e806f8c586e08797b64b94afdba692f689955b",
+    "src/shared/systemAgentInstructions.ts": "1b6c9225f68cc54182051ce50832a7bb50cd17d6692f1e51bd5bec4f6c502a36"
+  },
+  "limits": [
+    "Real external-account consent was not tested; OAuth credentials and server are synthetic.",
+    "No new Images API generation was performed.",
+    "Helper request injection is a headless QA seam; this is not a manual Terminal-input check.",
+    "Repeated real Keychain prompts remain unverified because CUA settings interactions timed out."
+  ]
+}
