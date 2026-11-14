@@ -5,7 +5,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
 import { useLaunch } from '../../model/Launch';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
-import { useProject } from '@/features/project/model/Project';
+import { useProject } from '@/features/project/model/projectHooks';
 import { useStorage } from '@/shared/storage/Storage';
 import { libraryMcp } from '../../../../../shared/builtinResources';
 function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {

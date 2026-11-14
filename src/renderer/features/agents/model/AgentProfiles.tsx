@@ -1,12 +1,11 @@
-import { useStorage, useStoredState } from '@/shared/storage/Storage';
+import { useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
-import { initialAgents, type Agent, type Instruction } from '@/fixtures/studio';
+import type { Agent, Instruction } from '../../../../shared/studio';
 import { createSystemAgents, type SystemAgent } from '../../../../shared/systemAgents';
 
-function useProfilesState() {
-  const { isDesktop } = useStorage();
-  const [agents, setAgents] = useStoredState<Agent[]>('agents', isDesktop ? [] : initialAgents);
+function useProfilesState(initial: Agent[]) {
+  const [agents, setAgents] = useStoredState<Agent[]>('agents', initial);
   const [systemAgents, setSystemAgents] = useStoredState<SystemAgent[]>('systemAgents', () =>
     createSystemAgents(() => crypto.randomUUID()),
   );
@@ -99,8 +98,18 @@ function useProfilesState() {
   };
 }
 export type ProfilesContextValue = ReturnType<typeof useProfilesState> | null;
-export function AgentProfilesProvider({ children }: { children: ReactNode }) {
-  return <ProfilesContext.Provider value={useProfilesState()}>{children}</ProfilesContext.Provider>;
+export function AgentProfilesProvider({
+  children,
+  initial = [],
+}: {
+  children: ReactNode;
+  initial?: Agent[];
+}) {
+  return (
+    <ProfilesContext.Provider value={useProfilesState(initial)}>
+      {children}
+    </ProfilesContext.Provider>
+  );
 }
 export function useAgentProfiles() {
   const value = useContext(ProfilesContext);

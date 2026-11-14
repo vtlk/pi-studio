@@ -1,16 +1,25 @@
-function canonical(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === 'object')
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, item]) => [key, canonical(item)]),
-    );
-  return value;
-}
-/** Full content equality, including instructions/model/settings; never match only by demo ID. */
+import { canonicalJson } from '../../../../shared/canonicalJson.ts';
+import hashes from './legacyTemplateHashes.json' with { type: 'json' };
+
+/** Full equality helper retained for tests of the historical comparison contract. */
 export function matchesTemplate(value: unknown, example: unknown) {
-  return (
-    example !== undefined && JSON.stringify(canonical(value)) === JSON.stringify(canonical(example))
+  return example !== undefined && canonicalJson(value) === canonicalJson(example);
+}
+
+/** Match the full historical value, including instructions/model/settings, without bundling it. */
+export async function matchesLegacyTemplate(
+  value: { id: string; kind?: string },
+  section: keyof typeof hashes,
+) {
+  const key = section === 'resources' ? `${value.kind}:${value.id}` : value.id;
+  const expected = (hashes[section] as Record<string, string>)[key];
+  if (!expected) return false;
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(canonicalJson(value)),
   );
+  const actual = Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('');
+  return actual === expected;
 }

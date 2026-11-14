@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNotice } from '@/shared/model/Notice';
-import { useProject } from '@/features/project/model/Project';
+import { useProject } from '@/features/project/model/projectHooks';
 import { Button, EmptyIntegration } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
 import { SectionMenu } from '@/shared/ui/SectionMenu';

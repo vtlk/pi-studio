@@ -5,32 +5,9 @@ import { useProviderStatuses } from './useProviderStatuses';
 import type { Connection } from '../../../../shared/connections';
 import { useImageConnections } from './useImageConnections';
 export type { Connection } from '../../../../shared/connections';
-export const exampleConnections: Connection[] = [
-  {
-    id: 'codex-subscription',
-    name: 'Codex — подписка',
-    purpose: 'codex',
-    providerId: 'openai-codex',
-    endpoint: '',
-    account: '',
-    createdAt: 2,
-  },
-  {
-    id: 'images-api',
-    name: 'OpenAI — изображения API',
-    purpose: 'images',
-    providerId: 'openai',
-    endpoint: '',
-    account: '',
-    createdAt: 1,
-  },
-];
-function useConnectionsState() {
-  const { isDesktop, bootstrap } = useStorage();
-  const [connections, setConnections] = useStoredState<Connection[]>(
-    'connections',
-    isDesktop ? [] : exampleConnections,
-  );
+function useConnectionsState(initial: Connection[]) {
+  const { bootstrap } = useStorage();
+  const [connections, setConnections] = useStoredState<Connection[]>('connections', initial);
   const [imageTool, setImageTool] = useStoredState('imageTool', { connectionId: '', modelId: '' });
   const { providerStatuses, setProviderStatus } = useProviderStatuses(
     connections.filter((connection) => connection.purpose !== 'images'),
@@ -61,9 +38,15 @@ function useConnectionsState() {
   };
 }
 export type ConnectionsValue = ReturnType<typeof useConnectionsState>;
-export function ConnectionsProvider({ children }: { children: ReactNode }) {
+export function ConnectionsProvider({
+  children,
+  initial = [],
+}: {
+  children: ReactNode;
+  initial?: Connection[];
+}) {
   return (
-    <ConnectionsContext.Provider value={useConnectionsState()}>
+    <ConnectionsContext.Provider value={useConnectionsState(initial)}>
       {children}
     </ConnectionsContext.Provider>
   );

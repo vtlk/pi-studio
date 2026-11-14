@@ -3,9 +3,14 @@ import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { LibraryContext } from './Library.context';
 import { useContext, useEffect, useState, type ReactNode } from 'react';
 import type { LibraryListing } from '../../../../shared/library';
-import { characters as initialCharacters, locations as initialLocations } from '@/fixtures/studio';
+import type { Asset } from '../../../../shared/studio';
+import { loadLibraryCharacter } from '../runtime/loadLibraryCharacter';
+import type { CharacterLoader } from '../runtime/loadLibraryCharacter';
 
-function useLibraryState() {
+function useLibraryState(
+  initial: { characters: Asset[]; locations: Asset[] },
+  loadCharacter: CharacterLoader,
+) {
   const { isDesktop, bootstrap } = useStorage();
   const folder = bootstrap?.folder;
   const [disk, setDisk] = useState<{ folder: string; listing: LibraryListing } | null>(null);
@@ -52,12 +57,13 @@ function useLibraryState() {
       ? (listing?.assets ?? []).filter(
           (item) => item.library.kind === 'characters' && !removedIds.includes(item.id),
         )
-      : [...initialCharacters].reverse().filter((item) => !removedIds.includes(item.id)),
+      : [...initial.characters].reverse().filter((item) => !removedIds.includes(item.id)),
     locations: isDesktop
       ? (listing?.assets ?? []).filter(
           (item) => item.library.kind === 'locations' && !removedIds.includes(item.id),
         )
-      : [...initialLocations].reverse().filter((item) => !removedIds.includes(item.id)),
+      : [...initial.locations].reverse().filter((item) => !removedIds.includes(item.id)),
+    loadCharacter,
     removeAsset,
     restoreAsset,
     error,
@@ -65,8 +71,20 @@ function useLibraryState() {
   };
 }
 export type LibraryContextValue = ReturnType<typeof useLibraryState> | null;
-export function LibraryProvider({ children }: { children: ReactNode }) {
-  return <LibraryContext.Provider value={useLibraryState()}>{children}</LibraryContext.Provider>;
+export function LibraryProvider({
+  children,
+  initial = { characters: [], locations: [] },
+  loadCharacter = loadLibraryCharacter,
+}: {
+  children: ReactNode;
+  initial?: { characters: Asset[]; locations: Asset[] };
+  loadCharacter?: CharacterLoader;
+}) {
+  return (
+    <LibraryContext.Provider value={useLibraryState(initial, loadCharacter)}>
+      {children}
+    </LibraryContext.Provider>
+  );
 }
 export function useLibrary() {
   const value = useContext(LibraryContext);

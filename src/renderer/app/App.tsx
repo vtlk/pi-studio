@@ -1,5 +1,4 @@
-import { type ReactNode } from 'react';
-import { useStorage } from '@/shared/storage/Storage';
+import { Fragment, type ComponentType, type ReactNode } from 'react';
 import { StorageProvider } from '@/shared/storage/Storage';
 import { ConfirmProvider } from '@/shared/model/Confirm';
 import { LibraryProvider } from '@/features/library/model/Library';
@@ -7,8 +6,6 @@ import { NavigationProvider, useNavigation } from '@/shared/model/Navigation';
 import { NoticeProvider } from '@/shared/model/Notice';
 import { LaunchProvider } from '@/features/launch/model/Launch';
 import { AgentProfilesProvider } from '@/features/agents/model/AgentProfiles';
-import { ProjectProvider } from '@/features/project/model/Project';
-import { PlaybackProvider } from '@/features/preview/model/Playback';
 import { DialogView } from '@/features/launch/ui/DialogView';
 import { ProjectView } from '@/features/project/ui/ProjectView';
 import { ProjectsView } from '@/features/project/ui/ProjectsView';
@@ -17,9 +14,8 @@ import { AgentsView } from '@/features/agents/ui/AgentsView';
 import { SettingsView } from '@/features/settings/ui/SettingsView';
 import { Topbar } from './layout/Topbar';
 import { TooltipProvider } from '@/shared/ui/Tooltip';
-import { WorkspaceProvider } from '@/features/project/model/Workspace';
+import { WorkspaceProvider, type WorkspaceContextValue } from '@/features/project/model/Workspace';
 import { ConnectionsProvider } from '@/features/connections/model/Connections';
-import { EditorProvider } from '@/features/editor/model/Editor';
 import { ResourcesProvider } from '@/features/resources/model/Resources';
 import { StartupGate } from '@/features/startup/StartupGate';
 import { LegacyTemplateCleanup } from '@/features/settings/ui/LegacyTemplateCleanup';
@@ -49,18 +45,26 @@ function StudioShell() {
     </div>
   );
 }
-function PrototypeProviders({ children }: { children: ReactNode }) {
-  const { isDesktop } = useStorage();
-  if (isDesktop) return children;
-  return (
-    <EditorProvider>
-      <ProjectProvider>
-        <PlaybackProvider>{children}</PlaybackProvider>
-      </ProjectProvider>
-    </EditorProvider>
-  );
+interface AppProps {
+  useWorkspaceState: () => NonNullable<WorkspaceContextValue>;
+  ExtraProviders?: ComponentType<{ children: ReactNode }>;
+  loadCharacter?: import('../features/library/runtime/loadLibraryCharacter').CharacterLoader;
+  defaults?: {
+    agents: import('../../shared/studio').Agent[];
+    connections: import('../../shared/connections').Connection[];
+    resources: import('../../shared/resources').Resource[];
+    library: {
+      characters: import('../../shared/studio').Asset[];
+      locations: import('../../shared/studio').Asset[];
+    };
+  };
 }
-export default function App() {
+export default function App({
+  useWorkspaceState,
+  ExtraProviders = Fragment,
+  defaults,
+  loadCharacter,
+}: AppProps) {
   return (
     <StartupGate>
       <TooltipProvider>
@@ -68,17 +72,20 @@ export default function App() {
           <NavigationProvider>
             <NoticeProvider>
               <ConfirmProvider>
-                <ConnectionsProvider>
-                  <ResourcesProvider>
-                    <AgentProfilesProvider>
-                      <WorkspaceProvider>
-                        <PrototypeProviders>
-                          <LibraryProvider>
+                <ConnectionsProvider initial={defaults?.connections}>
+                  <ResourcesProvider initial={defaults?.resources}>
+                    <AgentProfilesProvider initial={defaults?.agents}>
+                      <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
+                        <ExtraProviders>
+                          <LibraryProvider
+                            initial={defaults?.library}
+                            loadCharacter={loadCharacter}
+                          >
                             <LaunchProvider>
                               <StudioShell />
                             </LaunchProvider>
                           </LibraryProvider>
-                        </PrototypeProviders>
+                        </ExtraProviders>
                       </WorkspaceProvider>
                     </AgentProfilesProvider>
                   </ResourcesProvider>

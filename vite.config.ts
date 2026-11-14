@@ -6,6 +6,15 @@ export default defineConfig({
   root: 'src/renderer',
   publicDir: resolve('public'),
   resolve: { alias: { '@': resolve('src/renderer') } },
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'studio-web-entry',
+      transformIndexHtml: {
+        order: 'pre',
+        handler: (html) => html.replace('src="/main.tsx"', 'src="/main.web.tsx"'),
+      },
+    },
+  ],
   base: './',
 });

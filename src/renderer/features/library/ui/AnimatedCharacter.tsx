@@ -1,9 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { Asset } from '@/entities/studio/types';
 import type { CharacterPreviewOptions } from '../model/characterPreview';
-import { loadCharacterRuntime } from '../runtime/characterRuntime';
+import { useLibrary } from '../model/Library';
 import { CharacterPlayer } from '../runtime/CharacterPlayer';
-import { dataCharacterRuntime } from '../runtime/dataCharacterRuntime';
 
 export function AnimatedCharacter({
   asset,
@@ -14,6 +13,7 @@ export function AnimatedCharacter({
   options: CharacterPreviewOptions;
   blinkRequest: number;
 }) {
+  const { loadCharacter } = useLibrary();
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<CharacterPlayer | null>(null);
   const latestOptions = useRef(options);
@@ -28,13 +28,7 @@ export function AnimatedCharacter({
   useEffect(() => {
     let cancelled = false;
     setError('');
-    const loading =
-      nativeVersion !== undefined
-        ? window
-            .studio!.readLibraryCharacter(asset.id, nativeVersion, nativeRevision!)
-            .then((source) => dataCharacterRuntime(source, asset.id))
-        : loadCharacterRuntime();
-    loading
+    loadCharacter(asset.id, nativeVersion, nativeRevision)
       .then((runtime) => {
         if (cancelled || !host.current) return;
         const design = runtime.designs[asset.id];
@@ -58,7 +52,7 @@ export function AnimatedCharacter({
       player.current?.dispose();
       player.current = null;
     };
-  }, [asset.id, asset.title, nativeVersion, nativeRevision, prefix]);
+  }, [asset.id, asset.title, nativeVersion, nativeRevision, prefix, loadCharacter]);
   useEffect(() => {
     if (blinkRequest) player.current?.blink();
   }, [blinkRequest]);

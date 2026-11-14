@@ -1,0 +1,33 @@
+{
+  "agents": {
+    "writer": "6c027bd9f7fa964ca3586bd1b2ee5673a97605e2eab90327eeca7d12fd187ebf",
+    "characters": "4ef3203f8453ea2059f3bad3125d92cbe52adb4f4de95b6e311e4d76ab79ac36",
+    "scenes": "dcecb9f95aed0ba52103a7c5f70869cf96801c175bdc49b71f4fd6681058ea90",
+    "animation": "b3d0a438831f15740bb1c54fc993cd72f8e1bd038aac94a596ddc1d94dd5162e",
+    "editor": "f05d45263e9ff3a9b636ca6c3cb9eee9bafc504cefd8633dc27b76519a6836be",
+    "reviewer": "7cf6b09fc47bfd60ee01169b460cea6318a6441aa3b71bdd3a2bcce8aa4703f6"
+  },
+  "connections": {
+    "codex-subscription": "912e57df17cb63fa5120b60214daf23ec8ab5cdb9791a1d60c07e9adbf4cc3cc",
+    "images-api": "3a783e46131d07a15df11fe967f3981bf1b8f8b322834a88cce4761a1cd282e6"
+  },
+  "resources": {
+    "skills:Сценарий и диалоги": "62bf412ae8477a77b2b59edd9b9468e70342bc65c36981ccc30e39e3f9b28eed",
+    "skills:Раскадровка и камера": "e0c397cbde70d3d12921f840f377ffa40d7c3ceebc0edc79c4a404069da47f56",
+    "skills:Создание SVG-персонажей": "048e3ac789f243eda3c0dfb09ae17ca40afbe4d0f4d79111c877e9a385b0b46a",
+    "skills:Послойные SVG-локации": "fbdbffe9cdf71a7b78615aafc0df0a0cafd9b1334a03b09f3d500250901a66e2",
+    "skills:ai-anime": "e08f9d547bde05140565bab205d8b9c3bff0ba367b241981b641c3b9bf1fb273",
+    "skills:Озвучка и тайминг": "e60d021d7fbd6f827ab1c08ed38deeb4f55df528efdad618eeb9f9315fa7972f",
+    "skills:Звуковой дизайн": "c80e4529a69355bda54e651ceb715cb90a6fdd9c2e85fdcb6f3e05163d425db8",
+    "skills:Remotion": "07fb70abae975fbdd642b8cfdd29cd9ea8147ac37631f8bd43f535755b0279f9",
+    "skills:HyperFrames": "5c8a0c74df4b64a3670a740a4afd7419d824e97470dc8668d9afb9ba99cf45bc",
+    "skills:Проверка видео": "a2b31c241723e7622b800f9cb9c13b7d5430cf420b4a15c51e9cce28d068b7ae",
+    "mcps:ImageGen": "191ade4a73c4c9a88d6182723e1bd4d28e3cac33bbfba106a095c3e07576c6e7",
+    "mcps:HeyGen": "66df511ea38cf15bf711055c6f753aecf9c83a19cd02799d6594f4e435e703c6",
+    "mcps:Музыка и звуковые эффекты": "c84e3523554f0c5bc34bedf9201db63755f2c3c1baf2de2e8dae47762b8f7779",
+    "mcps:Поиск референсов": "5b58bec317fdee76bf6ff228c2d77f8f3cc17d31a738cb809ac4ae4b4fd76d95",
+    "plugins:Remotion": "3f229315e14799f865e64dc782be7508f2a74487b109684b2865b8d442dedb31",
+    "plugins:HyperFrames": "7ab3167286f24fff52a38f5943846e0fee2e8ae01424c9f370998ce413affc84",
+    "plugins:HeyGen": "10075198f10c77737f9fbbf35372a5dd1bbb53f6f7c9d05525f32307857699d8"
+  }
+}

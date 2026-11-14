@@ -16,9 +16,12 @@ const timeout = setTimeout(() => {
   app.setPath('videos', join(temporary, 'Videos'));
   app.setPath('userData', join(temporary, 'UserData'));
   const loaded = new Promise((resolve) =>
-    app.once('browser-window-created', (_event, window) =>
-      window.webContents.once('did-finish-load', () => resolve(window)),
-    ),
+    app.once('browser-window-created', (_event, window) => {
+      window.webContents.setBackgroundThrottling(false);
+      window.hide();
+      window.on('show', () => window.hide());
+      window.webContents.once('did-finish-load', () => resolve(window));
+    }),
   );
   require('../out/main/index.cjs');
   const window = await loaded;

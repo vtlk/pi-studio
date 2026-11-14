@@ -1,7 +1,7 @@
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { ProjectContext } from './Project.context';
 import { initialPlan } from '@/fixtures/plan';
-import { useContext, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { locations, scenes } from '@/fixtures/studio';
 
 function useProjectState() {
@@ -80,8 +80,4 @@ export type ProjectContextValue = ReturnType<typeof useProjectState> | null;
 export function ProjectProvider({ children }: { children: ReactNode }) {
   return <ProjectContext.Provider value={useProjectState()}>{children}</ProjectContext.Provider>;
 }
-export function useProject() {
-  const value = useContext(ProjectContext);
-  if (!value) throw new Error('ProjectProvider is missing');
-  return value;
-}
+export { useProject } from './projectHooks';
