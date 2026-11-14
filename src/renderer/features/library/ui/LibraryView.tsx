@@ -1,7 +1,7 @@
 import { LibraryAssetViewer } from './LibraryAssetViewer';
 import { AddArea } from '@/shared/ui/AddArea';
 import { Select } from '@/shared/ui/Select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useLibrary } from '../model/Library';
 import { useNotice } from '@/shared/model/Notice';
@@ -20,16 +20,20 @@ export function LibraryView() {
   const [category, setCategory] = useState('Все');
   const { setDialog } = useLaunch();
   const collection = tab === 'Персонажи' ? characters : locations;
-  const filtered = collection.filter(
-    (item) =>
-      item.title.toLowerCase().includes(search.toLowerCase()) &&
-      (category === 'Все' || item.category === category),
-  );
-  const selected = filtered.find((item) => item.id === selectedId) ?? filtered[0] ?? collection[0];
-  const isCharacter = tab === 'Персонажи';
   const categories = [
     ...new Set(collection.map((item) => item.category).filter((value): value is string => !!value)),
   ];
+  const activeCategory = categories.includes(category) ? category : 'Все';
+  useEffect(() => {
+    if (category !== activeCategory) setCategory(activeCategory);
+  }, [category, activeCategory]);
+  const filtered = collection.filter(
+    (item) =>
+      item.title.toLowerCase().includes(search.toLowerCase()) &&
+      (activeCategory === 'Все' || item.category === activeCategory),
+  );
+  const selected = filtered.find((item) => item.id === selectedId) ?? filtered[0] ?? collection[0];
+  const isCharacter = tab === 'Персонажи';
   return (
     <div className="page-body">
       <div className="library-toolbar">
@@ -54,7 +58,7 @@ export function LibraryView() {
           <div className="library-category">
             <Select
               label="Категория библиотеки"
-              value={category}
+              value={activeCategory}
               onValueChange={setCategory}
               options={[
                 { value: 'Все', label: 'Все категории' },

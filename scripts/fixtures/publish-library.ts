@@ -5,15 +5,17 @@ import { writeLibraryFixture } from './library.mjs';
 import { characterFixture } from './character-rig.ts';
 const [root, kind, title, existingId] = process.argv
   .slice(2)
-  .filter((argument) => argument !== '--rig');
+  .filter((argument) => argument !== '--rig' && !argument.startsWith('--category='));
 if (!root || !title || !['characters', 'locations'].includes(kind))
   throw new Error('Fixture arguments required');
+const category = process.argv.find((argument) => argument.startsWith('--category='))?.slice(11);
 const output = join(root, '.pistudio/library-qa/output');
 await mkdir(output, { recursive: true });
 const library = new LibraryStore(root);
 const prepared = await library.prepare(output, {
   kind,
   title,
+  ...(category ? { category } : {}),
   ...(existingId ? { existingId } : {}),
 });
 await writeLibraryFixture(prepared);

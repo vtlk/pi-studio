@@ -1,0 +1,66 @@
+{
+  "version": "0.2.0-alpha.44",
+  "categoryRegression": {
+    "failedBeforeFix": true,
+    "beforeLog": "/tmp/pistudio-library-audit-before.log",
+    "failure": "New uncategorized asset hidden after last selected-category card was deleted",
+    "doesNotReactivate": true
+  },
+  "nativeCatalog": {
+    "passed": true,
+    "emptyStart": true,
+    "ordinaryAgentReferenceCancelPreflight": true,
+    "publishUpdateSingleCard": true,
+    "searchCategoryOrderPlus": true,
+    "vanishedCategoryRegression": true,
+    "categoryDoesNotReactivate": true,
+    "nativePngSvg": true,
+    "staticControls": true,
+    "scopedMedia": true,
+    "characterAndLocationConfirmedDeleteUndo": true,
+    "persistentHiddenIdsPreserveSources": true,
+    "locationZoomPointerKeyboardReset": true,
+    "cameraGeometry": {
+      "width": 1271,
+      "height": 714,
+      "transform": "matrix(1, 0, 0, 1, 0, 0)",
+      "naturalWidth": 200,
+      "naturalHeight": 150
+    },
+    "externalInvalidSvgRejected": true,
+    "modelRequests": 0,
+    "publisher": "production LibraryStore fixture, not LLM"
+  },
+  "nativeRig": {
+    "passed": true,
+    "actions": 6,
+    "emotions": 8,
+    "gazeDirections": 9,
+    "intensityAndTilt": true,
+    "independentChoices": true,
+    "liveGazeAndManualOverride": true,
+    "existingEyelidBlink": true,
+    "revisionAndScopedIds": true,
+    "generatedScriptsLoaded": 0,
+    "pngAndUnmountStopDetachedSvg": true,
+    "visibilityAndReducedMotion": true,
+    "visibilityScope": "simulated-event-offscreen",
+    "modelRequests": 0
+  },
+  "storageAndSchemaTests": 12,
+  "fullUnitFSTests": 163,
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 278,
+  "sourceSha256": {
+    "src/renderer/features/library/ui/LibraryView.tsx": "0a4afdf861476e066e15c5dfb3a84550de4fb14edcf8e01e2fca27d8b4193849",
+    "scripts/smoke-library.cjs": "e6f8ce65ed6b1a3e77889f3f2f389ea3c486e19d95e3e969f5295bc3b19b1a63",
+    "scripts/smoke-character-rig.cjs": "2330a762494cc16d9a471bfb2928d9272e17bd1632e972e1c174454a13da6a30"
+  },
+  "limits": [
+    "Production LibraryStore publishes QA fixtures; no new LLM/Images requests or user studio changes",
+    "Visibility is simulated offscreen; OS occlusion is not tested",
+    "Undo is tested through the notice; there is no persistent library Trash UI",
+    "Named library.render_preview tool remains unimplemented; current data player is not that tool"
+  ]
+}

@@ -23,7 +23,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window)),
     ),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
   const js = (code) =>
     window.webContents.executeJavaScript(code, true).catch((error) => {
@@ -44,6 +44,29 @@ const deadline = setTimeout(() => {
     );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const studio = await js('window.studio.loadStudio()');
+  window.webContents.debugger.attach('1.3');
+  await window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
+  const agent = {
+    id: 'qa-library-artist',
+    name: 'QA library artist',
+    enabled: true,
+    instructions: [],
+    skills: [],
+    mcps: ['pistudio-library'],
+    plugins: [],
+  };
+  for (const [section, value] of [
+    ['agents', [agent]],
+    ['libraryAgents', { characters: agent.id, locations: agent.id }],
+  ])
+    await js(
+      `window.studio.saveSection(${JSON.stringify(section)},${JSON.stringify(value)},${JSON.stringify({ folder: studio.folder, base: studio.sections[section] })})`,
+    );
+  window.webContents.reload();
+  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   assert.deepEqual((await js('window.studio.listLibrary()')).assets, []);
   await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(button=>button.textContent.trim()==='Библиотека').click()`,
@@ -59,7 +82,7 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[role="dialog"] textarea')`);
   assert.ok(
     (await js(`document.querySelector('[role="dialog"]').textContent`)).includes(
-      'Создание персонажа',
+      'QA library artist',
     ),
   );
   await js(`document.querySelector('[aria-label="Прикрепить файлы референса"]').click()`);
@@ -81,12 +104,12 @@ const deadline = setTimeout(() => {
   );
   await click('Создать с Pi');
   await until(
-    `document.querySelector('[role="dialog"] [role="alert"]')?.textContent.includes('Выберите подключение и модель')`,
+    `document.querySelector('[role="dialog"] [role="alert"]')?.textContent.includes('Выберите подключение')`,
   );
   await assert.rejects(access(join(studio.folder, '.pistudio/library-runs')));
   await click('Отмена');
   dialog.showOpenDialog = originalChooser;
-  const publish = (kind, title, id) =>
+  const publish = (kind, title, id, category) =>
     JSON.parse(
       execFileSync(
         'node',
@@ -97,11 +120,12 @@ const deadline = setTimeout(() => {
           kind,
           title,
           ...(id ? [id] : []),
+          ...(category ? [`--category=${category}`] : []),
         ],
         { cwd: resolve(__dirname, '..'), encoding: 'utf8' },
       ),
     );
-  const first = publish('characters', 'QA robot');
+  const first = publish('characters', 'QA robot', undefined, 'Robots');
   await until(`document.querySelector('.library-stage h2')?.textContent==='QA robot'`);
   await until(
     `document.querySelector('.library-art img')?.naturalWidth>0 && new URL(document.querySelector('.library-art img').src).pathname.endsWith('/art.svg')`,
@@ -122,7 +146,7 @@ const deadline = setTimeout(() => {
     ),
     404,
   );
-  const updated = publish('characters', 'QA revised robot', first.manifest.id);
+  const updated = publish('characters', 'QA revised robot', first.manifest.id, 'Robots');
   await until(`document.querySelector('.library-stage h2')?.textContent==='QA revised robot'`);
   assert.equal(await js(`document.querySelectorAll('.asset-thumb-wrap').length`), 1);
   assert.equal(updated.manifest.version, 2);
@@ -131,6 +155,11 @@ const deadline = setTimeout(() => {
     `new URL(document.querySelector('.library-art img').src).pathname.endsWith('/reference.png') && document.querySelector('.library-art img')?.naturalWidth===32`,
   );
   assert.equal(await js(`document.querySelectorAll('script[src*="library-runtime"]').length`), 0);
+  await js(`document.querySelector('[aria-label="Категория библиотеки"]').click()`);
+  await until(`!!document.querySelector('[role="option"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="option"]')).find(el=>el.textContent==='Robots').click()`,
+  );
   const remove = () =>
     js(`document.querySelector('[aria-label="Удалить QA revised robot"]').click()`);
   await remove();
@@ -146,6 +175,26 @@ const deadline = setTimeout(() => {
   await until(`document.querySelectorAll('.asset-thumb-wrap').length===1`);
   await remove();
   await click('Удалить');
+  const fresh = publish('characters', 'QA fresh robot');
+  await until(`document.querySelector('.library-stage h2')?.textContent==='QA fresh robot'`);
+  assert.equal(
+    await js(`document.querySelectorAll('.asset-thumb-wrap').length`),
+    1,
+    'A vanished category must not invisibly filter new uncategorized assets',
+  );
+  publish('characters', 'QA category returned', undefined, 'Robots');
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===2`);
+  assert.ok(
+    (
+      await js(`document.querySelector('[aria-label="Категория библиотеки"]').textContent`)
+    ).includes('Все категории'),
+    'A vanished category must not reactivate when new assets reuse its name',
+  );
+  await js(`document.querySelector('[aria-label="Удалить QA category returned"]').click()`);
+  await click('Удалить');
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===1`);
+  await js(`document.querySelector('[aria-label="Удалить QA fresh robot"]').click()`);
+  await click('Удалить');
   await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
@@ -155,7 +204,7 @@ const deadline = setTimeout(() => {
   );
   await until(`!!document.querySelector('[aria-label="Создать персонажа"]')`);
   assert.equal(await js(`document.querySelectorAll('.asset-thumb-wrap').length`), 0);
-  assert.equal((await js('window.studio.listLibrary()')).assets.length, 1);
+  assert.equal((await js('window.studio.listLibrary()')).assets.length, 3);
   const location = publish('locations', 'QA room');
   await js(
     `Array.from(document.querySelectorAll('.segmented button')).find(button=>button.textContent.startsWith('Локации')).click()`,
@@ -164,15 +213,125 @@ const deadline = setTimeout(() => {
   await until(`document.querySelector('.location-camera img')?.naturalWidth>0`);
   await js(`document.querySelector('[aria-label="Увеличить камеру"]').click()`);
   assert.equal(await js(`document.querySelector('.camera-zoom output').textContent`), '125%');
+  await js(
+    `(()=>{const input=document.querySelector('[aria-label="Масштаб камеры"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'4');input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await until(`document.querySelector('.camera-zoom output').textContent==='400%'`);
+  await js(
+    `document.querySelector('.location-camera').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))`,
+  );
+  const shifted = await js(`document.querySelector('.location-camera img').style.transform`);
+  assert.match(shifted, /translate\(-30px/);
+  const rect = await js(
+    `(()=>{const r=document.querySelector('.location-camera').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`,
+  );
+  for (const event of [
+    { type: 'mousePressed', x: rect.x, y: rect.y, button: 'left', buttons: 1, clickCount: 1 },
+    { type: 'mouseMoved', x: rect.x + 80, y: rect.y + 40, button: 'left', buttons: 1 },
+    {
+      type: 'mouseReleased',
+      x: rect.x + 80,
+      y: rect.y + 40,
+      button: 'left',
+      buttons: 0,
+      clickCount: 1,
+    },
+  ])
+    await window.webContents.debugger.sendCommand('Input.dispatchMouseEvent', event);
+  const dragged = await js(`document.querySelector('.location-camera img').style.transform`);
+  assert.notEqual(dragged, shifted, 'Pointer drag must move the zoomed image');
+  await js(`document.querySelector('[aria-label="Сбросить камеру"]').click()`);
+  assert.equal(
+    await js(`document.querySelector('.location-camera img').style.transform`),
+    'translate(0px, 0px) scale(1)',
+  );
+  assert.equal(await js(`document.querySelector('.camera-zoom output').textContent`), '100%');
+  await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+  const cameraGeometry = await js(
+    `(()=>{const el=document.querySelector('.location-camera'), img=el.querySelector('img');return{width:el.clientWidth,height:el.clientHeight,transform:getComputedStyle(img).transform,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight}})()`,
+  );
+  assert.ok(Math.abs(cameraGeometry.width / cameraGeometry.height - 16 / 9) < 0.01);
+  assert.equal(cameraGeometry.transform, 'matrix(1, 0, 0, 1, 0, 0)');
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/library-smoke.png'), (await window.capturePage()).toPNG());
+  await js(`document.querySelector('[aria-label="Удалить QA room"]').click()`);
+  await until(`!!document.querySelector('[role="alertdialog"]')`);
+  await click('Отмена');
+  assert.equal(await js(`document.querySelectorAll('.asset-thumb-wrap').length`), 1);
+  await js(`document.querySelector('[aria-label="Удалить QA room"]').click()`);
+  await click('Удалить');
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===0`);
+  await access(join(location.directory, 'reference.png'));
+  await click('Вернуть');
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===1`);
   await writeFile(join(location.directory, 'art.svg'), '<svg onload="alert(1)"/>');
   await until(
     `document.querySelector('.error-message[role="alert"]')?.textContent.includes('SVG') && document.querySelectorAll('.asset-thumb-wrap').length===0`,
   );
+  publish('characters', 'QA older', undefined, 'Group A');
+  publish('characters', 'QA middle', undefined, 'Group B');
+  publish('characters', 'QA newer', undefined, 'Group A');
+  await js(
+    `Array.from(document.querySelectorAll('.segmented button')).find(button=>button.textContent.startsWith('Персонажи')).click()`,
+  );
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===3`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.asset-thumb-wrap .asset-thumb span')).map(el=>el.textContent)`,
+    ),
+    ['QA newer', 'QA middle', 'QA older'],
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('.asset-strip > :first-child button')?.getAttribute('aria-label') ?? document.querySelector('.asset-strip > :first-child')?.getAttribute('aria-label')`,
+    ),
+    'Создать персонажа',
+  );
+  const search = async (value) =>
+    js(
+      `(()=>{const input=document.querySelector('[aria-label="Поиск в библиотеке"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+    );
+  await search('MIDDLE');
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===1`);
+  assert.equal(await js(`document.querySelector('.library-stage h2').textContent`), 'QA middle');
+  await search('nothing matches');
+  await until(`document.querySelector('.no-results')?.textContent==='Ничего не найдено.'`);
+  assert.equal(await js(`!!document.querySelector('.library-viewer')`), false);
+  await search('');
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===3`);
+  await js(`document.querySelector('[aria-label="Категория библиотеки"]').click()`);
+  await until(`!!document.querySelector('[role="option"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="option"]')).find(el=>el.textContent==='Group A').click()`,
+  );
+  await until(`document.querySelectorAll('.asset-thumb-wrap').length===2`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.asset-thumb-wrap .asset-thumb span')).map(el=>el.textContent)`,
+    ),
+    ['QA newer', 'QA older'],
+  );
   assert.equal((await js('window.studio.loadStudio()')).projects.length, 0);
   console.log(
-    'Library Electron passed: empty start, external publish/update without restart, real PNG/SVG decoding, static character controls, scoped media, confirmed removal/cancel/undo/reload preserving source files, location camera and revalidation of changed files.',
+    JSON.stringify({
+      passed: true,
+      emptyStart: true,
+      ordinaryAgentReferenceCancelPreflight: true,
+      publishUpdateSingleCard: true,
+      searchCategoryOrderPlus: true,
+      vanishedCategoryRegression: true,
+      categoryDoesNotReactivate: true,
+      nativePngSvg: true,
+      staticControls: true,
+      scopedMedia: true,
+      characterAndLocationConfirmedDeleteUndo: true,
+      persistentHiddenIdsPreserveSources: true,
+      locationZoomPointerKeyboardReset: true,
+      cameraGeometry,
+      externalInvalidSvgRejected: true,
+      modelRequests: 0,
+      publisher: 'production LibraryStore fixture, not LLM',
+    }),
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

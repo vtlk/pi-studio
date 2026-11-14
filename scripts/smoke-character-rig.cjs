@@ -23,7 +23,7 @@ const timeout = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
   const js = (code) =>
     window.webContents.executeJavaScript(code, true).catch((error) => {
@@ -161,6 +161,37 @@ const timeout = setTimeout(() => {
     features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
   });
   await sleep(150);
+  const range = (label, value) =>
+    js(
+      `(()=>{const el=document.querySelector('[aria-label='+${JSON.stringify(JSON.stringify(label))}+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,${JSON.stringify(value)});el.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+    );
+  await click('Ходить');
+  await click('Улыбка');
+  assert.equal(
+    await js(
+      `document.querySelector('[aria-label="Действие"] [aria-pressed="true"]').textContent.trim()`,
+    ),
+    'Ходить',
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('[aria-label="Эмоция"] [aria-pressed="true"]').textContent.trim()`,
+    ),
+    'Улыбка',
+  );
+  const smile = await js(`document.querySelector('[data-part="mouth"]').getAttribute('d')`);
+  await range('Выразительность', 0);
+  assert.notEqual(
+    await js(`document.querySelector('[data-part="mouth"]').getAttribute('d')`),
+    smile,
+  );
+  await range('Выразительность', 1);
+  assert.equal(await js(`document.querySelector('[data-part="mouth"]').getAttribute('d')`), smile);
+  await click('Спокойно');
+  await click('Безразличие');
+  await range('Наклон головы', 7);
+  assert.match(await transform('head'), /rotate\(7 /);
+  await range('Наклон головы', 0);
   const still = await transform('body');
   await sleep(200);
   assert.equal(await transform('body'), still);
@@ -168,9 +199,44 @@ const timeout = setTimeout(() => {
     features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }],
   });
   window.webContents.debugger.detach();
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Живой взгляд"]').getAttribute('aria-checked')`),
+    'false',
+  );
+  await js(`document.querySelector('[aria-label="Живой взгляд"]').click()`);
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Живой взгляд"]').getAttribute('aria-checked')`),
+    'true',
+  );
+  const pupil = await transform('pupil-left');
+  await until(
+    `document.querySelector('[data-rig-transform="pupil-left"]').getAttribute('transform')!==${JSON.stringify(pupil)}`,
+  );
+  await js(`document.querySelector('[aria-label="Прямо"]').click()`);
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Живой взгляд"]').getAttribute('aria-checked')`),
+    'false',
+  );
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('.character-controls button')).some(el=>/Пауза|Сброс/.test(el.textContent))`,
+    ),
+    false,
+  );
+  await js(`window.__qaOldSvg=document.querySelector('[data-character-engine]')`);
   await click('PNG-эталон');
   await until(
     `document.querySelectorAll('[data-character-engine]').length===0 && document.querySelectorAll('[aria-label="Действие"] button:not(:disabled)').length===0`,
+  );
+  const detached = await js(
+    `window.__qaOldSvg.querySelector('[data-rig-transform="body"]').getAttribute('transform')`,
+  );
+  await sleep(250);
+  assert.equal(
+    await js(
+      `window.__qaOldSvg.querySelector('[data-rig-transform="body"]').getAttribute('transform')`,
+    ),
+    detached,
   );
   await click('SVG');
   await until(`document.querySelectorAll('[data-character-engine]').length===1`);
@@ -209,8 +275,35 @@ const timeout = setTimeout(() => {
     (await sheet.capturePage()).toPNG(),
   );
   sheet.destroy();
+  await js(`window.__qaOldSvg=document.querySelector('[data-character-engine]')`);
+  await click('Проекты');
+  const unmounted = await js(
+    `window.__qaOldSvg.querySelector('[data-rig-transform="body"]').getAttribute('transform')`,
+  );
+  await sleep(250);
+  assert.equal(
+    await js(
+      `window.__qaOldSvg.querySelector('[data-rig-transform="body"]').getAttribute('transform')`,
+    ),
+    unmounted,
+  );
   console.log(
-    'Data character Electron passed: published rig loaded without generated scripts, six actions/eight facial emotions, nine absolute gaze directions, existing eyelid blink, scoped IDs/revisions, clock visibility/reduced-motion/PNG lifecycle.',
+    JSON.stringify({
+      passed: true,
+      actions: actionFrames.size,
+      emotions: expressions.size,
+      gazeDirections: 9,
+      intensityAndTilt: true,
+      independentChoices: true,
+      liveGazeAndManualOverride: true,
+      existingEyelidBlink: true,
+      revisionAndScopedIds: true,
+      generatedScriptsLoaded: 0,
+      pngAndUnmountStopDetachedSvg: true,
+      visibilityAndReducedMotion: true,
+      visibilityScope: 'simulated-event-offscreen',
+      modelRequests: 0,
+    }),
   );
   clearTimeout(timeout);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();
