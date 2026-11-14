@@ -139,11 +139,10 @@ export class CuaRuntime {
           'Разрешите Pi Studio управление компьютером и запись экрана в настройках macOS. Изменение разрешений выполняется пользователем в Studio; затем перезапустите приложение.',
         );
       const driver = await this.driver();
-      if (!this.sessions.has(session)) {
-        const sdk = await import('@trycua/cua-driver');
-        await driver.startSession(sdk.StartSessionInput.new({ session }));
-        this.sessions.add(session);
-      }
+      // Native sessions expire while Pi waits for user input. Revive only our own private label.
+      const sdk = await import('@trycua/cua-driver');
+      await driver.startSession(sdk.StartSessionInput.new({ session }), { signal });
+      this.sessions.add(session);
       signal.throwIfAborted();
       const result = await driver.callTool(
         name,
@@ -202,10 +201,14 @@ export class CuaRuntime {
       ],
     };
   }
-  async release(session: string) {
-    if (!this.sessions.delete(session) || !this.loading) return;
-    const sdk = await import('@trycua/cua-driver');
-    await (await this.loading).endSession(sdk.EndSessionInput.new({ session }));
+  release(session: string) {
+    const task = this.tail.then(async () => {
+      if (!this.sessions.delete(session) || !this.loading) return;
+      const sdk = await import('@trycua/cua-driver');
+      await (await this.loading).endSession(sdk.EndSessionInput.new({ session }));
+    });
+    this.tail = task.catch(() => {});
+    return task;
   }
   async close() {
     this.closed = true;

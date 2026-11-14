@@ -3,6 +3,7 @@ import { resolve, join } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { constants } from 'node:fs';
 import { homedir } from 'node:os';
+import { packageCua } from './package-cua.mjs';
 
 if (process.platform !== 'darwin') throw new Error('Packaging Pi Studio requires macOS.');
 const signingIdentity = process.env.PI_STUDIO_SIGN_IDENTITY?.trim();
@@ -58,6 +59,7 @@ await writeFile(
     'Editor Starter and Remotion Timeline are not included.',
     'Saxes 6.0.0: ISC; see Saxes-LICENSE.txt. Source: https://github.com/lddubeau/saxes',
     'xmlchars 2.2.0: MIT; see Xmlchars-LICENSE.txt. Source: https://github.com/lddubeau/xmlchars',
+    'Cua Driver 0.49.11: MIT; @ubjs runtimes 0.31.0-3: MPL-2.0. See Cua-MIT.txt, MPL-2.0.txt, Cua-node-runtime-NOTICE.md and Cua-SOURCES.md for exact corresponding source.',
     '',
   ].join('\n'),
 );
@@ -70,6 +72,7 @@ for (const dependency of ['yaml', 'saxes', 'xmlchars'])
   await cp(join(root, 'node_modules', dependency), join(application, 'node_modules', dependency), {
     recursive: true,
   });
+const cuaBinaries = await packageCua(root, application, process.arch);
 await cp(join(root, 'bundled/pi-bridge'), join(application, 'bundled/pi-bridge'), {
   recursive: true,
 });
@@ -98,12 +101,17 @@ for (const [key, value] of Object.entries({
   CFBundleIconFile: 'PiStudio.icns',
   CFBundleShortVersionString: metadata.version.split('-')[0],
   CFBundleVersion: metadata.version.split('-')[0],
+  LSMinimumSystemVersion: '13.0',
   NSHumanReadableCopyright: 'Pi Studio',
   NSAppleEventsUsageDescription: 'Pi Studio открывает диалоги Pi в одном окне Terminal.',
 }))
   execFileSync('/usr/bin/plutil', ['-replace', key, '-string', value, plist]);
 // Source media can carry Finder metadata; strip it only from the generated distribution copy.
 execFileSync('/usr/bin/xattr', ['-cr', bundle]);
+for (const binary of cuaBinaries)
+  execFileSync('/usr/bin/codesign', ['--force', '--sign', signingIdentity, binary], {
+    stdio: 'inherit',
+  });
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', signingIdentity, bundle], {
   stdio: 'inherit',
 });

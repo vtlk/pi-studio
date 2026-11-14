@@ -29,6 +29,7 @@ import type {
 import type { McpSecretRequest, McpSecretEdit, McpSecretStatus } from './mcpSecrets';
 import type { ProjectActivity } from './projectActivity';
 import type { ProjectUsage } from './projectUsage';
+import type { ComputerState } from './computer';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -38,6 +39,9 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getComputerState(): Promise<ComputerState>;
+  requestComputerPermissions(): Promise<ComputerState>;
+  openComputerSettings(kind: 'accessibility' | 'screen-recording'): Promise<void>;
   readMcpSecretStatus(request: McpSecretRequest): Promise<McpSecretStatus>;
   saveMcpSecrets(
     request: McpSecretEdit & { values: Record<string, string> },
@@ -118,6 +122,9 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getComputerState: 'studio:computer-state',
+  requestComputerPermissions: 'studio:computer-permissions',
+  openComputerSettings: 'studio:computer-settings',
   readMcpSecretStatus: 'studio:mcp-secrets-status',
   saveMcpSecrets: 'studio:mcp-secrets-save',
   removeMcpSecrets: 'studio:mcp-secrets-remove',

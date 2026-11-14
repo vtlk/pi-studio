@@ -3,7 +3,7 @@ import type { AgentRunStatus, SessionBinding, WorkspaceProject } from '../../sha
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { validateCompletedOutputs } from './completeStage.ts';
 import type { openSessionTerminal } from './terminal.ts';
-import type { SessionTool } from './RunChannel.ts';
+import type { SessionTool, SessionMcpGroup } from './RunChannel.ts';
 import type { RunFailure } from '../../shared/runFailure.ts';
 
 export interface RunDependencies {
@@ -22,6 +22,7 @@ export interface RunDependencies {
   headless?: boolean;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
   tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
+  mcpGroups?: (run: PreparedRun) => readonly SessionMcpGroup[];
   closed?: (run: PreparedRun) => void;
   capabilities?: (run: PreparedRun, executableExtensions: boolean) => void;
   activityChanged?: (run: PreparedRun, working: boolean) => void;

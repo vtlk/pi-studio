@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-14T22:36:10.949Z",
+  "checkedAt": "2026-11-14T23:23:25.451Z",
   "nativePi": "1.5.2",
   "scope": "Actual native installed-extension discovery, production catalog/login/status/runtime and exact resume; owned extension modules and loopback SSE only",
   "nativeAndLegacyProviderRegistrations": true,
@@ -15,9 +15,10 @@
   "nativeDisabledAndProjectTrustRespected": true,
   "extensionToolExecuted": true,
   "studioControlAndCompletionPreserved": true,
+  "computerMcpNativeStatusToolExecuted": true,
   "exactIdleResumeNoReplay": true,
   "brokenExtensionFailsWithoutTruncatedFallback": true,
   "explicitUserRequests": 1,
-  "localModelHttpRequests": 3,
+  "localModelHttpRequests": 4,
   "externalModelRequests": 0
 }

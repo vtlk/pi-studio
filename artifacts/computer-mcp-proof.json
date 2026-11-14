@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-14T23:19:31.590Z",
+  "nativePi": "1.5.2",
+  "sdk": "0.49.11",
+  "actualNativeFfi": true,
+  "nativeMcpClient": true,
+  "visualToolCount": 15,
+  "textOnlyToolCount": 1,
+  "permissionPromptRejected": true,
+  "revokedLease": true,
+  "modelRequests": 0,
+  "desktopActions": 0,
+  "captureRequests": 0,
+  "limits": "Transport and promptless status only. Pi Studio TCC, actual capture/input and model visual loop remain unverified."
+}

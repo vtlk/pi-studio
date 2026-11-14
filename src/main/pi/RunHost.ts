@@ -68,9 +68,7 @@ export class RunHost {
   private key(request: Pick<LaunchAgentRequest, 'projectId' | 'agentId'>) {
     return `${request.projectId}/${request.agentId}`;
   }
-  launch(request: LaunchAgentRequest) {
-    return this.open(request);
-  }
+  launch = (request: LaunchAgentRequest) => this.open(request);
   continuation(run: PreparedRun) {
     const live = this.live.get(
       this.key({ projectId: run.project.id, agentId: run.agent.profile.id }),
@@ -138,7 +136,7 @@ export class RunHost {
     }
     if (this.opening.has(key)) throw new Error('Этот агент уже открывается.');
     this.opening.add(key);
-    let current: LiveRun | undefined;
+    let current: LiveRun | undefined, prepared: PreparedRun | undefined;
     try {
       // Finish the previous process's status/lease cleanup before replacing this agent's bridge.
       await this.retiring.get(key);
@@ -174,6 +172,7 @@ export class RunHost {
         this.live.delete(key);
       }
       const { run, piPath } = await this.dependencies.prepare(request);
+      prepared = run;
       continuation?.check();
       if (run.agent.session && request.firstMessage !== undefined)
         throw new Error('У агента уже есть диалог. Продолжение не отправляет сообщение.');
@@ -226,6 +225,7 @@ export class RunHost {
         (event) => this.lifecycle.event(live, event),
         (name, args) => this.lifecycle.tool(live, name, args),
         typeof tools === 'function' ? () => tools(run) : tools,
+        this.dependencies.mcpGroups?.(run),
       );
       await mkdir(this.dependencies.bootstraps, { recursive: true, mode: 0o700 });
       const bootstrap = join(this.dependencies.bootstraps, `${run.record.runId}.json`);
@@ -255,6 +255,7 @@ export class RunHost {
         clearTimeout(timer);
       }
     } catch (error) {
+      if (!current && prepared) this.dependencies.closed?.(prepared);
       if (current) {
         this.dependencies.closed?.(current.run);
         if (error instanceof ContinuationCancelled) {

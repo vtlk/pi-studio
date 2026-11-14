@@ -19,6 +19,7 @@ import { StudioResources } from './StudioResources.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
+import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 
 interface Options {
   bootstraps: string;
@@ -31,6 +32,7 @@ interface Options {
   resources?: StudioResources;
   mcpSecrets?: McpSecrets;
   browser?: BrowserSupport;
+  computer?: ComputerSupport;
 }
 export function createSetupAssistant(service: StudioService, options: Options) {
   const catalog = async () => {
@@ -54,6 +56,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
       }),
   );
   return new RunHost({
+    mcpGroups: (run) => options.computer?.groups(run) ?? [],
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     serviceAgent: true,
@@ -61,7 +64,10 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     tools: setupTools,
-    closed: (run) => options.browser?.release(run),
+    closed: (run) => {
+      options.browser?.release(run);
+      options.computer?.release(run);
+    },
     prepare: (request) =>
       service.serialize(async () => {
         if (
@@ -132,6 +138,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         );
         run.modelAuth = modelAuth;
         await options.browser?.bind(run, store.folder, path, selectedModel.imageInput);
+        await options.computer?.bind(run, selectedModel.imageInput);
         return { run, piPath: path };
       }),
     update: async (run, status, session, failure) => {

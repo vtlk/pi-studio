@@ -13,6 +13,7 @@ import { resourceStatus } from '../model/resourceStatus';
 import { ManagedSkillEditor } from './ManagedSkillEditor';
 import { builtinResources, builtinResource } from '../../../../shared/builtinResources';
 import { BrowserResourceRow } from './BrowserResourceRow';
+import { ComputerResourceRow } from './ComputerResourceRow';
 
 export function ResourceCatalog({
   kind,
@@ -113,6 +114,8 @@ export function ResourceCatalog({
         .map((resource) =>
           resource.source === 'builtin:browser' ? (
             <BrowserResourceRow key={resource.id} />
+          ) : resource.source === 'builtin:computer' ? (
+            <ComputerResourceRow key={resource.id} />
           ) : (
             <div
               className="resource-row"

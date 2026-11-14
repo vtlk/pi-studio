@@ -17,6 +17,7 @@ import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
 import type { ProjectActivity } from './ProjectActivity.ts';
+import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 
 interface Options {
   bootstraps: string;
@@ -26,6 +27,7 @@ interface Options {
   references?: ReferenceFiles;
   images?: ImageGeneration;
   browser?: BrowserSupport;
+  computer?: ComputerSupport;
   activity?: ProjectActivity;
   libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
@@ -35,6 +37,7 @@ interface Options {
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
+    mcpGroups: (run) => options.computer?.groups(run) ?? [],
     tools: (run) => [
       ...productionTools,
       ...(run.libraryAccess
@@ -48,6 +51,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       options.activity?.set(run, false);
       options.images?.cancel(run);
       options.browser?.release(run);
+      options.computer?.release(run);
     },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
     activityChanged: (run, working) => options.activity?.set(run, working),
@@ -124,6 +128,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         options.images?.bind(run, store.folder, selectedModel);
         await options.browser?.bind(run, store.folder, piPath, selectedModel.imageInput);
         await store.accounting.begin(run);
+        await options.computer?.bind(run, selectedModel.imageInput);
         run.modelAuth = modelAuth;
         return { run, piPath };
       }),

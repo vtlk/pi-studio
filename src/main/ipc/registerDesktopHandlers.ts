@@ -43,6 +43,8 @@ import { BrowserSupport } from '../browser/BrowserSupport';
 import { ProjectActivity } from '../pi/ProjectActivity';
 import { registerResourceHandlers } from '../pi/registerResourceHandlers';
 import { registerGracefulQuit } from './registerGracefulQuit';
+import { ComputerSupport } from '../computer/ComputerSupport';
+import { registerComputerHandlers } from '../computer/registerComputerHandlers';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -74,6 +76,8 @@ export function registerDesktopHandlers(): StudioService {
     caller,
   );
   const references = new ReferenceFiles(referenceImage);
+  const computer = new ComputerSupport();
+  registerComputerHandlers(computer, caller);
   const activity = new ProjectActivity();
   const usageRecovery = new UsageRecovery(
     service,
@@ -87,6 +91,7 @@ export function registerDesktopHandlers(): StudioService {
     join(__dirname, '../../bundled/pi-bridge/browser/server.mjs'),
   );
   const productionResources = {
+    computer,
     references,
     images,
     mcpSecrets,
@@ -103,6 +108,7 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   const resources = new StudioResources(service, {
+    computer,
     browser,
     mcpSecrets,
     browserAuth,
@@ -110,6 +116,7 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {
+    computer,
     browser,
     failureChanged,
     bootstraps: join(app.getPath('userData'), 'setup-bootstraps'),
@@ -128,7 +135,7 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   registerGracefulQuit(
-    [runs, setup, generators],
+    [runs, setup, generators, computer],
     [browserAuth, startup, runs, setup, generators, browser, usageRecovery],
   );
   function caller(event: IpcMainInvokeEvent) {

@@ -28,12 +28,27 @@ export interface SessionTool {
   description: string;
   inputSchema: Record<string, unknown>;
 }
+export interface SessionMcpResult {
+  content: ({ type: 'text'; text: string } | { type: 'image'; mimeType: string; data: string })[];
+  isError?: boolean;
+}
+export interface SessionMcpGroup {
+  name: string;
+  tools: readonly SessionTool[];
+  call: (
+    name: string,
+    args: Record<string, unknown>,
+    signal: AbortSignal,
+  ) => Promise<SessionMcpResult>;
+}
 interface Lease {
   token: string;
   envelope: SessionEnvelope;
   event: (event: ChannelEvent) => Promise<void>;
   tool: (name: string, args: Record<string, unknown>) => Promise<unknown>;
   tools: readonly SessionTool[] | (() => readonly SessionTool[]);
+  groups: readonly SessionMcpGroup[];
+  calls: Map<string, AbortController>;
 }
 export const productionTools: SessionTool[] = [
   {
@@ -147,6 +162,7 @@ export class RunChannel {
     event: Lease['event'],
     tool: Lease['tool'],
     tools: Lease['tools'] = productionTools,
+    groups: readonly SessionMcpGroup[] = [],
   ) {
     this.started ??= new Promise((resolve, reject) => {
       this.server.once('error', reject);
@@ -160,13 +176,47 @@ export class RunChannel {
     });
     await this.started;
     const token = randomBytes(32).toString('hex');
-    this.leases.set(id, { token, envelope, event, tool, tools });
-    return { url: `http://127.0.0.1:${this.port}/session/${id}`, token };
+    const url = `http://127.0.0.1:${this.port}/session/${id}`;
+    if (
+      new Set(groups.map((group) => group.name)).size !== groups.length ||
+      groups.some(
+        (group) =>
+          !/^pi_studio_[a-z_]+$/.test(group.name) ||
+          envelope.resources.mcpServers.some((server) => server.name === group.name),
+      )
+    )
+      throw new Error('Invalid system MCP group');
+    const scoped = !groups.length
+      ? envelope
+      : {
+          ...envelope,
+          resources: {
+            ...envelope.resources,
+            mcpServers: [
+              ...envelope.resources.mcpServers,
+              ...groups.map((group) => ({
+                name: group.name,
+                source: 'Pi Studio system',
+                scope: 'extension' as const,
+                config: {
+                  url: `${url}/mcp/${group.name}`,
+                  headers: { Authorization: `Bearer ${token}` },
+                  exposure: 'direct',
+                  timeout: 120,
+                },
+              })),
+            ],
+          },
+        };
+    this.leases.set(id, { token, envelope: scoped, event, tool, tools, groups, calls: new Map() });
+    return { url, token };
   }
   remove(id: string) {
+    for (const call of this.leases.get(id)?.calls.values() ?? []) call.abort();
     this.leases.delete(id);
   }
   close() {
+    for (const id of this.leases.keys()) this.remove(id);
     this.leases.clear();
     this.server.closeAllConnections();
     this.server.close();
@@ -176,11 +226,16 @@ export class RunChannel {
     try {
       if (request.headers.origin || !request.headers.host?.startsWith('127.0.0.1:'))
         return json(response, 403, { error: 'Forbidden' });
-      const match = /^\/session\/([a-zA-Z0-9_-]+)\/(context|event|mcp)$/.exec(request.url ?? '');
+      const match =
+        /^\/session\/([a-zA-Z0-9_-]+)\/(context|event|mcp)(?:\/(pi_studio_[a-z_]+))?$/.exec(
+          request.url ?? '',
+        );
       const lease = match ? this.leases.get(match[1]) : undefined;
+      const group = match?.[3] ? lease?.groups.find((group) => group.name === match[3]) : undefined;
       const auth = request.headers.authorization?.replace(/^Bearer /, '') ?? '';
       if (
         !lease ||
+        (match?.[3] && (!group || match[2] !== 'mcp')) ||
         auth.length !== lease.token.length ||
         !timingSafeEqual(Buffer.from(auth), Buffer.from(lease.token))
       )
@@ -193,12 +248,17 @@ export class RunChannel {
         return;
       }
       const data = await body(request);
+      if (this.leases.get(match![1]) !== lease) return json(response, 403, { error: 'Forbidden' });
       if (match![2] === 'event') {
         await lease.event(data as unknown as ChannelEvent);
         return json(response, 200, { ok: true });
       }
       rpcId = data.id;
       if (!('id' in data)) {
+        if (data.method === 'notifications/cancelled') {
+          const params = data.params as { requestId?: unknown } | undefined;
+          lease.calls.get(JSON.stringify([match?.[3], params?.requestId]))?.abort();
+        }
         response.writeHead(202);
         response.end();
         return;
@@ -208,26 +268,57 @@ export class RunChannel {
         result = {
           protocolVersion: '2025-03-26',
           capabilities: { tools: {} },
-          serverInfo: { name: 'Pi Studio session tools', version: '1.0.0' },
+          serverInfo: { name: group?.name ?? 'Pi Studio session tools', version: '1.0.0' },
         };
       else if (data.method === 'ping') result = {};
       else if (data.method === 'tools/list')
-        result = { tools: typeof lease.tools === 'function' ? lease.tools() : lease.tools };
+        result = {
+          tools: group?.tools ?? (typeof lease.tools === 'function' ? lease.tools() : lease.tools),
+        };
       else if (data.method === 'tools/call') {
         const params = data.params as
           { name?: string; arguments?: Record<string, unknown> } | undefined;
-        const available = typeof lease.tools === 'function' ? lease.tools() : lease.tools;
+        const available =
+          group?.tools ?? (typeof lease.tools === 'function' ? lease.tools() : lease.tools);
         if (!params?.name || !available.some((tool) => tool.name === params.name))
           throw new Error('Tool unavailable in this session');
+        if (
+          params.arguments !== undefined &&
+          (!params.arguments ||
+            typeof params.arguments !== 'object' ||
+            Array.isArray(params.arguments))
+        )
+          throw new Error('Invalid tool arguments');
         try {
-          result = {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(await lease.tool(params.name, params.arguments ?? {})),
-              },
-            ],
-          };
+          if (group) {
+            const key = JSON.stringify([group.name, rpcId]);
+            if (lease.calls.has(key)) throw new Error('Duplicate MCP request');
+            const controller = new AbortController();
+            lease.calls.set(key, controller);
+            const disconnect = () => {
+              if (!response.writableEnded) controller.abort();
+            };
+            response.once('close', disconnect);
+            try {
+              result = await group.call(
+                params.name,
+                params.arguments ?? {},
+                AbortSignal.any([controller.signal, AbortSignal.timeout(120000)]),
+              );
+            } finally {
+              lease.calls.delete(key);
+              response.off('close', disconnect);
+            }
+          } else {
+            result = {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(await lease.tool(params.name, params.arguments ?? {})),
+                },
+              ],
+            };
+          }
         } catch (error) {
           result = {
             isError: true,

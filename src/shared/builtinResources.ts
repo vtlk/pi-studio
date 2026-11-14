@@ -25,6 +25,15 @@ export const browserMcp: Resource = {
   description:
     'Визуальное управление отдельным локальным браузером: снимки, координатные действия, ввод и вкладки. Профиль закреплён за диалогом Pi. Нужна модель с поддержкой изображений; компоненты устанавливаются отдельно.',
 };
+export const computerMcp: Resource = {
+  ...libraryMcp,
+  id: 'pistudio-computer',
+  name: 'Pi Studio · Компьютер',
+  source: 'builtin:computer',
+  version: 'Cua Driver 0.49.11',
+  description:
+    'Управление приложениями macOS по снимкам окна и координатам. Нужны модель с поддержкой изображений и разрешения macOS для Pi Studio. Некоторые действия требуют активного окна.',
+};
 export const builtinResources: readonly Resource[] = [
   {
     ...libraryMcp,
@@ -36,6 +45,7 @@ export const builtinResources: readonly Resource[] = [
   },
   libraryMcp,
   browserMcp,
+  computerMcp,
   {
     ...libraryMcp,
     id: 'pistudio-administration',

@@ -23,6 +23,7 @@ import type { ImageGeneration } from '../images/ImageGeneration.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
+import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 
 interface Options {
   bootstraps: string;
@@ -32,6 +33,7 @@ interface Options {
   references: ReferenceFiles;
   images?: ImageGeneration;
   browser?: BrowserSupport;
+  computer?: ComputerSupport;
   libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
@@ -46,6 +48,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
   const host = new RunHost({
     ...options,
     serviceAgent: true,
+    mcpGroups: (run) => options.computer?.groups(run) ?? [],
     tools: (run) => [
       ...productionTools,
       ...(run.libraryAccess
@@ -58,6 +61,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
     closed: (run) => {
       options.images?.cancel(run);
       options.browser?.release(run);
+      options.computer?.release(run);
     },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
     tool: (run, name, args) =>
@@ -123,6 +127,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         options.images?.bind(run, store.folder, selected);
         await options.browser?.bind(run, store.folder, path, selected.imageInput);
         await atomicJson(join(root, 'state.json'), { schemaVersion: 1, kind: input.kind, project });
+        await options.computer?.bind(run, selected.imageInput);
         run.modelAuth = modelAuth;
         return { run, piPath: path };
       }),

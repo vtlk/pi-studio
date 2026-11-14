@@ -3,6 +3,9 @@ import { desktopChannels, type DesktopApi } from '../shared/contracts';
 import { runFailure } from '../shared/runFailure';
 
 const desktopApi: DesktopApi = {
+  getComputerState: () => ipcRenderer.invoke(desktopChannels.getComputerState),
+  requestComputerPermissions: () => ipcRenderer.invoke(desktopChannels.requestComputerPermissions),
+  openComputerSettings: (kind) => ipcRenderer.invoke(desktopChannels.openComputerSettings, kind),
   onRunFailure: (listener) => {
     const receive = (_event: unknown, notice: unknown) => {
       if (!notice || typeof notice !== 'object') return;

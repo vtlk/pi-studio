@@ -13,7 +13,8 @@ import { nativeMcpConfig } from './nativeMcp.ts';
 import { mcpConfigRevision } from './mcpSecretValues.ts';
 import type { BrowserAuth } from './BrowserAuth.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
-import { browserMcp, reservedMcpName } from '../../shared/builtinResources.ts';
+import { browserMcp, computerMcp, reservedMcpName } from '../../shared/builtinResources.ts';
+import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 
 interface Options {
   script: string;
@@ -22,6 +23,7 @@ interface Options {
   operation?: typeof nativeResourceOperation;
   mcpSecrets?: McpSecrets;
   browser?: BrowserSupport;
+  computer?: ComputerSupport;
 }
 const signature = (resource: Resource) =>
   JSON.stringify([
@@ -171,6 +173,7 @@ export class StudioResources {
   async check(id: string, expectedFolder?: string): Promise<ResourceCheck> {
     const scope = await this.scope(expectedFolder);
     if (id === browserMcp.id && this.options.browser) return this.options.browser.check();
+    if (id === computerMcp.id && this.options.computer) return this.options.computer.check();
     const resource = scope.resources.find((item) => item.id === id);
     if (!resource) throw new Error('Ресурс отсутствует в текущем каталоге.');
     if (resource.credential === 'keychain:pistudio-mcp' && !this.options.mcpSecrets)

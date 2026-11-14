@@ -12,13 +12,15 @@ import { checkPi } from '../src/main/pi/checkPi.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { connectionAuthScope } from '../src/main/pi/modelAuth.ts';
 import { ProjectActivity } from '../src/main/pi/ProjectActivity.ts';
+import { ComputerSupport } from '../src/main/computer/ComputerSupport.ts';
 import { nativeExtensionPaths } from '../bundled/pi-bridge/native-extensions.mjs';
 import { createConnectionServices } from '../bundled/pi-bridge/connection-runtime.mjs';
 import type { Agent } from '../src/shared/studio.ts';
 import type { Connection } from '../src/shared/connections.ts';
 
 // Actual installed Pi/public SDK/Studio adapter. All credentials and modules are owned fixtures;
-// one explicit input drives three loopback HTTP tool turns, with no cloud/model/auth service.
+// one explicit input drives four loopback HTTP tool turns, with no cloud/model/auth service.
+const computer = new ComputerSupport();
 const root = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-native-extensions-')));
 const previous = { ...process.env },
   children: { process: ReturnType<typeof spawn>; exit: Promise<number | null> }[] = [];
@@ -45,14 +47,20 @@ const server = createServer(async (req, res) => {
     assert.ok(names.includes('native_package_probe'));
     assert.ok(!names.some((name) => /global_mcp_leak|disabled_extension/.test(name)));
     const step = httpRequests++;
-    assert.ok(step < 3, 'No retry or unexpected extra model turn.');
+    assert.ok(step < 4, 'No retry or unexpected extra model turn.');
     const tool =
       step === 0
-        ? 'native_extension_probe'
+        ? names.find(
+            (name) => name.includes('pi_studio_computer') && name.endsWith('check_permissions'),
+          )
         : step === 1
-          ? names.find((name) => name.endsWith('complete_stage'))
-          : undefined;
-    if (step === 1) assert.ok(tool, 'Mandatory Pi Studio MCP survives native extensions.');
+          ? 'native_extension_probe'
+          : step === 2
+            ? names.find((name) => name.endsWith('complete_stage'))
+            : undefined;
+    if (step < 3)
+      assert.ok(tool, 'Mandatory Pi Studio and Computer MCP survive native extensions.');
+    if (step === 1) assert.match(JSON.stringify(body.messages), /permissions_required|ready/);
     const delta = tool
       ? {
           role: 'assistant',
@@ -63,7 +71,7 @@ const server = createServer(async (req, res) => {
               type: 'function',
               function: {
                 name: tool,
-                arguments: JSON.stringify(step === 0 ? {} : { outputs: ['result.txt'] }),
+                arguments: JSON.stringify(step === 2 ? { outputs: ['result.txt'] } : {}),
               },
             },
           ],
@@ -301,6 +309,7 @@ export default function(pi) {
     observedStart ||= activity.list().some((item) => item.runningAgents > 0);
   }, 10);
   host = createStudioRunHost(service, {
+    computer,
     activity,
     bootstraps: join(root, 'boots'),
     bridge: join(scripts, 'session.mjs'),
@@ -322,7 +331,8 @@ export default function(pi) {
     projectId: project.id,
     agentId: profile.id,
     autoContinue: false,
-    firstMessage: 'Run native_extension_probe, then complete_stage.',
+    firstMessage:
+      'Check Computer Use permissions without prompting or using the desktop; run native_extension_probe, then complete_stage.',
   });
   assert.equal(await children[0].exit, 0);
   clearInterval(activityTimer);
@@ -332,7 +342,7 @@ export default function(pi) {
   assert.equal(updated.agents[0].runStatus, 'ready');
   assert.ok(observedStart);
   assert.deepEqual(activity.list(), []);
-  assert.equal(httpRequests, 3);
+  assert.equal(httpRequests, 4);
   const projectRoot = await store.projects.directory(project.id);
   assert.equal(
     await readFile(join(projectRoot, updated.agents[0].outputPath, 'result.txt'), 'utf8'),
@@ -341,7 +351,7 @@ export default function(pi) {
   const canonical = await readFile(join(projectRoot, binding.path), 'utf8');
   await host.launch({ projectId: project.id, agentId: profile.id, autoContinue: false });
   assert.equal(await children[1].exit, 0);
-  assert.equal(httpRequests, 3);
+  assert.equal(httpRequests, 4);
   assert.equal(await readFile(join(projectRoot, binding.path), 'utf8'), canonical);
   assert.equal(
     (await readFile(marker, 'utf8')).split('\n').filter((name) => name === 'session_start').length,
@@ -377,6 +387,7 @@ export default function(pi) {
     nativeDisabledAndProjectTrustRespected: true,
     extensionToolExecuted: true,
     studioControlAndCompletionPreserved: true,
+    computerMcpNativeStatusToolExecuted: true,
     exactIdleResumeNoReplay: true,
     brokenExtensionFailsWithoutTruncatedFallback: true,
     explicitUserRequests: 1,
@@ -390,6 +401,7 @@ export default function(pi) {
   clearInterval(activityTimer);
   auth?.close();
   host?.close();
+  await computer.drain();
   for (const child of children) if (child.process.exitCode === null) child.process.kill('SIGTERM');
   await Promise.allSettled(children.map((child) => child.exit));
   server.closeAllConnections();
