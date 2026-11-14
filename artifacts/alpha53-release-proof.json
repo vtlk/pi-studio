@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0-alpha.53",
+  "sourceCommit": "e570d8864b31858fabbc700b7d9f3efafdfa7f49",
+  "releaseUrl": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.53",
+  "assets": [
+    {
+      "digest": "sha256:4bacb5f5ebadeb0aac60d7fd14019e170498ad00379e764a8ee982d19576d5c0",
+      "id": 748426958,
+      "name": "Pi-Studio-0.2.0-alpha.53-mac-arm64.zip",
+      "size": 124176403
+    }
+  ],
+  "tag": "v0.2.0-alpha.53",
+  "signing": {
+    "stableDesignatedRequirementMatchesInstalled52": true,
+    "certificateSigned": true,
+    "notarized": false
+  },
+  "validation": {
+    "unitAndFsTests": 178,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 284,
+    "productionBuild": true,
+    "packagedMainAndPreloadMatchTestedBuild": true,
+    "nativeQuitCancellation": true,
+    "nativePassiveImageStatus": true
+  },
+  "installedVersion": "0.2.0-alpha.52",
+  "installationChanged": false,
+  "githubActionsEnabled": false
+}
