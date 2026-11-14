@@ -379,8 +379,20 @@ try {
     (await readFile(join(store.folder, '.pistudio/studio.json'), 'utf8')).includes(key),
     false,
   );
+  for (const request of requests.filter((item) => item.body)) {
+    assert.equal(
+      request.body!.reasoning,
+      undefined,
+      'Non-reasoning model sends no Responses reasoning parameter',
+    );
+    assert.equal(
+      request.body!.reasoning_effort,
+      undefined,
+      'Non-reasoning model sends no Chat reasoning_effort parameter',
+    );
+  }
   console.log(
-    'Native endpoints passed: keyed/keyless discovery, both OpenAI protocols through real SDK, actual URL/model/auth, no ambient fallback or key reuse after destination change, production launch and exact idle resume. All HTTP stayed on local fixture.',
+    'Native endpoints passed: keyed/keyless discovery, both OpenAI protocols through real SDK, actual URL/model/auth, no ambient fallback or key reuse after destination change, production launch and exact idle resume; non-reasoning models send no reasoning/effort parameters. All HTTP stayed on local fixture.',
   );
 } finally {
   auth.close();

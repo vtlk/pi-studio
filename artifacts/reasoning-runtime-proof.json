@@ -67,6 +67,7 @@
     "typecheck": true,
     "lint": true,
     "architectureModules": 278,
-    "nativeCompatibleEndpoints": "Both OpenAI protocols through local real SDK fixture; no external requests"
+    "nativeCompatibleEndpoints": "Both OpenAI protocols through local real SDK fixture; no external requests",
+    "nonReasoningWireParametersOmitted": true
   }
 }
