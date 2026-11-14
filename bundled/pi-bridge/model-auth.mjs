@@ -9,7 +9,7 @@ try {
   const runtime = await createConnectionRuntime(sdk, input.scope);
   let result;
   if (input.action === 'discover') result = await discoverEndpointModels(runtime, input.scope);
-  else if (input.action === 'catalog') result = await catalogData(sdk, runtime, input.cwd, input.scope);
+  else if (input.action === 'catalog') result = await catalogData(sdk, runtime, input.cwd, input.scope, process.argv[2]);
   else if (input.action === 'logout') {
     await runtime.logout(input.provider);
     result = { removed: true };

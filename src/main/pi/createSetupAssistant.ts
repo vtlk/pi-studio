@@ -77,7 +77,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         if (!agent.enabled)
           throw new Error('Системный помощник выключен. Включите его в конструкторе.');
         const path = String(sections.piPath ?? '') || options.piPath();
-        const { modelAuth } = await resolveAgentLaunchConfig(
+        const { modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
           agent.model,
           (sections.connections ?? []) as Connection[],
           { ...options, folder: store.folder, piPath: path },
@@ -125,6 +125,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           [agent],
           (sections.resources ?? []) as Resource[],
           options.mcpSecrets?.resolver(store.folder, path),
+          thinkingLevel,
         );
         run.modelAuth = modelAuth;
         return { run, piPath: path };

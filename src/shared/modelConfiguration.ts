@@ -1,3 +1,4 @@
+import { parseReasoning } from './reasoning.ts';
 import type { Agent } from './studio.ts';
 import type { Connection } from './connections.ts';
 
@@ -8,7 +9,7 @@ export function hasModelConfiguration(model: Agent['model']): model is AgentMode
     model?.connectionId?.trim() &&
     model.provider?.trim() &&
     model.id?.trim() &&
-    model.reasoning?.trim()
+    parseReasoning(model.reasoning) !== undefined
   );
 }
 

@@ -1,8 +1,12 @@
+import type { ThinkingLevel } from './reasoning';
+
 export interface PiModelSummary {
   provider: string;
   id: string;
   name: string;
   reasoning: boolean;
+  reasoningLevels?: ThinkingLevel[];
+  defaultReasoningLevel?: ThinkingLevel;
   imageInput: boolean;
   api?: string;
 }

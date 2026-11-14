@@ -6,6 +6,7 @@ import { createConnectionRuntime } from './connection-runtime.mjs';
 import { classifyProviderFailure } from './provider-failure.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
+import { loadThinkingApi } from './thinking.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -64,6 +65,7 @@ export async function runSession(bootstrapPath) {
         ? `\n\nInput files (paths relative to project directory): ${JSON.stringify(envelope.record.attachments)}\nUse assigned handlers for document/audio/video formats; report missing handlers explicitly. Never execute an attachment automatically.`
         : '');
   const sdk = await import(pathToFileURL(bootstrap.sdk).href);
+  const thinking = await loadThinkingApi(bootstrap.sdk);
   const { createDefaultTransport } = await import(
     new URL('./extensions/mcp/runtime.js', pathToFileURL(bootstrap.sdk)).href
   );
@@ -263,21 +265,18 @@ export async function runSession(bootstrapPath) {
       if (!model) throw new Error('The explicitly selected model is unavailable');
       if (initialImages.length && !model.input?.includes('image'))
         throw new Error('Selected model does not support image input');
-      const levels = {
-        Минимальный: 'minimal',
-        Низкий: 'low',
-        Средний: 'medium',
-        Высокий: 'high',
-        Максимальный: 'xhigh',
-      };
+      const thinkingLevel = envelope.record.model.thinkingLevel;
+      if (!thinking.getSupportedThinkingLevels(model).includes(thinkingLevel))
+        throw new Error('The explicitly selected thinking level is unavailable');
       const result = await createAgentSessionFromServices({
         services,
         sessionManager,
         sessionStartEvent,
         model,
-        thinkingLevel: levels[envelope.record.model.reasoning] ?? 'medium',
+        thinkingLevel,
       });
       if (
+        result.session.thinkingLevel !== thinkingLevel ||
         result.session.model?.id !== model.id ||
         result.session.model?.provider !== model.provider
       )

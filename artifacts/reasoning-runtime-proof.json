@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "pi": "1.5.2",
+  "sessions": [
+    {
+      "selection": "Низкий",
+      "effective": "low",
+      "exactSession": true,
+      "unchangedMessages": true
+    },
+    {
+      "selection": "low",
+      "effective": "low",
+      "exactSession": true,
+      "unchangedMessages": true
+    },
+    {
+      "selection": "По умолчанию",
+      "effective": "medium",
+      "exactSession": true,
+      "unchangedMessages": true
+    },
+    {
+      "selection": "Предельный",
+      "effective": "max",
+      "exactSession": true,
+      "unchangedMessages": true
+    },
+    {
+      "selection": "Высокий",
+      "effective": "high",
+      "exactSession": true,
+      "unchangedMessages": true
+    }
+  ],
+  "unsupportedRejectedBeforeContext": true,
+  "catalog": {
+    "reasoning": [
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "plain": [
+      "off"
+    ]
+  },
+  "modelRequests": 0,
+  "syntheticHistory": true,
+  "scope": "Actual SDK/native bridge; exact idle resumes with existing subscription status. No new messages or external model requests.",
+  "version": "0.2.0-alpha.43",
+  "nativeUI": {
+    "passed": true,
+    "legacyRussianPreserved": true,
+    "nativeMaxSelectable": true,
+    "limitedOptions": true,
+    "explicitModelChangeResetsUnsupported": true,
+    "nonReasoningDefaultDisabled": true,
+    "threeFieldsSameRow": true,
+    "modelRequests": 0,
+    "catalog": "synthetic native IPC fixture"
+  },
+  "otherChecks": {
+    "unitFS": 163,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 278,
+    "nativeCompatibleEndpoints": "Both OpenAI protocols through local real SDK fixture; no external requests"
+  }
+}

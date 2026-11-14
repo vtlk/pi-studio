@@ -1,3 +1,4 @@
+import { parseReasoning, type ThinkingLevel } from '../../shared/reasoning.ts';
 import { mkdir, realpath } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -32,6 +33,7 @@ export async function buildRunContext(
   constructor: Agent[],
   catalog: Resource[],
   materializeMcp?: McpConfigResolver,
+  thinkingLevel?: ThinkingLevel,
 ): Promise<PreparedRun> {
   projectRoot = await realpath(projectRoot);
   const saved = project.agents.find((item) => item.profile.id === agentId);
@@ -86,6 +88,11 @@ export async function buildRunContext(
       provider: model.provider,
       id: model.id,
       reasoning: model.reasoning,
+      thinkingLevel:
+        thinkingLevel ??
+        (parseReasoning(model.reasoning) === 'default'
+          ? 'medium'
+          : (parseReasoning(model.reasoning) as ThinkingLevel)),
     },
     resourceIds: {
       skills: resources.skills.map((item) => item.id),

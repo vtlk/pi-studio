@@ -66,7 +66,11 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
             'Выбранный агент отсутствует, выключен или не имеет библиотечного MCP. Выберите агента в форме библиотеки.',
           );
         const path = String(sections.piPath ?? '') || options.piPath();
-        const { selectedModel: selected, modelAuth } = await resolveAgentLaunchConfig(
+        const {
+          selectedModel: selected,
+          modelAuth,
+          thinkingLevel,
+        } = await resolveAgentLaunchConfig(
           agent.model,
           (sections.connections ?? []) as Connection[],
           { ...options, folder: store.folder, piPath: path },
@@ -101,6 +105,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
           [agent],
           (sections.resources ?? []) as Resource[],
           options.mcpSecrets?.resolver(store.folder, path),
+          thinkingLevel,
         );
         run.libraryKind = input.kind;
         await options.references.attach(run, input.attachments, store.folder, selected.imageInput);

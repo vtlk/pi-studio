@@ -1,6 +1,7 @@
+import { parseReasoning, reasoningLabels, type ThinkingLevel } from '../../../../shared/reasoning';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui';
-import { Select } from '@/shared/ui/Select';
+import { Select, type SelectOption } from '@/shared/ui/Select';
 import { SearchableSelect } from '@/shared/ui/SearchableSelect';
 import { useConnections } from '@/features/connections/model/Connections';
 import { useAgentProfiles } from '../model/AgentProfiles';
@@ -27,6 +28,31 @@ export function ModelPanel() {
   const availableModels =
     catalog?.models.filter((item) => item.provider === connection?.providerId) ?? [];
   const selectedModel = availableModels.find((item) => item.id === model.id);
+  const reasoning = parseReasoning(model.reasoning) ?? (model.reasoning || 'none');
+  const levels = window.studio
+    ? (selectedModel?.reasoningLevels ?? [])
+    : (Object.keys(reasoningLabels) as ThinkingLevel[]);
+  const reasoningOptions: SelectOption[] = [
+    { value: 'default', label: 'По умолчанию' },
+    ...levels.map((value) => ({ value, label: reasoningLabels[value] })),
+  ];
+  if (!reasoningOptions.some((option) => option.value === reasoning))
+    reasoningOptions.push({
+      value: reasoning,
+      label: model.reasoning ? `${model.reasoning} · недоступен` : 'Не выбрано',
+      disabled: true,
+    });
+  const chooseModel = (id: string) => {
+    const next = availableModels.find((item) => item.id === id);
+    const previous = parseReasoning(model.reasoning);
+    update({
+      id: id === 'none' ? '' : id,
+      reasoning:
+        previous && (previous === 'default' || next?.reasoningLevels?.includes(previous))
+          ? model.reasoning
+          : 'По умолчанию',
+    });
+  };
   const modelOptions = [
     {
       value: 'none',
@@ -77,7 +103,7 @@ export function ModelPanel() {
               label="Модель агента"
               value={model.id || 'none'}
               options={modelOptions}
-              onValueChange={(id) => update({ id: id === 'none' ? '' : id })}
+              onValueChange={chooseModel}
               disabled={!connection || loading}
             />
           ) : (
@@ -92,12 +118,14 @@ export function ModelPanel() {
           <span>Уровень рассуждения</span>
           <Select
             label="Уровень рассуждения (effort)"
-            options={
-              selectedModel?.reasoning === false
-                ? ['По умолчанию']
-                : ['По умолчанию', 'Минимальный', 'Низкий', 'Средний', 'Высокий', 'Максимальный']
+            options={reasoningOptions}
+            value={reasoning}
+            disabled={
+              !!window.studio &&
+              (!selectedModel ||
+                (selectedModel.reasoning === false &&
+                  (reasoning === 'default' || reasoning === 'off')))
             }
-            value={model.reasoning}
             onValueChange={(reasoning) => update({ reasoning })}
           />
         </label>

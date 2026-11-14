@@ -1,4 +1,6 @@
-export async function catalogData(sdk, runtime, cwd, scope) {
+import { loadThinkingApi } from './thinking.mjs';
+export async function catalogData(sdk, runtime, cwd, scope, sdkPath) {
+  const thinking = await loadThinkingApi(sdkPath);
   const builtins = await sdk.ModelRuntime.create({
     credentials: {
       read: async () => undefined,
@@ -31,6 +33,8 @@ export async function catalogData(sdk, runtime, cwd, scope) {
     id: model.id,
     name: model.name || model.id,
     reasoning: model.reasoning === true,
+    reasoningLevels: thinking.getSupportedThinkingLevels(model),
+    defaultReasoningLevel: thinking.clampThinkingLevel(model, 'medium'),
     imageInput: model.input?.includes('image') === true,
     api: model.api,
   }));

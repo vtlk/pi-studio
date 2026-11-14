@@ -1,3 +1,4 @@
+import type { ThinkingLevel } from './reasoning';
 import type { WorkspaceProject } from './project';
 import type { SavedAttachment } from './attachments';
 
@@ -23,7 +24,13 @@ export interface RunContextRecord {
   output: string;
   sessionDirectory: string;
   previousOutputs: { agentId: string; agentName?: string; path: string }[];
-  model: { connectionId: string; provider: string; id: string; reasoning: string };
+  model: {
+    connectionId: string;
+    provider: string;
+    id: string;
+    reasoning: string;
+    thinkingLevel: ThinkingLevel;
+  };
   resourceIds: { skills: string[]; mcps: string[]; plugins: string[] };
   instructionIds: string[];
   attachments?: SavedAttachment[];

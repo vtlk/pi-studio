@@ -70,7 +70,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         )
           throw new Error('Продолжение диалога не отправляет референсы повторно.');
         const piPath = String(sections.piPath ?? '') || options.piPath();
-        const { model, selectedModel, modelAuth } = await resolveAgentLaunchConfig(
+        const { model, selectedModel, modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
           profile.model,
           sections.connections as Connection[],
           { ...options, folder: store.folder, piPath },
@@ -90,6 +90,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           sections.agents as Agent[],
           sections.resources as Resource[],
           options.mcpSecrets?.resolver(store.folder, piPath),
+          thinkingLevel,
         );
         await options.references?.attach(
           run,

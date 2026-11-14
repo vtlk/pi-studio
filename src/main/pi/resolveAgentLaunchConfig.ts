@@ -1,3 +1,4 @@
+import { resolveReasoning } from '../../shared/reasoning.ts';
 import { dirname, join } from 'node:path';
 import type { Agent } from '../../shared/studio.ts';
 import type { Connection } from '../../shared/connections.ts';
@@ -48,5 +49,6 @@ export async function resolveAgentLaunchConfig(
     throw new Error(
       'Выбранная модель отсутствует в текущем каталоге Pi. Автоматической подмены нет.',
     );
-  return { model, selectedModel, modelAuth };
+  const thinkingLevel = resolveReasoning(model.reasoning, selectedModel);
+  return { model, selectedModel, modelAuth, thinkingLevel };
 }
