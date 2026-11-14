@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Native and web use separate main.tsx / main.web.tsx entries. Only the web entry imports fixtures, example providers/workspace and example rig scripts. Native providers default empty; preload failure is an error, never a demo fallback. Keep nativeRendererGuard in the build. Native publicDir is off; emit only the explicit startup/Dock icon. Legacy cleanup uses immutable canonical SHA-256 identifiers, confirmation and undo, never full example instruction texts in the application bundle.
+
 - The agent-files column header has a clear-output Trash2 action: transparent border at rest, visible border on hover, accessible shared Tooltip and explicit confirmation. Main moves only the selected trusted output directory to macOS Trash and recreates it; never delete sessions/settings/other agents or make backup copies. Block during running Pi/images, cancel pending continuation and invalidate old completion. Recovery uses Finder Trash.
 
 - Settings catalogs show all user and bundled resources from the shared built-in registry, with no agent profiles. Built-in MCP entries expose read-only information and cannot be removed from the catalog; only optional agent assignments can be removed. Do not invent preinstalled skills/instructions. The setup assistant alone has a hover/focus Play action in its system-agent row, using the same save-before-open operation as Settings and the exact canonical dialogue without a user message.
