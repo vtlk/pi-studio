@@ -1,10 +1,12 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
-const { readFile, writeFile, rm, mkdir, realpath } = require('node:fs/promises');
+const { readFile, writeFile, rm, mkdir, realpath, readdir, access } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
 let root;
+let heldProjectId = '';
+const heldReads = [];
 const revealed = [];
 shell.showItemInFolder = (path) => revealed.push(path);
 const timeout = setTimeout(() => {
@@ -15,6 +17,13 @@ const timeout = setTimeout(() => {
   root = mkdtempSync(join(tmpdir(), 'pistudio-projects-list-'));
   const studio = join(root, 'Studio'),
     userData = join(root, 'UserData');
+  const model = {
+    connectionId: 'qa-ui-account',
+    provider: 'openai-codex',
+    id: 'qa-ui-model',
+    reasoning: 'Низкий',
+    temperature: '',
+  };
   mkdirSync(userData);
   writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
   const longName =
@@ -46,6 +55,7 @@ const timeout = setTimeout(() => {
           skills: [],
           mcps: [],
           plugins: [],
+          model,
         },
         outputPath,
       };
@@ -66,17 +76,61 @@ const timeout = setTimeout(() => {
       }),
     );
   }
+  mkdirSync(join(studio, '.pistudio'), { recursive: true });
+  writeFileSync(
+    join(studio, '.pistudio/studio.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      sections: {
+        agents: Array.from({ length: 5 }, (_, n) => ({
+          id: `agent-${n}`,
+          name: `QA ${n}`,
+          enabled: true,
+          skills: [],
+          mcps: [],
+          plugins: [],
+          instructions: [],
+          model,
+        })),
+        connections: [
+          {
+            id: model.connectionId,
+            name: 'QA UI account',
+            purpose: 'codex',
+            providerId: model.provider,
+            endpoint: '',
+            account: '',
+            createdAt: 1,
+          },
+        ],
+      },
+    }),
+  );
   app.setPath('userData', userData);
   app.setPath('videos', root);
+  const handle = ipcMain.handle.bind(ipcMain);
+  ipcMain.handle = (name, action) =>
+    handle(
+      name,
+      name === 'studio:read-project'
+        ? (event, id) =>
+            id === heldProjectId
+              ? new Promise((_resolve, reject) => heldReads.push(reject))
+              : action(event, id)
+        : action,
+    );
   const loaded = new Promise((resolve) =>
     app.once('browser-window-created', (_, win) =>
       win.webContents.once('did-finish-load', () => resolve(win)),
     ),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const win = await loaded;
   win.webContents.setBackgroundThrottling(false);
   win.webContents.debugger.attach('1.3');
+  await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
   const js = (code) => win.webContents.executeJavaScript(code, true);
   const until = async (code) => {
     for (let n = 0; n < 150; n++) {
@@ -146,6 +200,41 @@ const timeout = setTimeout(() => {
     'Проекты не найдены.',
   );
   await input('[aria-label="Найти проект"]', '');
+  heldProjectId = 'discoveries';
+  await js(`document.querySelector('[aria-label="Открыть проект «Маленькие открытия»"]').click()`);
+  await until(`document.querySelector('.project-header h1')?.textContent==='Маленькие открытия'`);
+  for (let n = 0; n < 100 && !heldReads.length; n++)
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.ok(heldReads.length, 'Hold the old selected project read before switching');
+  await click('Проекты');
+  await until(`document.querySelectorAll('.project-list-item').length===6`);
+  await js(`document.querySelector('[aria-label="Открыть проект «Город после дождя»"]').click()`);
+  await until(`document.querySelector('.project-header h1')?.textContent==='Город после дождя'`);
+  heldProjectId = '';
+  for (const reject of heldReads.splice(0)) reject(new Error('QA_STALE_PROJECT_READ'));
+  await js('window.studio.loadStudio()');
+  await js('new Promise(resolve=>setTimeout(resolve,100))');
+  assert.equal(
+    await js(
+      `document.querySelector('.toast')?.textContent.includes('QA_STALE_PROJECT_READ')??false`,
+    ),
+    false,
+    'A stale read failure must not report an error for the newly selected project',
+  );
+  await click('Проекты');
+  await until(`document.querySelectorAll('.project-list-item').length===6`);
+  heldProjectId = 'discoveries';
+  await js(`document.querySelector('[aria-label="Открыть проект «Маленькие открытия»"]').click()`);
+  await until(`document.querySelector('.project-header h1')?.textContent==='Маленькие открытия'`);
+  for (let n = 0; n < 100 && !heldReads.length; n++)
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.ok(heldReads.length);
+  heldProjectId = '';
+  for (const reject of heldReads.splice(0)) reject(new Error('QA_CURRENT_PROJECT_READ'));
+  await until(`document.querySelector('.toast')?.textContent.includes('QA_CURRENT_PROJECT_READ')`);
+  await js(`document.querySelector('[aria-label="Скрыть уведомление"]').click()`);
+  await click('Проекты');
+  await until(`document.querySelectorAll('.project-list-item').length===6`);
   await js(`document.activeElement.blur()`);
   await win.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
     type: 'mouseMoved',
@@ -156,8 +245,6 @@ const timeout = setTimeout(() => {
     await js(`getComputedStyle(document.querySelector('.project-row-actions')).opacity`),
     '0',
   );
-  win.focus();
-  win.webContents.focus();
   await js(`document.querySelector('.project-list-row').focus()`);
   assert.equal(
     await js(`getComputedStyle(document.querySelector('.project-row-actions')).opacity`),
@@ -412,6 +499,132 @@ const timeout = setTimeout(() => {
     await js(`getComputedStyle(document.querySelector('.projects-search')).borderRadius`),
     '0px',
   );
+  const beforeCreate = await js('window.studio.loadStudio()');
+  await js(`document.querySelector('[aria-label="Создать проект"]').click()`);
+  await until(`!!document.querySelector('[role="dialog"] input')`);
+  assert.equal(await js(`document.querySelectorAll('[role="dialog"] input').length`), 1);
+  assert.equal(await js(`document.querySelectorAll('[role="dialog"] textarea').length`), 0);
+  await input('.dialog-body input', 'Отменённый проект');
+  await click('Отмена');
+  assert.equal(
+    (await js('window.studio.loadStudio()')).projects.length,
+    beforeCreate.projects.length,
+  );
+  await js(`document.querySelector('[aria-label="Создать проект"]').click()`);
+  await until(`!!document.querySelector('[role="dialog"] input')`);
+  await input('.dialog-body input', 'Новый мультфильм');
+  await click('Создать');
+  await until(`document.querySelector('.project-header h1')?.textContent==='Новый мультфильм'`);
+  const createdState = await js('window.studio.loadStudio()');
+  const created = createdState.projects.find((project) => project.name === 'Новый мультфильм');
+  assert.equal(created.folderName, 'novyy-multfilm');
+  assert.deepEqual(
+    created.agents.map((agent) => agent.profile.id),
+    beforeCreate.sections.agents.map((agent) => agent.id),
+  );
+  const createdRoot = join(createdState.folder, 'projects', created.folderName);
+  for (const agent of created.agents) {
+    assert.equal(Object.hasOwn(agent.profile, 'instructions'), false);
+    assert.equal(Object.hasOwn(agent.profile, 'mainInstruction'), false);
+    assert.deepEqual(await readdir(join(createdRoot, agent.outputPath)), []);
+    assert.equal(agent.session, undefined);
+  }
+  await assert.rejects(access(join(createdRoot, '.pistudio/context')), { code: 'ENOENT' });
+  await writeFile(
+    join(createdRoot, created.agents[0].outputPath, 'retained.txt'),
+    'keep active output',
+  );
+  await writeFile(
+    join(createdRoot, created.agents[1].outputPath, 'archived.txt'),
+    'keep archived output',
+  );
+  const globals = beforeCreate.sections.agents;
+  const refreshed = [
+    globals[4],
+    { ...globals[0], name: 'Updated QA 0' },
+    globals[2],
+    globals[3],
+    { ...globals[0], id: 'new-agent', name: 'New QA', enabled: false },
+  ];
+  const updated = await js(
+    `window.studio.saveSection('agents',${JSON.stringify(refreshed)},${JSON.stringify({ folder: createdState.folder, base: globals })})`,
+  );
+  assert.ok(updated.saved);
+  await click('Перечитать агентов');
+  await until(`!!document.querySelector('[role="alertdialog"]')`);
+  assert.equal(await js(`!!document.querySelector('.agent-diff')`), false);
+  await click('Отмена');
+  assert.deepEqual(
+    (await js('window.studio.readProject(' + JSON.stringify(created.id) + ')')).agents.map(
+      (agent) => agent.profile.id,
+    ),
+    created.agents.map((agent) => agent.profile.id),
+  );
+  const comparison = async () => {
+    await click('Перечитать агентов');
+    await until(`!!document.querySelector('[role="alertdialog"]')`);
+    await click('Перечитать');
+    await until(`!!document.querySelector('.agent-diff')`);
+  };
+  await comparison();
+  await until(`document.querySelector('.agent-diff').textContent.includes('New QA')`);
+  assert.equal(
+    await js(
+      `document.querySelector('[aria-label="Обновить изменённые профили"]').getAttribute('aria-checked')`,
+    ),
+    'false',
+  );
+  await click('Применить');
+  await until(`!document.querySelector('.agent-diff')`);
+  const synced = await js('window.studio.readProject(' + JSON.stringify(created.id) + ')');
+  assert.deepEqual(
+    synced.agents.map((agent) => agent.profile.id),
+    refreshed.map((agent) => agent.id),
+  );
+  assert.equal(
+    synced.agents.find((agent) => agent.profile.id === globals[0].id).profile.name,
+    globals[0].name,
+  );
+  assert.ok(synced.archivedAgents.some((item) => item.agent.profile.id === globals[1].id));
+  await comparison();
+  await js(`document.querySelector('[aria-label="Обновить изменённые профили"]').click()`);
+  await click('Применить');
+  await until(`!document.querySelector('.agent-diff')`);
+  const changed = await js('window.studio.readProject(' + JSON.stringify(created.id) + ')');
+  const retained = changed.agents.find((agent) => agent.profile.id === globals[0].id);
+  assert.equal(retained.profile.name, 'Updated QA 0');
+  assert.equal(retained.outputPath, created.agents[0].outputPath);
+  assert.equal(changed.agents.length, 5);
+  assert.equal(
+    await readFile(join(createdRoot, retained.outputPath, 'retained.txt'), 'utf8'),
+    'keep active output',
+  );
+  assert.equal(
+    await readFile(join(createdRoot, created.agents[1].outputPath, 'archived.txt'), 'utf8'),
+    'keep archived output',
+  );
+  const removable = changed.agents.find((agent) => agent.profile.id === 'new-agent');
+  await writeFile(join(createdRoot, removable.outputPath, 'undo.txt'), 'keep removed agent output');
+  await js(
+    `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label').textContent.endsWith('New QA')).querySelector('[aria-label="Удалить агента из проекта"]').click()`,
+  );
+  await until(`document.querySelector('[role="alertdialog"]')?.textContent.includes('New QA')`);
+  await click('Удалить');
+  await until(`document.querySelectorAll('.project-agent-menu .section-menu-row').length===4`);
+  const removed = await js('window.studio.readProject(' + JSON.stringify(created.id) + ')');
+  assert.ok(removed.archivedAgents.some((item) => item.agent.profile.id === 'new-agent'));
+  assert.equal((await js('window.studio.loadStudio()')).sections.agents.length, 5);
+  await click('Вернуть');
+  await until(`document.querySelectorAll('.project-agent-menu .section-menu-row').length===5`);
+  const undone = await js('window.studio.readProject(' + JSON.stringify(created.id) + ')');
+  assert.deepEqual(
+    undone.agents.map((agent) => agent.profile.id),
+    changed.agents.map((agent) => agent.profile.id),
+  );
+  assert.equal(
+    await readFile(join(createdRoot, removable.outputPath, 'undo.txt'), 'utf8'),
+    'keep removed agent output',
+  );
   console.log(
     JSON.stringify({
       projectsList: true,
@@ -421,6 +634,12 @@ const timeout = setTimeout(() => {
       keyboardAndRowClick: true,
       clippedTooltipsOnly: true,
       renameCloneConfirmCancelRestore: true,
+      createCancelAndCurrentConstructorSnapshot: true,
+      confirmedAgentSyncAndExplicitProfileUpdate: true,
+      activeAndArchivedOutputsPreserved: true,
+      confirmedProjectAgentRemoveAndUndo: true,
+      staleReadFailureIgnored: true,
+      currentReadFailureStillVisible: true,
       noModelRequests: true,
       typography: style,
     }),

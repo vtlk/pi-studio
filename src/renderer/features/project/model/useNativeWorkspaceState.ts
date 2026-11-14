@@ -18,6 +18,9 @@ export function useNativeWorkspaceState() {
   const reading = useRef(false);
   const lastReadError = useRef('');
   const generation = useRef(0);
+  const invalidateReads = useCallback(() => {
+    generation.current++;
+  }, []);
   const selectedProject = projects.find((project) => project.id === projectId);
   const openAgent = async (
     agentId: string,
@@ -33,7 +36,7 @@ export function useNativeWorkspaceState() {
     if (mutating.current) return undefined;
     mutating.current = true;
     setBusy(true);
-    generation.current++;
+    invalidateReads();
     try {
       const result = await window.studio.launchAgent({
         projectId,
@@ -52,7 +55,7 @@ export function useNativeWorkspaceState() {
     } finally {
       mutating.current = false;
       setBusy(false);
-      generation.current++;
+      invalidateReads();
     }
   };
 
@@ -60,7 +63,7 @@ export function useNativeWorkspaceState() {
     if (!window.studio || mutating.current) return false;
     mutating.current = true;
     setBusy(true);
-    generation.current++;
+    invalidateReads();
     try {
       const result = await window.studio.projectCommand(action);
       setProjects(result.projects);
@@ -79,7 +82,7 @@ export function useNativeWorkspaceState() {
     } finally {
       mutating.current = false;
       setBusy(false);
-      generation.current++;
+      invalidateReads();
     }
   };
 
@@ -99,6 +102,7 @@ export function useNativeWorkspaceState() {
         ),
       );
     } catch (error) {
+      if (version !== generation.current) return;
       const message = `Не удалось прочитать результаты: ${error instanceof Error ? error.message : 'ошибка'}`;
       if (lastReadError.current !== message) demo(message);
       lastReadError.current = message;
@@ -110,7 +114,7 @@ export function useNativeWorkspaceState() {
     if (!window.studio || !bootstrap || mutating.current) return false;
     mutating.current = true;
     setBusy(true);
-    generation.current++;
+    invalidateReads();
     try {
       const project = await window.studio.clearAgentOutput({
         folder: bootstrap.folder,
@@ -126,7 +130,7 @@ export function useNativeWorkspaceState() {
     } finally {
       mutating.current = false;
       setBusy(false);
-      generation.current++;
+      invalidateReads();
     }
   };
   useEffect(() => {
@@ -134,8 +138,11 @@ export function useNativeWorkspaceState() {
     const timer = setInterval(() => {
       if (!document.hidden) void reload();
     }, 3000);
-    return () => clearInterval(timer);
-  }, [reload]);
+    return () => {
+      invalidateReads();
+      clearInterval(timer);
+    };
+  }, [reload, invalidateReads]);
 
   return {
     projects,

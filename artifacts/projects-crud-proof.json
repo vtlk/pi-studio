@@ -1,0 +1,73 @@
+{
+  "projectsList": true,
+  "realFolderAndCounts": true,
+  "orderAndDates": true,
+  "searchNameAndFolder": true,
+  "keyboardAndRowClick": true,
+  "clippedTooltipsOnly": true,
+  "renameCloneConfirmCancelRestore": true,
+  "createCancelAndCurrentConstructorSnapshot": true,
+  "confirmedAgentSyncAndExplicitProfileUpdate": true,
+  "activeAndArchivedOutputsPreserved": true,
+  "confirmedProjectAgentRemoveAndUndo": true,
+  "staleReadFailureIgnored": true,
+  "currentReadFailureStillVisible": true,
+  "noModelRequests": true,
+  "typography": {
+    "name": {
+      "size": "17px",
+      "weight": "600",
+      "color": "rgb(24, 24, 27)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    },
+    "folder": {
+      "size": "13px",
+      "weight": "400",
+      "color": "rgb(113, 113, 122)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    },
+    "heading": {
+      "size": "11px",
+      "weight": "600",
+      "color": "rgb(113, 113, 122)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    },
+    "count": {
+      "size": "14px",
+      "weight": "600",
+      "color": "rgb(36, 37, 48)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    },
+    "create": {
+      "size": "14px",
+      "weight": "500",
+      "color": "rgb(36, 32, 39)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    },
+    "search": {
+      "size": "14px",
+      "weight": "400",
+      "color": "rgb(32, 32, 39)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    },
+    "trash": {
+      "size": "14px",
+      "weight": "400",
+      "color": "rgb(39, 39, 42)",
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif"
+    }
+  },
+  "checkedAt": "2026-11-14T13:31:39.715854+00:00",
+  "targetVersion": "0.2.0-alpha.41",
+  "unitFsChecks": 28,
+  "beforeFix": "A delayed read error from the old selection produced a toast in the new project.",
+  "sourceSha256": {
+    "src/renderer/features/project/model/useNativeWorkspaceState.ts": "84d1fa64295df8b6d8b66801b23246c256464927ce2c2636e7435a1244858fce",
+    "scripts/smoke-projects-list.cjs": "6bfef72d63e94d6a3dd82e0cb579232eac9ae0cfa68b59cb14cf607cc5173977"
+  },
+  "scope": "Own isolated offscreen Electron studio; real main/preload/renderer and filesystem; model metadata synthetic.",
+  "limits": [
+    "No new Pi/model request or visual-model generation.",
+    "Native Finder action is stubbed; its canonical output path is asserted."
+  ]
+}
