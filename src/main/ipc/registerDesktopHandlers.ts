@@ -34,9 +34,10 @@ import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
 import { createImageServices, registerImageHandlers } from '../images/registerImageHandlers';
 import { registerModelConnectionHandlers } from '../pi/registerModelConnectionHandlers';
 import { registerMcpSecretHandlers } from '../pi/registerMcpSecretHandlers';
-import type { RunDependencies } from '../pi/RunTypes';
+import { notifyRunFailure as failureChanged } from '../pi/notifyRunFailure';
 import { saveManagedSkill } from '../storage/managedSkills';
 import type { SkillWriteRequest } from '../../shared/resources';
+import { BrowserSupport } from '../browser/BrowserSupport';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -70,18 +71,17 @@ export function registerDesktopHandlers(): StudioService {
   const references = new ReferenceFiles(referenceImage);
   const mcpSecrets = registerMcpSecretHandlers(service, caller, () => startup.path);
   const { connections: imageConnections, images } = createImageServices(service);
-  const failureChanged: RunDependencies['failureChanged'] = (run, failure) => {
-    const notice = {
-      projectRoot: run.projectRoot,
-      projectId: run.project.id,
-      agentId: run.agent.profile.id,
-      agentName: run.agent.profile.name,
-      failure,
-    };
-    for (const window of BrowserWindow.getAllWindows())
-      if (!window.isDestroyed()) window.webContents.send(desktopChannels.runFailure, notice);
+  const browser = new BrowserSupport(
+    join(app.getPath('userData'), 'runtime/browser'),
+    join(__dirname, '../../bundled/pi-bridge/browser/server.mjs'),
+  );
+  const productionResources = {
+    references,
+    images,
+    mcpSecrets,
+    browser,
+    libraryPreview: rasterizePreview,
   };
-  const productionResources = { references, images, mcpSecrets, libraryPreview: rasterizePreview };
   const runs = createStudioRunHost(service, {
     ...productionResources,
     failureChanged,
@@ -91,12 +91,14 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   const resources = new StudioResources(service, {
+    browser,
     mcpSecrets,
     browserAuth,
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {
+    browser,
     failureChanged,
     bootstraps: join(app.getPath('userData'), 'setup-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
@@ -115,7 +117,8 @@ export function registerDesktopHandlers(): StudioService {
   });
   // before-quit precedes the renderer's unsaved-changes confirmation: Stay must keep Pi alive.
   app.on('will-quit', () => {
-    for (const controller of [browserAuth, startup, runs, setup, generators]) controller.close();
+    for (const controller of [browserAuth, startup, runs, setup, generators, browser])
+      controller.close();
   });
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);

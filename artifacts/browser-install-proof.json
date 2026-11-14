@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-14T20:29:05.630Z",
+  "arch": "arm64",
+  "backendVersion": "agent-browser 0.43.0",
+  "chromeVersion": "Google Chrome for Testing 157.0.8103.78",
+  "backend": {
+    "version": "0.43.0",
+    "sha256": "05338a8eeddf0b3f9ebf0c87a6c21aedc10685608c68618e1a8483c43eae9c3f"
+  },
+  "chrome": {
+    "version": "157.0.8103.78",
+    "sha256": "269784d37b2ff5ab227e66f4f027860076bbd35c18558c156f9740e0660cbe2a"
+  },
+  "officialArtifacts": true,
+  "pinnedDownloadDigestsVerified": true,
+  "realNativeExecutables": true,
+  "globalNpmInstall": false,
+  "packageScriptsRun": false,
+  "personalChromeUsed": false
+}

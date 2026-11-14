@@ -12,6 +12,8 @@ import type { McpSecrets } from './McpSecrets.ts';
 import { nativeMcpConfig } from './nativeMcp.ts';
 import { mcpConfigRevision } from './mcpSecretValues.ts';
 import type { BrowserAuth } from './BrowserAuth.ts';
+import type { BrowserSupport } from '../browser/BrowserSupport.ts';
+import { browserMcp, reservedMcpName } from '../../shared/builtinResources.ts';
 
 interface Options {
   script: string;
@@ -19,6 +21,7 @@ interface Options {
   piPath: () => string;
   operation?: typeof nativeResourceOperation;
   mcpSecrets?: McpSecrets;
+  browser?: BrowserSupport;
 }
 const signature = (resource: Resource) =>
   JSON.stringify([
@@ -84,7 +87,7 @@ export class StudioResources {
     if (
       typeof args.name !== 'string' ||
       !/^[a-zA-Z0-9_-]+$/.test(args.name) ||
-      args.name.replaceAll('-', '_') === 'pi_studio'
+      reservedMcpName(args.name)
     )
       throw new Error('Укажите имя native MCP; pi_studio зарезервировано.');
     if (!args.config || typeof args.config !== 'object' || Array.isArray(args.config))
@@ -112,7 +115,7 @@ export class StudioResources {
     displayName?: string,
     metadata?: NativeResourceResult,
   ) {
-    if (!/^[a-zA-Z0-9_-]+$/.test(name) || name.replaceAll('-', '_') === 'pi_studio')
+    if (!/^[a-zA-Z0-9_-]+$/.test(name) || reservedMcpName(name))
       throw new Error('Некорректное имя native MCP.');
     if (!metadata) {
       const listed = await this.listNative(folder);
@@ -167,6 +170,7 @@ export class StudioResources {
   }
   async check(id: string, expectedFolder?: string): Promise<ResourceCheck> {
     const scope = await this.scope(expectedFolder);
+    if (id === browserMcp.id && this.options.browser) return this.options.browser.check();
     const resource = scope.resources.find((item) => item.id === id);
     if (!resource) throw new Error('Ресурс отсутствует в текущем каталоге.');
     if (resource.credential === 'keychain:pistudio-mcp' && !this.options.mcpSecrets)
@@ -238,6 +242,7 @@ export class StudioResources {
   }
   async install(id: string) {
     const scope = await this.scope();
+    if (id === browserMcp.id && this.options.browser) return this.options.browser.install();
     const resource = scope.resources.find((item) => item.id === id && item.kind === 'plugins');
     if (!resource) throw new Error('Пакет отсутствует.');
     return this.installPackage(scope.folder, resource.source, resource.name);

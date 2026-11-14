@@ -11,7 +11,7 @@ import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
-import { libraryMcp } from '../../shared/builtinResources.ts';
+import { libraryMcp, builtinResources } from '../../shared/builtinResources.ts';
 import {
   endpointProviderId,
   parseModelEndpoint,
@@ -107,7 +107,7 @@ export class SetupAdministration {
             deletable: false,
             builtinMcp: 'pinned',
           })),
-          resources: [...resources, libraryMcp],
+          resources: [...resources, ...builtinResources],
           connections,
           models,
           ...(nativeMcp ? { nativeMcp } : {}),

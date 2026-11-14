@@ -95,7 +95,20 @@ export async function runSession(bootstrapPath) {
     throw new Error('Pi session cwd differs; a supported fork is required');
   const statuses = new Map();
   const servers = [
-    ...envelope.resources.mcpServers,
+    ...envelope.resources.mcpServers.map((server) =>
+      server.name === 'pi_studio_browser'
+        ? {
+            ...server,
+            config: {
+              ...server.config,
+              env: {
+                ...server.config.env,
+                PI_STUDIO_BROWSER_SESSION: sessions.getSessionId(),
+              },
+            },
+          }
+        : server,
+    ),
     {
       name: 'pi_studio',
       scope: 'extension',
@@ -185,7 +198,9 @@ export async function runSession(bootstrapPath) {
         const last = runtime.session.messages.findLast((message) => message.role === 'assistant');
         await event({
           type: 'settled',
-          ...(last?.stopReason === 'error' ? { failure: classifyProviderFailure(last.errorMessage) } : {}),
+          ...(last?.stopReason === 'error'
+            ? { failure: classifyProviderFailure(last.errorMessage) }
+            : {}),
           outcome: settled.aborted
             ? 'aborted'
             : last?.stopReason === 'error'
@@ -215,7 +230,9 @@ export async function runSession(bootstrapPath) {
       await event({ type: 'capabilities', executableExtensions: packages.extensions.length > 0 });
       const services = await createAgentSessionServices({
         cwd,
-        ...(envelope.modelAuth ? { modelRuntime: await createConnectionRuntime(sdk, envelope.modelAuth) } : {}),
+        ...(envelope.modelAuth
+          ? { modelRuntime: await createConnectionRuntime(sdk, envelope.modelAuth) }
+          : {}),
         settingsManager: settings,
         resourceLoaderOptions: {
           noExtensions: true,

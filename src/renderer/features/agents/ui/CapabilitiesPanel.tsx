@@ -12,6 +12,7 @@ import { resourceStatus } from '@/features/resources/model/resourceStatus';
 import { systemAgentDefinitions } from '../../../../shared/systemAgents';
 import { libraryMcp } from '../../../../shared/builtinResources';
 import { McpPicker } from './McpPicker';
+import { BrowserResourceRow } from '@/features/resources/ui/BrowserResourceRow';
 
 export function CapabilitiesPanel() {
   const { agentTab, selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
@@ -62,6 +63,7 @@ export function CapabilitiesPanel() {
             </Disclosure>
           </div>
         )}
+        {field === 'mcps' && <BrowserResourceRow />}
         {selectedAgent[field].map((id) => {
           const key = `${field}:${id}`;
           const resource =

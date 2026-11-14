@@ -16,6 +16,15 @@ export const libraryMcp: Resource = {
   contents: '',
   createdAt: 0,
 };
+export const browserMcp: Resource = {
+  ...libraryMcp,
+  id: 'pistudio-browser',
+  name: 'Pi Studio · Браузер',
+  source: 'builtin:browser',
+  version: 'agent-browser 0.43.0',
+  description:
+    'Визуальное управление отдельным локальным браузером: снимки, координатные действия, ввод и вкладки. Профиль закреплён за диалогом Pi. Нужна модель с поддержкой изображений; компоненты устанавливаются отдельно.',
+};
 export const builtinResources: readonly Resource[] = [
   {
     ...libraryMcp,
@@ -26,6 +35,7 @@ export const builtinResources: readonly Resource[] = [
       'Обязательные инструменты проектной сессии: текущий контекст и файлы проекта, веб-поиск, проверка результата и монтажного манифеста. Подключается автоматически к проектным агентам.',
   },
   libraryMcp,
+  browserMcp,
   {
     ...libraryMcp,
     id: 'pistudio-administration',
@@ -35,6 +45,11 @@ export const builtinResources: readonly Resource[] = [
       'Административные инструменты помощника настройки: каталог, подключения, навыки, MCP, пакеты и настройки агентов. Закреплён за помощником и не выдаётся проектным агентам.',
   },
 ];
+export function reservedMcpName(name: string) {
+  return ['pi_studio', 'pi_studio_browser', 'pi_studio_computer'].includes(
+    name.replaceAll('-', '_'),
+  );
+}
 export function builtinResource(id: string) {
   return builtinResources.find((item) => item.id === id);
 }

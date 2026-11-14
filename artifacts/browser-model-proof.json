@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-14T20:20:43.198Z",
+  "pi": "1.5.2",
+  "model": "openai-codex/gpt-5.6-luna",
+  "actualSubscriptionRequest": true,
+  "randomCanvasTarget": true,
+  "screenshotToolResultDelivered": true,
+  "visualClickCount": 1,
+  "tokenReadCorrectly": true,
+  "stageValidated": true,
+  "mandatoryResourceRecorded": true,
+  "exactIdleResume": true,
+  "noRequestReplay": true,
+  "personalBrowserUsed": false
+}

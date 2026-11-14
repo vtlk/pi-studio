@@ -4,7 +4,7 @@ import type { ProjectAgentProfile } from '../../shared/project.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
 import { nativeMcpConfig } from './nativeMcp.ts';
-import { libraryMcpId } from '../../shared/builtinResources.ts';
+import { libraryMcpId, reservedMcpName } from '../../shared/builtinResources.ts';
 
 export type McpConfigResolver = (
   resource: Resource,
@@ -69,7 +69,7 @@ export async function resolveResources(
         const name = resource.source.startsWith('pi:')
           ? resource.source.slice(3)
           : `studio_${id.replace(/[^a-zA-Z0-9_]/g, '_')}`;
-        if (!/^[a-zA-Z0-9_-]+$/.test(name) || name.replaceAll('-', '_') === 'pi_studio')
+        if (!/^[a-zA-Z0-9_-]+$/.test(name) || reservedMcpName(name))
           throw new Error(`Недопустимое имя MCP «${resource.name}».`);
         let config: Record<string, unknown>;
         if (resource.source.startsWith('pi:')) {

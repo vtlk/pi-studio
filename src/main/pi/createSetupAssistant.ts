@@ -18,6 +18,7 @@ import type { openSessionTerminal } from './terminal.ts';
 import { StudioResources } from './StudioResources.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
+import type { BrowserSupport } from '../browser/BrowserSupport.ts';
 
 interface Options {
   bootstraps: string;
@@ -29,6 +30,7 @@ interface Options {
   openTerminal?: typeof openSessionTerminal;
   resources?: StudioResources;
   mcpSecrets?: McpSecrets;
+  browser?: BrowserSupport;
 }
 export function createSetupAssistant(service: StudioService, options: Options) {
   const catalog = async () => {
@@ -59,6 +61,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     tools: setupTools,
+    closed: (run) => options.browser?.release(run),
     prepare: (request) =>
       service.serialize(async () => {
         if (
@@ -77,7 +80,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         if (!agent.enabled)
           throw new Error('Системный помощник выключен. Включите его в конструкторе.');
         const path = String(sections.piPath ?? '') || options.piPath();
-        const { modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
+        const { selectedModel, modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
           agent.model,
           (sections.connections ?? []) as Connection[],
           { ...options, folder: store.folder, piPath: path },
@@ -128,6 +131,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           thinkingLevel,
         );
         run.modelAuth = modelAuth;
+        await options.browser?.bind(run, store.folder, path, selectedModel.imageInput);
         return { run, piPath: path };
       }),
     update: async (run, status, session, failure) => {

@@ -15,6 +15,7 @@ import type { openSessionTerminal } from './terminal.ts';
 import type { ImageGeneration } from '../images/ImageGeneration.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
+import type { BrowserSupport } from '../browser/BrowserSupport.ts';
 
 interface Options {
   bootstraps: string;
@@ -23,6 +24,7 @@ interface Options {
   piPath: () => string;
   references?: ReferenceFiles;
   images?: ImageGeneration;
+  browser?: BrowserSupport;
   libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
@@ -40,7 +42,10 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         : []),
       ...(options.images?.tools(run) ?? []),
     ],
-    closed: (run) => options.images?.cancel(run),
+    closed: (run) => {
+      options.images?.cancel(run);
+      options.browser?.release(run);
+    },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
@@ -105,6 +110,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           selectedModel.imageInput,
         );
         options.images?.bind(run, store.folder, selectedModel);
+        await options.browser?.bind(run, store.folder, piPath, selectedModel.imageInput);
         run.modelAuth = modelAuth;
         return { run, piPath };
       }),

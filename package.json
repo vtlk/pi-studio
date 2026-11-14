@@ -67,7 +67,10 @@
     "test:first-message": "npm run build && electron scripts/smoke-first-message.cjs",
     "test:quit-cancel": "npm run build && electron scripts/smoke-quit-cancel.cjs",
     "test:pi-attachments": "node --experimental-strip-types scripts/smoke-pi-attachments.ts",
-    "test:image-status": "npm run build && electron scripts/smoke-image-status.cjs"
+    "test:image-status": "npm run build && electron scripts/smoke-image-status.cjs",
+    "test:browser": "node --experimental-strip-types scripts/smoke-browser.mjs",
+    "test:pi-browser": "node --experimental-strip-types scripts/smoke-pi-browser.ts",
+    "test:browser-ui": "npm run build && electron scripts/smoke-browser-ui.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

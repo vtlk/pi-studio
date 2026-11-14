@@ -12,6 +12,7 @@ import { ResourceActions } from './ResourceActions';
 import { resourceStatus } from '../model/resourceStatus';
 import { ManagedSkillEditor } from './ManagedSkillEditor';
 import { builtinResources, builtinResource } from '../../../../shared/builtinResources';
+import { BrowserResourceRow } from './BrowserResourceRow';
 
 export function ResourceCatalog({
   kind,
@@ -109,57 +110,61 @@ export function ResourceCatalog({
         .filter(
           (item) => item.kind === kind && item.name.toLowerCase().includes(query.toLowerCase()),
         )
-        .map((resource) => (
-          <div
-            className="resource-row"
-            key={resource.id}
-            data-removable={builtinResource(resource.id) ? undefined : true}
-          >
-            <div>
-              <div className="resource-heading">
-                <strong>{resource.name}</strong>
-                <small>
-                  {builtinResource(resource.id)
-                    ? 'Встроенный · поставляется с Pi Studio'
-                    : resourceStatus(resource, !!window.studio)}
-                </small>
+        .map((resource) =>
+          resource.source === 'builtin:browser' ? (
+            <BrowserResourceRow key={resource.id} />
+          ) : (
+            <div
+              className="resource-row"
+              key={resource.id}
+              data-removable={builtinResource(resource.id) ? undefined : true}
+            >
+              <div>
+                <div className="resource-heading">
+                  <strong>{resource.name}</strong>
+                  <small>
+                    {builtinResource(resource.id)
+                      ? 'Встроенный · поставляется с Pi Studio'
+                      : resourceStatus(resource, !!window.studio)}
+                  </small>
+                </div>
+                <p>{resource.description}</p>
+                {!builtinResource(resource.id) && <ResourceActions resource={resource} />}
               </div>
-              <p>{resource.description}</p>
-              {!builtinResource(resource.id) && <ResourceActions resource={resource} />}
-            </div>
-            <Button onClick={() => setEdit(resource)}>
-              {builtinResource(resource.id)
-                ? 'Сведения'
-                : kind === 'skills'
-                  ? resource.managedSkill
-                    ? 'Редактировать'
-                    : 'Сведения'
-                  : 'Настроить'}
-            </Button>
-            {onPick && (
-              <Button
-                kind="primary"
-                disabled={attached.includes(resource.id)}
-                onClick={() => onPick(resource.id)}
-              >
-                {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
+              <Button onClick={() => setEdit(resource)}>
+                {builtinResource(resource.id)
+                  ? 'Сведения'
+                  : kind === 'skills'
+                    ? resource.managedSkill
+                      ? 'Редактировать'
+                      : 'Сведения'
+                    : 'Настроить'}
               </Button>
-            )}
-            {!onPick && !builtinResource(resource.id) && (
-              <HoverDeleteButton
-                label={`Удалить ресурс ${resource.name}`}
-                description={usage(resource)}
-                onDelete={() => {
-                  removeResource(kind, resource.id);
-                  demo('Ресурс убран из каталога. Исходные файлы сохранены.', {
-                    label: 'Вернуть',
-                    onClick: () => saveResource(resource),
-                  });
-                }}
-              />
-            )}
-          </div>
-        ))}
+              {onPick && (
+                <Button
+                  kind="primary"
+                  disabled={attached.includes(resource.id)}
+                  onClick={() => onPick(resource.id)}
+                >
+                  {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
+                </Button>
+              )}
+              {!onPick && !builtinResource(resource.id) && (
+                <HoverDeleteButton
+                  label={`Удалить ресурс ${resource.name}`}
+                  description={usage(resource)}
+                  onDelete={() => {
+                    removeResource(kind, resource.id);
+                    demo('Ресурс убран из каталога. Исходные файлы сохранены.', {
+                      label: 'Вернуть',
+                      onClick: () => saveResource(resource),
+                    });
+                  }}
+                />
+              )}
+            </div>
+          ),
+        )}
       {onPick && addArea}
       {edit && <ResourceEditor key={edit.id} resource={edit} onClose={() => setEdit(null)} />}
       {creatingSkill && <ManagedSkillEditor onClose={() => setCreatingSkill(false)} />}
