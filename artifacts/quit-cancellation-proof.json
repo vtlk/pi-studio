@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "0.2.0-alpha.55",
+  "sourceVersion": "0.2.0-alpha.56",
   "electronVersion": "45.3.1",
   "piVersion": "1.5.2",
   "beforeFix": "Actual cancelled app.quit destroyed the live native request: expected stream.closed=false, got true.",
@@ -22,7 +22,7 @@
     "src/main/ipc/registerDesktopHandlers.ts": "7691faeadec1d915e95baf879339e2fb9aed2c756e8454a66ec2f3cace1f91b8",
     "src/main/windows/createStudioWindow.ts": "db71c5255149d7cf84034e00673bbbd028882d3eabdc977be7f1206fd4466228",
     "src/main/pi/RunHost.ts": "96c99757741b9d6eab467aca7a5490b7ebd925f501ec6497e1dbac7dfe42eb0c",
-    "src/main/pi/RunLifecycle.ts": "8de7474aa5534f9875c3fe4d828701b1682422aa85964454c14a388b60e3d7f6",
+    "src/main/pi/RunLifecycle.ts": "80ed74bf57246fd8f9d86df61d8b8780633dbf4b12a17b8352ce05ecc1ee6b02",
     "src/renderer/features/project/ui/AgentActions.tsx": "ede034e3dd5bdf1a286a9a50c0936f396473c07a2ebf27af4ceee69ab26962a5",
     "src/renderer/features/project/model/useNativeWorkspaceState.ts": "e28e855d49409a73d655c821b971343937564ff5e0607b8bda9e61362fce7959",
     "scripts/smoke-quit-cancel.cjs": "8f4b861d2a90f305941f1e1ac10b0e9fb2d3ca694db0e7a6698a6588c77c8c8a"
