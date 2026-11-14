@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "sdk": "1.5.2",
+  "cloneAndRename": true,
+  "archivedAgent": true,
+  "exactSecondResume": true,
+  "preservedImageHistory": true,
+  "productionAttachments": true,
+  "duplicateFilenamesAndHashes": true,
+  "originalsRemoved": true,
+  "attachmentReplay": false,
+  "modelRequests": 0,
+  "checkedAt": "2026-11-14T12:28:51.601487+00:00",
+  "command": "npm run test:pi-project-moves",
+  "testSha256": "fb8233a62e7b03d7d67763333b1680b77ea82193823041235b6289570d9244db",
+  "history": "Seeded canonical SDK history with production-copied attachments; no model inference",
+  "limits": [
+    "Does not repeat native chooser UI or paid visual recognition.",
+    "Does not mutate the user studio."
+  ]
+}

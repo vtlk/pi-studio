@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-11-14T12:27:49.777Z",
+  "applicationVersion": "0.2.0-alpha.38",
+  "sourceCommit": "c9352ca7f98524eb60adf0091583da77b39efbd7",
+  "runId": "e1c8ee68-aa1a-4483-8e0b-915fda159a4d",
+  "taskStatus": "ready",
+  "outputCount": 9,
+  "exactSessionBinding": true,
+  "canonicalMessages": 43,
+  "models": [
+    "gpt-5.6-luna"
+  ],
+  "film": {
+    "relativePath": "agents/multfilm/output/film.mp4",
+    "sha256": "3d137476a7bba8db80755b65e65f9ddb5db17c016398840a083d894d7365bab6",
+    "bytes": 339356,
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1080,
+          "height": 1920,
+          "r_frame_rate": "30/1",
+          "duration": "8.000000"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "r_frame_rate": "0/0",
+          "duration": "8.000000"
+        }
+      ],
+      "format": {
+        "duration": "8.000000",
+        "size": "339356"
+      }
+    }
+  },
+  "manifest": {
+    "validatedBy": "readVideoProject",
+    "revision": "e7fb68fdc82ab8c19d9fcb1b97a45d2e6f63cff13f135bd3b19c300eeb5177a3",
+    "assetCount": 1,
+    "trackCount": 2,
+    "durationInFrames": 240
+  },
+  "limits": [
+    "Read-only revalidation of the existing user-completed QA run; no new generation.",
+    "Previously observed native playback/fullscreen evidence remains in proof.json; this check does not repeat UI playback.",
+    "Does not prove every external provider/account or artistic accuracy."
+  ]
+}

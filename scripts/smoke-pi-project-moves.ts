@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rm, writeFile, realpath } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile, realpath, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
@@ -11,6 +12,9 @@ import { checkPi } from '../src/main/pi/checkPi.ts';
 import { resolvePiSdk } from '../src/main/pi/BrowserAuth.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import { libraryPng } from './fixtures/library.mjs';
+import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
+import { readProjectFile } from '../src/main/pi/projectFiles.ts';
+import type { SavedAttachment } from '../src/shared/attachments.ts';
 
 // Real pinned SDK, bridge and loopback MCP; seeded history, no generation/model request.
 const image = libraryPng();
@@ -42,6 +46,26 @@ const original = (await store.command({ kind: 'create', name: 'Before', agents: 
   .projects[0];
 const originalRoot = await store.projects.directory(original.id);
 const snapshots = new Map<string, { path: string; bytes: Buffer; entries: unknown[] }>();
+const inputs = new Map<
+  string,
+  {
+    directory: string;
+    metadata: Buffer;
+    attachments: SavedAttachment[];
+    bytes: Buffer[];
+  }
+>();
+const references = new ReferenceFiles();
+const sources = join(temporary, 'source-inputs');
+await mkdir(join(sources, 'a'), { recursive: true });
+await mkdir(join(sources, 'b'), { recursive: true });
+await writeFile(join(sources, 'a/same.txt'), 'First separate input');
+await writeFile(join(sources, 'b/same.txt'), 'Second separate input');
+await writeFile(join(sources, 'reference.png'), image);
+const selected = await references.select(
+  [join(sources, 'a/same.txt'), join(sources, 'b/same.txt'), join(sources, 'reference.png')],
+  store.folder,
+);
 const parse = (bytes: Buffer) =>
   bytes
     .toString('utf8')
@@ -49,6 +73,23 @@ const parse = (bytes: Buffer) =>
     .filter(Boolean)
     .map((line) => JSON.parse(line));
 for (const agent of original.agents) {
+  const initial = await buildRunContext(originalRoot, original, agent.profile.id, profiles, []);
+  await references.attach(
+    initial,
+    selected.map((item) => item.id),
+    store.folder,
+    true,
+  );
+  const attachments = initial.record.attachments!;
+  const inputDirectory = join(dirname(agent.outputPath), 'runs', initial.record.runId);
+  inputs.set(agent.profile.id, {
+    directory: inputDirectory,
+    metadata: await readFile(join(originalRoot, inputDirectory, 'attachments.json')),
+    attachments,
+    bytes: await Promise.all(attachments.map((item) => readFile(join(originalRoot, item.path)))),
+  });
+  assert.notEqual(attachments[0].path, attachments[1].path);
+  assert.equal(attachments[0].name, attachments[1].name);
   const cwd = join(originalRoot, dirname(agent.outputPath));
   const manager = sdk.SessionManager.create(cwd, join(cwd, 'sessions'));
   manager.appendMessage({
@@ -56,7 +97,7 @@ for (const agent of original.agents) {
     content: [
       {
         type: 'text',
-        text: `Seeded first message for ${agent.profile.id}. Attached local reference.`,
+        text: `Seeded first message for ${agent.profile.id}. Input files (paths relative to project directory): ${JSON.stringify(attachments)}`,
       },
       { type: 'image', mimeType: 'image/png', data: image.toString('base64') },
     ],
@@ -93,8 +134,9 @@ for (const agent of original.agents) {
     `Result for ${agent.profile.id}`,
   );
 }
-await mkdir(join(originalRoot, '.pistudio/attachments'), { recursive: true });
-await writeFile(join(originalRoot, '.pistudio/attachments/reference.png'), image);
+// The original chooser files no longer exist. Every subsequent read must use
+// the copied project input, including after native SDK session forking.
+await rm(sources, { recursive: true });
 await store.command({ kind: 'remove-agent', projectId: original.id, agentId: 'archived' });
 const children: Promise<number | null>[] = [];
 let requests = 0;
@@ -170,7 +212,21 @@ async function resume(projectId: string, agentId: string) {
   assert.equal(context.projectRoot, root);
   assert.equal(context.cwd, lines[0].cwd);
   assert.equal(JSON.stringify(context).includes('CURRENT_ONLY_INSTRUCTION'), false);
-  assert.deepEqual(await readFile(join(root, '.pistudio/attachments/reference.png')), image);
+  assert.equal(context.attachments, undefined, 'Resume must not reattach inputs to a new request');
+  await assert.rejects(stat(join(root, dirname(agent.outputPath), 'runs', result.runId)), {
+    code: 'ENOENT',
+  });
+  const input = inputs.get(agentId)!;
+  assert.deepEqual(await readFile(join(root, input.directory, 'attachments.json')), input.metadata);
+  for (const [index, attachment] of input.attachments.entries()) {
+    const actual = await readFile(join(root, attachment.path));
+    assert.deepEqual(actual, input.bytes[index]);
+    assert.equal(createHash('sha256').update(actual).digest('hex'), attachment.sha256);
+    const fromTool = await readProjectFile(root, { path: attachment.path, encoding: 'base64' });
+    assert.deepEqual(Buffer.from(fromTool.content, 'base64'), actual);
+    if (attachment.image)
+      assert.deepEqual(await readFile(join(root, attachment.image.path)), image);
+  }
   return { project, session, lines, binding: agent.session! };
 }
 async function verifyMoved(projectId: string) {
@@ -228,6 +284,10 @@ try {
       archivedAgent: true,
       exactSecondResume: true,
       preservedImageHistory: true,
+      productionAttachments: true,
+      duplicateFilenamesAndHashes: true,
+      originalsRemoved: true,
+      attachmentReplay: false,
       modelRequests: requests,
     }),
   );
