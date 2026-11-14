@@ -54,16 +54,6 @@ export function Button({
     </button>
   );
 }
-export function SectionTitle({
-  children,
-}: {
-  title: string;
-  eyebrow?: string;
-  description?: string;
-  children?: ReactNode;
-}) {
-  return children ? <div className="stage-actions">{children}</div> : null;
-}
 export function EmptyIntegration({ children }: { children: ReactNode }) {
   return (
     <div className="integration-note">

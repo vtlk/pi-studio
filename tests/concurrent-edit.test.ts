@@ -117,3 +117,44 @@ test('CRUD comparisons are per section and include resource checks, deletions an
   );
   assert.deepEqual(store.bootstrap().sections.agents, [...order].reverse());
 });
+
+test('object key order alone is neither a stale conflict nor a reason to rewrite saved settings', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-key-order-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const service = new StudioService(join(root, 'preferences.json'), join(root, 'studio'));
+  const store = await service.load();
+  const capabilitySettings = { 'skills:a': { enabled: true }, 'skills:b': { enabled: false } };
+  await store.saveSection('agents', [{ ...profile, capabilitySettings }]);
+  const reordered = [
+    {
+      ...profile,
+      capabilitySettings: {
+        'skills:b': { enabled: false },
+        'skills:a': { enabled: true },
+      },
+    },
+  ];
+  const file = join(store.folder, '.pistudio/studio.json');
+  const before = await readFile(file, 'utf8');
+  assert.equal(
+    (
+      await store.editSection('agents', reordered, {
+        folder: store.folder,
+        base: reordered,
+      })
+    ).saved,
+    true,
+  );
+  assert.equal(await readFile(file, 'utf8'), before, 'Equal settings preserve existing bytes');
+  assert.equal(
+    (
+      await store.editSection('agents', [{ ...reordered[0], name: 'Explicit edit' }], {
+        folder: store.folder,
+        base: reordered,
+      })
+    ).saved,
+    true,
+    'Reordered object keys do not cause a false conflict',
+  );
+  assert.equal((store.bootstrap().sections.agents as typeof reordered)[0].name, 'Explicit edit');
+});

@@ -13,6 +13,7 @@ import { parseSection, parseStudio } from './validation.ts';
 import { ProjectStore } from './ProjectStore.ts';
 import { LibraryStore } from '../library/LibraryStore.ts';
 import { randomUUID } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 import { createSystemAgents, type SystemAgent } from '../../shared/systemAgents.ts';
 import type { Agent } from '../../shared/studio.ts';
 import { migrateLibraryAgents } from './migrateLibraryAgents.ts';
@@ -114,9 +115,8 @@ export class StudioStore {
     const local = parseSection(section, value);
     const base = parseSection(section, edit.base);
     const current = this.sections[section] ?? base;
-    const equal = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-    if (equal(local, current)) return { saved: true, value: structuredClone(current) };
-    if (!equal(base, current)) return { saved: false, value: structuredClone(current) };
+    if (isDeepStrictEqual(local, current)) return { saved: true, value: structuredClone(current) };
+    if (!isDeepStrictEqual(base, current)) return { saved: false, value: structuredClone(current) };
     await this.saveSection(section, local);
     return { saved: true, value: structuredClone(local) };
   }
