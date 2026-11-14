@@ -56,24 +56,26 @@ export function NativeConnectionAuth({
     const id = auth.id;
     let current = true;
     const timer = setInterval(() => {
-      void getStudioApi().readAuthLogin(id).then(
-        (next) => {
-          if (!current) return;
-          setAuth(next);
-          if (next.phase === 'ready' && bootstrap) {
-            void window
-              .studio!.getConnectionStatus({
-                folder: bootstrap.folder,
-                connectionId: connection.id,
-              })
-              .then(setProviderStatus, () => {});
-          }
-        },
-        () => {
-          if (current)
-            setAuth({ id, phase: 'error', message: 'Не удалось проверить состояние входа.' });
-        },
-      );
+      void getStudioApi()
+        .readAuthLogin(id)
+        .then(
+          (next) => {
+            if (!current) return;
+            setAuth(next);
+            if (next.phase === 'ready' && bootstrap) {
+              void getStudioApi()
+                .getConnectionStatus({
+                  folder: bootstrap.folder,
+                  connectionId: connection.id,
+                })
+                .then(setProviderStatus, () => {});
+            }
+          },
+          () => {
+            if (current)
+              setAuth({ id, phase: 'error', message: 'Не удалось проверить состояние входа.' });
+          },
+        );
     }, 500);
     return () => {
       current = false;

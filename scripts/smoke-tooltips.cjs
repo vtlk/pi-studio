@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
 const { rm, writeFile, mkdir } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
@@ -31,14 +31,32 @@ const deadline = setTimeout(() => {
   writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
   app.setPath('userData', userData);
   app.setPath('videos', temporary);
+  const handle = ipcMain.handle.bind(ipcMain);
+  ipcMain.handle = (channel, action) =>
+    handle(
+      channel,
+      channel === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action,
+    );
   const loaded = new Promise((resolve) =>
-    app.once('browser-window-created', (_event, window) =>
-      window.webContents.once('did-finish-load', () => resolve(window)),
-    ),
+    app.once('browser-window-created', (_event, window) => {
+      window.hide();
+      window.on('show', () => window.hide());
+      window.webContents.setBackgroundThrottling(false);
+      window.webContents.once('did-finish-load', () => resolve(window));
+    }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded,
     js = (code) => window.webContents.executeJavaScript(code, true);
+  window.webContents.removeAllListeners('will-prevent-unload');
+  window.webContents.on('will-prevent-unload', () => {
+    console.error('QA reload before saved');
+    app.exit(1);
+  });
+  window.webContents.debugger.attach('1.3');
+  await window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
   const until = async (code) => {
     for (let i = 0; i < 100; i++) {
       if (await js(code)) return;
@@ -61,6 +79,7 @@ const deadline = setTimeout(() => {
     js(`Array.from(document.querySelectorAll('[role="tooltip"]')).map(item=>item.textContent)`);
   // Exercise pointer handlers in the isolated renderer without moving the user's OS cursor.
   const hover = async (selector) => {
+    assert.ok(await js(`!!document.querySelector(${JSON.stringify(selector)})`), selector);
     await js(
       `(()=>{document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));const previous=window.__qaTooltipTarget;if(previous)previous.dispatchEvent(new PointerEvent('pointerout',{bubbles:true,pointerType:'mouse',relatedTarget:document.body}));window.__qaTooltipTarget=null;document.body.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:0,clientY:0}));})()`,
     );
@@ -80,11 +99,9 @@ const deadline = setTimeout(() => {
   const longFile = 'Полное имя файла с результатами работы агента для проверки скрытого текста.md';
   await writeFile(join(output, longFile), '# Long result');
   await click('Агенты');
-  app.focus({ steal: true });
-  window.focus();
   await until('document.hasFocus()');
-  const short = '.agent-list-entry:not([data-system-role]):nth-child(1) .agent-list-item';
-  const long = '.agent-list-entry:not([data-system-role]):nth-child(2) .agent-list-item';
+  const short = '.agent-list-item[aria-label^="1. Коротко"]';
+  const long = '.agent-list-item[aria-label^="2. Полное название"]';
   await hover(short);
   assert.deepEqual(await tooltips(), [], 'Visible agent name must not produce a duplicate tooltip');
   await hover(long);
@@ -99,6 +116,7 @@ const deadline = setTimeout(() => {
   await hover('[data-system-role="assistant"] .agent-list-item');
   assert.deepEqual(await tooltips(), [], 'Fully visible system agent name must not be duplicated');
   await click('Проекты');
+  await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`!!document.querySelector('.project-list-row')`);
