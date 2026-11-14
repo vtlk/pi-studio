@@ -25,5 +25,33 @@
   "sourceSha256": {
     "src/main/pi/RunHost.ts": "22b2364da2cbd786a351a26ab71d3f02dc0599b0b5ff550122d842154e853ab8",
     "bundled/pi-bridge/session.mjs": "bcfc9468f68807f5966a42d8f0840ea9b61f8a4fc7e837e81e526d82e73bcacb"
+  },
+  "afterResumeCleanupFix": {
+    "checkedAt": "2026-11-14T19:03:04.818Z",
+    "scope": "Source after alpha.53; no user app or studio changes",
+    "result": {
+      "passed": true,
+      "pi": "1.5.2",
+      "scope": "Two real native Pi processes, production Studio RunHost/bridge, one project; synthetic SSE model on loopback only",
+      "simultaneousRequests": true,
+      "secondOpenedWhileFirstStreaming": true,
+      "independentBindingsAndMessages": true,
+      "independentOutputs": true,
+      "oneCompletionDoesNotStopOther": true,
+      "mutationsWaitForBoth": true,
+      "exactIdleResumesNoReplay": true,
+      "localModelRequests": 2,
+      "externalModelRequests": 0,
+      "runIdsDistinct": true
+    },
+    "sourceSha256": {
+      "src/main/pi/RunHost.ts": "5d5b2c3e728cd96608e232fddd561447715bb008795ba6b543ceaa079acb71af",
+      "src/main/pi/RunLifecycle.ts": "d9abe812c3da86b04a5e5ff4204f5c7dcec1410a2169648023371313fb647f54",
+      "src/main/pi/stopRunProcess.ts": "8b14841369acf847b01825998d3fd8bf26da4c7af97aa60463c4a5950043f68b",
+      "tests/run-close.test.ts": "2e2bc1193b1d955bd1ec18cbd52a48fc59ef95e6602527f62ac4ec727775afcf",
+      "scripts/smoke-pi-parallel.ts": "1f017fad21eb31ee1db47be4001ed6b04ff48e21626d7b46afb1491e86d6de0a",
+      "scripts/smoke-pi-chain-local.ts": "febf38b0294fa26eb9030a8a0cb6d8396d6df219ae09ba169aeafe91ab8af1e8",
+      "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
+    }
   }
 }

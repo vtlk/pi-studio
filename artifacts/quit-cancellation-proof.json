@@ -9,13 +9,21 @@
     "nativeResponsePersistsAndUpdatesStatus": true,
     "exactBindingAndTranscriptOnIdleResume": true,
     "idleResumeDoesNotReplay": true,
-    "confirmedQuitClosesWindowRequestAndChild": true
+    "confirmedQuitClosesWindowRequestAndChild": true,
+    "nativeFirstMessageDialogCreatesCanonicalSession": true,
+    "liveRequestShowsRunningIconAndLabel": true,
+    "closedPiChangesRowToSavedDialogue": true,
+    "rowResumeOpensSameDialogueWithoutMessageOrModal": true
   },
   "modelRequests": 2,
-  "limits": "Actual production main/preload/Electron quit lifecycle and native Pi SDK. Only OS confirmation and Terminal dispatch intercepted; model SSE is loopback, no cloud requests or user studio access. Unsaved state supplied by a test renderer beforeunload guard.",
+  "limits": "Actual production main/preload/UI/Electron quit lifecycle and native Pi SDK. Offscreen document visibility simulated to enable normal project polling. Only OS confirmation and Terminal dispatch intercepted; model SSE is loopback, no cloud requests or user studio access. Unsaved state supplied by a test renderer beforeunload guard.",
   "sourceSha256": {
     "src/main/ipc/registerDesktopHandlers.ts": "c60a57a102bcc656273100227f85ab7c0570fe418af993c8ccb0ae7ffa261cc3",
     "src/main/windows/createStudioWindow.ts": "db71c5255149d7cf84034e00673bbbd028882d3eabdc977be7f1206fd4466228",
-    "scripts/smoke-quit-cancel.cjs": "ed4575f548ba150d2d09c720f77f453a279e2a45c1e8025ec25bcfa7643e57be"
+    "src/main/pi/RunHost.ts": "5d5b2c3e728cd96608e232fddd561447715bb008795ba6b543ceaa079acb71af",
+    "src/main/pi/RunLifecycle.ts": "d9abe812c3da86b04a5e5ff4204f5c7dcec1410a2169648023371313fb647f54",
+    "src/renderer/features/project/ui/AgentActions.tsx": "ede034e3dd5bdf1a286a9a50c0936f396473c07a2ebf27af4ceee69ab26962a5",
+    "src/renderer/features/project/model/useNativeWorkspaceState.ts": "5dcadfb6ee274b7b4a8ce169b5adb2ea04a72861926211b710032e744fe9f877",
+    "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
   }
 }

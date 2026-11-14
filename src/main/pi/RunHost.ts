@@ -10,7 +10,6 @@ import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
-import { closedRunStatus } from './closedRunStatus.ts';
 import { stopRunProcess } from './stopRunProcess.ts';
 
 class ContinuationCancelled extends Error {}
@@ -23,6 +22,7 @@ export class RunHost {
   private readonly channel = new RunChannel();
   private readonly live = new Map<string, LiveRun>();
   private readonly opening = new Set<string>();
+  private readonly retiring = new Map<string, Promise<void>>();
   private readonly changing = new Set<string>();
   private readonly chains = new Map<string, symbol>();
   private readonly dependencies: RunDependencies;
@@ -139,6 +139,10 @@ export class RunHost {
     this.opening.add(key);
     let current: LiveRun | undefined;
     try {
+      // Finish the previous process's status/lease cleanup before replacing this agent's bridge.
+      await this.retiring.get(key);
+      this.assertUnchanged(request.projectId);
+      continuation?.check();
       const active = this.live.get(key);
       if (active?.pid && processAlive(active.pid)) {
         if (automaticMessage && active.chain !== chain)
@@ -160,13 +164,8 @@ export class RunHost {
             project: await this.dependencies.read(active.run),
           };
         }
-        process.kill(active.pid, 'SIGTERM');
-        for (let i = 0; i < 100 && processAlive(active.pid); i++)
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        if (processAlive(active.pid))
-          throw new Error(
-            'Предыдущий Pi ещё закрывается. Повторите открытие через несколько секунд.',
-          );
+        await stopRunProcess(active, this.dependencies.closed);
+        await this.retiring.get(key);
         this.channel.remove(active.run.record.runId);
         this.live.delete(key);
       } else if (active) {
@@ -274,16 +273,20 @@ export class RunHost {
   }
   private async checkLiveness() {
     for (const [key, live] of this.live)
-      if ((live.pid && !processAlive(live.pid)) || Date.now() - live.heartbeat > 20000) {
-        this.dependencies.closed?.(live.run);
-        live.status = closedRunStatus(live.status);
-        await this.dependencies.update(live.run, live.status).catch(() => {});
-        this.channel.remove(live.run.record.runId);
-        this.live.delete(key);
-        live.fail(new Error('Связь с Pi потеряна. Готовность результата не подтверждена.'));
-        await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true }).catch(
-          () => {},
-        );
+      if (
+        !this.retiring.has(key) &&
+        ((live.pid && !processAlive(live.pid)) || Date.now() - live.heartbeat > 20000)
+      ) {
+        const cleanup = this.lifecycle.processLost(live).then(() => {
+          this.channel.remove(live.run.record.runId);
+          this.live.delete(key);
+        });
+        this.retiring.set(key, cleanup);
+        try {
+          await cleanup;
+        } finally {
+          this.retiring.delete(key);
+        }
       }
   }
   close() {
@@ -300,6 +303,7 @@ export class RunHost {
     if (
       (projectId ? this.changing.has(projectId) : this.changing.size > 0) ||
       this.opening.size ||
+      [...this.retiring.keys()].some((key) => !projectId || key.startsWith(`${projectId}/`)) ||
       [...this.live.values()].some(
         (live) =>
           (!projectId || live.run.record.projectId === projectId) && live.status === 'running',
@@ -336,9 +340,11 @@ export class RunHost {
     this.chains.delete(projectId);
     const key = this.key({ projectId, agentId });
     if (this.opening.has(key)) throw new Error('Дождитесь открытия Pi перед удалением агента.');
+    await this.retiring.get(key);
     const live = this.live.get(key);
     if (!live) return;
     await stopRunProcess(live, this.dependencies.closed);
+    await this.retiring.get(key);
     this.channel.remove(live.run.record.runId);
     this.live.delete(key);
     await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true });

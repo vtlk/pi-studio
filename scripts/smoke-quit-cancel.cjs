@@ -204,10 +204,46 @@ process.on('unhandledRejection', fail);
     js(
       `window.studio.launchAgent(${JSON.stringify({ projectId, agentId: agent.id, autoContinue: false, ...request })})`,
     );
-  const launched = await launch({ firstMessage: 'Hold this request for the quit fixture.' });
+  await until(() => js(`document.body.textContent.includes('Сохранено')`));
+  const reloadGuard = () => void fail(Error('Unsaved QA reload'));
+  win.webContents.on('will-prevent-unload', reloadGuard);
+  const reloaded = new Promise((r) => win.webContents.once('did-finish-load', r));
+  win.webContents.reload();
+  await reloaded;
+  win.webContents.removeListener('will-prevent-unload', reloadGuard);
+  // Present this offscreen renderer as a visible project so its normal polling runs.
+  await js(`Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});true`);
+  await until(() => js(`!!document.querySelector('[aria-label="Открыть проект «Quit check»"]')`));
+  await js(`document.querySelector('[aria-label="Открыть проект «Quit check»"]').click()`);
+  await until(() => js(`!!document.querySelector('button[aria-label="Запустить"]')`));
+  await js(`document.querySelector('button[aria-label="Запустить"]').click()`);
+  await until(() => js(`!!document.querySelector('.agent-first-message')`));
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('.dialog-footer button')).find(b=>b.textContent==='Запустить').disabled`,
+    ),
+    true,
+  );
+  await js(
+    `(()=>{const field=document.querySelector('.agent-first-message');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(field,'Hold this request for the quit fixture.');field.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await js(
+    `Array.from(document.querySelectorAll('.dialog-footer button')).find(b=>b.textContent==='Запустить').click()`,
+  );
+  await until(() =>
+    js(
+      `!document.querySelector('[role="dialog"]') && !!document.querySelector('[aria-label="Продолжить диалог"]')`,
+    ),
+  );
+  const launched = { project: await js(`window.studio.readProject(${JSON.stringify(projectId)})`) };
   const binding = launched.project.agents[0].session;
   assert.ok(binding);
   await until(() => streams.length === 1);
+  await until(() =>
+    js(
+      `!!document.querySelector('.agent-status-icon[data-status="running"]') && document.querySelector('.project-agent-menu')?.textContent.includes('Работает')`,
+    ),
+  );
   console.log('Native Pi request is live; cancelling Quit.');
   await js(
     `window.__qaPreventClose = event => {event.preventDefault();event.returnValue='';};window.addEventListener('beforeunload',window.__qaPreventClose)`,
@@ -234,10 +270,16 @@ process.on('unhandledRejection', fail);
       'stopped',
   );
   const state = await js(`window.studio.readProject(${JSON.stringify(projectId)})`);
+  await until(() =>
+    js(
+      `!!document.querySelector('.agent-status-icon[data-status="stopped"]') && document.querySelector('.project-agent-menu')?.textContent.includes('Диалог сохранён')`,
+    ),
+  );
   assert.deepEqual(state.agents[0].session, binding);
   const projectRoot = join(studio, 'projects', state.folderName);
   const transcript = await readFile(join(projectRoot, binding.path), 'utf8');
-  await launch({});
+  await js(`document.querySelector('button[aria-label="Продолжить диалог"]').click()`);
+  await until(() => children.length === 2);
   assert.equal((await children[1].exited).code, 0, children[1].errors);
   assert.equal(streams.length, 1, 'Idle resume must not replay the request after cancelled Quit');
   assert.equal(await readFile(join(projectRoot, binding.path), 'utf8'), transcript);
@@ -260,6 +302,10 @@ process.on('unhandledRejection', fail);
   const sources = [
     'src/main/ipc/registerDesktopHandlers.ts',
     'src/main/windows/createStudioWindow.ts',
+    'src/main/pi/RunHost.ts',
+    'src/main/pi/RunLifecycle.ts',
+    'src/renderer/features/project/ui/AgentActions.tsx',
+    'src/renderer/features/project/model/useNativeWorkspaceState.ts',
     'scripts/smoke-quit-cancel.cjs',
   ];
   const proof = {
@@ -275,10 +321,14 @@ process.on('unhandledRejection', fail);
       exactBindingAndTranscriptOnIdleResume: true,
       idleResumeDoesNotReplay: true,
       confirmedQuitClosesWindowRequestAndChild: true,
+      nativeFirstMessageDialogCreatesCanonicalSession: true,
+      liveRequestShowsRunningIconAndLabel: true,
+      closedPiChangesRowToSavedDialogue: true,
+      rowResumeOpensSameDialogueWithoutMessageOrModal: true,
     },
     modelRequests: streams.length,
     limits:
-      'Actual production main/preload/Electron quit lifecycle and native Pi SDK. Only OS confirmation and Terminal dispatch intercepted; model SSE is loopback, no cloud requests or user studio access. Unsaved state supplied by a test renderer beforeunload guard.',
+      'Actual production main/preload/UI/Electron quit lifecycle and native Pi SDK. Offscreen document visibility simulated to enable normal project polling. Only OS confirmation and Terminal dispatch intercepted; model SSE is loopback, no cloud requests or user studio access. Unsaved state supplied by a test renderer beforeunload guard.',
     sourceSha256: Object.fromEntries(
       await Promise.all(
         sources.map(async (path) => [

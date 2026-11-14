@@ -8,5 +8,5 @@ export async function stopRunProcess(live: LiveRun, closed: RunDependencies['clo
   for (let i = 0; i < 100 && processAlive(live.pid); i++)
     await new Promise((resolve) => setTimeout(resolve, 50));
   if (processAlive(live.pid))
-    throw new Error('Pi ещё закрывается. Агент не удалён; повторите через несколько секунд.');
+    throw new Error('Pi ещё закрывается. Повторите через несколько секунд.');
 }

@@ -44,5 +44,33 @@
     "sha256": "1b94e593634da897f0b557e0bf1d41a5f0c996665d21e86b302f436bc0298cd5",
     "stableSigningRequirement": true,
     "notarized": false
+  },
+  "afterResumeCleanupFix": {
+    "checkedAt": "2026-11-14T19:03:04.818Z",
+    "scope": "Source after alpha.53; no user app or studio changes",
+    "result": {
+      "passed": true,
+      "pi": "1.5.2",
+      "nativeBashAndMcpCompletion": true,
+      "disabledStageSkipped": true,
+      "currentRoleAtHandoff": true,
+      "freshContextWithoutInstructionCopies": true,
+      "previousOutputReadByNextAgent": true,
+      "oneUserMessagePerStage": true,
+      "armedIdleResumeNoReplay": true,
+      "idleResumeFreshContextAndExactBinding": true,
+      "localModelRequests": 6,
+      "externalModelRequests": 0,
+      "scope": "Actual Pi SDK/production RunHost/bridge with synthetic local OpenAI SSE tools; no Terminal UI or user studio changes."
+    },
+    "sourceSha256": {
+      "src/main/pi/RunHost.ts": "5d5b2c3e728cd96608e232fddd561447715bb008795ba6b543ceaa079acb71af",
+      "src/main/pi/RunLifecycle.ts": "d9abe812c3da86b04a5e5ff4204f5c7dcec1410a2169648023371313fb647f54",
+      "src/main/pi/stopRunProcess.ts": "8b14841369acf847b01825998d3fd8bf26da4c7af97aa60463c4a5950043f68b",
+      "tests/run-close.test.ts": "2e2bc1193b1d955bd1ec18cbd52a48fc59ef95e6602527f62ac4ec727775afcf",
+      "scripts/smoke-pi-parallel.ts": "1f017fad21eb31ee1db47be4001ed6b04ff48e21626d7b46afb1491e86d6de0a",
+      "scripts/smoke-pi-chain-local.ts": "febf38b0294fa26eb9030a8a0cb6d8396d6df219ae09ba169aeafe91ab8af1e8",
+      "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
+    }
   }
 }

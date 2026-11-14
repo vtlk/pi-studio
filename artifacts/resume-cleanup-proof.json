@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-14T19:03:04.818Z",
+  "sourceBaseVersion": "0.2.0-alpha.53",
+  "before": {
+    "source": "Released RunHost from HEAD",
+    "correctedRegressionFailed": true,
+    "observation": "A second bridge starts while the dead previous process cleanup is held."
+  },
+  "after": {
+    "quickResumeWaitsForCleanup": true,
+    "newChannelAndLeaseSurvive": true,
+    "exactCanonicalHistoryPreserved": true,
+    "gracefulAndCrashCloseEndWaitingRunning": true,
+    "unitFsTests": 179,
+    "build": true,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 284,
+    "nativeControls": {
+      "artifacts/local-chain-proof.json": true,
+      "artifacts/parallel-agents-proof.json": true
+    },
+    "nativeUiProof": "artifacts/quit-cancellation-proof.json"
+  },
+  "sourceSha256": {
+    "src/main/pi/RunHost.ts": "5d5b2c3e728cd96608e232fddd561447715bb008795ba6b543ceaa079acb71af",
+    "src/main/pi/RunLifecycle.ts": "d9abe812c3da86b04a5e5ff4204f5c7dcec1410a2169648023371313fb647f54",
+    "src/main/pi/stopRunProcess.ts": "8b14841369acf847b01825998d3fd8bf26da4c7af97aa60463c4a5950043f68b",
+    "tests/run-close.test.ts": "2e2bc1193b1d955bd1ec18cbd52a48fc59ef95e6602527f62ac4ec727775afcf",
+    "scripts/smoke-pi-parallel.ts": "1f017fad21eb31ee1db47be4001ed6b04ff48e21626d7b46afb1491e86d6de0a",
+    "scripts/smoke-pi-chain-local.ts": "febf38b0294fa26eb9030a8a0cb6d8396d6df219ae09ba169aeafe91ab8af1e8",
+    "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
+  },
+  "limits": "Controlled transport child for delayed-cleanup/crash regression; actual native Pi SDK and production bridge for UI/parallel/chain controls, synthetic local SSE. Terminal dispatch is intercepted, no model cloud requests or user studio changes."
+}

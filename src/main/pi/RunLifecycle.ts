@@ -1,5 +1,5 @@
 import { relative, join } from 'node:path';
-import { stat } from 'node:fs/promises';
+import { stat, rm } from 'node:fs/promises';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { validateCompletedOutputs } from './completeStage.ts';
 import type { ChannelEvent } from './RunChannel.ts';
@@ -20,6 +20,15 @@ export class RunLifecycle {
   private readonly dependencies: RunDependencies;
   constructor(dependencies: RunDependencies) {
     this.dependencies = dependencies;
+  }
+  async processLost(live: LiveRun) {
+    this.dependencies.closed?.(live.run);
+    live.status = closedRunStatus(live.status);
+    await this.dependencies.update(live.run, live.status).catch(() => {});
+    live.fail(new Error('Связь с Pi потеряна. Готовность результата не подтверждена.'));
+    await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true }).catch(
+      () => {},
+    );
   }
   async event(live: LiveRun, event: ChannelEvent) {
     live.heartbeat = Date.now();
