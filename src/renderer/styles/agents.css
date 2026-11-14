@@ -209,6 +209,25 @@
   top: 50%;
   transform: translateY(-50%);
 }
+.agent-list-entry > .agent-helper-launch {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 29px;
+  height: 29px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+.agent-list-entry:hover > .agent-helper-launch,
+.agent-list-entry:focus-within > .agent-helper-launch {
+  opacity: 1;
+  pointer-events: auto;
+}
 .agent-model-fields {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);

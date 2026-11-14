@@ -1,22 +1,17 @@
 import { Button } from '@/shared/ui';
-import { useNotice } from '@/shared/model/Notice';
-import { useState } from 'react';
-import { useStorage } from '@/shared/storage/Storage';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
 import { useNavigation } from '@/shared/model/Navigation';
+import { useOpenSetupAssistant } from '../model/useOpenSetupAssistant';
 
 export function SetupAssistant() {
-  const { demo } = useNotice();
-  const { saveNow } = useStorage();
   const { systemAgents, setAgentId, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
   const { navigate } = useNavigation();
   const assistant = systemAgents.find((agent) => agent.systemRole === 'assistant');
   const model = assistant?.model;
   const connection = connections.find((item) => item.id === model?.connectionId);
-  const [opening, setOpening] = useState(false);
-  const [error, setError] = useState('');
+  const { open, opening, error } = useOpenSetupAssistant();
   return (
     <>
       <h2>Помощник подключения</h2>
@@ -43,23 +38,8 @@ export function SetupAssistant() {
         </Button>
         <Button
           kind="primary"
-          disabled={opening}
-          onClick={async () => {
-            if (!window.studio) {
-              demo('Помощник доступен в приложении macOS.');
-              return;
-            }
-            setOpening(true);
-            setError('');
-            try {
-              if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
-              await window.studio.openSetupAssistant();
-            } catch (error) {
-              setError(error instanceof Error ? error.message : 'Не удалось открыть помощника.');
-            } finally {
-              setOpening(false);
-            }
-          }}
+          disabled={opening || !assistant?.enabled}
+          onClick={() => void open()}
         >
           {opening ? 'Открываем Pi…' : 'Открыть помощника в Pi'}
         </Button>

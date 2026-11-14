@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Settings catalogs show all user and bundled resources from the shared built-in registry, with no agent profiles. Built-in MCP entries expose read-only information and cannot be removed from the catalog; only optional agent assignments can be removed. Do not invent preinstalled skills/instructions. The setup assistant alone has a hover/focus Play action in its system-agent row, using the same save-before-open operation as Settings and the exact canonical dialogue without a user message.
+
 - Constructor group headings are «Мои агенты» and «Системные» in the same style. A pinned MCP lock belongs in ListRow/Disclosure's right control slot, aligned with Switch rows, with reserved action space; never restore the lock as a left leading icon.
 
 - Latest refinements (2026-11-14), superseding the earlier three-system-agent rules below: only setup assistant stays system/pinned. Ordinary agents receive optional Pi Studio Library through MCP plus → Built-in / Custom; tools follow the current enabled assignment. Library forms select and remember an ordinary agent separately for characters/locations, without projects or fallback profiles. Preserve legacy creators by moving profiles (same IDs/settings) into ordinary agents atomically; never move/delete their job files or JSONL. Shared skills are explicitly created/imported through one Add skill menu, current SKILL.md only. Constructor rows match project agent rows on gray, with large order numbers and only hover/focus deletion; preserve DnD and disabled gray state.

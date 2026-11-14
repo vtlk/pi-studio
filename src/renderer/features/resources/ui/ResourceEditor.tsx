@@ -6,6 +6,8 @@ import { useNotice } from '@/shared/model/Notice';
 import { useResources, type Resource } from '../model/Resources';
 import { LocalSkillInfo } from './LocalSkillInfo';
 import { ManagedSkillEditor } from './ManagedSkillEditor';
+import { builtinResource } from '../../../../shared/builtinResources';
+import { BuiltinResourceInfo } from './BuiltinResourceInfo';
 
 export function ResourceEditor({ resource, onClose }: { resource: Resource; onClose: () => void }) {
   const [draft, setDraft] = useState(resource);
@@ -24,6 +26,8 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
   const existingSkill =
     resource.kind === 'skills' &&
     resources.some((item) => item.kind === 'skills' && item.id === resource.id);
+  const builtIn = builtinResource(resource.id);
+  if (builtIn) return <BuiltinResourceInfo resource={builtIn} onClose={onClose} />;
   if (window.studio && resource.kind === 'skills' && resource.managedSkill)
     return <ManagedSkillEditor resource={resource} onClose={onClose} />;
   if (window.studio && resource.kind === 'skills' && resource.localSkill)

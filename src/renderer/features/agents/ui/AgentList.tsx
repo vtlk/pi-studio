@@ -19,6 +19,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { cx } from '@/shared/ui';
 import { AgentListLabel } from './AgentListLabel';
+import { SetupAssistantAction } from './SetupAssistantAction';
 
 export function AgentList() {
   const {
@@ -96,6 +97,7 @@ export function AgentList() {
               <AgentListLabel agent={agent} position={index + 1} />
             </button>
           </Tooltip>
+          {agent.systemRole === 'assistant' && <SetupAssistantAction enabled={agent.enabled} />}
         </div>
       ))}
     </nav>

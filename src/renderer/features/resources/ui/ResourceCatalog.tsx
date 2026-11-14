@@ -11,6 +11,7 @@ import { ResourceEditor } from './ResourceEditor';
 import { ResourceActions } from './ResourceActions';
 import { resourceStatus } from '../model/resourceStatus';
 import { ManagedSkillEditor } from './ManagedSkillEditor';
+import { builtinResources, builtinResource } from '../../../../shared/builtinResources';
 
 export function ResourceCatalog({
   kind,
@@ -29,6 +30,12 @@ export function ResourceCatalog({
   const [creatingSkill, setCreatingSkill] = useState(false);
   const [query, setQuery] = useState('');
   const importing = useRef(false);
+  const catalog = !onPick
+    ? [
+        ...builtinResources.filter((item) => item.kind === kind),
+        ...resources.filter((item) => !builtinResource(item.id)),
+      ]
+    : resources;
   const add = async () => {
     if (window.studio && kind === 'skills') {
       if (importing.current) return;
@@ -98,26 +105,36 @@ export function ResourceCatalog({
         Поиск в каталоге
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
-      {resources
+      {catalog
         .filter(
           (item) => item.kind === kind && item.name.toLowerCase().includes(query.toLowerCase()),
         )
         .map((resource) => (
-          <div className="resource-row" key={resource.id} data-removable>
+          <div
+            className="resource-row"
+            key={resource.id}
+            data-removable={builtinResource(resource.id) ? undefined : true}
+          >
             <div>
               <div className="resource-heading">
                 <strong>{resource.name}</strong>
-                <small>{resourceStatus(resource, !!window.studio)}</small>
+                <small>
+                  {builtinResource(resource.id)
+                    ? 'Встроенный · поставляется с Pi Studio'
+                    : resourceStatus(resource, !!window.studio)}
+                </small>
               </div>
               <p>{resource.description}</p>
-              <ResourceActions resource={resource} />
+              {!builtinResource(resource.id) && <ResourceActions resource={resource} />}
             </div>
             <Button onClick={() => setEdit(resource)}>
-              {kind === 'skills'
-                ? resource.managedSkill
-                  ? 'Редактировать'
-                  : 'Сведения'
-                : 'Настроить'}
+              {builtinResource(resource.id)
+                ? 'Сведения'
+                : kind === 'skills'
+                  ? resource.managedSkill
+                    ? 'Редактировать'
+                    : 'Сведения'
+                  : 'Настроить'}
             </Button>
             {onPick && (
               <Button
@@ -128,7 +145,7 @@ export function ResourceCatalog({
                 {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
               </Button>
             )}
-            {!onPick && (
+            {!onPick && !builtinResource(resource.id) && (
               <HoverDeleteButton
                 label={`Удалить ресурс ${resource.name}`}
                 description={usage(resource)}

@@ -76,6 +76,22 @@ const deadline = setTimeout(() => {
     ),
     ['Мои агенты', 'Системные'],
   );
+  assert.equal(
+    await js(`getComputedStyle(document.querySelector('.agent-helper-launch')).opacity`),
+    '0',
+  );
+  await js(`document.querySelector('.agent-helper-launch').focus()`);
+  assert.equal(
+    await js(`getComputedStyle(document.querySelector('.agent-helper-launch')).opacity`),
+    '1',
+  );
+  await js(`document.querySelector('.agent-helper-launch').click()`);
+  await until(
+    `document.querySelector('.toast')?.textContent.includes('Выберите подключение и модель')`,
+  );
+  await assert.rejects(
+    access(join((await js('window.studio.loadStudio()')).folder, '.pistudio/setup-assistant')),
+  );
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
   await field('Название агента', 'Artist');
   const design = await js(
@@ -209,6 +225,24 @@ const deadline = setTimeout(() => {
   );
   await click('Отмена');
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await click('MCP-серверы');
+  const builtinRows = await js(
+    `Array.from(document.querySelectorAll('.resource-catalog .resource-row')).map(el=>({name:el.querySelector('strong').textContent,delete:!!el.querySelector('.hover-delete'),actions:!!el.querySelector('.resource-native-actions'),button:el.querySelector('button').textContent}))`,
+  );
+  assert.deepEqual(
+    builtinRows.map((item) => item.name),
+    ['Pi Studio · Проект', 'Pi Studio · Библиотека', 'Pi Studio · Ресурсы и агенты'],
+  );
+  assert.ok(
+    builtinRows.every((item) => !item.delete && !item.actions && item.button === 'Сведения'),
+  );
+  await js(`document.querySelector('.resource-catalog .resource-row button').click()`);
+  await until(`!!document.querySelector('[role="dialog"]')`);
+  assert.equal(
+    await js(`document.querySelectorAll('[role="dialog"] input,[role="dialog"] textarea').length`),
+    0,
+  );
+  await click('Закрыть');
   await click('Каталог Skills');
   await click('Редактировать');
   await until(
