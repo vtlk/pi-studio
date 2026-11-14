@@ -3,7 +3,6 @@
   "packagedBridgeVersion": "0.2.0-alpha.55",
   "nativePi": "1.5.2",
   "model": "gpt-5.6-luna",
-  "actualSubscriptionRequests": 3,
   "helperPublicOpenIdle": true,
   "helperImageAndResourceCheck": true,
   "helperExactResumeWithoutReplay": true,
@@ -12,5 +11,7 @@
   "textRequestWithMissingBrowserComponents": true,
   "generatedLibraryAssets": 0,
   "personalStudioUsed": false,
-  "terminalUiUsed": false
+  "terminalUiUsed": false,
+  "explicitUserRequests": 3,
+  "actualSubscription": true
 }
