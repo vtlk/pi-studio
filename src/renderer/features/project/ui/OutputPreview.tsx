@@ -2,8 +2,15 @@ import type { OutputFile } from '../model/workspace.types';
 import { getPreviewKind } from '../model/previewCapabilities';
 import { MarkdownPreview } from './MarkdownPreview';
 import { useState } from 'react';
+import type { MarkdownFiles } from '../model/markdownFiles';
 
-export function OutputPreview({ file }: { file: OutputFile }) {
+export function OutputPreview({
+  file,
+  markdownFiles,
+}: {
+  file: OutputFile;
+  markdownFiles?: MarkdownFiles;
+}) {
   const [mediaError, setMediaError] = useState('');
   const error = mediaError && (
     <p className="error-message" role="alert">
@@ -12,7 +19,7 @@ export function OutputPreview({ file }: { file: OutputFile }) {
   );
   switch (getPreviewKind(file)) {
     case 'markdown':
-      return <MarkdownPreview content={file.content ?? ''} />;
+      return <MarkdownPreview content={file.content ?? ''} files={markdownFiles} />;
     case 'image':
       return (
         <div className="output-image">
@@ -71,12 +78,6 @@ export function OutputPreview({ file }: { file: OutputFile }) {
     default:
       return (
         <>
-          {file.diskPath && file.name.endsWith('.pistudio.json') && (
-            <p className="prototype-note">
-              Монтажный просмотр будет доступен после подключения Remotion Editor Starter. Пока
-              доступно чтение JSON.
-            </p>
-          )}
           <pre className={`output-text${file.format === 'json' ? ' output-code' : ''}`}>
             {file.content || 'Файл пуст.'}
           </pre>

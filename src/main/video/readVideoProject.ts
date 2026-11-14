@@ -3,7 +3,7 @@ import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { ValidatedVideoProject, VideoAsset } from '../../shared/video.ts';
-import { resolveOutputReference } from '../../shared/outputPaths.ts';
+import { outputMediaUrl, resolveOutputReference } from '../../shared/outputPaths.ts';
 import { readText, safePath } from '../storage/files.ts';
 import { parseVideoManifest, parseVideoTimeline } from './timeline.ts';
 
@@ -84,7 +84,7 @@ export async function readVideoProject(
         ...asset,
         ...metadata,
         projectPath,
-        url: `studio-media://output/${encodeURIComponent(projectId)}/${projectPath.split('/').map(encodeURIComponent).join('/')}?v=${metadata.sha256}`,
+        url: outputMediaUrl(projectId, projectPath, metadata.sha256),
       });
     } catch (error) {
       throw new Error(

@@ -104,6 +104,16 @@ export function AgentOutputsView({
                     <OutputPreview
                       key={`${selectedFile.id}:${selectedFile.fingerprint}`}
                       file={selectedFile}
+                      markdownFiles={
+                        projectId && selectedFile.diskPath
+                          ? {
+                              projectId,
+                              path: selectedFile.diskPath,
+                              files: files.map(({ file }) => file),
+                              onSelect: setFileId,
+                            }
+                          : undefined
+                      }
                     />
                   )}
                 </>

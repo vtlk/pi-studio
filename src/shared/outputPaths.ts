@@ -17,3 +17,8 @@ export function resolveOutputReference(parent: string[], reference: string): str
   }
   return parts.length ? parts.join('/') : null;
 }
+
+/** Read-only media transport; main still validates the actual path and file. */
+export function outputMediaUrl(projectId: string, path: string, version = '') {
+  return `studio-media://output/${encodeURIComponent(projectId)}/${path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(version)}`;
+}

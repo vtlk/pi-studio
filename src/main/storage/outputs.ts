@@ -77,24 +77,33 @@ export async function scanOutputs(
   );
 }
 export async function loadOutput(root: string, relative: string): Promise<OutputFile> {
-  if (!/^agents\/[a-zA-Z0-9_-]+\/output\/.+/.test(relative))
-    throw new Error('Файл не находится в output агента.');
-  const path = await safePath(root, relative);
-  const stat = await lstat(path);
-  if (!stat.isFile()) throw new Error('Выбранный путь не является файлом.');
-  const name = relative.split('/').at(-1)!;
-  const format = fileFormat(name);
-  const file: OutputFile = {
-    kind: 'file',
-    id: relative,
-    name,
-    format,
-    diskPath: relative,
-    createdAt: stat.birthtimeMs || stat.mtimeMs,
-    modifiedAt: stat.mtimeMs,
-    size: stat.size,
-    fingerprint: `${stat.size}:${stat.mtimeMs}:${stat.ino}`,
-  };
-  if (['text', 'json', 'markdown'].includes(format)) file.content = await readText(path);
-  return file;
+  try {
+    if (!/^agents\/[a-zA-Z0-9_-]+\/output\/.+/.test(relative))
+      throw new Error('Файл не находится в output агента.');
+    const path = await safePath(root, relative);
+    const stat = await lstat(path);
+    if (!stat.isFile()) throw new Error('Выбранный путь не является файлом.');
+    const name = relative.split('/').at(-1)!;
+    const format = fileFormat(name);
+    const file: OutputFile = {
+      kind: 'file',
+      id: relative,
+      name,
+      format,
+      diskPath: relative,
+      createdAt: stat.birthtimeMs || stat.mtimeMs,
+      modifiedAt: stat.mtimeMs,
+      size: stat.size,
+      fingerprint: `${stat.size}:${stat.mtimeMs}:${stat.ino}`,
+    };
+    if (['text', 'json', 'markdown'].includes(format)) file.content = await readText(path);
+    return file;
+  } catch (error) {
+    if (isMissing(error))
+      throw new Error(
+        'Выбранный файл больше недоступен. Выберите другой файл или дождитесь обновления списка.',
+        { cause: error },
+      );
+    throw error;
+  }
 }

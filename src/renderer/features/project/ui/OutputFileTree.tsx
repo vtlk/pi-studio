@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ChevronRight,
   File,
@@ -33,10 +33,13 @@ function TreeItem({
   selectedFileId,
   onSelectFile,
 }: Omit<TreeProps, 'entries'> & { entry: OutputEntry }) {
-  const [open, setOpen] = useState(
+  const selectedInside =
     entry.kind === 'folder' &&
-      listOutputFiles(entry.children).some(({ file }) => file.id === selectedFileId),
-  );
+    listOutputFiles(entry.children).some(({ file }) => file.id === selectedFileId);
+  const [open, setOpen] = useState(selectedInside);
+  useEffect(() => {
+    if (selectedInside) setOpen(true);
+  }, [selectedInside, selectedFileId]);
   if (entry.kind === 'folder') {
     const Icon = open ? FolderOpen : Folder;
     return (

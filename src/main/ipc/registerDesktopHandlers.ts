@@ -1,4 +1,5 @@
 import { rasterizePreview } from '../library/rasterizePreview';
+import { outputMediaUrl } from '../../shared/outputPaths';
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
@@ -317,7 +318,7 @@ export function registerDesktopHandlers(): StudioService {
       loadOutput(await (await service.load()).projects.directory(request.projectId), request.path),
     );
     if (['image', 'audio', 'video'].includes(file.format))
-      file.src = `studio-media://output/${encodeURIComponent(request.projectId)}/${request.path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(file.fingerprint ?? '')}`;
+      file.src = outputMediaUrl(request.projectId, request.path, file.fingerprint);
     return file;
   });
   handle(desktopChannels.inspectVideoProject, async (_event, request: FileRequest) => {

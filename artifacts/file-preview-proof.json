@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "markdownLocalImage": true,
+  "imageUpdatesWithoutMarkdownEdit": true,
+  "localLinkSelectsFile": true,
+  "linkedFolderExpands": true,
+  "gfmTasksAndTables": true,
+  "rawHtmlNeverExecuted": true,
+  "toolbarPathOnce": true,
+  "staleReadAndErrorIgnored": true,
+  "missingReadErrorVisible": true,
+  "brokenMediaErrorClearsOnSelection": true,
+  "nativeAudioAndVideoPlayback": true,
+  "unsupportedFileMessage": true,
+  "manifestValidation": true,
+  "finderTargetsAgentOutputForEveryPreview": true,
+  "newModelRequests": 0,
+  "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
+  "version": "0.2.0-alpha.48",
+  "verifiedAt": "2026-11-14T16:02:09.762Z",
+  "sourceSha256": {
+    "src/renderer/features/project/model/markdownFiles.ts": "d02c7439d28e3fec9c66b41dd0c04c7e74f82222cb685f288bba0e17ee19f2da",
+    "src/renderer/features/project/ui/MarkdownPreview.tsx": "e0f22f00e83c0eb15dfe5c37ec8d055a6240622fa0e6f752f476d5cfab6539ac",
+    "src/renderer/features/project/ui/AgentOutputsView.tsx": "1269d0ef14005ac43b11d73045f4ee0a37ebdda13cf1d5eab05d1aa512431d35",
+    "src/renderer/features/project/ui/OutputFileTree.tsx": "dda5c38525fcaf17187713986910dc0a589c18afb0460edf4d68b41a4ef622d2",
+    "src/renderer/features/project/model/useOutputFile.ts": "3c328faef7597a1838efacea65705f631a5b3f882029d44b80975b07afb0383f",
+    "src/main/storage/outputs.ts": "a4aa425e468586eac9e0b406b6ad94cdadce6ebedc07946c742e8abe6909b35e",
+    "src/shared/outputPaths.ts": "b58932ad11b9730493cd366e08edb164ce9fc7f3ba06cd10b5d83e5329d9e09b",
+    "scripts/smoke-file-previews.cjs": "76e30d41534bea9609c55acf4de1f1e819ea1bd37855196da6c990fe3a6cd8e8",
+    "out/main/index.cjs": "811dcb3494a6d5846353b75741afa5d1c807619308b8b3ca59eee00d0d46b3bc"
+  },
+  "checks": {
+    "unitFs": 174,
+    "build": true,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 283,
+    "officialRemotionNativeSmoke": true,
+    "regressionFailedBeforeFix": true,
+    "screenshotReviewed": true
+  },
+  "logs": {
+    "/tmp/pistudio-file-preview-before.log": "c824d290d941ae72aecc372bbed97dbdfc10bd4724caac4740cc961161f4bb8c",
+    "/tmp/pistudio-file-preview-after.log": "efa07a6fcda08b83aa7edeaa519454b4ccdd9cac09f7026bc85d38dc85af2b07",
+    "/tmp/pistudio-alpha48-video.log": "fc0a73442b63b3b605ced173730d23103464fda3990d1adfc991b2c3fb73c382",
+    "/tmp/pistudio-alpha48-unit.log": "8c2bac0ae73ffc2dfcd257cddf6c976cfa2ce5d1157d9c1cb297d68b9e906738"
+  },
+  "archive": {
+    "bytes": 124175471,
+    "sha256": "a202858ab17d56ba3cca2397db9b8d9aedf35ea171bd41d550a19c6f9b59b8fa",
+    "stableSigningRequirement": true,
+    "notarized": false
+  }
+}
