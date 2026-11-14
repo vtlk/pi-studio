@@ -89,20 +89,23 @@ export class RunLifecycle {
       live.status = 'running';
       await this.dependencies.update(live.run, 'running');
     } else if (event.type === 'settled') {
+      const sequence = live.sequence;
+      const completion = live.completion;
       let valid = false;
       try {
         valid =
-          !!live.completion &&
-          JSON.stringify(live.completion) ===
+          !!completion &&
+          JSON.stringify(completion) ===
             JSON.stringify(
               await validateCompletedOutputs(
                 live.run.record.output,
-                live.completion.map((item) => item.path),
+                completion.map((item) => item.path),
               ),
             );
       } catch {
         /* A deleted/changed output invalidates the completion signal. */
       }
+      if (live.sequence !== sequence) return;
       live.status =
         event.outcome === 'error'
           ? 'error'
@@ -123,13 +126,15 @@ export class RunLifecycle {
         join(live.run.projectRoot, '.pistudio/context', live.run.record.runId, 'result.json'),
         {
           runId: live.run.record.runId,
-          request: live.sequence,
+          request: sequence,
           status: live.status,
           ...(live.failure ? { failure: live.failure } : {}),
-          outputs: valid ? live.completion : [],
+          outputs: valid ? completion : [],
         },
       );
+      if (live.sequence !== sequence) return;
       await this.dependencies.update(live.run, live.status, undefined, live.failure);
+      if (live.sequence !== sequence) return;
       if (live.failure) this.dependencies.failureChanged?.(live.run, live.failure);
       if (
         live.status === 'ready' &&
@@ -139,16 +144,14 @@ export class RunLifecycle {
       ) {
         live.notifiedSequence = live.sequence;
         const sequence = live.sequence;
-        void this.dependencies
-          .completed?.(live.run, live.completion!, live.userMessage)
-          .catch(() => {
-            if (live.sequence !== sequence) return;
-            // The current output remains validated. Report the failed handoff
-            // separately and disarm it until the next explicit Studio action.
-            live.blocked = true;
-            live.request.autoContinue = false;
-            this.dependencies.failureChanged?.(live.run, 'continuation');
-          });
+        void this.dependencies.completed?.(live.run, completion!, live.userMessage).catch(() => {
+          if (live.sequence !== sequence) return;
+          // The current output remains validated. Report the failed handoff
+          // separately and disarm it until the next explicit Studio action.
+          live.blocked = true;
+          live.request.autoContinue = false;
+          this.dependencies.failureChanged?.(live.run, 'continuation');
+        });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {
       this.dependencies.closed?.(live.run);
@@ -198,7 +201,17 @@ export class RunLifecycle {
         throw new Error(
           'Дождитесь нового запроса пользователя в этом открытии Pi. Прошлый запрос не запускается повторно.',
         );
-      live.completion = await validateCompletedOutputs(live.run.record.output, args.outputs);
+      const sequence = live.sequence;
+      const ensureCurrent = () => {
+        if (live.sequence !== sequence || live.status !== 'running')
+          throw new Error(
+            'Сигнал завершения относится к завершённому или другому запросу. Результат не применён.',
+          );
+      };
+      ensureCurrent();
+      const completion = await validateCompletedOutputs(live.run.record.output, args.outputs);
+      ensureCurrent();
+      live.completion = completion;
       return {
         validated: true,
         outputs: live.completion,

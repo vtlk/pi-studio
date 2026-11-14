@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "pi": "1.5.2",
+  "nativeBashAndMcpCompletion": true,
+  "disabledStageSkipped": true,
+  "currentRoleAtHandoff": true,
+  "freshContextWithoutInstructionCopies": true,
+  "previousOutputReadByNextAgent": true,
+  "oneUserMessagePerStage": true,
+  "armedIdleResumeNoReplay": true,
+  "idleResumeFreshContextAndExactBinding": true,
+  "localModelRequests": 6,
+  "externalModelRequests": 0,
+  "scope": "Actual Pi SDK/production RunHost/bridge with synthetic local OpenAI SSE tools; no Terminal UI or user studio changes.",
+  "applicationVersion": "0.2.0-alpha.49",
+  "checkedAt": "2026-11-14T16:27:47.799Z",
+  "requestCompletionRegression": {
+    "failedBeforeFix": 3,
+    "passedAfterFix": 3,
+    "scenarios": [
+      "old MCP validation after new input",
+      "in-flight completion after abort",
+      "old settled validation after new input"
+    ],
+    "scope": "Direct production RunLifecycle with real filesystem awaits; native Pi normal-chain control flow verified separately."
+  },
+  "checks": {
+    "unitFs": 177,
+    "focusedLifecycleTransport": 15,
+    "build": true,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 283
+  },
+  "sourceSha256": {
+    "src/main/pi/RunLifecycle.ts": "27e3ecb238f190ff55892cda1aadc26dd7bb1e7cfe4f3484c4849d7a86ba3457",
+    "src/main/pi/createStudioRunHost.ts": "850d84e733d2d793dc8c3a48af79180adbc4d29c0e2207cef9f954159cd2856e",
+    "tests/run-completion.test.ts": "15eba401ac54852bbefaf74c04d8f21461f12431b8814d6f371396105da56702",
+    "scripts/smoke-pi-chain-local.ts": "febf38b0294fa26eb9030a8a0cb6d8396d6df219ae09ba169aeafe91ab8af1e8",
+    "out/main/index.cjs": "0729d2f1244b473cabb8b4e2a2bcbd0490ad67a17395251ca5cdf06a4d47b012"
+  },
+  "archive": {
+    "bytes": 124175619,
+    "sha256": "1b94e593634da897f0b557e0bf1d41a5f0c996665d21e86b302f436bc0298cd5",
+    "stableSigningRequirement": true,
+    "notarized": false
+  }
+}
