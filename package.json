@@ -76,7 +76,8 @@
     "test:project-usage": "npm run build && electron scripts/smoke-project-usage.cjs",
     "test:pi-usage": "node --experimental-strip-types scripts/smoke-native-usage.ts",
     "test:pi-extensions": "node --experimental-strip-types scripts/smoke-pi-extensions.ts",
-    "test:extensions-ui": "npm run build && electron scripts/smoke-native-extensions-ui.cjs"
+    "test:extensions-ui": "npm run build && electron scripts/smoke-native-extensions-ui.cjs",
+    "test:cua-sdk": "electron scripts/smoke-cua-sdk.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -88,6 +89,7 @@
     "@radix-ui/react-tooltip": "^1.4.1",
     "@remotion/media": "4.0.543",
     "@remotion/player": "4.0.543",
+    "@trycua/cua-driver": "0.49.11",
     "lucide-react": "^0.577.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

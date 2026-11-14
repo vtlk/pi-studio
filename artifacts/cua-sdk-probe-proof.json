@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-14T22:53:24.024Z",
+  "sdk": "0.49.11",
+  "contract": "0.8.0",
+  "electron": "45.3.1",
+  "node": "24.22.2",
+  "sameProcessRuntime": true,
+  "noDaemonOrSocket": true,
+  "standardModeOnly": true,
+  "toolManifestCount": 58,
+  "nativeFfiRoundTrip": true,
+  "promptlessPermissionProbe": true,
+  "noWindowsOrDesktopActions": true,
+  "noModelRequests": true,
+  "limits": "Isolated Electron launched by Codex, not the installed Pi Studio responsibility chain. Does not prove Pi Studio TCC grants, capture pixels or input delivery. SDK/MCP/app integration and GUI acceptance remain open."
+}
