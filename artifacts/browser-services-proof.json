@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-14T20:41:25.097Z",
+  "packagedBridgeVersion": "0.2.0-alpha.55",
+  "nativePi": "1.5.2",
+  "model": "gpt-5.6-luna",
+  "actualSubscriptionRequests": 3,
+  "helperPublicOpenIdle": true,
+  "helperImageAndResourceCheck": true,
+  "helperExactResumeWithoutReplay": true,
+  "libraryServiceImageTool": true,
+  "libraryServiceValidatedTestOutput": true,
+  "textRequestWithMissingBrowserComponents": true,
+  "generatedLibraryAssets": 0,
+  "personalStudioUsed": false,
+  "terminalUiUsed": false
+}
