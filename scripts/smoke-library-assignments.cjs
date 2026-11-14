@@ -87,7 +87,7 @@ const deadline = setTimeout(() => {
   );
   await js(`document.querySelector('.agent-helper-launch').click()`);
   await until(
-    `document.querySelector('.toast')?.textContent.includes('Выберите подключение и модель')`,
+    `document.querySelector('.toast')?.textContent.includes('Выберите подключение, модель и уровень рассуждения')`,
   );
   await assert.rejects(
     access(join((await js('window.studio.loadStudio()')).folder, '.pistudio/setup-assistant')),
@@ -193,7 +193,7 @@ const deadline = setTimeout(() => {
   await field('Описание материала', 'A quiet garden');
   await click('Создать с Pi');
   await until(
-    `document.querySelector('[role="alert"]')?.textContent.includes('Выберите подключение и модель')`,
+    `document.querySelector('[role="alert"]')?.textContent.includes('Выберите подключение, модель и уровень рассуждения')`,
   );
   await click('Отмена');
   state = await saved();

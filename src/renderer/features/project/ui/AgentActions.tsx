@@ -10,7 +10,7 @@ import { useWorkspace } from '../model/Workspace';
 import type { ProjectAgent } from '../model/workspace.types';
 import { getAgentLaunchAction } from '../model/session';
 import { getCurrentAgentInstructions } from '../model/snapshot';
-import { hasModelConfiguration } from '../../../../shared/modelConfiguration';
+import { validateAgentModel } from '../../../../shared/modelConfiguration';
 import { StartAgentDialog } from './StartAgentDialog';
 import { AgentConfigurationDialog } from './AgentConfigurationDialog';
 import { ProjectAgentDeleteButton } from './ProjectAgentDeleteButton';
@@ -36,15 +36,7 @@ export function AgentActions({ agent, onLaunch }: { agent: ProjectAgent; onLaunc
       return;
     }
     const current = agents.find((profile) => profile.id === agent.profile.id);
-    const configured = (model: typeof agent.profile.model) =>
-      hasModelConfiguration(model) &&
-      connections.some(
-        (connection) =>
-          connection.id === model?.connectionId &&
-          connection.purpose !== 'images' &&
-          connection.providerId === model.provider,
-      );
-    if (!configured(current?.model)) {
+    if (!validateAgentModel(current?.model, connections).ok) {
       setConfigurationOpen(true);
       return;
     }

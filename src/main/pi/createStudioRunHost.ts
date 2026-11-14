@@ -1,10 +1,7 @@
-import { dirname, join } from 'node:path';
 import { RunHost } from './RunHost.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { stableId } from '../storage/validation.ts';
-import { connectionAuthScope, getModelProviderStatus } from './modelAuth.ts';
 import type { Connection } from '../../shared/connections.ts';
-import { readPiCatalog } from './catalog.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
@@ -12,7 +9,7 @@ import { nextEnabledStage, nextStageMessage } from './stageChain.ts';
 import { productionTools } from './RunChannel.ts';
 import { libraryTools, libraryTool } from '../library/tools.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
-import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
+import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { ImageGeneration } from '../images/ImageGeneration.ts';
 import type { McpSecrets } from './McpSecrets.ts';
@@ -72,43 +69,12 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           request.attachments?.length
         )
           throw new Error('Продолжение диалога не отправляет референсы повторно.');
-        if (!profile || !hasModelConfiguration(profile.model))
-          throw new Error('Выберите подключение, модель и уровень рассуждения проектного агента.');
-        const connections = sections.connections as Connection[];
-        const connection = connections.find((item) => item.id === profile?.model?.connectionId);
-        if (
-          !connection ||
-          connection.purpose === 'images' ||
-          connection.providerId !== profile?.model?.provider
-        )
-          throw new Error(
-            'Подключение агента отсутствует или изменено. Выберите действующее подключение и модель в конструкторе.',
-          );
         const piPath = String(sections.piPath ?? '') || options.piPath();
-        const modelAuth = await connectionAuthScope(
-          join(dirname(options.bootstraps), 'model-auth'),
-          store.folder,
-          connection,
+        const { model, selectedModel, modelAuth } = await resolveAgentLaunchConfig(
+          profile.model,
+          sections.connections as Connection[],
+          { ...options, folder: store.folder, piPath },
         );
-        if (
-          (
-            await getModelProviderStatus(
-              piPath,
-              join(dirname(options.catalog), 'model-auth.mjs'),
-              connection.providerId,
-              modelAuth,
-            )
-          ).status !== 'ready'
-        )
-          throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
-        const catalog = await readPiCatalog(piPath, options.catalog, store.folder, modelAuth);
-        const selectedModel = catalog.models.find(
-          (item) => item.provider === profile.model?.provider && item.id === profile.model.id,
-        );
-        if (!selectedModel)
-          throw new Error(
-            'Выбранная модель отсутствует в текущем каталоге Pi. Автоматической подмены нет.',
-          );
         if (request.attachments?.length && !options.references)
           throw new Error('Передача референсов недоступна.');
         options.references?.validate(
@@ -116,7 +82,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           store.folder,
           selectedModel.imageInput,
         );
-        project = await store.projects.applyAgentModel(project.id, request.agentId, profile.model);
+        project = await store.projects.applyAgentModel(project.id, request.agentId, model);
         const run = await buildRunContext(
           await store.projects.directory(project.id),
           project,

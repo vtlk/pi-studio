@@ -1,5 +1,5 @@
 import { mkdir } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LibraryKind } from '../../shared/library.ts';
 import type { Agent } from '../../shared/studio.ts';
@@ -13,8 +13,7 @@ import { libraryKind } from '../library/manifest.ts';
 import { RunHost } from './RunHost.ts';
 import { productionTools } from './RunChannel.ts';
 import { buildRunContext } from './ContextBuilder.ts';
-import { readPiCatalog } from './catalog.ts';
-import { connectionAuthScope, getModelProviderStatus } from './modelAuth.ts';
+import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
 import type { Connection } from '../../shared/connections.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
@@ -66,44 +65,13 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
           throw new Error(
             'Выбранный агент отсутствует, выключен или не имеет библиотечного MCP. Выберите агента в форме библиотеки.',
           );
-        const model = agent.model;
-        const connections = (sections.connections ?? []) as Connection[];
-        if (
-          !model?.id ||
-          !model.provider ||
-          !model.connectionId ||
-          !connections.some(
-            (connection) =>
-              connection.id === model.connectionId &&
-              connection.providerId === model.provider &&
-              connection.purpose !== 'images',
-          )
-        )
-          throw new Error('Выберите подключение и модель агента на странице «Агенты».');
         const path = String(sections.piPath ?? '') || options.piPath();
-        const modelAuth = await connectionAuthScope(
-          join(dirname(options.bootstraps), 'model-auth'),
-          store.folder,
-          connections.find((item) => item.id === model.connectionId)!,
+        const { selectedModel: selected, modelAuth } = await resolveAgentLaunchConfig(
+          agent.model,
+          (sections.connections ?? []) as Connection[],
+          { ...options, folder: store.folder, piPath: path },
         );
-        const catalog = await readPiCatalog(path, options.catalog, store.folder, modelAuth);
-        const selected = catalog.models.find(
-          (item) => item.provider === model.provider && item.id === model.id,
-        );
-        if (!selected)
-          throw new Error('Выбранная модель отсутствует в Pi. Автоматической подмены нет.');
         options.references.validate(input.attachments, store.folder, selected.imageInput);
-        if (
-          (
-            await getModelProviderStatus(
-              path,
-              join(dirname(options.catalog), 'model-auth.mjs'),
-              model.provider,
-              modelAuth,
-            )
-          ).status !== 'ready'
-        )
-          throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
         const root = await safePath(
           store.folder,
           `.pistudio/library-runs/${request.projectId}`,

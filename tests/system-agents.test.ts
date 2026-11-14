@@ -150,7 +150,7 @@ test('an unconfigured system assistant neither chooses a hidden model nor create
   t.after(() => helper.close());
   await assert.rejects(
     helper.launch({ projectId: 'pi-setup-assistant', agentId: profile.id, autoContinue: false }),
-    /Выберите подключение и модель/,
+    /Выберите подключение, модель и уровень рассуждения/,
   );
   assert.equal(opened, false);
   await assert.rejects(access(join(store.folder, '.pistudio/setup-assistant/state.json')));

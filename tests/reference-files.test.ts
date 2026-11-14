@@ -124,7 +124,7 @@ test('a library create request uses an explicitly assigned ordinary agent and ne
           description: 'Make an asset',
           attachments: [],
         }),
-      /Выберите подключение и модель/,
+      /Выберите подключение, модель и уровень рассуждения/,
     );
   assert.equal(opened, false);
   assert.deepEqual(store.bootstrap().projects, []);
