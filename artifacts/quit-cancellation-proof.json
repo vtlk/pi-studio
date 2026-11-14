@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "0.2.0-alpha.53",
+  "sourceVersion": "0.2.0-alpha.54",
   "electronVersion": "45.3.1",
   "piVersion": "1.5.2",
   "beforeFix": "Actual cancelled app.quit destroyed the live native request: expected stream.closed=false, got true.",
