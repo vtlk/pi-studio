@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ImageConnectionStatus } from '../../../../shared/connections';
 
@@ -25,7 +26,7 @@ export function useImageConnections(ids: string[], folder?: string) {
           try {
             return [
               id,
-              await window.studio!.readImageConnection({ folder, connectionId: id }),
+              await getStudioApi().readImageConnection({ folder, connectionId: id }),
             ] as const;
           } catch {
             return undefined;

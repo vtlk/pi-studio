@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useState } from 'react';
 import type { Connection, ModelConnectionStatus } from '../../../../shared/connections';
 
@@ -32,7 +33,7 @@ export function useProviderStatuses(connections: Connection[], scope: string, fo
         await Promise.all(
           ids.map(async (id) => {
             try {
-              const result = await window.studio!.getConnectionStatus({ folder, connectionId: id });
+              const result = await getStudioApi().getConnectionStatus({ folder, connectionId: id });
               if (active) setProviderStatus(result);
             } catch {
               if (active) setStatuses((previous) => ({ ...previous, [id]: 'unavailable' }));

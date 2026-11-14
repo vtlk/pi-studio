@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProjectCommand } from '../../../../shared/storage';
 import type { SessionBinding, WorkspaceProject } from './workspace.types';
@@ -87,7 +88,7 @@ export function useNativeWorkspaceState() {
     reading.current = true;
     const version = generation.current;
     try {
-      const project = await window.studio!.readProject(projectId);
+      const project = await getStudioApi().readProject(projectId);
       if (version !== generation.current) return;
       lastReadError.current = '';
       setProjects((previous) =>

@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -18,7 +19,7 @@ export function ResourceAuthDialog({
   useEffect(() => {
     let active = true;
     const read = () =>
-      void window.studio!.readAuthLogin(id).then(
+      void getStudioApi().readAuthLogin(id).then(
         (value) => {
           if (active) setState(value);
         },
@@ -65,7 +66,7 @@ export function ResourceAuthDialog({
             disabled={!answer.trim()}
             onClick={async () => {
               try {
-                await window.studio!.answerAuthLogin(id, state.prompt!.id, answer);
+                await getStudioApi().answerAuthLogin(id, state.prompt!.id, answer);
                 setAnswer('');
               } catch {
                 setError('Не удалось передать ответ. Проверьте состояние входа.');

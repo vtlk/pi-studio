@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -197,7 +198,7 @@ export function ConnectionEditor({
             onClick={async () => {
               setBusy(true);
               try {
-                await window.studio!.checkImageConnection({
+                await getStudioApi().checkImageConnection({
                   folder: bootstrap!.folder,
                   connectionId: draft.id,
                 });
@@ -242,7 +243,7 @@ export function ConnectionEditor({
                 void (async () => {
                   try {
                     await save();
-                    const ids = await window.studio!.discoverConnectionModels({
+                    const ids = await getStudioApi().discoverConnectionModels({
                       folder: bootstrap!.folder,
                       connectionId: draft.id,
                     });

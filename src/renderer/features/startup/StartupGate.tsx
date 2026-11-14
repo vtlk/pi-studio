@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { StartupState } from '../../../shared/startup';
 import { StartupScreen } from '@/shared/ui/StartupScreen';
@@ -9,7 +10,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
   const settled = ['ready', 'skipped', 'error'].includes(state.phase) || !!error;
   const refresh = useCallback(async () => {
     try {
-      setState(await window.studio!.getStartup());
+      setState(await getStudioApi().getStartup());
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Не удалось проверить Pi.');
     }
@@ -31,7 +32,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
             onClick={async () => {
               try {
                 setError('');
-                setState(await window.studio!.retryStartup());
+                setState(await getStudioApi().retryStartup());
               } catch {
                 setError('Не удалось повторить подготовку Pi.');
               }
@@ -42,7 +43,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
           <Button
             onClick={async () => {
               try {
-                const next = await window.studio!.chooseStartupPi();
+                const next = await getStudioApi().chooseStartupPi();
                 if (next) {
                   setError('');
                   setState(next);
@@ -60,7 +61,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
         onClick={async () => {
           try {
             setError('');
-            setState(await window.studio!.skipStartup());
+            setState(await getStudioApi().skipStartup());
           } catch {
             setError('Не удалось открыть студию. Повторите попытку.');
           }

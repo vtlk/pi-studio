@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useEffect, useState } from 'react';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
@@ -17,7 +18,7 @@ export function LocalSkillInfo({
   const [error, setError] = useState('');
   useEffect(() => {
     let active = true;
-    window.studio!.readSkill(id).then(
+    getStudioApi().readSkill(id).then(
       (result) => {
         if (active) setSkill(result);
       },

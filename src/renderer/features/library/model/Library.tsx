@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { LibraryContext } from './Library.context';
 import { useContext, useEffect, useState, type ReactNode } from 'react';
@@ -17,7 +18,7 @@ function useLibraryState() {
       if (busy) return;
       busy = true;
       try {
-        const listing = await window.studio!.listLibrary();
+        const listing = await getStudioApi().listLibrary();
         if (!disposed && listing.folder === folder) {
           setDisk({ folder, listing });
           setError('');

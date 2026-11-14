@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { StorageSection, StudioBootstrap } from '../../../shared/storage';
 import { StorageContext } from './Storage.context';
@@ -28,7 +29,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
     () =>
       new PersistenceQueue({
         write: (key, edit) =>
-          window.studio!.saveSection(key, edit.value, {
+          getStudioApi().saveSection(key, edit.value, {
             folder: currentFolder.current,
             base: edit.base,
           }),
@@ -57,7 +58,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async () => {
     try {
-      const data = await window.studio!.loadStudio();
+      const data = await getStudioApi().loadStudio();
       currentFolder.current = data.folder;
       setBootstrap(data);
       setReady(true);
@@ -78,7 +79,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
       if (refreshing.current || queue.writing || queue.size) return;
       refreshing.current = true;
       try {
-        const data = await window.studio!.loadStudio();
+        const data = await getStudioApi().loadStudio();
         if (data.folder !== folder || queue.writing || queue.size) return;
         setBootstrap((previous) =>
           previous && JSON.stringify(previous.sections) !== JSON.stringify(data.sections)

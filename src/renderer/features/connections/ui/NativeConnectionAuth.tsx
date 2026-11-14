@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
@@ -55,7 +56,7 @@ export function NativeConnectionAuth({
     const id = auth.id;
     let current = true;
     const timer = setInterval(() => {
-      void window.studio!.readAuthLogin(id).then(
+      void getStudioApi().readAuthLogin(id).then(
         (next) => {
           if (!current) return;
           setAuth(next);
@@ -140,7 +141,7 @@ export function NativeConnectionAuth({
             void perform(async () => {
               setAnswer('');
               setAuth(
-                await window.studio!.beginConnectionLogin({ ...request!, method: selectedMethod! }),
+                await getStudioApi().beginConnectionLogin({ ...request!, method: selectedMethod! }),
               );
             })
           }
@@ -188,7 +189,7 @@ export function NativeConnectionAuth({
             disabled={!answer.trim()}
             onClick={async () => {
               try {
-                await window.studio!.answerAuthLogin(auth.id, auth.prompt!.id, answer);
+                await getStudioApi().answerAuthLogin(auth.id, auth.prompt!.id, answer);
                 setAnswer('');
               } catch {
                 setAuth({
@@ -218,7 +219,7 @@ export function NativeConnectionAuth({
           }
           onClick={() =>
             void perform(async () => {
-              setProviderStatus(await window.studio!.getConnectionStatus(request!));
+              setProviderStatus(await getStudioApi().getConnectionStatus(request!));
             })
           }
         >
@@ -236,8 +237,8 @@ export function NativeConnectionAuth({
                     : 'Удалится общий вход этого провайдера в Pi. Другие подключения с общим входом тоже потребуют авторизацию. Проекты и диалоги сохранятся.',
                 onConfirm: () =>
                   void perform(async () => {
-                    await window.studio!.removeConnectionLogin(request!);
-                    setProviderStatus(await window.studio!.getConnectionStatus(request!));
+                    await getStudioApi().removeConnectionLogin(request!);
+                    setProviderStatus(await getStudioApi().getConnectionStatus(request!));
                   }),
               })
             }

@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useState } from 'react';
 import type { Resource } from '../../../../shared/resources';
 import { useStorage } from '@/shared/storage/Storage';
@@ -21,14 +22,14 @@ export function ResourceActions({ resource }: { resource: Resource }) {
     try {
       if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
       if (kind === 'login') {
-        const result = await window.studio!.openResourceLogin(resource.id);
+        const result = await getStudioApi().openResourceLogin(resource.id);
         setLoginId(result.loginId);
         setMessage(result.loginId ? '' : result.next);
       } else if (kind === 'install') {
-        await window.studio!.installResource(resource.id);
+        await getStudioApi().installResource(resource.id);
         setMessage('Пакет доступен в Pi. Назначенные агенты загрузят его при следующем открытии.');
       } else {
-        const checked = await window.studio!.checkResource(resource.id);
+        const checked = await getStudioApi().checkResource(resource.id);
         setMessage(
           {
             available: 'Ресурс доступен. Назначенный агент загрузит его при следующем открытии.',

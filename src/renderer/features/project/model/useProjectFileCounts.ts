@@ -1,3 +1,4 @@
+import { getStudioApi } from '@/shared/desktopApi';
 import { useEffect, useState } from 'react';
 import type { WorkspaceProject } from './workspace.types';
 import { countFiles } from './outputTree';
@@ -21,7 +22,7 @@ export function useProjectFileCounts(projects: WorkspaceProject[]) {
       reading = true;
       try {
         const results = await Promise.allSettled(
-          records.map((project) => window.studio!.readProject(project.id)),
+          records.map((project) => getStudioApi().readProject(project.id)),
         );
         if (active)
           setCounts(
