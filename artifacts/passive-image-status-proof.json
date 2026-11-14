@@ -1,11 +1,12 @@
 {
-  "sourceVersion": "0.2.0-alpha.53",
+  "sourceVersion": "0.2.0-alpha.58",
   "passed": {
     "nativeCatalogAndEditorWithoutCryptoInitialization": true,
     "noSecretReturnedToRenderer": true,
     "reloadStatusWithoutCryptoInitialization": true,
     "explicitCheckStillRejectsUnavailableStorage": true,
-    "ciphertextUnchanged": true
+    "ciphertextUnchanged": true,
+    "workspaceSummaryUsesActualImageSettings": true
   },
   "passiveCryptoInitializations": 0,
   "explicitCryptoInitializations": 1,
@@ -16,7 +17,10 @@
     "src/main/images/ImageConnections.ts": "82b9e79c085509f1164b756f93d536475e474fb977e49ae292ac5e3fc22fd2ff",
     "src/shared/connections.ts": "652651e87769455470fef7968817f1a83ab638087ded097aa496757f116471ce",
     "src/renderer/features/connections/ui/ImageKeyFields.tsx": "dd9d887c09cdd28c06435e5ef8a35f7911b68dd8b73e38e10e0c36d159479e23",
-    "tests/images.test.ts": "d62a9c93e432a30e48a98d26a75a6b814c5f4ceebfe69d2b2d6e0b18daa59b57",
-    "scripts/smoke-image-status.cjs": "e7d87aa74b080ad368da48839d1acbd9f18ceb70005c1f4feb795bda768ab6a4"
+    "src/renderer/features/connections/model/useCoreTools.ts": "4eed23fb1c2708d28d5e28c8911bd6a912a519df30a86e04873fd150b9ba4d70",
+    "src/renderer/features/settings/ui/SettingsView.tsx": "a040ab0a57d6319b30e8a69ec31153bf462d81f0c8bbfdd13bc0f988f4ecae3f",
+    "src/renderer/features/launch/ui/dialogs/PromptDialog.tsx": "18e9c836f5625343960c376297a668709febff385933a387b11aab4789464aaa",
+    "tests/images.test.ts": "c8d66e6daec3eb0431c7748007540a711aa3f27f9e8c548aa25068060575c285",
+    "scripts/smoke-image-status.cjs": "9b3c6e9743dee66cd4aab62a2dc9d0669a899a2d92e75a03b5585069529d12bb"
   }
 }

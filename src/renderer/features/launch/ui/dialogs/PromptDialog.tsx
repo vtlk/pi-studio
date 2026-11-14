@@ -1,5 +1,5 @@
 import { enabledResources, useResources } from '@/features/resources/model/Resources';
-import { coreTools, coreToolStatus } from '@/entities/studio/tools';
+import { useCoreTools } from '@/features/connections/model/useCoreTools';
 import { systemAgentDefinitions } from '../../../../../shared/systemAgents';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
@@ -9,6 +9,7 @@ import { useProject } from '@/features/project/model/projectHooks';
 import { useStorage } from '@/shared/storage/Storage';
 import { libraryMcp } from '../../../../../shared/builtinResources';
 function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {
+  const coreTools = useCoreTools();
   const { setDialog } = useLaunch();
   const { selectedAgent, selectedSystemRole } = useAgentProfiles();
   const { resources } = useResources();
@@ -34,7 +35,7 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
     baseInstruction,
     `ОБЩИЕ ИНСТРУМЕНТЫ: ${coreTools
       .filter((tool) => selectedSystemRole !== 'assistant' || tool.id === 'web-search')
-      .map((tool) => `${tool.name} · ${coreToolStatus(tool.id, isDesktop)}`)
+      .map((tool) => `${tool.name} · ${tool.status}`)
       .join(', ')}`,
     selectedAgent?.mainInstruction ?? '',
     ...(selectedAgent?.instructions ?? [])

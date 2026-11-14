@@ -5,7 +5,7 @@ import { Button, EmptyIntegration } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { SetupAssistant } from '@/features/setup-assistant/ui/SetupAssistant';
-import { coreTools, coreToolStatus } from '@/entities/studio/tools';
+import { useCoreTools } from '@/features/connections/model/useCoreTools';
 import { ConnectionsPanel } from '@/features/connections/ui/ConnectionsPanel';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import type { CapabilityKind } from '@/entities/studio/types';
@@ -27,6 +27,7 @@ function LegacyRules() {
   );
 }
 export function SettingsView() {
+  const coreTools = useCoreTools();
   const { demo } = useNotice();
   const [section, setSection] = useState('workspace');
   const { bootstrap, isDesktop, openStudio, chooseStudio, saving } = useStorage();
@@ -134,11 +135,8 @@ export function SettingsView() {
               </p>
             )}
             <p className="section-space">
-              Общие инструменты всех агентов:{' '}
-              {coreTools
-                .map((tool) => `${tool.name} — ${coreToolStatus(tool.id, isDesktop).toLowerCase()}`)
-                .join(', ')}
-              .
+              Общие инструменты:{' '}
+              {coreTools.map((tool) => `${tool.name} — ${tool.status.toLowerCase()}`).join(', ')}.
             </p>
             <EmptyIntegration>
               Только macOS. Авторизация провайдеров и секреты — отдельно от файлов проектов.

@@ -38,6 +38,7 @@ process.on('unhandledRejection', fail);
     JSON.stringify({
       schemaVersion: 1,
       sections: {
+        imageTool: { connectionId: 'qa-images', modelId: 'gpt-image-2' },
         connections: [
           {
             id: 'qa-images',
@@ -114,6 +115,13 @@ process.on('unhandledRejection', fail);
     );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await until(
+    `document.body.textContent.includes('Генерация изображений — настроен · авторизация не проверена')`,
+  );
+  assert.equal(
+    await js(`document.body.textContent.includes('Генерация изображений — не подключён')`),
+    false,
+  );
   await click('Подключения');
   await until(`document.body.textContent.includes('Ключ сохранён · авторизация не проверена')`);
   await click('Настроить');
@@ -151,6 +159,9 @@ process.on('unhandledRejection', fail);
     'src/main/images/ImageConnections.ts',
     'src/shared/connections.ts',
     'src/renderer/features/connections/ui/ImageKeyFields.tsx',
+    'src/renderer/features/connections/model/useCoreTools.ts',
+    'src/renderer/features/settings/ui/SettingsView.tsx',
+    'src/renderer/features/launch/ui/dialogs/PromptDialog.tsx',
     'tests/images.test.ts',
     'scripts/smoke-image-status.cjs',
   ];
@@ -162,6 +173,7 @@ process.on('unhandledRejection', fail);
       reloadStatusWithoutCryptoInitialization: true,
       explicitCheckStillRejectsUnavailableStorage: true,
       ciphertextUnchanged: true,
+      workspaceSummaryUsesActualImageSettings: true,
     },
     passiveCryptoInitializations: 0,
     explicitCryptoInitializations: initialized,
