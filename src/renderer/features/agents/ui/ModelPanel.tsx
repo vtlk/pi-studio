@@ -1,13 +1,14 @@
-import { coreTools, coreToolStatus } from '@/entities/studio/tools';
+import { RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
+import { SearchableSelect } from '@/shared/ui/SearchableSelect';
 import { useConnections } from '@/features/connections/model/Connections';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { usePiCatalog } from '@/features/connections/model/usePiCatalog';
 
 export function ModelPanel() {
-  const { selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
-  const { connections, providerStatuses } = useConnections();
+  const { selectedAgent, updateAgent } = useAgentProfiles();
+  const { connections } = useConnections();
   const { catalog, loading, error, reload } = usePiCatalog(
     connections.find((item) => item.id === selectedAgent?.model?.connectionId),
   );
@@ -50,15 +51,7 @@ export function ModelPanel() {
       : []),
   ];
   return (
-    <div className="agent-settings-content">
-      <p>
-        Общие инструменты:{' '}
-        {coreTools
-          .filter((tool) => selectedSystemRole !== 'assistant' || tool.id === 'web-search')
-          .map((tool) => `${tool.name} · ${coreToolStatus(tool.id, !!window.studio).toLowerCase()}`)
-          .join(', ')}
-        .
-      </p>
+    <div className="agent-settings-content agent-model-panel">
       <div className="agent-model-fields">
         <label className="field-label">
           <span>Подключение</span>
@@ -80,7 +73,7 @@ export function ModelPanel() {
         <label className="field-label">
           <span>Модель</span>
           {window.studio ? (
-            <Select
+            <SearchableSelect
               label="Модель агента"
               value={model.id || 'none'}
               options={modelOptions}
@@ -109,21 +102,17 @@ export function ModelPanel() {
           />
         </label>
       </div>
-      <p>
-        {connection
-          ? `${connection.purpose === 'local' || connection.purpose === 'compatible' ? connection.endpoint : connection.providerId} · ${connection.purpose === 'codex' ? 'Подписка' : 'Собственный способ подключения'}${providerStatuses[connection.id] === 'ready' ? ' · Подключено' : ''}`
-          : 'Сначала выберите подключение в первом поле — затем станет доступен список моделей.'}
-      </p>
-      {error && <p role="alert">{error}</p>}
       {window.studio && (
-        <Button disabled={loading} onClick={() => void reload()}>
-          Обновить каталог Pi
-        </Button>
+        <div className="agent-model-actions">
+          <Button disabled={loading || !connection} onClick={() => void reload()}>
+            <RefreshCw size={15} aria-hidden="true" />
+            {loading ? 'Обновляем каталог…' : 'Обновить каталог Pi'}
+          </Button>
+        </div>
       )}
-      {catalog && (
-        <p className="subtle">
-          Модели прочитаны из установленного Pi. Доступ к модели проверяется при запросе;
-          сохранение профиля не выполняет запрос к модели.
+      {error && (
+        <p className="agent-model-error" role="alert">
+          {error}
         </p>
       )}
     </div>

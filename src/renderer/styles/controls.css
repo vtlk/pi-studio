@@ -565,3 +565,60 @@
 .agent-settings-content > .add-area {
   margin-top: 12px;
 }
+.ui-searchable-select {
+  z-index: 120;
+  width: max(320px, var(--radix-popover-trigger-width));
+  max-width: calc(100vw - 24px);
+  max-height: min(380px, var(--radix-popover-content-available-height));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 4px 12px #0002;
+  font: 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.ui-select-search {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+.ui-select-search input {
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  font: inherit;
+  color: var(--ink);
+}
+.ui-searchable-options {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+}
+.ui-searchable-options .ui-select-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ui-searchable-options .ui-select-option[data-active] {
+  background: var(--pill-active);
+  color: var(--pill-ink);
+}
+.ui-select-empty {
+  margin: 0;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 14px;
+}

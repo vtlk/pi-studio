@@ -68,7 +68,7 @@ const deadline = setTimeout(() => {
     await js(
       `(()=>{const element=document.querySelector(${JSON.stringify(selector)});window.__qaTooltipTarget=element;const rect=element.getBoundingClientRect();element.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:rect.x+rect.width/2,clientY:rect.y+rect.height/2}));})()`,
     );
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const created = await js(
@@ -113,11 +113,7 @@ const deadline = setTimeout(() => {
   );
   assert.deepEqual(await tooltips(), ['2. ' + longName]);
   await hover('.project-agent-menu .section-menu-row:first-child .agent-status-icon');
-  assert.deepEqual(
-    await tooltips(),
-    [],
-    'Visible status text needs no duplicate icon tooltip',
-  );
+  assert.deepEqual(await tooltips(), [], 'Visible status text needs no duplicate icon tooltip');
   await hover('.file-tree-item:first-child');
   // Select files by their text, independent of timestamps/platform ordering.
   await js(

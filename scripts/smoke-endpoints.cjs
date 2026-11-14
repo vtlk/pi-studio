@@ -110,6 +110,58 @@ const deadline = setTimeout(() => {
   await until(`!document.querySelector('[aria-label="Модель агента"]').disabled`);
   await select('Модель агента', 'qa-one');
   await select('Уровень рассуждения (effort)', 'Низкий');
+  await until(
+    `(async()=>{const saved=await window.studio.loadStudio();return saved.sections.agents[0].model.id==='qa-one'&&saved.sections.agents[0].model.reasoning==='Низкий'})()`,
+  );
+  // Search is local to the open picker; cancelling or an empty result never changes the profile.
+  await js(`document.querySelector('[aria-label="Модель агента"]').click()`);
+  await until(`document.activeElement?.getAttribute('role')==='combobox'`);
+  await fill('[placeholder="Найти модель"]', 'NO-SUCH-MODEL');
+  await until(`!!document.querySelector('.ui-select-empty')`);
+  assert.equal(await js(`document.querySelectorAll('[role="option"]').length`), 0);
+  window.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' });
+  window.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
+  assert.equal((await js('window.studio.loadStudio()')).sections.agents[0].model.id, 'qa-one');
+  window.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+  window.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
+  await until(`!document.querySelector('.ui-searchable-select')`);
+  await until(`document.activeElement?.getAttribute('aria-label')==='Модель агента'`);
+  await js(`document.querySelector('[aria-label="Модель агента"]').click()`);
+  await until(`document.activeElement?.getAttribute('role')==='combobox'`);
+  assert.equal(await js(`document.querySelector('[placeholder="Найти модель"]').value`), '');
+  await fill('[placeholder="Найти модель"]', 'QA-ONE');
+  await until(`document.querySelectorAll('[role="option"]').length===1`);
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await writeFile(resolve('artifacts/agent-model-search.png'), (await window.capturePage()).toPNG());
+  for (const keyCode of ['Down', 'Up', 'Enter']) {
+    window.webContents.sendInputEvent({ type: 'keyDown', keyCode });
+    window.webContents.sendInputEvent({ type: 'keyUp', keyCode });
+  }
+  await until(`!document.querySelector('.ui-searchable-select')`);
+  assert.equal(received.length, 1, 'Searching must not call the provider');
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await writeFile(resolve('artifacts/agent-model-panel.png'), (await window.capturePage()).toPNG());
+  const fields = await js(
+    `Array.from(document.querySelectorAll('.agent-model-fields .ui-select-trigger')).map(el=>({y:el.getBoundingClientRect().y,h:el.offsetHeight}))`,
+  );
+  assert.equal(
+    new Set(fields.map((item) => item.y)).size,
+    1,
+    'All three model fields stay in one row',
+  );
+  await click('Промпт');
+  const prompt = await js(
+    `(()=>{const el=document.querySelector('[aria-label="Основной промпт агента"]');return {height:el.offsetHeight,margin:getComputedStyle(el).margin,top:el.getBoundingClientRect().top,bodyTop:document.querySelector('.agent-settings-body').getBoundingClientRect().top,label:!!el.closest('label')}})()`,
+  );
+  assert.ok(prompt.height >= 360);
+  assert.equal(prompt.margin, '0px');
+  assert.equal(prompt.top, prompt.bodyTop);
+  assert.equal(prompt.label, false);
+  await writeFile(
+    resolve('artifacts/agent-prompt-panel.png'),
+    (await window.capturePage()).toPNG(),
+  );
+  await click('Модель');
   await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   const saved = await js('window.studio.loadStudio()');
   assert.equal(saved.sections.agents[0].model.connectionId, connection.id);

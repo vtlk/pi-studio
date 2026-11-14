@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Latest user refinement (2026-11-14): shared tooltips have zero hover delay. Agent Prompt is a tall editor aligned with the tab content, with no visible label or wrapper spacing (retain an accessible name). Model settings keep connection/model/effort on one row, use shared SearchableSelect for local name/ID filtering and keyboard selection, and show only useful controls/errors rather than explanatory paragraphs.
+
 - Projects list follows technical-spec/PROJECTS_LIST.md: compact labeled AddArea, total/search toolbar, dated table rows with real folder basenames/counts, newest first, hover/focus actions, confirmed recoverable deletion and collapsed trash. No logo. Respect the exact typography and show full-text tooltips only for ellipsis. Keep actions outside the project-open button.
 
 - macOS only. Electron + React + strict TypeScript + electron-vite.

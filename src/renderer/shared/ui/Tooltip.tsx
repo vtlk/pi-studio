@@ -10,7 +10,7 @@ import {
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
-    <TooltipPrimitive.Provider delayDuration={350} skipDelayDuration={150}>
+    <TooltipPrimitive.Provider delayDuration={0} skipDelayDuration={0}>
       {children}
     </TooltipPrimitive.Provider>
   );
