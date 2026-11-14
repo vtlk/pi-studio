@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-14T20:50:13.997Z",
+  "nativePi": "1.5.2",
+  "actualProductionHost": true,
+  "localModelRequests": 2,
+  "externalModelRequests": 0,
+  "confirmedRuntimeStart": true,
+  "parallelCounts": [
+    1,
+    2,
+    1,
+    0
+  ],
+  "stopOnlyAfterLastAgent": true,
+  "idleResumeDoesNotStartActivity": true
+}

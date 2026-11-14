@@ -22,6 +22,7 @@ export class RunLifecycle {
     this.dependencies = dependencies;
   }
   async processLost(live: LiveRun) {
+    this.dependencies.activityChanged?.(live.run, false);
     this.dependencies.closed?.(live.run);
     live.status = closedRunStatus(live.status);
     await this.dependencies.update(live.run, live.status).catch(() => {});
@@ -95,6 +96,7 @@ export class RunLifecycle {
       await this.dependencies.update(live.run, 'running');
       this.dependencies.failureChanged?.(live.run);
     } else if (event.type === 'running') {
+      this.dependencies.activityChanged?.(live.run, true);
       live.status = 'running';
       await this.dependencies.update(live.run, 'running');
     } else if (event.type === 'settled') {
@@ -115,6 +117,7 @@ export class RunLifecycle {
         /* A deleted/changed output invalidates the completion signal. */
       }
       if (live.sequence !== sequence) return;
+      this.dependencies.activityChanged?.(live.run, false);
       live.status =
         event.outcome === 'error'
           ? 'error'
@@ -163,6 +166,7 @@ export class RunLifecycle {
         });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {
+      this.dependencies.activityChanged?.(live.run, false);
       this.dependencies.closed?.(live.run);
       live.status = event.type === 'error' ? 'error' : closedRunStatus(live.status);
       live.failure =
@@ -201,6 +205,7 @@ export class RunLifecycle {
       };
     }
     if (name === 'report_blocked') {
+      this.dependencies.activityChanged?.(live.run, false);
       live.blocked = true;
       await this.dependencies.update(live.run, 'waiting');
       return { paused: true };

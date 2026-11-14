@@ -16,6 +16,7 @@ import type { ImageGeneration } from '../images/ImageGeneration.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
+import type { ProjectActivity } from './ProjectActivity.ts';
 
 interface Options {
   bootstraps: string;
@@ -25,6 +26,7 @@ interface Options {
   references?: ReferenceFiles;
   images?: ImageGeneration;
   browser?: BrowserSupport;
+  activity?: ProjectActivity;
   libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
@@ -43,10 +45,12 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       ...(options.images?.tools(run) ?? []),
     ],
     closed: (run) => {
+      options.activity?.set(run, false);
       options.images?.cancel(run);
       options.browser?.release(run);
     },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
+    activityChanged: (run, working) => options.activity?.set(run, working),
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)

@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-14T20:51:28.594Z",
+  "scope": "Actual Electron renderer/preload/read-only handler with isolated count fixture; runtime producer verified separately with real Pi",
+  "savedStatusDoesNotStartSpinner": true,
+  "independentProjects": true,
+  "parallelCounts": [
+    2,
+    1,
+    0
+  ],
+  "folderReturnsAfterLast": true,
+  "accessibleWorkLabels": true,
+  "noDuplicateTooltip": true,
+  "reducedMotionRetainsIndicator": true,
+  "offscreen": true
+}

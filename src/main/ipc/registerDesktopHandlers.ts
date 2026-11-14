@@ -38,6 +38,8 @@ import { notifyRunFailure as failureChanged } from '../pi/notifyRunFailure';
 import { saveManagedSkill } from '../storage/managedSkills';
 import type { SkillWriteRequest } from '../../shared/resources';
 import { BrowserSupport } from '../browser/BrowserSupport';
+import { ProjectActivity } from '../pi/ProjectActivity';
+import { registerResourceHandlers } from '../pi/registerResourceHandlers';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -69,6 +71,7 @@ export function registerDesktopHandlers(): StudioService {
     caller,
   );
   const references = new ReferenceFiles(referenceImage);
+  const activity = new ProjectActivity();
   const mcpSecrets = registerMcpSecretHandlers(service, caller, () => startup.path);
   const { connections: imageConnections, images } = createImageServices(service);
   const browser = new BrowserSupport(
@@ -83,6 +86,7 @@ export function registerDesktopHandlers(): StudioService {
     libraryPreview: rasterizePreview,
   };
   const runs = createStudioRunHost(service, {
+    activity,
     ...productionResources,
     failureChanged,
     bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
@@ -152,17 +156,10 @@ export function registerDesktopHandlers(): StudioService {
     );
     await setup.launch({ projectId: 'pi-setup-assistant', agentId: id, autoContinue: false });
   });
-  ipcMain.handle(desktopChannels.checkResource, (event, id: string) => {
+  registerResourceHandlers(resources, caller);
+  ipcMain.handle(desktopChannels.listProjectActivity, (event) => {
     caller(event);
-    return resources.check(id);
-  });
-  ipcMain.handle(desktopChannels.installResource, (event, id: string) => {
-    caller(event);
-    return resources.install(id);
-  });
-  ipcMain.handle(desktopChannels.openResourceLogin, (event, id: string) => {
-    caller(event);
-    return resources.login(id);
+    return activity.list();
   });
   ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
     caller(event);

@@ -27,6 +27,7 @@ import type {
   ImageConnectionStatus,
 } from './connections';
 import type { McpSecretRequest, McpSecretEdit, McpSecretStatus } from './mcpSecrets';
+import type { ProjectActivity } from './projectActivity';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -56,6 +57,7 @@ export interface DesktopApi {
   ): Promise<SectionSaveResult>;
   projectCommand(command: ProjectCommand): Promise<ProjectCommandResult>;
   readProject(projectId: string): Promise<WorkspaceProject>;
+  listProjectActivity(): Promise<ProjectActivity[]>;
   readOutput(request: FileRequest): Promise<OutputFile>;
   inspectVideoProject(request: FileRequest): Promise<VideoProjectInspection>;
   revealOutput(request: FileRequest): Promise<void>;
@@ -135,6 +137,7 @@ export const desktopChannels = {
   saveSection: 'studio:save-section',
   projectCommand: 'studio:project-command',
   readProject: 'studio:read-project',
+  listProjectActivity: 'studio:list-project-activity',
   readOutput: 'studio:read-output',
   inspectVideoProject: 'studio:inspect-video-project',
   revealOutput: 'studio:reveal-output',

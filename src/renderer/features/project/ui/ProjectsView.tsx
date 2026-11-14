@@ -13,6 +13,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useWorkspace } from '../model/Workspace';
 import { ProjectListRow } from './ProjectListRow';
 import { useProjectFileCounts } from '../model/useProjectFileCounts';
+import { useProjectActivity } from '../model/useProjectActivity';
 import './projectsList.css';
 
 export function ProjectsView() {
@@ -27,6 +28,7 @@ export function ProjectsView() {
   const { setDialog } = useLaunch();
   const { demo } = useNotice();
   const fileCounts = useProjectFileCounts(projects);
+  const activity = useProjectActivity();
   const showSearch = projects.length >= 6;
   const search = showSearch ? query.trim().toLocaleLowerCase('ru-RU') : '';
   const shown = [...projects]
@@ -100,6 +102,8 @@ export function ProjectsView() {
               project={project}
               busy={busy}
               fileCount={fileCounts[project.id]}
+              runningAgents={activity.counts[project.id] ?? 0}
+              activityUnavailable={activity.unavailable}
               onOpen={() => {
                 setProjectId(project.id);
                 navigate('project');

@@ -119,6 +119,19 @@
   border-radius: 6px;
   background: #f0f0f1;
 }
+.project-active-spinner {
+  animation: project-active-rotation 1s linear infinite;
+}
+@keyframes project-active-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-active-spinner {
+    animation: none;
+  }
+}
 .project-identity {
   flex: 1;
   min-width: 0;

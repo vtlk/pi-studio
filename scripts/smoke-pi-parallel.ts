@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
+import { ProjectActivity } from '../src/main/pi/ProjectActivity.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import type { Agent } from '../src/shared/studio.ts';
@@ -83,7 +84,9 @@ await store.saveSection('agents', agents);
 const project = (await store.command({ kind: 'create', name: 'Parallel SDK QA', agents }))
   .projects[0];
 const children: Promise<number | null>[] = [];
+const activity = new ProjectActivity();
 const host = createStudioRunHost(service, {
+  activity,
   bootstraps: join(root, 'boots'),
   bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
@@ -125,6 +128,7 @@ try {
     firstMessage: 'PARALLEL_A: Reply once without tools.',
   });
   await until(() => waiting.has('a'));
+  assert.deepEqual(activity.list(), [{ projectId: project.id, runningAgents: 1 }]);
   const second = await host.launch({
     projectId: project.id,
     agentId: 'b',
@@ -132,6 +136,7 @@ try {
     firstMessage: 'PARALLEL_B: Reply once without tools.',
   });
   await until(() => waiting.has('b'));
+  assert.deepEqual(activity.list(), [{ projectId: project.id, runningAgents: 2 }]);
   let current = await store.projects.read(project.id);
   assert.deepEqual(
     current.agents.map((a) => a.runStatus),
@@ -147,11 +152,13 @@ try {
     await writeFile(join(directory, agent.outputPath, 'marker.txt'), agent.profile.id);
   release('a');
   assert.equal(await children[0], 0);
+  assert.deepEqual(activity.list(), [{ projectId: project.id, runningAgents: 1 }]);
   current = await store.projects.read(project.id);
   assert.equal(current.agents[1].runStatus, 'running');
   assert.throws(() => host.assertIdle(project.id), /Дождитесь/);
   release('b');
   assert.equal(await children[1], 0);
+  assert.deepEqual(activity.list(), []);
   host.assertIdle(project.id);
   const messages = async (path: string) =>
     (await readFile(join(directory, path), 'utf8'))
@@ -175,6 +182,7 @@ try {
   );
   assert.deepEqual(await Promise.all(paths.map(messages)), before);
   assert.equal(requests, 2, 'Idle resumes send no request or replay');
+  assert.deepEqual(activity.list(), []);
   for (const agent of current.agents)
     assert.equal(
       await readFile(join(directory, agent.outputPath, 'marker.txt'), 'utf8'),
@@ -198,8 +206,39 @@ try {
   };
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(
+    resolve('artifacts/project-activity-runtime-proof.json'),
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        nativePi: pi.version,
+        actualProductionHost: true,
+        localModelRequests: requests,
+        externalModelRequests: 0,
+        confirmedRuntimeStart: true,
+        parallelCounts: [1, 2, 1, 0],
+        stopOnlyAfterLastAgent: true,
+        idleResumeDoesNotStartActivity: true,
+      },
+      null,
+      2,
+    ) + '\n',
+  );
+  await writeFile(
     resolve('artifacts/parallel-agents-proof.json'),
-    JSON.stringify(proof, null, 2) + '\n',
+    JSON.stringify(
+      {
+        ...JSON.parse(
+          await readFile(resolve('artifacts/parallel-agents-proof.json'), 'utf8').catch(() => '{}'),
+        ),
+        latestNativeControl: {
+          checkedAt: new Date().toISOString(),
+          result: proof,
+          projectActivity: true,
+        },
+      },
+      null,
+      2,
+    ) + '\n',
   );
   console.log(JSON.stringify(proof));
 } finally {

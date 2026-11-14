@@ -53,5 +53,24 @@
       "scripts/smoke-pi-chain-local.ts": "febf38b0294fa26eb9030a8a0cb6d8396d6df219ae09ba169aeafe91ab8af1e8",
       "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
     }
+  },
+  "latestNativeControl": {
+    "checkedAt": "2026-11-14T20:55:06.031Z",
+    "result": {
+      "passed": true,
+      "pi": "1.5.2",
+      "scope": "Two real native Pi processes, production Studio RunHost/bridge, one project; synthetic SSE model on loopback only",
+      "simultaneousRequests": true,
+      "secondOpenedWhileFirstStreaming": true,
+      "independentBindingsAndMessages": true,
+      "independentOutputs": true,
+      "oneCompletionDoesNotStopOther": true,
+      "mutationsWaitForBoth": true,
+      "exactIdleResumesNoReplay": true,
+      "localModelRequests": 2,
+      "externalModelRequests": 0,
+      "runIdsDistinct": true
+    },
+    "projectActivity": true
   }
 }
