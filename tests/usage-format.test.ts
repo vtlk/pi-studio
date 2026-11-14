@@ -27,7 +27,7 @@ test('project metrics preserve units, rounded token thresholds, long duration an
   assert.equal(moneyText(0.0000001, 'USD'), '<$0.0001');
   assert.equal(usageText(undefined, tokensText), '…');
   assert.equal(usageText({ value: null, partial: true }, tokensText), '—');
-  assert.equal(usageText({ value: 1700, partial: true }, tokensText), '≥1.7k');
+  assert.equal(usageText({ value: 1700, partial: true }, tokensText), '1.7k*');
   const usage = agentUsage(emptyAgentLedger(false));
   assert.match(
     usageAccessible(usage),

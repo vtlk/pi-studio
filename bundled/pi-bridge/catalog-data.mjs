@@ -1,4 +1,5 @@
 import { loadThinkingApi } from './thinking.mjs';
+import { nativeProviderAuth } from './connection-runtime.mjs';
 export async function catalogData(sdk, runtime, cwd, scope, sdkPath) {
   const thinking = await loadThinkingApi(sdkPath);
   const builtins = await sdk.ModelRuntime.create({
@@ -20,14 +21,14 @@ export async function catalogData(sdk, runtime, cwd, scope, sdkPath) {
     // in the catalog. Never advertise the isolation guard as a provider's auth method.
     const auth =
       scope && provider.id !== scope.provider
-        ? (builtins.getProvider(provider.id)?.auth ?? provider.auth)
+        ? (nativeProviderAuth(runtime, provider.id) ?? builtins.getProvider(provider.id)?.auth ?? provider.auth)
         : provider.auth;
     return {
       id: provider.id,
       name: provider.name || provider.id,
       configured: runtime.hasConfiguredAuth(provider.id),
       subscription: runtime.isUsingSubscription(provider.id),
-      isolatedAuth: !!builtins.getProvider(provider.id) || scope?.provider === provider.id,
+      isolatedAuth: !!nativeProviderAuth(runtime, provider.id) || !!builtins.getProvider(provider.id) || scope?.provider === provider.id,
       loginMethods: [
         ...(auth.oauth ? [{ id: 'oauth', label: auth.oauth.loginLabel || auth.oauth.name }] : []),
         ...(auth.apiKey?.login ? [{ id: 'api_key', label: auth.apiKey.name }] : []),

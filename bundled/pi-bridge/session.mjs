@@ -2,7 +2,8 @@ import { readFile, rm, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve, relative, isAbsolute } from 'node:path';
 import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
-import { createConnectionRuntime } from './connection-runtime.mjs';
+import { createConnectionServices } from './connection-runtime.mjs';
+import { nativeExtensionPaths } from './native-extensions.mjs';
 import { classifyProviderFailure } from './provider-failure.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
@@ -77,7 +78,6 @@ export async function runSession(bootstrapPath) {
     createCodemodeExtension,
     createToolSearchExtension,
     createAgentSessionRuntime,
-    createAgentSessionServices,
     createAgentSessionFromServices,
     InteractiveMode,
     getAgentDir,
@@ -236,12 +236,10 @@ export async function runSession(bootstrapPath) {
         settings,
         envelope.resources.plugins,
       );
-      await event({ type: 'capabilities', executableExtensions: packages.extensions.length > 0 });
-      const services = await createAgentSessionServices({
-        cwd,
-        ...(envelope.modelAuth
-          ? { modelRuntime: await createConnectionRuntime(sdk, envelope.modelAuth) }
-          : {}),
+      const nativePaths = await nativeExtensionPaths(sdk, cwd);
+      await event({ type: 'capabilities', executableExtensions: nativePaths.length + packages.extensions.length > 0 });
+      const services = await createConnectionServices(sdk, envelope.modelAuth, cwd, {
+        nativePaths,
         settingsManager: settings,
         resourceLoaderOptions: {
           noExtensions: true,

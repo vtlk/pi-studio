@@ -10,7 +10,6 @@ import type {
 import { stableId } from '../storage/validation.ts';
 import type { BrowserAuth } from './BrowserAuth.ts';
 import { connectionAuthScope, modelAuthOperation } from './modelAuth.ts';
-import { getProviderStatus } from './provider.ts';
 import { readPiCatalog } from './catalog.ts';
 
 export class ModelConnections {
@@ -47,6 +46,7 @@ export class ModelConnections {
         throw new Error('Подключение модели отсутствует.');
       const path = String(sections.piPath ?? '') || this.piPath();
       return {
+        cwd: store.folder,
         connection,
         path,
         scope: await connectionAuthScope(this.directory, store.folder, connection),
@@ -56,13 +56,15 @@ export class ModelConnections {
   }
   async status(request: ModelConnectionRequest): Promise<ModelConnectionStatus> {
     const saved = await this.descriptor(request);
-    const status = saved.scope
-      ? await modelAuthOperation<{ provider: string; status: ModelConnectionStatus['status'] }>(
-          saved.path,
-          join(this.scripts, 'model-auth.mjs'),
-          { action: 'status', provider: saved.connection.providerId, scope: saved.scope },
-        )
-      : await getProviderStatus(saved.path, saved.connection.providerId);
+    const status = await modelAuthOperation<{
+      provider: string;
+      status: ModelConnectionStatus['status'];
+    }>(saved.path, join(this.scripts, 'model-auth.mjs'), {
+      action: 'status',
+      provider: saved.connection.providerId,
+      scope: saved.scope,
+      cwd: saved.cwd,
+    });
     if ((await this.descriptor(request)).signature !== saved.signature)
       throw new Error('Подключение изменилось во время проверки.');
     if (
@@ -101,6 +103,7 @@ export class ModelConnections {
       provider: saved.connection.providerId,
       method: request.method,
       scope: saved.scope,
+      cwd: saved.cwd,
       key: saved.signature,
       verify: async () => {
         if ((await this.descriptor(request)).signature !== saved.signature) return false;
@@ -116,7 +119,7 @@ export class ModelConnections {
       models = await modelAuthOperation<string[]>(
         saved.path,
         join(this.scripts, 'model-auth.mjs'),
-        { action: 'discover', scope: saved.scope },
+        { action: 'discover', scope: saved.scope, cwd: saved.cwd },
       );
     } catch {
       throw new Error(
@@ -133,6 +136,7 @@ export class ModelConnections {
       action: 'logout',
       provider: saved.connection.providerId,
       scope: saved.scope,
+      cwd: saved.cwd,
     });
   }
 }

@@ -39,7 +39,7 @@ export async function verifyOAuthResume(
       connectionId: 'qa',
       provider: 'openai',
       id: 'gpt-4.1',
-      reasoning: 'Низкий',
+      reasoning: 'Выключен',
       temperature: '',
     },
   };

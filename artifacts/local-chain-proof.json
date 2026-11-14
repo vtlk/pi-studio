@@ -72,5 +72,24 @@
       "scripts/smoke-pi-chain-local.ts": "febf38b0294fa26eb9030a8a0cb6d8396d6df219ae09ba169aeafe91ab8af1e8",
       "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
     }
+  },
+  "latestNativeControl": {
+    "checkedAt": "2026-11-14T22:41:28.037Z",
+    "applicationVersion": "0.2.0-alpha.57",
+    "result": {
+      "passed": true,
+      "pi": "1.5.2",
+      "nativeBashAndMcpCompletion": true,
+      "disabledStageSkipped": true,
+      "currentRoleAtHandoff": true,
+      "freshContextWithoutInstructionCopies": true,
+      "previousOutputReadByNextAgent": true,
+      "oneUserMessagePerStage": true,
+      "armedIdleResumeNoReplay": true,
+      "idleResumeFreshContextAndExactBinding": true,
+      "localModelRequests": 6,
+      "externalModelRequests": 0,
+      "scope": "Actual Pi SDK/production RunHost/bridge with synthetic local OpenAI SSE tools; no Terminal UI or user studio changes."
+    }
   }
 }

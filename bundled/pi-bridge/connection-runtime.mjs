@@ -1,6 +1,37 @@
 import { registerEndpoint } from './endpoint-runtime.mjs';
-// Public native Pi APIs only. Isolated model auth never consults ambient accounts/config files.
-export async function createConnectionRuntime(sdk, scope) {
+import { nativeExtensionPaths } from './native-extensions.mjs';
+
+const providerAuth = new WeakMap();
+export const nativeProviderAuth = (runtime, id) => providerAuth.get(runtime)?.get(id);
+
+export async function createConnectionServices(sdk, scope, cwd = process.cwd(), options = {}) {
+  const runtime = await createBaseRuntime(sdk, scope);
+  const nativePaths = options.nativePaths ?? await nativeExtensionPaths(sdk, cwd);
+  const { additionalExtensionPaths = [], ...loaderOptions } = options.resourceLoaderOptions ?? {};
+  const services = await sdk.createAgentSessionServices({
+    cwd,
+    modelRuntime: runtime,
+    settingsManager: options.settingsManager ?? sdk.SettingsManager.inMemory({ packages: [], extensions: [], skills: [], prompts: [] }),
+    resourceLoaderOptions: {
+      noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true,
+      systemPrompt: '', appendSystemPrompt: [],
+      ...loaderOptions,
+      additionalExtensionPaths: [...new Set([...nativePaths, ...additionalExtensionPaths])],
+    },
+  });
+  if (services.resourceLoader.getExtensions().errors.length || services.diagnostics.some(item => item.type === 'error'))
+    throw Error('A native or selected Pi extension could not load');
+  providerAuth.set(runtime, new Map(runtime.getProviders().map(provider => [provider.id, provider.auth])));
+  await isolateConnection(runtime, scope);
+  return services;
+}
+
+// Catalog/auth and the actual session use the same native provider-registration lifecycle.
+export async function createConnectionRuntime(sdk, scope, cwd) {
+  return (await createConnectionServices(sdk, scope, cwd)).modelRuntime;
+}
+
+async function createBaseRuntime(sdk, scope) {
   if (!scope) return sdk.ModelRuntime.create({ allowModelNetwork: false, refreshOnCreate: true });
   if (
     typeof scope.authPath !== 'string' ||
@@ -15,6 +46,11 @@ export async function createConnectionRuntime(sdk, scope) {
     refreshOnCreate: false,
   });
   if (scope.endpoint) registerEndpoint(runtime, scope);
+  return runtime;
+}
+
+async function isolateConnection(runtime, scope) {
+  if (!scope) return;
   if (!runtime.getProvider(scope.provider))
     throw new Error('Provider needs native Pi configuration');
   // Keep the pinned provider's login, OAuth refresh and request adapter. Disable implicit env/file auth.

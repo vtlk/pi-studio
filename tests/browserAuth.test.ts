@@ -3,7 +3,8 @@ import test from 'node:test';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import type { Readable } from 'node:stream';
 import { createInterface } from 'node:readline';
 import {
   validateCodexAuthUrl,
@@ -13,16 +14,19 @@ import {
 
 function loginBridge(sdk: string) {
   return new Promise<{ stdout: string }>((resolveResult, reject) => {
-    const child = execFile(
-      process.execPath,
-      [resolve('bundled/pi-bridge/login.mjs'), sdk],
-      { timeout: 10000 },
-      (error, stdout) => {
-        if (error) reject(Object.assign(error, { stdout }));
-        else resolveResult({ stdout });
-      },
+    let stdout = '';
+    const child = spawn(process.execPath, [resolve('bundled/pi-bridge/login.mjs'), sdk], {
+      timeout: 10000,
+      stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
+    });
+    child.once('error', reject);
+    child.once('close', (code) =>
+      code === 0
+        ? resolveResult({ stdout })
+        : reject(Object.assign(Error('Login failed'), { stdout })),
     );
-    createInterface({ input: child.stdout! }).on('line', (line) => {
+    createInterface({ input: child.stdio[3] as Readable }).on('line', (line) => {
+      stdout += line + '\n';
       const event = JSON.parse(line);
       if (event.type === 'prompt')
         child.stdin!.write(
@@ -89,14 +93,22 @@ test('the Pi SDK bridge delegates login and emits no credentials or raw errors',
     sdk,
     `export const ModelRuntime = { async create(options) {
     if (options.allowModelNetwork !== false) throw new Error('must not generate');
-    return { async login(provider, kind, interaction) {
+    return { getProviders(){return [];}, async login(provider, kind, interaction) {
+      console.log('UNSTRUCTURED_EXTENSION_OUTPUT');
       if (provider !== 'openai-codex' || kind !== 'oauth') throw new Error('wrong provider');
       const method = await interaction.prompt({type:'select', message:'Choose login', options:[{id:'browser',label:'Browser'}]});
       if (method !== 'browser') throw new Error('wrong method');
       interaction.notify({type:'auth_url',url:'https://auth.openai.com/oauth/authorize?state=test'});
       return {access_token:'MUST_NOT_LEAVE_PI'};
     }, async settleCredentialWrites() {} };
-  }};`,
+  }};
+  export const getAgentDir=()=>${JSON.stringify(root)};
+  export const hasTrustRequiringProjectResources=()=>false;
+  export class ProjectTrustStore {get(){return null;}}
+  export const SettingsManager={create(){return {drainErrors(){return [];}};},inMemory(){return {};}};
+  export class DefaultPackageManager {async resolve(){return {extensions:[]};}}
+  export async function createAgentSessionServices(options){return {modelRuntime:options.modelRuntime,resourceLoader:{getExtensions(){return {errors:[]};}},diagnostics:[]};}
+  `,
   );
   const { stdout } = await loginBridge(sdk);
   const events = stdout
@@ -108,6 +120,7 @@ test('the Pi SDK bridge delegates login and emits no credentials or raw errors',
     ['prompt', 'auth_url', 'done'],
   );
   assert.equal(stdout.includes('MUST_NOT_LEAVE_PI'), false);
+  assert.equal(stdout.includes('UNSTRUCTURED_EXTENSION_OUTPUT'), false);
   await writeFile(
     sdk,
     `export const ModelRuntime = { create() { throw new Error('token=DO_NOT_LEAK'); } };`,

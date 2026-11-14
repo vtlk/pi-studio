@@ -1,4 +1,5 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
+import type { Readable } from 'node:stream';
 import { readFile, realpath } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -23,7 +24,7 @@ export function validateCodexAuthUrl(value: unknown): string {
 }
 interface Login {
   state: AuthLoginState;
-  child: ChildProcessWithoutNullStreams;
+  child: ChildProcess;
   key: string;
   validateUrl: (value: unknown) => string;
   verify: () => Promise<boolean>;
@@ -90,6 +91,7 @@ export class BrowserAuth {
       provider: string;
       method: 'oauth' | 'api_key';
       scope?: ModelAuthScope;
+      cwd?: string;
       key: string;
       verify: () => Promise<boolean>;
     },
@@ -98,7 +100,12 @@ export class BrowserAuth {
       key: `model:${request.key}`,
       script: this.script,
       validateUrl: request.provider === 'openai-codex' ? validateCodexAuthUrl : validateMcpAuthUrl,
-      payload: { provider: request.provider, method: request.method, scope: request.scope },
+      payload: {
+        provider: request.provider,
+        method: request.method,
+        scope: request.scope,
+        cwd: request.cwd,
+      },
       verify: request.verify,
       message: 'Запускаем штатный вход Pi…',
       success: 'Вход выполнен для выбранного подключения.',
@@ -148,8 +155,13 @@ export class BrowserAuth {
     const sdk = await resolvePiSdk(cli);
     const id = randomUUID();
     const child = spawn(join(dirname(pi.path), 'node'), [options.script, sdk], {
-      env: { ...process.env, PI_TELEMETRY: '0', PI_OFFLINE: '1' },
-      stdio: 'pipe',
+      env: {
+        ...process.env,
+        PATH: `${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        PI_TELEMETRY: '0',
+        PI_OFFLINE: '1',
+      },
+      stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
     });
     const login: Login = {
       state: { id, phase: 'opening', message: options.message },
@@ -161,14 +173,13 @@ export class BrowserAuth {
       failure: options.failure,
     };
     this.logins.set(id, login);
-    const lines = createInterface({ input: child.stdout });
+    const lines = createInterface({ input: child.stdio[3] as Readable });
     lines.on('line', (line) => {
       void this.event(login, line);
     });
-    child.stderr.resume(); // Never forward raw OAuth output to renderer or logs.
-    child.stdin.on('error', () => {});
+    child.stdin!.on('error', () => {});
     if (options.payload)
-      child.stdin.write(`${JSON.stringify({ type: 'init', ...options.payload })}\n`);
+      child.stdin!.write(`${JSON.stringify({ type: 'init', ...options.payload })}\n`);
     child.on('error', () => this.fail(login, 'Не удалось запустить штатный вход Pi.'));
     child.on('close', () => {
       if (login.state.phase === 'opening' || login.state.phase === 'waiting')
@@ -257,14 +268,14 @@ export class BrowserAuth {
       answer.length > 16_000
     )
       throw new Error('Запрос входа уже неактуален.');
-    login.child.stdin.write(`${JSON.stringify({ type: 'answer', id: promptId, answer })}\n`);
+    login.child.stdin!.write(`${JSON.stringify({ type: 'answer', id: promptId, answer })}\n`);
     delete login.state.prompt;
   }
   cancel(id: string) {
     const login = this.logins.get(id);
     if (!login || !['opening', 'waiting', 'verifying'].includes(login.state.phase)) return;
     login.state = { id, phase: 'cancelled', message: 'Вход отменён.' };
-    login.child.stdin.write('{"type":"cancel"}\n');
+    login.child.stdin!.write('{"type":"cancel"}\n');
     login.child.kill();
   }
   close() {

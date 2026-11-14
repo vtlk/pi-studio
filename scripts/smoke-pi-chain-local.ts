@@ -248,7 +248,10 @@ try {
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(
     resolve('artifacts/local-chain-proof.json'),
-    JSON.stringify(proof, null, 2) + '\n',
+    JSON.stringify({
+      ...JSON.parse(await readFile(resolve('artifacts/local-chain-proof.json'), 'utf8').catch(() => '{}')),
+      latestNativeControl: { checkedAt: new Date().toISOString(), result: proof },
+    }, null, 2) + '\n',
   );
   console.log(JSON.stringify(proof));
 } finally {

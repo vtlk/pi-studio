@@ -5,7 +5,6 @@ import { dirname, join } from 'node:path';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
 import { stableId } from '../storage/validation.ts';
-import { getProviderStatus } from './provider.ts';
 import type { ProviderStatus } from '../../shared/contracts.ts';
 import { safePath } from '../storage/files.ts';
 import type { Connection } from '../../shared/connections.ts';
@@ -74,7 +73,12 @@ export async function modelAuthOperation<T>(
   return new Promise((resolve, reject) => {
     const child = spawn(join(dirname(pi.path), 'node'), [script, sdk], {
       stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
-      env: { ...process.env, PI_OFFLINE: '1', PI_TELEMETRY: '0' },
+      env: {
+        ...process.env,
+        PATH: `${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        PI_OFFLINE: '1',
+        PI_TELEMETRY: '0',
+      },
     });
     let output = '',
       settled = false;
@@ -114,12 +118,13 @@ export async function getModelProviderStatus(
   script: string,
   provider: string,
   scope?: ModelAuthScope,
+  cwd?: string,
 ): Promise<ProviderStatus> {
-  if (!scope) return getProviderStatus(path, provider);
   const result = await modelAuthOperation<ProviderStatus>(path, script, {
     action: 'status',
     provider,
     scope,
+    cwd,
   });
   if (result.provider !== provider || !['ready', 'not_ready', 'invalid'].includes(result.status))
     throw new Error('Неподдерживаемый ответ авторизации Pi.');

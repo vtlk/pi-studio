@@ -39,6 +39,7 @@ export async function resolveAgentLaunchConfig(
     join(dirname(catalog), 'model-auth.mjs'),
     connection.providerId,
     modelAuth,
+    folder,
   );
   if (status.status !== 'ready') throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
   const models = await readPiCatalog(piPath, catalog, folder, modelAuth);

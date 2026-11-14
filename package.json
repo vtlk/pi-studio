@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.56",
+  "version": "0.2.0-alpha.57",
   "private": true,
   "description": "Pi Studio для macOS — локальные проекты и конструктор агентов",
   "type": "module",
@@ -74,7 +74,9 @@
     "test:pi-browser-services": "node --experimental-strip-types scripts/smoke-pi-browser-services.ts",
     "test:project-activity": "npm run build && electron scripts/smoke-project-activity.cjs",
     "test:project-usage": "npm run build && electron scripts/smoke-project-usage.cjs",
-    "test:pi-usage": "node --experimental-strip-types scripts/smoke-native-usage.ts"
+    "test:pi-usage": "node --experimental-strip-types scripts/smoke-native-usage.ts",
+    "test:pi-extensions": "node --experimental-strip-types scripts/smoke-pi-extensions.ts",
+    "test:extensions-ui": "npm run build && electron scripts/smoke-native-extensions-ui.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

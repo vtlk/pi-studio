@@ -1,9 +1,10 @@
 import { createInterface } from 'node:readline';
+import { writeSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 // Native Pi owns discovery, PKCE, loopback callback and OAuth tokens. Configuration travels only in stdin.
-const send = (event) => process.stdout.write(`${JSON.stringify(event)}\n`);
+const send = (event) => writeSync(3, `${JSON.stringify(event)}\n`);
 const controller = new AbortController();
 const answers = new Map();
 let initialize;

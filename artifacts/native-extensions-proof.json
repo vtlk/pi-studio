@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-14T22:36:10.949Z",
+  "nativePi": "1.5.2",
+  "scope": "Actual native installed-extension discovery, production catalog/login/status/runtime and exact resume; owned extension modules and loopback SSE only",
+  "nativeAndLegacyProviderRegistrations": true,
+  "nativeProviderInCatalog": true,
+  "nativeObjectOAuthAndMetadata": true,
+  "twoAccountsIndependent": true,
+  "ambientKeyNotBorrowed": true,
+  "extensionStdoutDoesNotCorruptProtocol": true,
+  "mixedPackageSkillsAndPromptsExcluded": true,
+  "ambientSystemPromptExcluded": true,
+  "unassignedMcpNotStarted": true,
+  "missingPackagesNotInstalled": true,
+  "nativeDisabledAndProjectTrustRespected": true,
+  "extensionToolExecuted": true,
+  "studioControlAndCompletionPreserved": true,
+  "exactIdleResumeNoReplay": true,
+  "brokenExtensionFailsWithoutTruncatedFallback": true,
+  "explicitUserRequests": 1,
+  "localModelHttpRequests": 3,
+  "externalModelRequests": 0
+}

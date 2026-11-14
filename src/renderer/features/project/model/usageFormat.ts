@@ -23,7 +23,7 @@ export function tokensText(value: number) {
 export function usageText(value: UsageValue | undefined, formatter: (value: number) => string) {
   if (!value) return '…';
   if (value.value === null) return '—';
-  return `${value.partial ? '≥' : ''}${formatter(value.value)}`;
+  return `${formatter(value.value)}${value.partial ? '*' : ''}`;
 }
 export function moneyText(value: number, currency: string) {
   const format = new Intl.NumberFormat('en-US', {

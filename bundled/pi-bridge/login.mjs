@@ -1,10 +1,11 @@
 import { createInterface } from 'node:readline';
+import { writeSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { createConnectionRuntime } from './connection-runtime.mjs';
 
 // Native Pi owns OAuth/API-key setup, credential locking and refresh. No raw auth output is forwarded.
-const send = (event) => process.stdout.write(`${JSON.stringify(event)}\n`);
+const send = (event) => writeSync(3, `${JSON.stringify(event)}\n`);
 const controller = new AbortController(),
   answers = new Map();
 let initialize;
@@ -38,7 +39,7 @@ try {
   )
     throw new Error('Invalid provider login');
   const sdk = await import(pathToFileURL(process.argv[2]).href);
-  const runtime = await createConnectionRuntime(sdk, init.scope);
+  const runtime = await createConnectionRuntime(sdk, init.scope, init.cwd);
   await runtime.login(init.provider, init.method, {
     signal: controller.signal,
     notify(event) {

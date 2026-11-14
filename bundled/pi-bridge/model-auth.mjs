@@ -6,7 +6,7 @@ import { discoverEndpointModels } from './endpoint-runtime.mjs';
 try {
   const input = JSON.parse(readFileSync(0, 'utf8'));
   const sdk = await import(pathToFileURL(process.argv[2]).href);
-  const runtime = await createConnectionRuntime(sdk, input.scope);
+  const runtime = await createConnectionRuntime(sdk, input.scope, input.cwd);
   let result;
   if (input.action === 'discover') result = await discoverEndpointModels(runtime, input.scope);
   else if (input.action === 'catalog') result = await catalogData(sdk, runtime, input.cwd, input.scope, process.argv[2]);
