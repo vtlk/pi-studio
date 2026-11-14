@@ -37,6 +37,7 @@ const desktopApi: DesktopApi = {
   readLibraryCharacter: (id, version, revision) =>
     ipcRenderer.invoke(desktopChannels.readLibraryCharacter, id, version, revision),
   chooseReferenceFiles: () => ipcRenderer.invoke(desktopChannels.chooseReferenceFiles),
+  releaseReferenceFiles: (ids) => ipcRenderer.invoke(desktopChannels.releaseReferenceFiles, ids),
   createLibraryAsset: (request) => ipcRenderer.invoke(desktopChannels.createLibraryAsset, request),
   saveSkill: (request) => ipcRenderer.invoke(desktopChannels.saveSkill, request),
   deleteAgentData: (request) => ipcRenderer.invoke(desktopChannels.deleteAgentData, request),

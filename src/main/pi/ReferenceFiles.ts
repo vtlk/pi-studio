@@ -51,6 +51,11 @@ export class ReferenceFiles {
   constructor(convert?: ImageConverter) {
     this.convert = convert;
   }
+  release(ids: unknown) {
+    if (!Array.isArray(ids) || ids.length > 128 || ids.some((id) => typeof id !== 'string'))
+      throw new Error('Некорректный список временных референсов.');
+    for (const id of ids) this.selected.delete(id);
+  }
   async select(paths: string[], folder: string): Promise<ReferenceFile[]> {
     for (const [id, item] of this.selected)
       if (Date.now() - item.selectedAt > 4 * 3600_000) this.selected.delete(id);

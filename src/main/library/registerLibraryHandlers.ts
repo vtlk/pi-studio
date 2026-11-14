@@ -44,6 +44,10 @@ export function registerLibraryHandlers(
       await generators.create(request);
     },
   );
+  ipcMain.handle(desktopChannels.releaseReferenceFiles, (event, ids: unknown) => {
+    caller(event);
+    references.release(ids);
+  });
   ipcMain.handle(desktopChannels.chooseReferenceFiles, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Файлы референса',

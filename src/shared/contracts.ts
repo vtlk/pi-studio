@@ -86,6 +86,7 @@ export interface DesktopApi {
   listLibrary(): Promise<LibraryListing>;
   readLibraryCharacter(id: string, version: number, revision: string): Promise<LibraryCharacter>;
   chooseReferenceFiles(): Promise<ReferenceFile[]>;
+  releaseReferenceFiles(ids: string[]): Promise<void>;
   createLibraryAsset(request: {
     kind: LibraryKind;
     agentId: string;
@@ -123,6 +124,7 @@ export const desktopChannels = {
   listLibrary: 'studio:list-library',
   readLibraryCharacter: 'studio:read-library-character',
   chooseReferenceFiles: 'studio:choose-reference-files',
+  releaseReferenceFiles: 'studio:release-reference-files',
   createLibraryAsset: 'studio:create-library-asset',
   saveSkill: 'studio:save-skill',
   deleteAgentData: 'studio:delete-agent-data',

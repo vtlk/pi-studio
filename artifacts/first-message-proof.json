@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0-alpha.51",
+  "regressionBefore": {
+    "exitCode": 1,
+    "scenario": "Four cancelled 32-file dialogs exhaust the registry; fifth request has zero displayed references instead of 32."
+  },
+  "nativeUi": {
+    "fiveCancelledBatches": true,
+    "escapeAndCancel": true,
+    "latePickerAfterUnmountReleased": true,
+    "mixedPngPdfZipText": true,
+    "pngThumbnailDecoded": true,
+    "pickerCancellationPreservesSelection": true,
+    "removeCancelAndConfirm": true,
+    "sourcePreserved": true,
+    "perPickerAndCombinedLimit": 32,
+    "launchProjectAgentAndAttachmentIdsCorrect": true,
+    "requiredFirstMessage": true,
+    "characterAndLocationFormCancel": true,
+    "noSessionContextJobWrites": true
+  },
+  "limits": {
+    "osChooserResponse": "fixture; native showOpenDialog options verified, OS dialog not manipulated",
+    "launchIpc": "intercepted, no Pi or model request",
+    "copyAndResume": "separate reference-files FS test and project-attachment-moves proof"
+  },
+  "sourceSha256": {
+    "src/main/pi/ReferenceFiles.ts": "0cd9c0b8be5984b069f145a18fc0792c0fccacfe3839d6c6c1509c3c7b0d0618",
+    "src/main/library/registerLibraryHandlers.ts": "32f8ddaf0ed389ac027953e6883237bdc13a4d050964e67c2b8fdbc91f4c7332",
+    "src/shared/contracts.ts": "d7d050e63cc3d1026ac41aea71fb5a8e329b478242eb0bcc1b131825efe9d59c",
+    "src/preload/index.ts": "cb7a380a89ab53a2f7204f2d1b0a4a83689ad355a76ac6c9a3630535c5a48c96",
+    "src/renderer/shared/ui/ReferenceAttachments.tsx": "3000974349dc820806b6ed1f25f3c7136b8115f16697cfc1bf3fd3522adbf7fd",
+    "scripts/smoke-first-message.cjs": "43cb189ae5339256588adbace11ad905d551638ed943044075e1a040ec105c45",
+    "tests/reference-files.test.ts": "b58dbe35ca0483f1631b8db338c186c69df952038ec1238d5a44b1ef1089c14f"
+  },
+  "zip": {
+    "name": "Pi-Studio-0.2.0-alpha.51-mac-arm64.zip",
+    "size": 124176198,
+    "sha256": "795cfca82a05824757f4ed4252f7cbcb1c5e8014949ba9d81377fce55c77ae37"
+  }
+}

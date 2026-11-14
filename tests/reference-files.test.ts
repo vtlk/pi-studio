@@ -49,6 +49,8 @@ test('references preserve duplicate filenames, hashes and image content; origina
   assert.throws(() => files.validate(ids, store.folder, false), /поддержку изображений/);
   assert.throws(() => files.validate(ids, root, true), /студия/);
   await files.attach(run, ids, store.folder, true);
+  files.release(ids);
+  assert.throws(() => files.validate(ids, store.folder, true), /Выберите референсы/);
   const saved = run.record.attachments!;
   assert.equal(saved.length, 3);
   assert.equal(saved[0].name, saved[1].name);

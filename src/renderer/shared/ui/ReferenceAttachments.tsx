@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { File } from 'lucide-react';
 import { AddArea } from './AddArea';
 import { HoverDeleteButton } from './HoverDeleteButton';
@@ -7,6 +7,12 @@ import type { ReferenceFile } from '../../../shared/attachments';
 
 export interface ReferenceAttachment extends ReferenceFile {
   file?: globalThis.File;
+}
+
+function releaseReferences(attachments: readonly ReferenceAttachment[]) {
+  if (!attachments.length || !window.studio) return;
+  // The chooser registry is temporary; this never deletes source or copied files.
+  void window.studio.releaseReferenceFiles(attachments.map((item) => item.id)).catch(() => {});
 }
 
 function AttachmentThumbnail({ attachment }: { attachment: ReferenceAttachment }) {
@@ -42,8 +48,27 @@ export function ReferenceAttachments({
   disabled?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
+  const current = useRef(value);
+  const mounted = useRef(true);
   const [error, setError] = useState('');
   const [choosing, setChoosing] = useState(false);
+  useLayoutEffect(() => {
+    current.current = value;
+  }, [value]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      // StrictMode immediately remounts effects; only an actual close releases inputs.
+      queueMicrotask(() => {
+        if (!mounted.current) releaseReferences(current.current);
+      });
+    };
+  }, []);
+  const update = (next: ReferenceAttachment[]) => {
+    current.current = next;
+    onChange(next);
+  };
   const choose = async () => {
     if (!window.studio) {
       input.current?.click();
@@ -52,11 +77,22 @@ export function ReferenceAttachments({
     setChoosing(true);
     setError('');
     try {
-      onChange([...(await window.studio.chooseReferenceFiles()), ...value]);
+      const selected = await window.studio.chooseReferenceFiles();
+      if (!mounted.current) {
+        releaseReferences(selected);
+        return;
+      }
+      if (selected.length + current.current.length > 32) {
+        releaseReferences(selected);
+        setError('Можно приложить не больше 32 референсов к одному запросу.');
+        return;
+      }
+      update([...selected, ...current.current]);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Не удалось выбрать файлы.');
+      if (mounted.current)
+        setError(error instanceof Error ? error.message : 'Не удалось выбрать файлы.');
     } finally {
-      setChoosing(false);
+      if (mounted.current) setChoosing(false);
     }
   };
   return (
@@ -70,7 +106,7 @@ export function ReferenceAttachments({
         aria-label="Файлы референса"
         onChange={(event) => {
           const files = Array.from(event.target.files ?? []);
-          onChange([
+          update([
             ...files.map((file) => ({
               id: crypto.randomUUID(),
               file,
@@ -112,7 +148,10 @@ export function ReferenceAttachments({
                 label={`Убрать референс «${attachment.name}»`}
                 disabled={disabled}
                 description="Убрать вложение из запроса? Исходный файл останется на месте."
-                onDelete={() => onChange(value.filter((item) => item.id !== attachment.id))}
+                onDelete={() => {
+                  update(current.current.filter((item) => item.id !== attachment.id));
+                  releaseReferences([attachment]);
+                }}
               />
             </li>
           ))}
