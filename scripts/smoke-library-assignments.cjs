@@ -70,6 +70,12 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   assert.equal((await saved()).sections.systemAgents.length, 1);
   await click('Агенты');
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.agent-list-group-heading')).map(el=>el.textContent)`,
+    ),
+    ['Мои агенты', 'Системные'],
+  );
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
   await field('Название агента', 'Artist');
   const design = await js(
@@ -97,6 +103,17 @@ const deadline = setTimeout(() => {
   await click('Добавить агенту');
   await click('Готово');
   await until(`document.querySelectorAll('.resource-binding').length===2`);
+  const controls = await js(
+    `Array.from(document.querySelectorAll('.resource-binding .ui-list-row-toggle')).map(el=>el.getBoundingClientRect().x)`,
+  );
+  assert.equal(controls.length, 2);
+  assert.equal(controls[0], controls[1], 'Pinned lock occupies the switch column');
+  assert.equal(await js(`!!document.querySelector('[data-builtin-mcp] .ui-list-row-icon')`), false);
+  await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+  await writeFile(
+    resolve('artifacts/mcp-lock-alignment.png'),
+    (await window.capturePage()).toPNG(),
+  );
   await saved();
   let state = await js('window.studio.loadStudio()');
   const artist = state.sections.agents[0].id;

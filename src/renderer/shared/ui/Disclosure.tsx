@@ -8,6 +8,8 @@ export function Disclosure({
   defaultOpen = false,
   icon,
   toggle,
+  locked,
+  reserveActions,
   dragHandle,
   actions,
 }: {
@@ -16,6 +18,8 @@ export function Disclosure({
   defaultOpen?: boolean;
   icon?: ListRowProps['icon'];
   toggle?: ListRowProps['toggle'];
+  locked?: ListRowProps['locked'];
+  reserveActions?: ListRowProps['reserveActions'];
   dragHandle?: ReactNode;
   actions?: ReactNode;
 }) {
@@ -29,6 +33,8 @@ export function Disclosure({
         label={label}
         icon={icon}
         toggle={toggle}
+        locked={locked}
+        reserveActions={reserveActions}
         dragHandle={dragHandle}
         actions={actions}
         id={triggerId}

@@ -110,6 +110,20 @@
   font-size: 14px;
   font-weight: 400;
 }
+.ui-list-row-toggle,
+.ui-list-row-lock {
+  width: 42px;
+  justify-content: center;
+}
+.ui-list-row-lock {
+  display: flex;
+  align-items: center;
+  height: 25px;
+  color: #52525b;
+}
+.ui-list-row-actions-placeholder {
+  flex: 0 0 28px;
+}
 .disclosure {
   margin: 0;
   min-width: 0;

@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Constructor group headings are «Мои агенты» and «Системные» in the same style. A pinned MCP lock belongs in ListRow/Disclosure's right control slot, aligned with Switch rows, with reserved action space; never restore the lock as a left leading icon.
+
 - Latest refinements (2026-11-14), superseding the earlier three-system-agent rules below: only setup assistant stays system/pinned. Ordinary agents receive optional Pi Studio Library through MCP plus → Built-in / Custom; tools follow the current enabled assignment. Library forms select and remember an ordinary agent separately for characters/locations, without projects or fallback profiles. Preserve legacy creators by moving profiles (same IDs/settings) into ordinary agents atomically; never move/delete their job files or JSONL. Shared skills are explicitly created/imported through one Add skill menu, current SKILL.md only. Constructor rows match project agent rows on gray, with large order numbers and only hover/focus deletion; preserve DnD and disabled gray state.
 - Before local macOS packaging on this machine, use its existing Apple Development signing identity via PI_STUDIO_SIGN_IDENTITY. Do not silently switch back to ad-hoc signing: that changes Keychain identity per build. Certificate signing is not notarization. Never weaken Keychain ACLs or delete keychain items to suppress prompts. Hidden isolated GUI tests must wait for saved state before reload; their unsaved-state guard must fail the test instead of opening a native dialog on the user's desktop.
 

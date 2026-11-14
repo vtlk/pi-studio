@@ -10,7 +10,6 @@ import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { resourceStatus } from '@/features/resources/model/resourceStatus';
 import { systemAgentDefinitions } from '../../../../shared/systemAgents';
-import { LockKeyhole } from 'lucide-react';
 import { libraryMcp } from '../../../../shared/builtinResources';
 import { McpPicker } from './McpPicker';
 
@@ -35,7 +34,8 @@ export function CapabilitiesPanel() {
                   ? systemAgentDefinitions[selectedSystemRole].mcp
                   : 'Pi Studio · Проект'
               }
-              icon={LockKeyhole}
+              locked="Обязательный MCP — нельзя отключить или удалить"
+              reserveActions
             >
               <p>
                 {selectedSystemRole

@@ -41,6 +41,7 @@ export function AgentList() {
   };
   return (
     <nav className="section-menu" aria-label="Конструктор агентов">
+      <h2 className="agent-list-group-heading">Мои агенты</h2>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -72,7 +73,7 @@ export function AgentList() {
         </SortableContext>
       </DndContext>
       <AddArea label="Добавить агента" onClick={addAgent} />
-      <h2 className="system-agents-heading">Системные</h2>
+      <h2 className="agent-list-group-heading">Системные</h2>
       {systemAgents.map((agent, index) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
           <Tooltip

@@ -1,5 +1,5 @@
 import { useRef, type ComponentProps, type ReactNode } from 'react';
-import { ChevronDown, type LucideIcon } from 'lucide-react';
+import { ChevronDown, LockKeyhole, type LucideIcon } from 'lucide-react';
 import { Switch } from './SelectionControls';
 import { Tooltip } from './Tooltip';
 import './list.css';
@@ -12,6 +12,8 @@ export interface ListRowProps {
   label: string;
   icon?: LucideIcon;
   toggle?: ComponentProps<typeof Switch>;
+  locked?: string;
+  reserveActions?: boolean;
   dragHandle?: ReactNode;
   actions?: ReactNode;
   onClick?: () => void;
@@ -27,6 +29,8 @@ export function ListRow({
   label,
   icon: Icon,
   toggle,
+  locked,
+  reserveActions,
   dragHandle,
   actions,
   onClick,
@@ -80,12 +84,23 @@ export function ListRow({
           </div>
         )}
       </Tooltip>
-      {toggle && (
+      {(toggle || locked) && (
         <div className="ui-list-row-toggle">
-          <Switch {...toggle} />
+          {toggle ? (
+            <Switch {...toggle} />
+          ) : (
+            <Tooltip label={locked ?? ''}>
+              <span className="ui-list-row-lock" role="img" aria-label={locked}>
+                <LockKeyhole size={18} strokeWidth={1.8} aria-hidden="true" />
+              </span>
+            </Tooltip>
+          )}
         </div>
       )}
       {actions && <div className="ui-list-row-actions">{actions}</div>}
+      {!actions && reserveActions && (
+        <div className="ui-list-row-actions-placeholder" aria-hidden="true" />
+      )}
     </div>
   );
 }
