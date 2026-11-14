@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Latest user refinement (2026-11-15, PRJ-18): inside an open project, show the agent status only in the shared zero-delay Tooltip on its Lucide status icon, also accessible with the keyboard; retain status in the row accessible name. The subtitle under the agent name contains only accumulated service metrics: `12:34 · ↑ 1.7k ↓ 320 · $0.04`. This supersedes the older visible-status-subtitle/no-status-tooltip rule, including «Не подключена модель»; keep the missing-model launch controls hidden and preflight intact. Constructor rows and project-list aggregates are outside this presentation change.
+
 - Latest user clarification (2026-11-14): load the installed native Pi extensions, including provider extensions, while preserving Studio's required status/control extension. These are distinct from MCP/skills/plugin resource assignments, which remain explicit and scoped to the intended agent. Do not treat native Pi extensions as opt-in Studio resource packages.
 
 - Latest project-row refinement: when the current constructor profile lacks a valid selected connection, model or reasoning effort, show «Не подключена модель» and omit the entire launch/resume SplitButton including its menu. Keep Finder/delete actions and file browsing. Use the current profile by stable ID, never stale snapshot model settings; changes appear without «Перечитать агентов». Retain defensive launch preflight in main/UI.
