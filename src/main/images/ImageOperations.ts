@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { atomicJson, isMissing, readJson, safePath } from '../storage/files.ts';
+import type { ImageApiDiagnostic } from './imageApiError.ts';
 
 export interface ImageOperation {
   id: string;
@@ -10,6 +11,7 @@ export interface ImageOperation {
   connectionId: string;
   modelId: string;
   referenceHashes?: string[];
+  diagnostic?: ImageApiDiagnostic;
   state: 'pending' | 'saved' | 'uncertain' | 'failed' | 'save_failed';
   reason?:
     | 'authentication'

@@ -229,6 +229,8 @@ export class ImageGeneration {
             )
             .catch(() => {});
         operation.reason = error instanceof ImagesApiError ? error.kind : 'saving';
+        if (error instanceof ImagesApiError && error.diagnostic)
+          operation.diagnostic = error.diagnostic;
         if (operation.state === 'pending')
           operation.state =
             error instanceof ImagesApiError &&

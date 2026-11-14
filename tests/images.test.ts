@@ -18,7 +18,7 @@ import { inspect } from 'node:util';
 import { SecretVault, type StringProtector } from '../src/main/storage/SecretVault.ts';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { ImageConnections } from '../src/main/images/ImageConnections.ts';
-import { ImagesApi, imageParameters } from '../src/main/images/ImagesApi.ts';
+import { ImagesApi, ImagesApiError, imageParameters } from '../src/main/images/ImagesApi.ts';
 import { ImageGeneration } from '../src/main/images/ImageGeneration.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
@@ -411,6 +411,118 @@ test('generation auth failures update connection health, and a stale result neve
   await f.connections.save({ ...f.connection, key: 'QA_REPLACEMENT_KEY' });
   await f.connections.reportAuthorization(f.connection, old.revision, false);
   assert.equal((await f.connections.status(f.connection)).authentication, 'unchecked');
+});
+
+test('image refusals identify safe parameters and classifications without echoing provider content', async () => {
+  const cases = [
+    {
+      status: 400,
+      error: {
+        code: 'unsupported_value',
+        type: 'invalid_request_error',
+        param: 'background',
+        message: KEY,
+      },
+      diagnostic: {
+        status: 400,
+        code: 'unsupported_value',
+        type: 'invalid_request_error',
+        param: 'background',
+      },
+      text: /параметр «background»/,
+    },
+    {
+      status: 422,
+      error: { code: 'invalid_value', message: `Invalid parameter: 'image[]'. ${KEY}` },
+      diagnostic: { status: 422, code: 'invalid_value', param: 'image[]' },
+      text: /параметр «image\[\]»/,
+    },
+    {
+      status: 404,
+      error: { code: 'model_not_found', param: 'model', message: KEY },
+      diagnostic: { status: 404, code: 'model_not_found', param: 'model' },
+      text: /модель недоступна/,
+    },
+    {
+      status: 400,
+      error: { code: 'moderation_blocked', message: KEY },
+      diagnostic: { status: 400, code: 'moderation_blocked' },
+      text: /проверке безопасности/,
+    },
+    {
+      status: 403,
+      error: { code: 'organization_verification_required', message: KEY },
+      diagnostic: { status: 403, code: 'organization_verification_required' },
+      text: /верификацию организации/,
+    },
+    {
+      status: 401,
+      error: { message: `Missing scopes: api.model.request ${KEY}` },
+      diagnostic: { status: 401 },
+      text: /api.model.request/,
+    },
+    {
+      status: 400,
+      error: { code: KEY, type: KEY, param: KEY, message: `Invalid parameter: '${KEY}'.` },
+      diagnostic: { status: 400 },
+      text: /не указал распознанный параметр/,
+    },
+  ];
+  for (const item of cases) {
+    let calls = 0;
+    const api = new ImagesApi(async () => {
+      calls++;
+      return Response.json({ error: item.error }, { status: item.status });
+    });
+    await assert.rejects(
+      api.generate(KEY, 'gpt-image-2', imageParameters(params), new AbortController().signal),
+      (error: unknown) => {
+        assert.ok(error instanceof ImagesApiError);
+        assert.match(error.message, item.text);
+        assert.match(error.message, new RegExp(`HTTP ${item.status}`));
+        assert.deepEqual(error.diagnostic, item.diagnostic);
+        assert.ok(!inspect(error).includes(KEY));
+        return true;
+      },
+    );
+    assert.equal(calls, 1, 'a refusal must never retry');
+  }
+});
+
+test('failed image diagnostics remain readable in the exact agent scope without another API request', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return Response.json(
+      {
+        error: {
+          code: 'unsupported_value',
+          param: 'background',
+          message: KEY,
+          type: 'invalid_request_error',
+        },
+      },
+      { status: 400 },
+    );
+  });
+  await f.connections.save({ ...f.connection, key: KEY });
+  await assert.rejects(f.images.tool(f.run, 'generate_image', params), /param=background/);
+  const file = (await readdir(join(f.root, 'operations')))[0];
+  const json = await readFile(join(f.root, 'operations', file), 'utf8');
+  assert.ok(!json.includes(KEY));
+  assert.ok(!json.includes(params.prompt));
+  const saved = JSON.parse(json).operations[0];
+  const operation = await f.images.tool(f.run, 'get_image_operation', { operationId: saved.id });
+  assert.deepEqual(operation, saved);
+  assert.equal(saved.state, 'failed');
+  assert.equal(saved.reason, 'parameters');
+  assert.deepEqual(saved.diagnostic, {
+    status: 400,
+    code: 'unsupported_value',
+    param: 'background',
+    type: 'invalid_request_error',
+  });
+  assert.equal(calls, 1);
 });
 
 test('catalog permission refusals distinguish restricted access from invalid keys without echoing provider text', async () => {
