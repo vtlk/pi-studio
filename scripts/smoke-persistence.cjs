@@ -25,7 +25,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
   window.webContents.removeAllListeners('will-prevent-unload');
   window.webContents.on('will-prevent-unload', () => {

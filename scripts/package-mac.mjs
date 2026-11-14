@@ -5,6 +5,11 @@ import { constants } from 'node:fs';
 import { homedir } from 'node:os';
 
 if (process.platform !== 'darwin') throw new Error('Packaging Pi Studio requires macOS.');
+const signingIdentity = process.env.PI_STUDIO_SIGN_IDENTITY?.trim();
+if (!signingIdentity || signingIdentity === '-')
+  throw new Error(
+    'Set PI_STUDIO_SIGN_IDENTITY to an existing certificate signing identity before packaging. Ad-hoc fallback is disabled to preserve Keychain application identity.',
+  );
 const root = resolve(import.meta.dirname, '..');
 const metadata = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 // Documents may be cloud-managed and acquire FinderInfo during signing. Build in local cache.
@@ -99,21 +104,18 @@ for (const [key, value] of Object.entries({
   execFileSync('/usr/bin/plutil', ['-replace', key, '-string', value, plist]);
 // Source media can carry Finder metadata; strip it only from the generated distribution copy.
 execFileSync('/usr/bin/xattr', ['-cr', bundle]);
-const signingIdentity = process.env.PI_STUDIO_SIGN_IDENTITY?.trim() || '-';
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', signingIdentity, bundle], {
   stdio: 'inherit',
 });
 execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', bundle], { stdio: 'inherit' });
-if (signingIdentity !== '-') {
-  const signature = spawnSync('/usr/bin/codesign', ['-d', '-r-', bundle], { encoding: 'utf8' });
-  const requirement = `${signature.stdout}\n${signature.stderr}`;
-  if (
-    signature.status !== 0 ||
-    !/designated =>/.test(requirement) ||
-    /designated => cdhash/.test(requirement)
-  )
-    throw new Error('Signing identity did not produce a stable application requirement.');
-}
+const signature = spawnSync('/usr/bin/codesign', ['-d', '-r-', bundle], { encoding: 'utf8' });
+const requirement = `${signature.stdout}\n${signature.stderr}`;
+if (
+  signature.status !== 0 ||
+  !/designated =>/.test(requirement) ||
+  /designated => cdhash/.test(requirement)
+)
+  throw new Error('Signing identity did not produce a stable application requirement.');
 const archive = join(root, 'dist', `Pi-Studio-${metadata.version}-mac-${process.arch}.zip`);
 await mkdir(join(root, 'dist'), { recursive: true });
 await rm(archive, { force: true });
@@ -126,5 +128,5 @@ for (const file of await readdir(join(root, 'dist'))) {
     await rm(join(root, 'dist', file));
 }
 console.log(
-  `Application: ${bundle}\nArchive: ${archive}\nSignature: ${signingIdentity === '-' ? 'local ad-hoc' : 'certificate identity'} (not notarized).`,
+  `Application: ${bundle}\nArchive: ${archive}\nSignature: certificate identity (not notarized).`,
 );

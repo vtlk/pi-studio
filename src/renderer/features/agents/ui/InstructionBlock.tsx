@@ -54,13 +54,21 @@ export function InstructionBlock({ item }: { item: Instruction }) {
           <HoverDeleteButton
             label={`Удалить инструкцию: ${item.name}`}
             onDelete={() => {
-              const saved = selectedAgent.instructions;
-              updateAgent({
-                instructions: selectedAgent.instructions.filter((entry) => entry.id !== item.id),
-              });
+              const position = selectedAgent.instructions.findIndex(
+                (entry) => entry.id === item.id,
+              );
+              updateAgent((current) => ({
+                instructions: current.instructions.filter((entry) => entry.id !== item.id),
+              }));
               demo('Инструкция убрана из профиля.', {
                 label: 'Вернуть',
-                onClick: () => updateAgent({ instructions: saved }),
+                onClick: () =>
+                  updateAgent((current) => {
+                    if (current.instructions.some((entry) => entry.id === item.id)) return {};
+                    const instructions = [...current.instructions];
+                    instructions.splice(Math.max(0, position), 0, item);
+                    return { instructions };
+                  }),
               });
             }}
           />

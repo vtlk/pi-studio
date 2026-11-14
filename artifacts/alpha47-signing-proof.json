@@ -1,0 +1,10 @@
+{
+  "version": "0.2.0-alpha.47",
+  "stableRequirement": true,
+  "requirementSha256": "2dc9356129e1d47ac7f3b709ee84ced9ca1597790362b6e2ca1fae3cfb701375",
+  "zipBytes": 124174596,
+  "zipSha256": "d262212b41b6c29162c33e1625c857268709732f433387df34233e1901f37241",
+  "notarized": false,
+  "missingIdentityRefused": true,
+  "repeatUserKeychainReadVerified": false
+}

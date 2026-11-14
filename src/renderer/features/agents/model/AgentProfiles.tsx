@@ -59,26 +59,27 @@ function useProfilesState(initial: Agent[]) {
     });
     setAgentId(agent.id);
   };
-  const updateAgent = (update: Partial<Agent>) => {
+  const updateAgent = (update: Partial<Agent> | ((current: Agent) => Partial<Agent>)) => {
     if (!selectedAgent) return;
+    const patch = (current: Agent) => (typeof update === 'function' ? update(current) : update);
     if (selectedSystemRole) {
       setSystemAgents((previous) =>
         previous.map((agent) =>
           agent.id === selectedAgent.id
-            ? { ...agent, ...update, id: agent.id, systemRole: agent.systemRole }
+            ? { ...agent, ...patch(agent), id: agent.id, systemRole: agent.systemRole }
             : agent,
         ),
       );
     } else
       setAgents((prev) =>
-        prev.map((a) => (a.id === selectedAgent.id ? { ...a, ...update, id: a.id } : a)),
+        prev.map((a) => (a.id === selectedAgent.id ? { ...a, ...patch(a), id: a.id } : a)),
       );
   };
   const updateInstruction = (id: string, update: Partial<Instruction>) => {
     if (!selectedAgent) return;
-    updateAgent({
-      instructions: selectedAgent.instructions.map((i) => (i.id === id ? { ...i, ...update } : i)),
-    });
+    updateAgent((current) => ({
+      instructions: current.instructions.map((i) => (i.id === id ? { ...i, ...update } : i)),
+    }));
   };
   return {
     agents,

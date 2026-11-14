@@ -1,8 +1,8 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.46",
+  "version": "0.2.0-alpha.47",
   "private": true,
-  "description": "Pi Studio \u0434\u043b\u044f macOS \u2014 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b \u0438 \u043a\u043e\u043d\u0441\u0442\u0440\u0443\u043a\u0442\u043e\u0440 \u0430\u0433\u0435\u043d\u0442\u043e\u0432",
+  "description": "Pi Studio для macOS — локальные проекты и конструктор агентов",
   "type": "module",
   "main": "out/main/index.cjs",
   "scripts": {
@@ -55,6 +55,7 @@
     "test:clear-output": "npm run build && electron scripts/smoke-clear-output.cjs",
     "test:native-bundle": "npm run build && electron scripts/smoke-native-bundle.cjs",
     "test:persistence": "npm run build && electron scripts/smoke-persistence.cjs",
+    "test:agent-constructor": "npm run build && node scripts/smoke-agent-constructor.cjs",
     "test:fields": "npm run build && electron scripts/smoke-fields.cjs",
     "test:pi-reasoning": "node --experimental-strip-types scripts/smoke-pi-reasoning.ts",
     "test:reasoning-ui": "npm run build && electron scripts/smoke-reasoning-ui.cjs",

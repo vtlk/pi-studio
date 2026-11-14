@@ -68,15 +68,24 @@ const deadline = setTimeout(() => {
   app.setPath('userData', userData);
   app.setPath('videos', root);
   const loaded = new Promise((resolve) =>
-    app.once('browser-window-created', (_, win) =>
-      win.webContents.once('did-finish-load', () => resolve(win)),
-    ),
+    app.once('browser-window-created', (_, win) => {
+      win.hide();
+      win.on('show', () => win.hide());
+      win.webContents.once('did-finish-load', () => resolve(win));
+    }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const win = await loaded;
   win.webContents.setBackgroundThrottling(false);
   win.webContents.debugger.attach('1.3');
-  const js = (code) => win.webContents.executeJavaScript(code, true);
+  await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
+  const js = (code) =>
+    win.webContents.executeJavaScript(code, true).catch((error) => {
+      console.error('Disclosure expression:', code.slice(0, 500));
+      throw error;
+    });
   const until = async (code) => {
     for (let n = 0; n < 180; n++) {
       if (await js(code)) return;
@@ -269,10 +278,10 @@ const deadline = setTimeout(() => {
     await js(`!!document.querySelector(${JSON.stringify(pinned)}+' [role="switch"]')`),
     false,
   );
-  await mouse(pinned + ' .ui-list-row-icon', false, true);
+  await mouse(pinned + ' .ui-list-row-lock', false, true);
   assert.equal(
     await js(
-      `getComputedStyle(document.querySelector(${JSON.stringify(pinned)}+' .ui-list-row-icon')).transform`,
+      `getComputedStyle(document.querySelector(${JSON.stringify(pinned)}+' .ui-list-row-lock')).transform`,
     ),
     'none',
   );

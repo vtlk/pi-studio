@@ -1,6 +1,6 @@
 # Pi Studio
 
-Локальная видеостудия для macOS: проекты, общая библиотека и конструктор агентов Pi. Electron + React + strict TypeScript. Рабочая первая версия в разработке; подготовленная сборка — `0.2.0-alpha.41`.
+Локальная видеостудия для macOS: проекты, общая библиотека и конструктор агентов Pi. Electron + React + strict TypeScript. Рабочая первая версия в разработке; подготовленная сборка — `0.2.0-alpha.47`.
 
 [Скачать текущую alpha для macOS Apple Silicon](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.46). ZIP опубликован в Releases закрытого репозитория; нужен доступ к нему. Сборка подписана Apple Development сертификатом; Apple notarization и Developer ID пока не настроены. Это alpha-версия, полный аудит готовности ещё идёт.
 
@@ -42,6 +42,7 @@ npm run check:architecture
 npm test
 npm run test:startup  # экран подготовки и открытие пустой студии
 npm run test:fresh-startup # реальная установка Pi и повторный запуск main/preload/UI текущей упакованной .app; временные HOME/студия
+npm run test:agent-constructor # CRUD профиля, DnD, Undo без потери новых правок, ресурсы/модель; восстановление отдельным процессом
 npm run test:pi-film # opt-in: три реальных агента создают тестовый мультфильм, без платных media API
 npm run test:film-viewer # после test:pi-film: просмотр этого результата в изолированном Electron
 npm run test:stereo # реальный звук PCM/AAC: оба канала, pan/volume/trim, pause/seek/mute и очистка узлов
@@ -51,7 +52,7 @@ npm run test:mcp-oauth # native SDK + локальный OAuth/MCP: PKCE/clientS
 npm run test:mcp-oauth-ui # настоящий Electron, защищённая форма, браузерный вход/отмена/статус
 npm run test:pi-install # отдельная полная загрузка/установка во временную папку
 npm run test:desktop  # реальный Electron, изолированная временная студия; нужен установленный Pi
-npm run package:mac  # .app и ZIP; для подписанной сборки заранее задайте PI_STUDIO_SIGN_IDENTITY
+npm run package:mac  # .app и ZIP; обязательно задайте PI_STUDIO_SIGN_IDENTITY существующего сертификата, ad-hoc запрещён
 ```
 
 Сборка `.app` находится в `~/Library/Caches/Pi Studio/builds/<версия>/mac-<архитектура>/Pi Studio.app`, ZIP — в `dist/`. Пакет временно собирается вне Documents, чтобы служебные атрибуты синхронизации не мешали подписи. `node scripts/install-mac.mjs` ставит проверенную сборку в ~/Applications, не создаёт резервных .app и удаляет упаковочную копию; история исходников сохраняется коммитами/push в GitHub. Старые ZIP при выпуске новой версии удаляются. Для обновлений на этом Mac используется прежний Apple Development сертификат через PI_STUDIO_SIGN_IDENTITY: ad-hoc переподпись меняет идентичность Keychain при каждой сборке. Apple notarization/Developer ID не настроены. Самостоятельный запуск production-кода: `npm run build`, затем `npm start`.

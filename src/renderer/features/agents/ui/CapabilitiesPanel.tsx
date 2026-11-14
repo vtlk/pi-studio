@@ -90,11 +90,19 @@ export function CapabilitiesPanel() {
                     label={`Убрать ${id} у агента`}
                     description="Убирается только связь с этим агентом. Ресурс и настройки других агентов сохраняются."
                     onDelete={() => {
-                      const saved = [...selectedAgent[field]];
-                      updateAgent({ [field]: saved.filter((item) => item !== id) });
+                      const position = selectedAgent[field].indexOf(id);
+                      updateAgent((current) => ({
+                        [field]: current[field].filter((item) => item !== id),
+                      }));
                       demo('Связь с ресурсом убрана.', {
                         label: 'Вернуть',
-                        onClick: () => updateAgent({ [field]: saved }),
+                        onClick: () =>
+                          updateAgent((current) => {
+                            if (current[field].includes(id)) return {};
+                            const links = [...current[field]];
+                            links.splice(Math.max(0, position), 0, id);
+                            return { [field]: links };
+                          }),
                       });
                     }}
                   />
