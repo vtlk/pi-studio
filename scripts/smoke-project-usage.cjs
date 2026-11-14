@@ -44,7 +44,7 @@ process.on('unhandledRejection', fail);
     window.webContents.setBackgroundThrottling(false);
     window.webContents.once('did-finish-load', () => done(window));
   }));
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   win = await loaded;
   const js = code => win.webContents.executeJavaScript(code, true);
   const until = async code => {
