@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.49",
+  "version": "0.2.0-alpha.50",
   "private": true,
   "description": "Pi Studio для macOS — локальные проекты и конструктор агентов",
   "type": "module",
@@ -62,7 +62,8 @@
     "test:pi-reasoning": "node --experimental-strip-types scripts/smoke-pi-reasoning.ts",
     "test:reasoning-ui": "npm run build && electron scripts/smoke-reasoning-ui.cjs",
     "test:library-render": "electron scripts/smoke-library-render.cjs",
-    "test:pi-parallel": "node --experimental-strip-types scripts/smoke-pi-parallel.ts"
+    "test:pi-parallel": "node --experimental-strip-types scripts/smoke-pi-parallel.ts",
+    "test:model-catalog": "node --experimental-strip-types scripts/smoke-model-catalog.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

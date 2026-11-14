@@ -15,19 +15,25 @@ export async function catalogData(sdk, runtime, cwd, scope, sdkPath) {
     modelsPath: null,
     refreshOnCreate: false,
   });
-  const providers = runtime.getProviders().map((provider) => ({
-    id: provider.id,
-    name: provider.name || provider.id,
-    configured: runtime.hasConfiguredAuth(provider.id),
-    subscription: runtime.isUsingSubscription(provider.id),
-    isolatedAuth: !!builtins.getProvider(provider.id) || scope?.provider === provider.id,
-    loginMethods: [
-      ...(provider.auth.oauth
-        ? [{ id: 'oauth', label: provider.auth.oauth.loginLabel || provider.auth.oauth.name }]
-        : []),
-      ...(provider.auth.apiKey?.login ? [{ id: 'api_key', label: provider.auth.apiKey.name }] : []),
-    ],
-  }));
+  const providers = runtime.getProviders().map((provider) => {
+    // Isolation disables other accounts at runtime, but their login forms still belong
+    // in the catalog. Never advertise the isolation guard as a provider's auth method.
+    const auth =
+      scope && provider.id !== scope.provider
+        ? (builtins.getProvider(provider.id)?.auth ?? provider.auth)
+        : provider.auth;
+    return {
+      id: provider.id,
+      name: provider.name || provider.id,
+      configured: runtime.hasConfiguredAuth(provider.id),
+      subscription: runtime.isUsingSubscription(provider.id),
+      isolatedAuth: !!builtins.getProvider(provider.id) || scope?.provider === provider.id,
+      loginMethods: [
+        ...(auth.oauth ? [{ id: 'oauth', label: auth.oauth.loginLabel || auth.oauth.name }] : []),
+        ...(auth.apiKey?.login ? [{ id: 'api_key', label: auth.apiKey.name }] : []),
+      ],
+    };
+  });
   const models = runtime.getModels().map((model) => ({
     provider: model.provider,
     id: model.id,

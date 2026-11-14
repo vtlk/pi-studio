@@ -1,0 +1,42 @@
+{
+  "nativePi": "1.5.2",
+  "providers": 43,
+  "models": 1643,
+  "oauthProviders": [
+    "anthropic",
+    "github-copilot",
+    "kimi-coding",
+    "meta",
+    "openai",
+    "openai-codex",
+    "openrouter",
+    "radius",
+    "xai"
+  ],
+  "apiKeyProviders": 42,
+  "productionScopedCatalogExact": true,
+  "selectedCodexAndEndpointMethodsExact": true,
+  "customEndpointPreserved": true,
+  "ambientAuthSuppressed": true,
+  "fetchAttempts": 0,
+  "boundaries": "Native builtins and explicit endpoint; installed provider-extension discovery is not proven.",
+  "applicationVersion": "0.2.0-alpha.50",
+  "sourceSha256": {
+    "bundled/pi-bridge/catalog-data.mjs": "9a1e1793ae58e192b5f00fe2a0f6fe88dc291f71335616c44f0da9a8b3ea0b45",
+    "bundled/pi-bridge/connection-runtime.mjs": "49fc6fb9ebda9c0ab6c0fe406a30f2fb6cf4333f54d1c4fbe0d3e793c00aaff6",
+    "scripts/smoke-model-catalog.ts": "927b5e3d19b8a145dff3016369911528fe59f36acefaf1f118e4a4020e6189d3",
+    "src/main/pi/catalog.ts": "4b2feb10a4d0481391a9636e1e9746ae7fe0268577265599a7853f6528428e35",
+    "src/main/pi/modelAuth.ts": "989e55026a201fd056bd8a1a16e022b791df790cd84b20fe9cfaaceecbd2a43a"
+  },
+  "regressionBefore": {
+    "exitCode": 1,
+    "provider": "amazon-bedrock",
+    "actualLoginLabel": "Unavailable outside selected connection",
+    "expectedLoginLabel": "AWS credentials or bearer token"
+  },
+  "limitations": [
+    "Built-in catalog coverage does not prove actual external account consent or quota.",
+    "Provider-extension discovery has not been implemented or verified by this comparison.",
+    "No keychain repeat-read claim."
+  ]
+}
