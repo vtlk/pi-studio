@@ -1,52 +1,25 @@
-const { app, BrowserWindow } = require('electron');
-const { mkdtempSync, mkdirSync } = require('node:fs');
-const { rm, access } = require('node:fs/promises');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
+const { rm, readFile, access } = require('node:fs/promises');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
-let temporary;
+let temporary,
+  launches = 0;
 const deadline = setTimeout(() => {
   console.error('Launch configuration smoke timed out');
   app.exit(1);
-}, 60000);
+}, 45000);
 (async () => {
   temporary = mkdtempSync(join(tmpdir(), 'pistudio-launch-config-'));
-  for (const name of ['Videos', 'UserData']) mkdirSync(join(temporary, name));
-  app.setPath('videos', join(temporary, 'Videos'));
-  app.setPath('userData', join(temporary, 'UserData'));
-  const loaded = new Promise((resolve) =>
-    app.once('browser-window-created', (_event, window) =>
-      window.webContents.once('did-finish-load', () => resolve(window)),
-    ),
-  );
-  require('../out/main/index.cjs');
-  const window = await loaded;
-  const js = (code) =>
-    window.webContents.executeJavaScript(code, true).catch((error) => {
-      console.error(code);
-      throw error;
-    });
-  const until = async (code) => {
-    for (let i = 0; i < 120; i++) {
-      if (await js(code)) return;
-      await new Promise((resolve) => setTimeout(resolve, 75));
-    }
-    console.error(await js('document.body.innerText.slice(-1800)'));
-    throw new Error('Timed out: ' + code);
-  };
-  const click = (text) =>
-    js(
-      `(Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)}) || Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row:has([aria-current="true"]) button')).find(button=>button.getAttribute('aria-label')===${JSON.stringify(text)})).click()`,
-    );
-  const reload = async () => {
-    window.webContents.reload();
-    await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
-    await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  };
-  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  let state = await js('window.studio.loadStudio()');
-  const connection = {
-    id: 'qa-codex',
+  const studio = join(temporary, 'Studio'),
+    userData = join(temporary, 'UserData');
+  mkdirSync(userData);
+  app.setPath('userData', userData);
+  app.setPath('videos', temporary);
+  writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
+  const account = {
+    id: 'qa-account',
     name: 'QA account',
     purpose: 'codex',
     providerId: 'openai-codex',
@@ -54,107 +27,189 @@ const deadline = setTimeout(() => {
     account: '',
     createdAt: 1,
   };
-  await js(
-    `window.studio.saveSection('connections',${JSON.stringify([connection])},${JSON.stringify({ folder: state.folder, base: state.sections.connections })})`,
-  );
   const model = {
-    connectionId: connection.id,
-    provider: connection.providerId,
+    connectionId: account.id,
+    provider: account.providerId,
     id: 'qa-model',
     reasoning: 'Средний',
     temperature: '',
   };
-  for (const field of ['connectionId', 'id', 'reasoning', 'valid', 'stale-snapshot']) {
-    state = await js('window.studio.loadStudio()');
-    const profiles = [
-      {
-        id: 'other-agent',
-        name: 'Other agent',
-        enabled: false,
-        instructions: [],
-        skills: [],
-        mcps: [],
-        plugins: [],
-      },
-      {
-        id: 'target-agent',
-        name: 'Requested scenario agent',
-        enabled: true,
-        instructions: [],
-        skills: [],
-        mcps: [],
-        plugins: [],
-        model:
-          field === 'valid' ? model : { ...model, [field === 'stale-snapshot' ? 'id' : field]: '' },
-      },
-    ];
-    await js(
-      `window.studio.saveSection('agents',${JSON.stringify(profiles)},${JSON.stringify({ folder: state.folder, base: state.sections.agents })})`,
+  const models = {
+    empty: undefined,
+    connection: { ...model, connectionId: '' },
+    model: { ...model, id: '' },
+    reasoning: { ...model, reasoning: '' },
+    'deleted-account': { ...model, connectionId: 'missing' },
+    'wrong-provider': { ...model, provider: 'other' },
+    valid: model,
+    'current-valid': model,
+    'current-missing': { ...model, reasoning: '' },
+    bound: undefined,
+  };
+  const agents = Object.entries(models).map(([id, model]) => ({
+    id,
+    name: id,
+    enabled: true,
+    instructions: [],
+    skills: [],
+    mcps: [],
+    plugins: [],
+    ...(model ? { model } : {}),
+  }));
+  const snapshots = [
+    ...agents,
+    { ...agents[0], id: 'deleted-profile', name: 'deleted-profile' },
+  ].map(({ instructions, ...profile }) => ({ profile, outputPath: `agents/${profile.id}/output` }));
+  snapshots.find((a) => a.profile.id === 'current-valid').profile.model = { ...model, id: '' };
+  snapshots.find((a) => a.profile.id === 'current-missing').profile.model = model;
+  const bound = snapshots.find((a) => a.profile.id === 'bound');
+  bound.session = {
+    id: 'qa-session',
+    path: 'agents/bound/sessions/dialog.jsonl',
+    title: 'Original dialogue',
+    createdAt: 1,
+  };
+  const projectDir = join(studio, 'projects', 'launch-states');
+  for (const agent of snapshots) {
+    mkdirSync(join(projectDir, agent.outputPath), { recursive: true });
+    mkdirSync(join(projectDir, `agents/${agent.profile.id}/sessions`), { recursive: true });
+  }
+  const transcript = '{"type":"session","id":"qa-session"}\n';
+  writeFileSync(join(projectDir, bound.session.path), transcript);
+  const file = join(projectDir, 'project.json');
+  writeFileSync(
+    file,
+    JSON.stringify({
+      schemaVersion: 1,
+      id: 'qa-project',
+      name: 'Launch states',
+      createdAt: 1,
+      agents: snapshots,
+    }),
+  );
+  mkdirSync(join(studio, '.pistudio'), { recursive: true });
+  writeFileSync(
+    join(studio, '.pistudio/studio.json'),
+    JSON.stringify({ schemaVersion: 1, sections: { agents, connections: [account] } }),
+  );
+  const handle = ipcMain.handle.bind(ipcMain);
+  ipcMain.handle = (name, action) =>
+    handle(
+      name,
+      name === 'studio:startup'
+        ? () => ({ phase: 'skipped', message: 'QA' })
+        : name === 'studio:connection-status'
+          ? () => ({ connectionId: account.id, provider: account.providerId, status: 'ready' })
+          : name === 'studio:launch-agent'
+            ? () => {
+                launches++;
+                throw Error('No model or Terminal request expected');
+              }
+            : action,
     );
-    const project = (
-      await js(
-        `window.studio.projectCommand({kind:'create',name:${JSON.stringify('Guard ' + field)},agents:[]})`,
-      )
-    ).projects.find((project) => project.name === 'Guard ' + field);
-    if (field === 'stale-snapshot')
-      await js(
-        `window.studio.saveSection('agents',${JSON.stringify([profiles[0], { ...profiles[1], model }])},${JSON.stringify({ folder: state.folder, base: profiles })})`,
-      );
-    await reload();
-    await js(
-      `Array.from(document.querySelectorAll('.project-list-row')).find(button=>button.textContent.startsWith(${JSON.stringify('Guard ' + field)})).click()`,
-    );
-    await until(`!!document.querySelector('.project-agent-actions')`);
-    const before = await js(`window.studio.readProject(${JSON.stringify(project.id)})`);
-    if (field === 'valid' || field === 'stale-snapshot') {
-      await click('Запустить');
-      await until(`!!document.querySelector('.agent-first-message')`);
-      await click('Отмена');
-    } else {
-      await click('Запустить');
-      await until(
-        `document.querySelector('[role="dialog"]')?.textContent.includes('Сначала настройте подключение Агента в настройках агента')`,
-      );
-      assert.equal(await js(`document.querySelectorAll('.agent-first-message').length`), 0);
-      await click('Отмена');
-      assert.deepEqual(
-        await js(`window.studio.readProject(${JSON.stringify(project.id)})`),
-        before,
-      );
-      await js(
-        `document.querySelector('.project-agent-menu .section-menu-row:has([aria-current="true"]) [aria-label="Другие варианты запуска"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
-      );
-      await until(`!!document.querySelector('[role="menuitem"]')`);
-      await js(
-        `Array.from(document.querySelectorAll('[role="menuitem"]')).find(item=>item.textContent.trim()==='Запустить и продолжить').click()`,
-      );
-      await until(
-        `document.querySelector('[role="dialog"]')?.textContent.includes('Сначала настройте подключение Агента в настройках агента')`,
-      );
-      await click('Перейти');
-      await until(
-        `document.querySelector('[aria-label="Название агента"]')?.value==='Requested scenario agent'&&!!document.querySelector('[aria-label="Модель агента"]')`,
-      );
+  const loaded = new Promise((resolve) =>
+    app.once('browser-window-created', (_, window) => {
+      window.hide();
+      window.on('show', () => window.hide());
+      window.webContents.setBackgroundThrottling(false);
+      window.webContents.once('did-finish-load', () => resolve(window));
+    }),
+  );
+  require('../out/main/index.cjs');
+  const window = await loaded,
+    js = (code) => window.webContents.executeJavaScript(code, true);
+  const until = async (code) => {
+    for (let i = 0; i < 150; i++) {
+      if (await js(code)) return;
+      await new Promise((r) => setTimeout(r, 50));
     }
-    assert.deepEqual(await js(`window.studio.readProject(${JSON.stringify(project.id)})`), before);
-    await assert.rejects(
-      access(join(state.folder, 'projects', project.folderName, '.pistudio/context')),
+    throw Error('Timed out: ' + code);
+  };
+  const row = (id) =>
+    `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label')?.textContent.endsWith(${JSON.stringify('. ' + id)}))`;
+  const click = (text) =>
+    js(
+      `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)}).click()`,
+    );
+  await until(`!!document.querySelector('[aria-label="Открыть проект «Launch states»"]')`);
+  await js(`document.querySelector('[aria-label="Открыть проект «Launch states»"]').click()`);
+  await until(`document.querySelectorAll('.project-agent-menu .section-menu-row').length===11`);
+  const before = await readFile(file, 'utf8');
+  for (const agent of snapshots) {
+    const configured = ['valid', 'current-valid'].includes(agent.profile.id),
+      expr = row(agent.profile.id);
+    assert.equal(
+      await js(`${expr}.querySelector('.section-menu-description').textContent`),
+      configured ? 'Не запускался' : 'Не подключена модель',
+      agent.profile.id,
+    );
+    assert.equal(
+      await js(`!!${expr}.querySelector('button[aria-label="Запустить"]')`),
+      configured,
+      agent.profile.id,
+    );
+    assert.equal(
+      await js(`!!${expr}.querySelector('button[aria-label="Продолжить диалог"]')`),
+      false,
+    );
+    assert.equal(
+      await js(`!!${expr}.querySelector('button[aria-label="Другие варианты запуска"]')`),
+      configured,
+    );
+    assert.equal(await js(`!!${expr}.querySelector('[aria-label="Показать в Finder"]')`), true);
+    assert.equal(
+      await js(`!!${expr}.querySelector('[aria-label="Удалить агента из проекта"]')`),
+      true,
     );
   }
-  console.log(
-    'Launch configuration Electron passed: missing connection/model/reasoning block both launch actions before input/session/context creation, cancellation preserves project/mode, Go selects the exact agent Model tab, configured launch opens only the first-message dialog.',
+  await js(`${row('valid')}.querySelector('button[aria-label="Запустить"]').click()`);
+  await until(`!!document.querySelector('.agent-first-message')`);
+  await click('Отмена');
+  const save = async (key, value) => {
+    const before = await js('window.studio.loadStudio()');
+    const result = await js(
+      `window.studio.saveSection(${JSON.stringify(key)},${JSON.stringify(value)},${JSON.stringify({ folder: before.folder, base: before.sections[key] })})`,
+    );
+    assert.ok(result.saved);
+  };
+  await save(
+    'agents',
+    agents.map((a) =>
+      a.id === 'empty' || a.id === 'bound'
+        ? { ...a, model }
+        : a.id === 'valid'
+          ? { ...a, model: { ...model, reasoning: '' } }
+          : a,
+    ),
   );
+  await until(
+    `!!${row('empty')}.querySelector('button[aria-label="Запустить"]')&&!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')&&!${row('valid')}.querySelector('button[aria-label="Запустить"]')`,
+  );
+  assert.equal(
+    await js(`${row('bound')}.querySelector('.section-menu-description').textContent`),
+    'Диалог сохранён',
+  );
+  await save('connections', []);
+  await until(
+    `document.querySelectorAll('.project-agent-actions .split-button').length===0 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-description')).every(el=>el.textContent==='Не подключена модель')`,
+  );
+  await save('connections', [account]);
+  await until(`!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')`);
+  assert.equal(await readFile(file, 'utf8'), before);
+  assert.equal(await readFile(join(projectDir, bound.session.path), 'utf8'), transcript);
+  await assert.rejects(access(join(projectDir, '.pistudio/context')));
+  assert.equal(launches, 0);
   clearTimeout(deadline);
+  console.log(
+    'Launch row configuration passed: missing connection/model/effort/profile, stale snapshots, existing dialogue, live constructor/account changes without refresh; launch and menu hidden, Finder/delete preserved; no session/context/model requests.',
+  );
   for (const window of BrowserWindow.getAllWindows()) window.destroy();
-  await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  await rm(temporary, { recursive: true, force: true });
   app.exit(0);
 })().catch(async (error) => {
-  console.error(error);
   clearTimeout(deadline);
+  console.error(error);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();
-  if (temporary)
-    await rm(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }).catch(
-      () => {},
-    );
+  if (temporary) await rm(temporary, { recursive: true, force: true });
   app.exit(1);
 });

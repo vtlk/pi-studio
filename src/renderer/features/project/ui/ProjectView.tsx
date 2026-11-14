@@ -12,9 +12,14 @@ import { RefreshAgentsDialog } from './RefreshAgentsDialog';
 import { ResizeHandle } from '@/shared/ui/ResizeHandle';
 import { useElementWidth } from '@/shared/ui/useElementWidth';
 import { useConfirm } from '@/shared/model/Confirm';
+import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
+import { useConnections } from '@/features/connections/model/Connections';
+import { validateAgentModel } from '../../../../shared/modelConfiguration';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   const { confirm } = useConfirm();
+  const { agents: profiles } = useAgentProfiles();
+  const { connections } = useConnections();
   const { ref, width } = useElementWidth();
   const [agentWidth, setAgentWidth] = useState(320);
   const [treeWidth, setTreeWidth] = useState(220);
@@ -57,14 +62,26 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
           <h2 className="project-column-heading">Агенты проекта</h2>
           <SectionMenu
             label="Агенты проекта"
-            items={project.agents.map((agent, index) => ({
-              id: agent.profile.id,
-              label: `${index + 1}. ${agent.profile.name || 'Без названия'}`,
-              muted: !agent.profile.enabled,
-              icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
-              description: getAgentStatusLabel(agent),
-              actions: <AgentActions agent={agent} onLaunch={() => setAgentId(agent.profile.id)} />,
-            }))}
+            items={project.agents.map((agent, index) => {
+              const modelConfigured = validateAgentModel(
+                profiles.find((profile) => profile.id === agent.profile.id)?.model,
+                connections,
+              ).ok;
+              return {
+                id: agent.profile.id,
+                label: `${index + 1}. ${agent.profile.name || 'Без названия'}`,
+                muted: !agent.profile.enabled,
+                icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
+                description: modelConfigured ? getAgentStatusLabel(agent) : 'Не подключена модель',
+                actions: (
+                  <AgentActions
+                    agent={agent}
+                    modelConfigured={modelConfigured}
+                    onLaunch={() => setAgentId(agent.profile.id)}
+                  />
+                ),
+              };
+            })}
             selected={selectedAgent?.profile.id ?? ''}
             onSelect={setAgentId}
           />

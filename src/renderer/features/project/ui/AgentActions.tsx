@@ -15,7 +15,15 @@ import { StartAgentDialog } from './StartAgentDialog';
 import { AgentConfigurationDialog } from './AgentConfigurationDialog';
 import { ProjectAgentDeleteButton } from './ProjectAgentDeleteButton';
 
-export function AgentActions({ agent, onLaunch }: { agent: ProjectAgent; onLaunch: () => void }) {
+export function AgentActions({
+  agent,
+  onLaunch,
+  modelConfigured,
+}: {
+  agent: ProjectAgent;
+  onLaunch: () => void;
+  modelConfigured: boolean;
+}) {
   const { demo } = useNotice();
   const { saveNow } = useStorage();
   const { setAutoContinue, selectedProject, busy } = useWorkspace();
@@ -100,16 +108,18 @@ export function AgentActions({ agent, onLaunch }: { agent: ProjectAgent; onLaunc
         >
           <FolderOpen size={18} />
         </IconButton>
-        <SplitButton
-          iconOnly
-          kind="secondary"
-          menuLabel="Другие варианты запуска"
-          label={hasSession ? 'Продолжить диалог' : 'Запустить'}
-          icon={hasSession ? <MessageSquare size={18} /> : <Play size={18} />}
-          disabled={busy || !agent.profile.enabled}
-          onClick={() => void launch(false)}
-          actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
-        />
+        {modelConfigured && (
+          <SplitButton
+            iconOnly
+            kind="secondary"
+            menuLabel="Другие варианты запуска"
+            label={hasSession ? 'Продолжить диалог' : 'Запустить'}
+            icon={hasSession ? <MessageSquare size={18} /> : <Play size={18} />}
+            disabled={busy || !agent.profile.enabled}
+            onClick={() => void launch(false)}
+            actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
+          />
+        )}
       </div>
       {startOpen && (
         <StartAgentDialog

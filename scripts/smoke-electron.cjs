@@ -177,7 +177,7 @@ const deadline = setTimeout(() => {
   await js('new Promise(resolve=>requestAnimationFrame(resolve))');
   window.webContents.sendInputEvent({ type: 'mouseMove', ...statusIcon });
   await until(
-    `document.querySelector('.project-agent-menu .section-menu-description')?.textContent==='Не запускался'`,
+    `document.querySelector('.project-agent-menu .section-menu-description')?.textContent==='Не подключена модель'`,
   );
   window.webContents.sendInputEvent({ type: 'mouseMove', x: 5, y: 5 });
   await js(
