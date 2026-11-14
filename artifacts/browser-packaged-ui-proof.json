@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-14T20:34:08.954Z",
+  "ordinaryAgent": true,
+  "setupAssistant": true,
+  "settingsCatalog": true,
+  "sharedDisclosure": true,
+  "rightLock": true,
+  "noDisableDelete": true,
+  "explicitInstallOnly": true,
+  "automaticNetworkRequests": 0,
+  "offscreen": true,
+  "separateUserData": true,
+  "packagedEntry": true
+}

@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-11-14T20:34:10.109Z",
+  "version": "0.2.0-alpha.55",
+  "source": "ebd36c4daf174684b2114e8c6a61149aac922119",
+  "archiveBytes": 124199409,
+  "archiveSha256": "8182bbf1738b681da43fc8b70fb88259de01d506722e59f4f057e0f12fd7f299",
+  "codesignDeepStrict": true,
+  "stableRequirementMatchesInstalled": true,
+  "designatedRequirement": "designated => identifier \"studio.pi.desktop\" and anchor apple generic and certificate leaf[subject.CN] = \"Apple Development: Vitaliy Mochalov (2E3MEK7TTR)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */",
+  "notarized": false,
+  "bundledBrowserFilesMatch": [
+    "BrowserSession.mjs",
+    "THIRD_PARTY_NOTICES.md",
+    "agent-browser-LICENSE.txt",
+    "files.mjs",
+    "server.mjs",
+    "tools.mjs"
+  ],
+  "installed": false,
+  "remoteRelease": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.55",
+  "remoteAssetId": "748700906",
+  "remoteBytes": 124199409,
+  "remoteDigest": "sha256:8182bbf1738b681da43fc8b70fb88259de01d506722e59f4f057e0f12fd7f299",
+  "remoteVerified": true,
+  "packagedUiVerified": true,
+  "installationDeferred": {
+    "reason": "Current user Scenes request is running",
+    "pid": 32032,
+    "workspace": "/Users/user1/Movies/Pi Studio",
+    "profileCount": 7,
+    "installedVersion": "0.2.0-alpha.52"
+  }
+}
