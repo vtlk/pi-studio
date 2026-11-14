@@ -62,7 +62,7 @@ process.on('uncaughtException', fail); process.on('unhandledRejection', fail);
   assert.equal(await js(`document.body.textContent.includes('NON_PROTOCOL_EXTENSION_LOG')`), false);
   assert.equal(win.isVisible(), false); assert.equal(win.webContents.isOffscreen(), true);
   await writeFile('artifacts/native-extensions-ui.png', (await win.capturePage()).toPNG());
-  await writeFile('artifacts/native-extensions-ui-proof.json', JSON.stringify({ checkedAt: new Date().toISOString(), scope: 'Actual Electron main/preload/renderer, owned installed native provider extension, no catalog stubs', extensionProviderVisibleInConnectionEditor: true, nativeLoginAvailable: true, extensionModelSearchAndKeyboardSelection: true, selectionPersistsAfterReload: true, extensionStdoutNotInUi: true, modelOrCloudRequests: 0, offscreen: true }, null, 2)+'\n');
+  await writeFile(process.env.PI_STUDIO_QA_PROOF || 'artifacts/native-extensions-ui-proof.json', JSON.stringify({ checkedAt: new Date().toISOString(), scope: 'Actual Electron main/preload/renderer, owned installed native provider extension, no catalog stubs', extensionProviderVisibleInConnectionEditor: true, nativeLoginAvailable: true, extensionModelSearchAndKeyboardSelection: true, selectionPersistsAfterReload: true, extensionStdoutNotInUi: true, modelOrCloudRequests: 0, offscreen: true, packagedEntry: !!process.env.PI_STUDIO_QA_MAIN }, null, 2)+'\n');
   console.log('Native extension UI passed: real provider/catalog, model search and keyboard selection, persisted reload and native login entry; no model/cloud requests.');
   await cleanup(); app.exit(0);
 })().catch(fail);

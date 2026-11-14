@@ -161,5 +161,6 @@ process.on('unhandledRejection', fail);
     'Computer UI passed: actual SDK status; shared pinned rows; denied-state UI fixture; no OS permission prompts or visible windows.',
   );
   await cleanup();
-  app.exit(0);
+  setTimeout(() => { console.error('Graceful Computer runtime quit timed out'); app.exit(1); }, 10000).unref();
+  app.quit();
 })().catch(fail);

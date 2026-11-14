@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-14T23:26:12.229Z",
+  "compiledMain": true,
+  "actualSdkStatus": true,
+  "ordinaryAgent": true,
+  "setupAssistant": true,
+  "settingsCatalog": true,
+  "rightLock": true,
+  "noDisableDelete": true,
+  "automaticPermissionPrompts": 0,
+  "deniedUiFixture": true,
+  "explicitPermissionButton": true,
+  "actualOsPermissionPromptTested": false,
+  "offscreen": true,
+  "separateUserData": true,
+  "packagedEntry": true
+}
