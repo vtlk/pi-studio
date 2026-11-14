@@ -16,6 +16,7 @@ import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { ImageGeneration } from '../images/ImageGeneration.ts';
 import type { McpSecrets } from './McpSecrets.ts';
+import type { RunDependencies } from './RunTypes.ts';
 
 interface Options {
   bootstraps: string;
@@ -26,6 +27,7 @@ interface Options {
   images?: ImageGeneration;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
+  failureChanged?: RunDependencies['failureChanged'];
   openTerminal?: typeof openSessionTerminal;
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
@@ -40,6 +42,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,
+    failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     prepare: (request) =>
       service.serialize(async () => {
@@ -128,12 +131,18 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         run.modelAuth = modelAuth;
         return { run, piPath };
       }),
-    update: (run, status, session) =>
+    update: (run, status, session, failure) =>
       service.serialize(async () => {
         const store = await service.load();
         if ((await store.projects.directory(run.project.id)) !== run.projectRoot)
           throw new Error('Папка студии изменилась во время работы Pi.');
-        return store.projects.updateRuntime(run.project.id, run.agent.profile.id, status, session);
+        return store.projects.updateRuntime(
+          run.project.id,
+          run.agent.profile.id,
+          status,
+          session,
+          failure,
+        );
       }),
     read: (run) =>
       service.serialize(async () => (await service.load()).projects.read(run.project.id)),

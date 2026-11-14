@@ -17,6 +17,7 @@ import type { SessionBinding } from '../../shared/project.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import { StudioResources } from './StudioResources.ts';
 import type { McpSecrets } from './McpSecrets.ts';
+import type { RunDependencies } from './RunTypes.ts';
 
 interface Options {
   bootstraps: string;
@@ -24,6 +25,7 @@ interface Options {
   catalog: string;
   piPath: () => string;
   headless?: boolean;
+  failureChanged?: RunDependencies['failureChanged'];
   openTerminal?: typeof openSessionTerminal;
   resources?: StudioResources;
   mcpSecrets?: McpSecrets;
@@ -54,6 +56,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     bridge: options.bridge,
     serviceAgent: true,
     headless: options.headless,
+    failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     tools: setupTools,
     prepare: (request) =>
@@ -160,7 +163,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         run.modelAuth = modelAuth;
         return { run, piPath: path };
       }),
-    update: async (run, status, session) => {
+    update: async (run, status, session, failure) => {
       if (session) {
         await atomicJson(join(run.projectRoot, 'state.json'), {
           schemaVersion: 1,
@@ -170,6 +173,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         run.agent.session = session;
       }
       run.agent.runStatus = status;
+      run.agent.runFailure = status === 'error' ? (failure ?? run.agent.runFailure) : undefined;
       return { ...run.project, agents: [run.agent] };
     },
     read: async (run) => ({ ...run.project, agents: [run.agent] }),

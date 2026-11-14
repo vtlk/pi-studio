@@ -1,5 +1,6 @@
 import { cp, mkdir, readdir, rename, rm, lstat } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import type { RunFailure } from '../../shared/runFailure.ts';
 import { join } from 'node:path';
 import type { WorkspaceProject, SessionBinding, AgentRunStatus } from '../../shared/project.ts';
 import type { ProjectCommand, ProjectCommandResult } from '../../shared/storage.ts';
@@ -22,6 +23,7 @@ import { agentDirectory } from '../../shared/agentPaths.ts';
 import { folderSlug } from '../../shared/folderSlug.ts';
 import type { Agent } from '../../shared/studio.ts';
 import { assertProjectSessionsClosed } from './sessionLease.ts';
+import { withAgentRuntime } from './projectRuntime.ts';
 
 function withFork(agent: WorkspaceProject['agents'][number]) {
   return { ...agent, session: agent.session ? { ...agent.session, needsFork: true } : undefined };
@@ -84,6 +86,7 @@ export class ProjectStore {
     agentId: string,
     status: AgentRunStatus,
     session?: SessionBinding,
+    failure?: RunFailure,
   ) {
     const project = this.get(projectId);
     const selected = project.agents.find((item) => item.profile.id === stableId(agentId));
@@ -91,7 +94,7 @@ export class ProjectStore {
     const updated = {
       ...project,
       agents: project.agents.map((item) =>
-        item === selected ? { ...item, runStatus: status, ...(session ? { session } : {}) } : item,
+        item === selected ? withAgentRuntime(item, status, session, failure) : item,
       ),
     };
     if (session) await this.save(updated, await this.directory(projectId));

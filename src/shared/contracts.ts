@@ -12,6 +12,7 @@ import type { Resource, ResourceCheck, SkillDocument } from './resources';
 import type { AuthLoginState } from './auth';
 import type { StartupState } from './startup';
 import type { PiModelCatalog } from './models';
+import type { RunFailureNotice } from './runFailure';
 import type { LaunchAgentRequest, LaunchAgentResult } from './runtime';
 import type { VideoProjectInspection } from './video';
 import type { LibraryListing } from './library';
@@ -78,6 +79,7 @@ export interface DesktopApi {
   getModelCatalog(request?: ModelConnectionRequest): Promise<PiModelCatalog>;
   discoverConnectionModels(request: ModelConnectionRequest): Promise<string[]>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
+  onRunFailure(listener: (notice: RunFailureNotice) => void): () => void;
   openSetupAssistant(): Promise<void>;
   listLibrary(): Promise<LibraryListing>;
   readLibraryCharacter(id: string, version: number, revision: string): Promise<LibraryCharacter>;
@@ -147,6 +149,7 @@ export const desktopChannels = {
   skipStartup: 'studio:startup-skip',
   chooseStartupPi: 'studio:startup-choose',
   getModelCatalog: 'studio:model-catalog',
+  runFailure: 'studio:run-failure',
   discoverConnectionModels: 'studio:connection-models-discover',
   launchAgent: 'studio:launch-agent',
   openSetupAssistant: 'studio:setup-assistant',

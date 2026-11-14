@@ -32,6 +32,7 @@ import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
 import { createImageServices, registerImageHandlers } from '../images/registerImageHandlers';
 import { registerModelConnectionHandlers } from '../pi/registerModelConnectionHandlers';
 import { registerMcpSecretHandlers } from '../pi/registerMcpSecretHandlers';
+import type { RunDependencies } from '../pi/RunTypes';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -65,7 +66,19 @@ export function registerDesktopHandlers(): StudioService {
   const references = new ReferenceFiles(referenceImage);
   const mcpSecrets = registerMcpSecretHandlers(service, caller, () => startup.path);
   const { connections: imageConnections, images } = createImageServices(service);
+  const failureChanged: RunDependencies['failureChanged'] = (run, failure) => {
+    const notice = {
+      projectRoot: run.projectRoot,
+      projectId: run.project.id,
+      agentId: run.agent.profile.id,
+      agentName: run.agent.profile.name,
+      failure,
+    };
+    for (const window of BrowserWindow.getAllWindows())
+      if (!window.isDestroyed()) window.webContents.send(desktopChannels.runFailure, notice);
+  };
   const runs = createStudioRunHost(service, {
+    failureChanged,
     bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
@@ -81,6 +94,7 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {
+    failureChanged,
     bootstraps: join(app.getPath('userData'), 'setup-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
@@ -89,6 +103,7 @@ export function registerDesktopHandlers(): StudioService {
     mcpSecrets,
   });
   const generators = createLibraryRunHost(service, {
+    failureChanged,
     mcpSecrets,
     bootstraps: join(app.getPath('userData'), 'library-bootstraps'),
     bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),

@@ -1,4 +1,5 @@
 import type { AgentRunStatus, ProjectAgent } from './workspace.types';
+import { runFailureLabels } from '../../../../shared/runFailure.ts';
 
 export type AgentDisplayStatus = AgentRunStatus | 'disabled';
 
@@ -14,6 +15,7 @@ export const agentStatusLabels: Record<AgentDisplayStatus, string> = {
 
 export function getAgentStatusLabel(agent: ProjectAgent): string {
   const status = getAgentDisplayStatus(agent);
+  if (status === 'error' && agent.runFailure) return runFailureLabels[agent.runFailure];
   return status === 'stopped' && agent.session ? 'Диалог сохранён' : agentStatusLabels[status];
 }
 

@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { resolve, relative, isAbsolute } from 'node:path';
 import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
 import { createConnectionRuntime } from './connection-runtime.mjs';
+import { classifyProviderFailure } from './provider-failure.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
 
@@ -182,6 +183,7 @@ export async function runSession(bootstrapPath) {
         const last = runtime.session.messages.findLast((message) => message.role === 'assistant');
         await event({
           type: 'settled',
+          ...(last?.stopReason === 'error' ? { failure: classifyProviderFailure(last.errorMessage) } : {}),
           outcome: settled.aborted
             ? 'aborted'
             : last?.stopReason === 'error'

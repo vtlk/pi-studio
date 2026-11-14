@@ -20,6 +20,7 @@ import type { ReferenceFiles } from './ReferenceFiles.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { ImageGeneration } from '../images/ImageGeneration.ts';
 import type { McpSecrets } from './McpSecrets.ts';
+import type { RunDependencies } from './RunTypes.ts';
 
 interface Options {
   bootstraps: string;
@@ -30,6 +31,7 @@ interface Options {
   images?: ImageGeneration;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
+  failureChanged?: RunDependencies['failureChanged'];
   openTerminal?: typeof openSessionTerminal;
 }
 export function createLibraryRunHost(service: StudioService, options: Options) {
@@ -136,7 +138,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         run.modelAuth = modelAuth;
         return { run, piPath: path };
       }),
-    update: (run, status, session) =>
+    update: (run, status, session, failure) =>
       service.serialize(async () => {
         const store = await service.load();
         if (
@@ -145,6 +147,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         )
           throw new Error('Папка студии изменилась.');
         run.agent.runStatus = status;
+        run.agent.runFailure = status === 'error' ? (failure ?? run.agent.runFailure) : undefined;
         if (session) run.agent.session = session;
         await atomicJson(join(run.projectRoot, 'state.json'), {
           schemaVersion: 1,

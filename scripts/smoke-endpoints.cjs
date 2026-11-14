@@ -128,6 +128,58 @@ const deadline = setTimeout(() => {
   );
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/endpoint-settings.png'), (await window.capturePage()).toPNG());
+  await click('Отмена');
+  const notice = {
+    projectRoot: state.folder + '/projects/qa',
+    projectId: 'qa',
+    agentId: 'one',
+    agentName: 'QA agent',
+    failure: 'usage_limit',
+    rawError: 'PRIVATE_PROVIDER_DETAIL',
+  };
+  window.webContents.send('studio:run-failure', notice);
+  await until(
+    `document.querySelector('.run-failure-notice')?.textContent.includes('Достигнут лимит')`,
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('.run-failure-notice').textContent.includes('PRIVATE_PROVIDER_DETAIL')`,
+    ),
+    false,
+  );
+  window.webContents.send('studio:run-failure', {
+    ...notice,
+    projectRoot: '/unrelated/studio/project',
+    failure: 'network',
+  });
+  await js(`new Promise(resolve=>requestAnimationFrame(resolve))`);
+  assert.equal(
+    await js(
+      `document.querySelector('.run-failure-notice').textContent.includes('Достигнут лимит')`,
+    ),
+    true,
+  );
+  window.webContents.send('studio:run-failure', {
+    ...notice,
+    agentId: 'other',
+    failure: undefined,
+  });
+  await js(`new Promise(resolve=>requestAnimationFrame(resolve))`);
+  assert.equal(await js(`!!document.querySelector('.run-failure-notice')`), true);
+  window.webContents.send('studio:run-failure', { ...notice, failure: undefined });
+  await until(`!document.querySelector('.run-failure-notice')`);
+  window.webContents.send('studio:run-failure', { ...notice, failure: 'PRIVATE_PROVIDER_DETAIL' });
+  await until(
+    `document.querySelector('.run-failure-notice')?.textContent.includes('Провайдер не завершил')`,
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('.run-failure-notice').textContent.includes('PRIVATE_PROVIDER_DETAIL')`,
+    ),
+    false,
+  );
+  await js(`document.querySelector('[aria-label="Скрыть ошибку агента"]').click()`);
+  await until(`!document.querySelector('.run-failure-notice')`);
   console.log(
     'Endpoint Electron UI passed: create local connection, server discovery without auth, explicit model capabilities, delete cancel/confirm, persistence/reload, exact scoped model/effort selection. No model requests.',
   );

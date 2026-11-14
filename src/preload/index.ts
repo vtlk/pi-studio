@@ -1,7 +1,29 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
+import { runFailure } from '../shared/runFailure';
 
 const desktopApi: DesktopApi = {
+  onRunFailure: (listener) => {
+    const receive = (_event: unknown, notice: unknown) => {
+      if (!notice || typeof notice !== 'object') return;
+      const data = notice as Record<string, unknown>;
+      if (
+        !['projectRoot', 'projectId', 'agentId', 'agentName'].every(
+          (key) => typeof data[key] === 'string' && (data[key] as string).length <= 4000,
+        )
+      )
+        return;
+      listener({
+        projectRoot: data.projectRoot as string,
+        projectId: data.projectId as string,
+        agentId: data.agentId as string,
+        agentName: data.agentName as string,
+        failure: data.failure === undefined ? undefined : runFailure(data.failure),
+      });
+    };
+    ipcRenderer.on(desktopChannels.runFailure, receive);
+    return () => ipcRenderer.removeListener(desktopChannels.runFailure, receive);
+  },
   readMcpSecretStatus: (request) =>
     ipcRenderer.invoke(desktopChannels.readMcpSecretStatus, request),
   saveMcpSecrets: (request) => ipcRenderer.invoke(desktopChannels.saveMcpSecrets, request),

@@ -26,6 +26,7 @@ const scripts = new URL('../bundled/pi-bridge/', import.meta.url).pathname;
 const key = 'sk-endpoint-fixture-never-real';
 const requests: { url: string; authorization?: string; body?: Record<string, unknown> }[] = [];
 let listMode: 'normal' | 'error' | 'redirect' = 'normal';
+let quotaError = false;
 const server = createServer(async (req, res) => {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -50,6 +51,18 @@ const server = createServer(async (req, res) => {
     }
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ data: [{ id: 'qa-chat' }, { id: 'qa-chat' }, { id: 'qa-other' }] }));
+    return;
+  }
+  if (quotaError) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        error: {
+          message: 'The usage limit has been reached. PRIVATE_PROVIDER_DETAIL',
+          type: 'invalid_request_error',
+        },
+      }),
+    );
     return;
   }
   res.writeHead(200, { 'Content-Type': 'text/event-stream' });
@@ -275,7 +288,11 @@ try {
     await store.command({ kind: 'create', name: 'Endpoint project', agents: [profile] })
   ).projects[0];
   const children: Promise<number | null>[] = [];
+  const failures: (string | undefined)[] = [];
   const host = createStudioRunHost(service, {
+    failureChanged: (_run, failure) => {
+      failures.push(failure);
+    },
     bootstraps: join(root, 'boots'),
     bridge: join(scripts, 'session.mjs'),
     catalog: join(scripts, 'catalog.mjs'),
@@ -322,6 +339,38 @@ try {
       count,
       'Idle resume sends no second request',
     );
+    const next = { ...profile, id: 'qa-next-agent', name: 'Next agent' };
+    await store.saveSection('agents', [profile, next]);
+    const quotaProject = (
+      await store.command({ kind: 'create', name: 'Quota check', agents: [profile, next] })
+    ).projects[0];
+    quotaError = true;
+    const beforeQuotaRequests = requests.filter((item) => item.body).length;
+    const failedRun = await host.launch({
+      projectId: quotaProject.id,
+      agentId: profile.id,
+      firstMessage: 'Fixture quota request',
+      autoContinue: true,
+    });
+    assert.equal(await children.at(-1), 0);
+    const stopped = await store.projects.read(quotaProject.id);
+    assert.equal(stopped.agents[0].runStatus, 'error');
+    assert.equal(stopped.agents[0].runFailure, 'usage_limit');
+    assert.equal(stopped.agents[1].session, undefined);
+    assert.equal(requests.filter((item) => item.body).length, beforeQuotaRequests + 1);
+    assert.equal(failures.at(-1), 'usage_limit');
+    const failureRecord = await readFile(
+      join(
+        await store.projects.directory(quotaProject.id),
+        '.pistudio/context',
+        failedRun.runId,
+        'result.json',
+      ),
+      'utf8',
+    );
+    assert.equal(JSON.parse(failureRecord).failure, 'usage_limit');
+    assert.equal(failureRecord.includes('PRIVATE_PROVIDER_DETAIL'), false);
+    assert.equal(JSON.stringify(failures).includes('PRIVATE_PROVIDER_DETAIL'), false);
   } finally {
     host.close();
     await Promise.allSettled(children);

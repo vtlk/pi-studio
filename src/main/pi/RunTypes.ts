@@ -4,6 +4,7 @@ import type { PreparedRun } from './ContextBuilder.ts';
 import type { validateCompletedOutputs } from './completeStage.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { SessionTool } from './RunChannel.ts';
+import type { RunFailure } from '../../shared/runFailure.ts';
 
 export interface RunDependencies {
   bootstraps: string;
@@ -13,6 +14,7 @@ export interface RunDependencies {
     run: PreparedRun,
     status: AgentRunStatus,
     session?: SessionBinding,
+    failure?: RunFailure,
   ) => Promise<WorkspaceProject>;
   read: (run: PreparedRun) => Promise<WorkspaceProject>;
   openTerminal?: typeof openSessionTerminal;
@@ -24,6 +26,7 @@ export interface RunDependencies {
   capabilities?: (run: PreparedRun, executableExtensions: boolean) => void;
   tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
   serviceAgent?: boolean;
+  failureChanged?: (run: PreparedRun, failure?: RunFailure) => void;
   completed?: (
     run: PreparedRun,
     outputs: Awaited<ReturnType<typeof validateCompletedOutputs>>,
@@ -35,6 +38,7 @@ export interface LiveRun {
   request: LaunchAgentRequest;
   pid?: number;
   status: AgentRunStatus;
+  failure?: RunFailure;
   sequence: number;
   notifiedSequence?: number;
   chain?: symbol;

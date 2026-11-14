@@ -23,6 +23,7 @@ import { EditorProvider } from '@/features/editor/model/Editor';
 import { ResourcesProvider } from '@/features/resources/model/Resources';
 import { StartupGate } from '@/features/startup/StartupGate';
 import { LegacyTemplateCleanup } from '@/features/settings/ui/LegacyTemplateCleanup';
+import { RunFailureNotice } from '@/features/launch/ui/RunFailureNotice';
 
 const pages = {
   project: ProjectView,
@@ -39,6 +40,7 @@ function StudioShell() {
       <LegacyTemplateCleanup />
       <main className="main-shell">
         <Topbar />
+        <RunFailureNotice />
         <div className="main-scroll">
           <Page />
         </div>

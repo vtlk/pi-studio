@@ -9,6 +9,7 @@ import { videoContract } from '../video/contract.ts';
 import { readVideoProject } from '../video/readVideoProject.ts';
 import { listProjectFiles, readProjectFile } from './projectFiles.ts';
 import { closedRunStatus } from './closedRunStatus.ts';
+import { runFailure } from '../../shared/runFailure.ts';
 
 export class RunLifecycle {
   private readonly dependencies: RunDependencies;
@@ -74,9 +75,11 @@ export class RunLifecycle {
       live.userMessage =
         typeof event.message === 'string' ? event.message.slice(0, 200_000) : undefined;
       live.completion = undefined;
+      live.failure = undefined;
       live.blocked = false;
       live.status = 'running';
       await this.dependencies.update(live.run, 'running');
+      this.dependencies.failureChanged?.(live.run);
     } else if (event.type === 'running') {
       live.status = 'running';
       await this.dependencies.update(live.run, 'running');
@@ -105,16 +108,24 @@ export class RunLifecycle {
               : valid && !live.blocked
                 ? 'ready'
                 : 'waiting';
+      live.failure =
+        live.status === 'error'
+          ? event.outcome === 'error'
+            ? runFailure(event.failure)
+            : 'outputs'
+          : undefined;
       await atomicJson(
         join(live.run.projectRoot, '.pistudio/context', live.run.record.runId, 'result.json'),
         {
           runId: live.run.record.runId,
           request: live.sequence,
           status: live.status,
+          ...(live.failure ? { failure: live.failure } : {}),
           outputs: valid ? live.completion : [],
         },
       );
-      await this.dependencies.update(live.run, live.status);
+      await this.dependencies.update(live.run, live.status, undefined, live.failure);
+      if (live.failure) this.dependencies.failureChanged?.(live.run, live.failure);
       if (
         live.status === 'ready' &&
         live.request.autoContinue &&
@@ -135,7 +146,12 @@ export class RunLifecycle {
     } else if (event.type === 'error' || event.type === 'stopped') {
       this.dependencies.closed?.(live.run);
       live.status = event.type === 'error' ? 'error' : closedRunStatus(live.status);
-      await this.dependencies.update(live.run, live.status);
+      live.failure =
+        live.status === 'error'
+          ? (live.failure ?? runFailure(event.failure ?? 'opening'))
+          : undefined;
+      await this.dependencies.update(live.run, live.status, undefined, live.failure);
+      if (event.type === 'error') this.dependencies.failureChanged?.(live.run, live.failure!);
       live.fail(
         new Error(
           'Pi не смог открыть или продолжить диалог. Подробности доступны в его окне; ресурсы не подменялись.',

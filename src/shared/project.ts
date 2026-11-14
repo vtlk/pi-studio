@@ -1,4 +1,5 @@
 import type { Agent } from './studio';
+import type { RunFailure } from './runFailure';
 
 export type OutputEntry = OutputFolder | OutputFile;
 export interface OutputFolder {
@@ -31,6 +32,7 @@ export interface ProjectAgent {
   outputPath: string;
   session?: SessionBinding;
   runStatus?: AgentRunStatus;
+  runFailure?: RunFailure;
   entries: OutputEntry[];
 }
 export type AgentRunStatus = 'idle' | 'running' | 'waiting' | 'ready' | 'error' | 'stopped';

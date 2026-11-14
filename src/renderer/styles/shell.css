@@ -35,6 +35,14 @@
   scrollbar-width: thin;
   scrollbar-color: #ccc transparent;
 }
+.main-shell > .run-failure-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  margin: 0;
+}
 .page-body {
   padding: 28px;
   max-width: 1500px;
