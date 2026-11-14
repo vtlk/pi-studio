@@ -2,6 +2,7 @@ import { readdir, lstat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { OutputEntry, OutputFile } from '../../shared/project.ts';
 import { safePath, isMissing, readText } from './files.ts';
+import { compareOutputEntries } from '../../shared/outputOrder.ts';
 
 export function fileFormat(name: string): OutputFile['format'] {
   const extension = extname(name).toLowerCase();
@@ -70,11 +71,7 @@ export async function scanOutputs(
         fingerprint: `${stat.size}:${stat.mtimeMs}:${stat.ino}`,
       });
   }
-  return entries.sort(
-    (a, b) =>
-      (a.createdAt ?? 0) - (b.createdAt ?? 0) ||
-      a.name.localeCompare(b.name, 'ru', { numeric: true }),
-  );
+  return entries.sort(compareOutputEntries);
 }
 export async function loadOutput(root: string, relative: string): Promise<OutputFile> {
   try {

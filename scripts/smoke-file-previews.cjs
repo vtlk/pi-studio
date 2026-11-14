@@ -112,6 +112,9 @@ const deadline = setTimeout(() => {
     ['broken.pistudio.json', '{"type":"not-a-montage"}'],
   ])
     await writeFile(join(output, name), content);
+  // This folder is newer than the Markdown file; grouping takes priority over its date.
+  await mkdir(join(output, 'docs', 'nested'));
+  await writeFile(join(output, 'docs', 'nested', 'inside.txt'), 'Nested output');
   await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
   await new Promise((resolveLoad) => {
     window.webContents.once('did-finish-load', resolveLoad);
@@ -120,11 +123,30 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('.project-list-row')`);
   await js(`document.querySelector('.project-list-row').click()`);
   await until(`!!document.querySelector('.output-file-tree')`);
+  const scanned = await js(`window.studio.readProject(${JSON.stringify(project.id)})`);
+  const scannedEntries = scanned.agents.find(
+    (item) => item.profile.id === agent.profile.id,
+  ).entries;
+  const grouped = (entries) => {
+    const firstFile = entries.findIndex((entry) => entry.kind === 'file');
+    assert.ok(firstFile < 0 || entries.slice(firstFile).every((entry) => entry.kind === 'file'));
+    for (const entry of entries) if (entry.kind === 'folder') grouped(entry.children);
+  };
+  grouped(scannedEntries);
+  const visibleKinds = await js(
+    `Array.from(document.querySelectorAll('.output-file-tree > ul > li > button')).map(button=>button.classList.contains('file-tree-folder'))`,
+  );
+  assert.ok(visibleKinds.includes(true) && visibleKinds.includes(false));
+  assert.ok(visibleKinds.slice(visibleKinds.indexOf(false)).every((folder) => !folder));
   await until(
     `Array.from(document.querySelectorAll('.file-tree-item')).some(b=>b.textContent.trim()==='docs')`,
   );
   await file('docs');
   await file('Обзор.MARKDOWN');
+  const nestedKinds = await js(
+    `(()=>{const folder=Array.from(document.querySelectorAll('.file-tree-folder')).find(button=>button.textContent==='docs');return Array.from(folder.nextElementSibling.children).map(li=>li.querySelector('button').classList.contains('file-tree-folder'));})()`,
+  );
+  assert.deepEqual(nestedKinds, [true, false]);
   await until(`document.querySelector('.output-markdown h1')?.textContent==='Результат'`);
   await until(
     `document.querySelector('.output-markdown img[alt="Локальный кадр"]')?.naturalWidth===40`,
@@ -274,6 +296,8 @@ const deadline = setTimeout(() => {
   );
   const proof = {
     passed: true,
+    foldersFirstInMainAndRenderer: true,
+    nestedFoldersBeforeOlderFiles: true,
     markdownLocalImage: true,
     imageUpdatesWithoutMarkdownEdit: true,
     localLinkSelectsFile: true,
@@ -301,7 +325,9 @@ const deadline = setTimeout(() => {
     'src/renderer/features/project/ui/AgentOutputsView.tsx',
     'src/renderer/features/project/ui/OutputFileTree.tsx',
     'src/renderer/features/project/model/useOutputFile.ts',
+    'src/renderer/features/project/model/outputTree.ts',
     'src/main/storage/outputs.ts',
+    'src/shared/outputOrder.ts',
     'src/shared/outputPaths.ts',
     'scripts/smoke-file-previews.cjs',
     'out/main/index.cjs',

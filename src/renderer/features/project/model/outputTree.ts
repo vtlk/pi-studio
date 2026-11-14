@@ -1,12 +1,8 @@
 import type { OutputEntry, OutputFile } from './workspace.types';
+import { compareOutputEntries } from '../../../../shared/outputOrder.ts';
 
 export function sortOutputEntries(entries: OutputEntry[]): OutputEntry[] {
-  return [...entries].sort(
-    (a, b) =>
-      (a.createdAt ?? 0) - (b.createdAt ?? 0) ||
-      a.name.localeCompare(b.name, 'ru', { numeric: true }) ||
-      a.id.localeCompare(b.id),
-  );
+  return [...entries].sort(compareOutputEntries);
 }
 
 export function countFiles(entries: OutputEntry[]): number {
