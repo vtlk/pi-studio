@@ -15,12 +15,22 @@ const deadline = setTimeout(() => {
   app.setPath('videos', join(temporary, 'Videos'));
   app.setPath('userData', join(temporary, 'UserData'));
   const loaded = new Promise((resolve) =>
-    app.once('browser-window-created', (_event, window) =>
-      window.webContents.once('did-finish-load', () => resolve(window)),
-    ),
+    app.once('browser-window-created', (_event, window) => {
+      window.hide();
+      window.on('show', () => window.hide());
+      window.webContents.setBackgroundThrottling(false);
+      window.webContents.once('did-finish-load', () => resolve(window));
+    }),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain();
   const window = await loaded;
+  window.webContents.removeAllListeners('will-prevent-unload');
+  window.webContents.on('will-prevent-unload', () => {
+    console.error('QA reload before saved');
+    app.exit(1);
+  });
+  window.webContents.debugger.attach('1.3');
+  await window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', { enabled: true });
   const js = (code) => window.webContents.executeJavaScript(code, true);
   const until = async (code) => {
     for (let i = 0; i < 150; i++) {
