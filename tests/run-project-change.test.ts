@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
+import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { RunHost } from '../src/main/pi/RunHost.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { WorkspaceProject } from '../src/shared/project.ts';
@@ -32,13 +33,13 @@ import {readFile, writeFile} from 'node:fs/promises';
 const boot = JSON.parse(await readFile(process.argv[2], 'utf8'));
 const headers = {Authorization:'Bearer '+boot.token, 'Content-Type':'application/json'};
 const event = (data) => fetch(boot.url+'/event', {method:'POST',headers,body:JSON.stringify(data)});
+process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0)));
 const envelope = await (await fetch(boot.url+'/context', {headers})).json();
 await event({type:'hello',pid:process.pid});
 const path = envelope.record.sessionDirectory+'/test.jsonl';
 await writeFile(path, JSON.stringify({type:'session',id:'test'})+'\\n');
 await event({type:'bound',sessionId:'test',sessionFile:path});
 setInterval(()=>{}, 1000);
-process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0)));
 `,
     );
     const children = new Map<string, ChildProcess>();
@@ -49,6 +50,7 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
     const admission = new Promise<void>((resolve) => {
       releaseAdmission = resolve;
     });
+    const service = new StudioService(join(root, 'workspace.json'), join(root, 'Studio'));
     const host = new RunHost({
       bridge,
       bootstraps: join(root, 'boots'),
@@ -76,7 +78,7 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
           } as PreparedRun,
         };
       },
-      update: async (run) => run.project,
+      update: (run) => service.serialize(async () => run.project),
       read: async (run) => run.project,
       beforeRequest: async () => {
         if (delayAdmission) {
@@ -163,11 +165,27 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
       );
       // Failed filesystem changes release the reservation as well.
       await launch('source');
+      // Dialogue deletion validates in the queue, stops only its idle Pi outside it,
+      // then clears data in the queue. The bridge must flush its queued stopped event.
+      const reopened = children.get('source')!;
+      await host.withProjectChange('source', false, async () => {
+        await service.serialize(async () => {});
+        await host.stopAgent('source', 'agent');
+        await service.serialize(async () => {
+          assert.equal(
+            reopened.exitCode,
+            0,
+            'Idle Pi flushes its final event before data deletion',
+          );
+          assert.equal(children.get('other')!.exitCode, null, 'Other dialogue remains open');
+        });
+        assert.equal((await event('source', { type: 'request', message: 'old client' })).ok, false);
+      });
     } finally {
       host.close();
       await Promise.all(
         [...children.values()].map((child) =>
-          child.exitCode !== null
+          child.exitCode !== null || child.signalCode !== null
             ? undefined
             : new Promise<void>((resolve) => child.once('exit', () => resolve())),
         ),

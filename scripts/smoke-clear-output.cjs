@@ -1,76 +1,31 @@
-const { app, BrowserWindow } = require('electron');
-const { mkdtempSync, mkdirSync } = require('node:fs');
-const { rm, mkdir, writeFile, readFile, access } = require('node:fs/promises');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
+const { rm, readFile, readdir, mkdir } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
-let temporary;
+let temporary,
+  launches = 0;
 const deadline = setTimeout(() => {
-  console.error('Output clear smoke timed out');
+  console.error('Agent data deletion timed out');
   app.exit(1);
 }, 60000);
 (async () => {
-  temporary = mkdtempSync(join(tmpdir(), 'pistudio-clear-output-ui-'));
-  const videos = join(temporary, 'Videos'),
+  temporary = mkdtempSync(join(tmpdir(), 'pistudio-agent-data-ui-'));
+  const studio = join(temporary, 'Studio'),
     userData = join(temporary, 'UserData');
-  mkdirSync(videos);
   mkdirSync(userData);
-  app.setPath('videos', videos);
+  app.setPath('videos', temporary);
   app.setPath('userData', userData);
-  const loaded = new Promise((resolve) =>
-    app.once('browser-window-created', (_event, window) => {
-      window.webContents.setBackgroundThrottling(false);
-      window.hide();
-      window.on('show', () => window.hide());
-      window.webContents.once('did-finish-load', () => resolve(window));
-    }),
-  );
-  require('../out/main/index.cjs');
-  const window = await loaded,
-    js = (code) =>
-      window.webContents.executeJavaScript(code, true).catch((error) => {
-        console.error('Failed system expression', code.slice(0, 180));
-        throw error;
-      });
-  window.webContents.removeAllListeners('will-prevent-unload');
-  window.webContents.on('will-prevent-unload', () => {
-    console.error('QA attempted navigation before persistence finished');
-    app.exit(1);
-  });
-  const until = async (code) => {
-    for (let i = 0; i < 100; i++) {
-      if (await js(code)) return;
-      await new Promise((resolve) => setTimeout(resolve, 75));
-    }
-    console.error(await js('document.body.innerText.slice(-1500)'));
-    throw new Error('Timed out: ' + code);
+  writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
+  const model = {
+    connectionId: 'qa-account',
+    provider: 'openai-codex',
+    id: 'qa-model',
+    reasoning: 'Средний',
+    temperature: '',
   };
-  const click = (text) =>
-    js(
-      `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)}).click()`,
-    );
-  const field = async (label, value) =>
-    js(
-      `(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]') ?? Array.from(document.querySelectorAll('label')).find(element=>element.textContent.trim().startsWith(${JSON.stringify(label)}))?.querySelector('input,textarea');Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
-    );
-
-  const select = async (label, text) => {
-    await js(
-      `document.querySelector('[aria-label='+${JSON.stringify(JSON.stringify(label))}+']').click()`,
-    );
-    await until(`!!document.querySelector('[role="option"]')`);
-    await js(
-      `Array.from(document.querySelectorAll('[role="option"]')).find(el=>el.textContent.includes(${JSON.stringify(text)})).click()`,
-    );
-  };
-  const saved = async () => {
-    await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
-    return js('window.studio.loadStudio()');
-  };
-
-  await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  const initial = await js('window.studio.loadStudio()');
-  const agents = ['first', 'second'].map((id) => ({
+  const agents = ['files', 'dialogue', 'all', 'other'].map((id) => ({
     id,
     name: id,
     enabled: true,
@@ -78,68 +33,212 @@ const deadline = setTimeout(() => {
     skills: [],
     mcps: [],
     plugins: [],
+    model,
   }));
-  await js(
-    `window.studio.saveSection('agents',${JSON.stringify(agents)},${JSON.stringify({ folder: initial.folder, base: initial.sections.agents })})`,
+  const project = {
+    schemaVersion: 1,
+    id: 'qa-project',
+    name: 'Agent data QA',
+    createdAt: 1,
+    agents: agents.map(({ instructions, ...profile }) => ({
+      profile,
+      outputPath: `agents/${profile.id}/output`,
+      session: {
+        id: `session-${profile.id}`,
+        path: `agents/${profile.id}/sessions/history.jsonl`,
+        title: 'Original dialogue',
+        createdAt: 1,
+      },
+    })),
+  };
+  const root = join(studio, 'projects/agent-data-qa');
+  for (const a of project.agents) {
+    mkdirSync(join(root, a.outputPath, 'nested'), { recursive: true });
+    mkdirSync(join(root, `agents/${a.profile.id}/sessions`), { recursive: true });
+    writeFileSync(join(root, a.outputPath, 'nested/result.txt'), `Output ${a.profile.id}`);
+    writeFileSync(join(root, a.outputPath, '.hidden'), 'Hidden');
+    writeFileSync(join(root, a.session.path), `Transcript ${a.profile.id}\n`);
+  }
+  writeFileSync(join(root, 'project.json'), JSON.stringify(project));
+  mkdirSync(join(studio, '.pistudio'), { recursive: true });
+  writeFileSync(
+    join(studio, '.pistudio/studio.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      sections: {
+        agents,
+        connections: [
+          {
+            id: 'qa-account',
+            name: 'QA',
+            purpose: 'codex',
+            providerId: 'openai-codex',
+            endpoint: '',
+            account: '',
+            createdAt: 1,
+          },
+        ],
+      },
+    }),
   );
-  const created = await js(
-    `window.studio.projectCommand({kind:'create',name:'Clear QA',agents:${JSON.stringify(agents)}})`,
+  const handle = ipcMain.handle.bind(ipcMain);
+  ipcMain.handle = (name, action) =>
+    handle(
+      name,
+      name === 'studio:startup'
+        ? () => ({ phase: 'skipped', message: 'QA' })
+        : name === 'studio:launch-agent'
+          ? () => {
+              launches++;
+              throw Error('Unexpected generation');
+            }
+          : action,
+    );
+  const loaded = new Promise((resolve) =>
+    app.once('browser-window-created', (_, win) => {
+      win.webContents.setBackgroundThrottling(false);
+      win.webContents.once('did-finish-load', () => resolve(win));
+    }),
   );
-  const project = created.projects[0];
-  const root = join(initial.folder, 'projects/clear-qa');
-  const output = join(root, project.agents[0].outputPath);
-  const other = join(root, project.agents[1].outputPath, 'keep.txt');
-  const history = join(root, 'agents/first/sessions/history.jsonl');
-  await mkdir(join(output, 'nested'));
-  await writeFile(join(output, 'nested/result.txt'), 'QA result');
-  await writeFile(join(output, '.hidden'), 'QA hidden');
-  await writeFile(other, 'other output');
-  await writeFile(history, 'canonical history\n');
-  const document = await readFile(join(root, 'project.json'));
-  window.webContents.reload();
-  await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
+  require('./offscreen-main.cjs').loadOffscreenMain();
+  const win = await loaded,
+    js = (code) => win.webContents.executeJavaScript(code, true);
+  win.webContents.debugger.attach('1.3');
+  await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
+  const until = async (code) => {
+    for (let i = 0; i < 150; i++) {
+      if (await js(code)) return;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    throw Error('Timed out: ' + code + '\n' + (await js('document.body.innerText.slice(-1500)')));
+  };
+  const click = (text) =>
+    js(
+      `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)}).click()`,
+    );
+  const row = (id) =>
+    `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label')?.textContent.endsWith(${JSON.stringify('. ' + id)}))`;
+  const open = async () => {
+    await js(
+      `document.querySelector('[aria-label="Удаление файлов или диалогов с агентом"]').click()`,
+    );
+    await until(`!!document.querySelector('[role="alertdialog"]')`);
+    assert.deepEqual(
+      await js(
+        `Array.from(document.querySelectorAll('[role="alertdialog"] .ui-list-row-label')).map(n=>n.textContent)`,
+      ),
+      ['Диалог с агентом', 'Файлы агента', 'Всё'],
+    );
+  };
+  const selectAgent = async (id) => {
+    await js(`${row(id)}.querySelector('button.section-menu-item').click()`);
+    await until(
+      `document.querySelector('.project-agent-menu .section-menu-item.active .section-menu-label')?.textContent.endsWith(${JSON.stringify('. ' + id)})`,
+    );
+  };
   await until(`!!document.querySelector('.project-list-row')`);
   await js(`document.querySelector('.project-list-row').click()`);
-  await until(`!!document.querySelector('[aria-label="Удалить все файлы агента"]')`);
-  await until(`document.querySelectorAll('.file-tree-item').length>0`);
-  const border = await js(
-    `getComputedStyle(document.querySelector('.clear-agent-outputs')).borderColor`,
+  await until(`!!document.querySelector('[aria-label="Удаление файлов или диалогов с агентом"]')`);
+  const settings = await readFile(join(studio, '.pistudio/studio.json'));
+  const before = await readFile(join(root, 'project.json'));
+  assert.equal(
+    await js(`getComputedStyle(document.querySelector('.clear-agent-outputs')).borderColor`),
+    'rgba(0, 0, 0, 0)',
   );
-  assert.equal(border, 'rgba(0, 0, 0, 0)');
-  await js(`document.querySelector('[aria-label="Удалить все файлы агента"]').click()`);
-  await until(`!!document.querySelector('[role="alertdialog"]')`);
-  assert.ok(
-    (await js(`document.querySelector('[role="alertdialog"]').textContent`)).includes(
-      'Корзину macOS',
-    ),
+  await open();
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await require('node:fs/promises').writeFile(
+    resolve('artifacts/agent-data-deletion.png'),
+    (await win.webContents.capturePage()).toPNG(),
   );
   await click('Отмена');
-  assert.equal(await readFile(join(output, 'nested/result.txt'), 'utf8'), 'QA result');
-  await js(`document.querySelector('[aria-label="Удалить все файлы агента"]').click()`);
-  await until(`!!document.querySelector('[role="alertdialog"]')`);
-  await click('Удалить файлы');
+  await open();
+  await js(
+    `document.querySelector('[role="alertdialog"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`,
+  );
+  assert.deepEqual(await readFile(join(root, 'project.json')), before);
+  assert.equal(
+    await readFile(join(root, 'agents/files/output/nested/result.txt'), 'utf8'),
+    'Output files',
+  );
+  await open();
+  await click('Файлы агента');
   await until(
     `document.querySelector('.output-empty')?.textContent.includes('Выходных файлов пока нет')`,
   );
-  assert.deepEqual(await require('node:fs/promises').readdir(output), []);
-  assert.equal(await readFile(history, 'utf8'), 'canonical history\n');
-  assert.equal(await readFile(other, 'utf8'), 'other output');
-  assert.deepEqual(await readFile(join(root, 'project.json')), document);
-  const after = await js(`window.studio.readProject(${JSON.stringify(project.id)})`);
-  assert.equal(after.agents.length, 2);
-  assert.equal(after.agents[0].entries.length, 0);
-  assert.equal(after.agents[0].runStatus, 'idle');
+  assert.deepEqual(await readdir(join(root, 'agents/files/output')), []);
+  assert.equal(
+    await readFile(join(root, 'agents/files/sessions/history.jsonl'), 'utf8'),
+    'Transcript files\n',
+  );
+  assert.deepEqual(await readFile(join(root, 'project.json')), before);
+  assert.equal(
+    await js(`!!${row('files')}.querySelector('button[aria-label="Продолжить диалог"]')`),
+    true,
+  );
+  for (const target of ['dialogue', 'all']) {
+    await selectAgent(target);
+    assert.equal(
+      await js(`!!${row(target)}.querySelector('button[aria-label="Продолжить диалог"]')`),
+      true,
+    );
+    await open();
+    await click(target === 'dialogue' ? 'Диалог с агентом' : 'Всё');
+    await until(`!!${row(target)}.querySelector('button[aria-label="Запустить"]')`);
+    assert.equal(
+      await js(`!!${row(target)}.querySelector('button[aria-label="Продолжить диалог"]')`),
+      false,
+    );
+    assert.equal(
+      await js(`!!${row(target)}.querySelector('button[aria-label="Запустить"] svg.lucide-play')`),
+      true,
+    );
+    assert.deepEqual(await readdir(join(root, `agents/${target}/sessions`)), []);
+    const disk = JSON.parse(await readFile(join(root, 'project.json'), 'utf8'));
+    assert.equal(disk.agents.find((a) => a.profile.id === target).session, undefined);
+    if (target === 'dialogue')
+      assert.equal(
+        await readFile(join(root, `agents/${target}/output/nested/result.txt`), 'utf8'),
+        `Output ${target}`,
+      );
+    else assert.deepEqual(await readdir(join(root, `agents/${target}/output`)), []);
+    await until(`!${row(target)}.querySelector('button[aria-label="Запустить"]').disabled`);
+    await js(`${row(target)}.querySelector('button[aria-label="Запустить"]').click()`);
+    await until(`!!document.querySelector('[role="dialog"] textarea')`);
+    await click('Отмена');
+  }
+  assert.equal(
+    await readFile(join(root, 'agents/other/sessions/history.jsonl'), 'utf8'),
+    'Transcript other\n',
+  );
+  assert.equal(
+    await readFile(join(root, 'agents/other/output/nested/result.txt'), 'utf8'),
+    'Output other',
+  );
+  assert.deepEqual(await readFile(join(studio, '.pistudio/studio.json')), settings);
   assert.equal(
     await js(
-      `window.studio.clearAgentOutput(${JSON.stringify({ folder: '/wrong-studio', projectId: project.id, agentId: 'second' })}).then(()=>false,()=>true)`,
+      `window.studio.deleteAgentData(${JSON.stringify({ folder: '/wrong-studio', projectId: project.id, agentId: 'other', target: 'all' })}).then(()=>false,()=>true)`,
     ),
     true,
   );
-  assert.equal(await readFile(other, 'utf8'), 'other output');
-  await mkdir(resolve('artifacts'), { recursive: true });
-
+  assert.equal(launches, 0);
   console.log(
-    'Native output clearing passed: real Electron IPC and macOS Trash, cancellation preserves files; confirmed clear removes selected visible/hidden/nested output and refreshes UI; other agent, settings and session files remain unchanged; wrong studio rejects; idle status and transparent border verified. Only this disposable QA output was trashed.',
+    JSON.stringify({
+      passed: true,
+      choices: 3,
+      cancelAndEscapePreserveData: true,
+      filesKeepBindingAndTranscript: true,
+      dialogueKeepsOutput: true,
+      allClearsBoth: true,
+      bindingRemovedOnDisk: true,
+      playAndFirstMessageRestored: true,
+      otherAgentAndSettingsUnchanged: true,
+      actualMacOSTrash: true,
+      modelRequests: launches,
+    }),
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

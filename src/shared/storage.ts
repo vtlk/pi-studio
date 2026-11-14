@@ -45,7 +45,9 @@ export interface FileRequest {
   projectId: string;
   path: string;
 }
-export interface ClearAgentOutputRequest {
+export type AgentDataTarget = 'dialogue' | 'files' | 'all';
+export interface DeleteAgentDataRequest {
+  target: AgentDataTarget;
   folder: string;
   projectId: string;
   agentId: string;

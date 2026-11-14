@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0-alpha.42",
+  "nativeUI": {
+    "passed": true,
+    "choices": 3,
+    "cancelAndEscapePreserveData": true,
+    "filesKeepBindingAndTranscript": true,
+    "dialogueKeepsOutput": true,
+    "allClearsBoth": true,
+    "bindingRemovedOnDisk": true,
+    "playAndFirstMessageRestored": true,
+    "otherAgentAndSettingsUnchanged": true,
+    "actualMacOSTrash": true,
+    "modelRequests": 0
+  },
+  "scope": "Disposable offscreen native Electron studio; actual macOS Trash. No user studio changes or model requests. New dialogue UI opened and cancelled; no generation launched.",
+  "storageChecks": [
+    "files preserve canonical transcript and exact project.json",
+    "dialogue/all persist removal across StudioStore reopen",
+    "nested/hidden histories and outputs",
+    "invalid scope/target and symlink refusal",
+    "missing transcript reset",
+    "verified foreign Pi lease refusal"
+  ],
+  "runtimeCheck": "Existing real loopback bridge mutation test extended to stop selected idle Pi outside shared service queue and reject old transport; another project remains open."
+}

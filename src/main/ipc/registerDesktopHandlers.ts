@@ -343,6 +343,7 @@ export function registerDesktopHandlers(): StudioService {
       images.assertIdle(projectId);
       return runs.withProjectChange(projectId, false, action);
     },
+    stopSession: (projectId, agentId) => runs.stopAgent(projectId, agentId),
     cleared: (projectId, agentId) => runs.outputsCleared(projectId, agentId),
   });
   return service;

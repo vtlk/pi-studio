@@ -85,7 +85,7 @@ export class ProjectStore {
     projectId: string,
     agentId: string,
     status: AgentRunStatus,
-    session?: SessionBinding,
+    session?: SessionBinding | null,
     failure?: RunFailure,
   ) {
     const project = this.get(projectId);
@@ -97,7 +97,7 @@ export class ProjectStore {
         item === selected ? withAgentRuntime(item, status, session, failure) : item,
       ),
     };
-    if (session) await this.save(updated, await this.directory(projectId));
+    if (session !== undefined) await this.save(updated, await this.directory(projectId));
     this.projects.set(projectId, updated);
     return this.read(projectId);
   }

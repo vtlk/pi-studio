@@ -1,36 +1,44 @@
 import { ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { lstat } from 'node:fs/promises';
 import { desktopChannels } from '../../shared/contracts';
-import type { FileRequest, ClearAgentOutputRequest } from '../../shared/storage';
+import type { FileRequest, DeleteAgentDataRequest } from '../../shared/storage';
 import type { StudioService } from './StudioStore';
 import { safePath } from './files';
 import { loadOutput } from './outputs';
 import { stableId } from './validation';
-import { clearAgentOutputs } from './clearAgentOutputs';
+import { deleteAgentData, resolveAgentDataDeletion } from './deleteAgentData';
 
 export function registerProjectActions(
   service: StudioService,
   caller: (event: IpcMainInvokeEvent) => unknown,
   mutation: {
     change: <T>(projectId: string, action: () => Promise<T>) => Promise<T>;
+    stopSession: (projectId: string, agentId: string) => Promise<void>;
     cleared: (projectId: string, agentId: string) => void;
   },
 ) {
   ipcMain.handle(
-    desktopChannels.clearAgentOutput,
-    async (event, request: ClearAgentOutputRequest) => {
+    desktopChannels.deleteAgentData,
+    async (event, request: DeleteAgentDataRequest) => {
       caller(event);
       stableId(request?.projectId);
       stableId(request?.agentId);
-      return mutation.change(request.projectId, () =>
-        service.serialize(async () => {
-          const project = await clearAgentOutputs(await service.load(), request, (path) =>
+      return mutation.change(request.projectId, async () => {
+        if (request.target !== 'files') {
+          await service.serialize(async () => {
+            await resolveAgentDataDeletion(await service.load(), request);
+          });
+          // Pi's final event uses the service queue too; stop outside it to avoid a deadlock.
+          await mutation.stopSession(request.projectId, request.agentId);
+        }
+        return service.serialize(async () => {
+          const project = await deleteAgentData(await service.load(), request, (path) =>
             shell.trashItem(path),
           );
           mutation.cleared(request.projectId, request.agentId);
           return project;
-        }),
-      );
+        });
+      });
     },
   );
   ipcMain.handle(desktopChannels.revealOutput, (event, request: FileRequest) => {

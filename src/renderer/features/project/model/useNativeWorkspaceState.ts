@@ -1,6 +1,6 @@
 import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ProjectCommand } from '../../../../shared/storage';
+import type { AgentDataTarget, ProjectCommand } from '../../../../shared/storage';
 import type { SessionBinding, WorkspaceProject } from './workspace.types';
 import { useStorage } from '@/shared/storage/Storage';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
@@ -110,22 +110,29 @@ export function useNativeWorkspaceState() {
       reading.current = false;
     }
   }, [projectId, isDesktop, demo]);
-  const clearAgentOutput = async (target: string, agentId: string) => {
+  const deleteAgentData = async (projectId: string, agentId: string, target: AgentDataTarget) => {
     if (!window.studio || !bootstrap || mutating.current) return false;
     mutating.current = true;
     setBusy(true);
     invalidateReads();
     try {
-      const project = await window.studio.clearAgentOutput({
+      const project = await window.studio.deleteAgentData({
         folder: bootstrap.folder,
-        projectId: target,
+        projectId,
         agentId,
+        target,
       });
       setProjects((previous) => previous.map((item) => (item.id === project.id ? project : item)));
-      demo('Файлы агента перемещены в Корзину macOS. Их можно восстановить через Finder.');
+      demo(
+        target === 'dialogue'
+          ? 'Диалог удалён. Можно запустить новый.'
+          : target === 'files'
+            ? 'Файлы агента перемещены в Корзину macOS. Диалог сохранён.'
+            : 'Диалог и файлы агента удалены. Можно запустить заново.',
+      );
       return true;
     } catch (error) {
-      demo(error instanceof Error ? error.message : 'Не удалось удалить результаты.');
+      demo(error instanceof Error ? error.message : 'Не удалось удалить данные агента.');
       return false;
     } finally {
       mutating.current = false;
@@ -150,7 +157,7 @@ export function useNativeWorkspaceState() {
     selectedProject,
     setProjectId,
     busy,
-    clearAgentOutput,
+    deleteAgentData,
     createProject: async (name: string) =>
       (await saveNow()) ? command({ kind: 'create', name, agents }) : false,
     refreshAgents: async (updateExisting: boolean) =>

@@ -13,7 +13,7 @@ import { useOutputFile } from '../model/useOutputFile';
 import { useStorage } from '@/shared/storage/Storage';
 import { useVideoInspection } from '@/features/editor/model/useVideoInspection';
 import { NativeMontageCard } from '@/features/editor/ui/NativeMontageCard';
-import { ClearAgentOutputsButton } from './ClearAgentOutputsButton';
+import { DeleteAgentDataButton } from './DeleteAgentDataButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
 
 export function AgentOutputsView({
@@ -51,7 +51,7 @@ export function AgentOutputsView({
           <Tooltip label="Файлы агента" onlyWhenTruncated>
             <h2>Файлы агента</h2>
           </Tooltip>
-          <ClearAgentOutputsButton agent={agent} />
+          <DeleteAgentDataButton agent={agent} />
         </div>
         <OutputFileTree
           entries={agent.entries}

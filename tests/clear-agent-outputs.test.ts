@@ -11,9 +11,10 @@ import {
   symlink,
 } from 'node:fs/promises';
 import { join } from 'node:path';
+import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { StudioStore } from '../src/main/storage/StudioStore.ts';
-import { clearAgentOutputs } from '../src/main/storage/clearAgentOutputs.ts';
+import { deleteAgentData } from '../src/main/storage/deleteAgentData.ts';
 import type { Agent } from '../src/shared/studio.ts';
 
 async function fixture(t: TestContext) {
@@ -45,7 +46,12 @@ async function fixture(t: TestContext) {
     title: 'Original',
     createdAt: 1,
   });
-  const request = { folder: store.folder, projectId: project.id, agentId: 'artist' };
+  const request = {
+    folder: store.folder,
+    projectId: project.id,
+    agentId: 'artist',
+    target: 'files' as const,
+  };
   return { root, store, project, directory, output, history, request };
 }
 
@@ -63,7 +69,7 @@ test('clearing moves only the selected output, including hidden/nested items, an
     assert.equal(path, f.output);
     await rename(path, trash);
   };
-  const cleared = await clearAgentOutputs(f.store, f.request, move);
+  const cleared = await deleteAgentData(f.store, f.request, move);
   assert.equal(calls, 1);
   assert.deepEqual(await readdir(f.output), []);
   assert.equal(await readFile(join(trash, 'nested/result.txt'), 'utf8'), 'creative result');
@@ -78,7 +84,7 @@ test('clearing moves only the selected output, including hidden/nested items, an
   assert.deepEqual(await readFile(join(f.store.folder, '.pistudio/studio.json')), settings);
   assert.equal(cleared.agents[0].session?.id, 'original-session');
   assert.equal(cleared.agents[0].runStatus, 'idle');
-  await clearAgentOutputs(f.store, f.request, move);
+  await deleteAgentData(f.store, f.request, move);
   assert.equal(calls, 1, 'Repeated clearing of an empty directory creates no extra trash item');
 });
 
@@ -88,17 +94,15 @@ test('wrong studio/agent and a symlinked output cannot trash unrelated files', a
   const trash = async () => {
     called = true;
   };
-  await assert.rejects(() => clearAgentOutputs(f.store, { ...f.request, folder: f.root }, trash));
+  await assert.rejects(() => deleteAgentData(f.store, { ...f.request, folder: f.root }, trash));
+  await assert.rejects(() => deleteAgentData(f.store, { ...f.request, agentId: 'missing' }, trash));
   await assert.rejects(() =>
-    clearAgentOutputs(f.store, { ...f.request, agentId: 'missing' }, trash),
-  );
-  await assert.rejects(() =>
-    clearAgentOutputs(f.store, { ...f.request, projectId: '../outside' }, trash),
+    deleteAgentData(f.store, { ...f.request, projectId: '../outside' }, trash),
   );
   const saved = join(f.root, 'original-output');
   await rename(f.output, saved);
   await symlink(saved, f.output);
-  await assert.rejects(() => clearAgentOutputs(f.store, f.request, trash), /ссылк/);
+  await assert.rejects(() => deleteAgentData(f.store, f.request, trash), /ссылк/);
   assert.equal(called, false);
   assert.equal(await readFile(join(saved, 'nested/result.txt'), 'utf8'), 'creative result');
 });
@@ -107,11 +111,119 @@ test('a rejected trash operation leaves every output and ready status intact', a
   const f = await fixture(t);
   await assert.rejects(
     () =>
-      clearAgentOutputs(f.store, f.request, async () => {
+      deleteAgentData(f.store, f.request, async () => {
         throw new Error('Trash unavailable');
       }),
     /Trash unavailable/,
   );
   assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
   assert.equal((await f.store.projects.read(f.project.id)).agents[0].runStatus, 'ready');
+});
+
+for (const target of ['dialogue', 'all'] as const) {
+  test(`${target}: removes sessions and binding persistently, preserves settings and the other agent`, async (t) => {
+    const f = await fixture(t);
+    const settings = await readFile(join(f.store.folder, '.pistudio/studio.json'));
+    const sessions = join(f.directory, 'agents/artist/sessions');
+    await writeFile(join(sessions, 'old-fork.jsonl'), 'old fork');
+    await mkdir(join(sessions, 'nested'));
+    await writeFile(join(sessions, 'nested/history.jsonl'), 'nested history');
+    const moved: string[] = [];
+    const cleared = await deleteAgentData(f.store, { ...f.request, target }, async (path) => {
+      moved.push(path);
+      await rename(path, join(f.root, `Trash-${moved.length}`));
+    });
+    assert.deepEqual(moved, target === 'all' ? [f.output, sessions] : [sessions]);
+    assert.deepEqual(await readdir(sessions), []);
+    assert.equal(cleared.agents[0].session, undefined);
+    assert.equal(cleared.agents[0].runStatus, 'idle');
+    assert.deepEqual(cleared.agents[0].profile, f.project.agents[0].profile);
+    assert.equal(cleared.agents[0].outputPath, f.project.agents[0].outputPath);
+    if (target === 'all') assert.deepEqual(await readdir(f.output), []);
+    else
+      assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
+    assert.equal(
+      await readFile(join(f.directory, f.project.agents[1].outputPath, 'keep.txt'), 'utf8'),
+      'other agent',
+    );
+    assert.deepEqual(await readFile(join(f.store.folder, '.pistudio/studio.json')), settings);
+    const reopened = await StudioStore.open(f.store.folder);
+    assert.equal((await reopened.projects.read(f.project.id)).agents[0].session, undefined);
+    assert.equal(
+      JSON.parse(await readFile(join(f.directory, 'project.json'), 'utf8')).agents[0].session,
+      undefined,
+    );
+    await deleteAgentData(reopened, { ...f.request, target }, async () =>
+      assert.fail('Empty folders must not be trashed'),
+    );
+  });
+}
+
+test('invalid deletion target and unsafe sessions leave the binding and files intact', async (t) => {
+  const f = await fixture(t);
+  const document = await readFile(join(f.directory, 'project.json'));
+  await assert.rejects(() =>
+    deleteAgentData(f.store, { ...f.request, target: 'bad' as 'all' }, async () =>
+      assert.fail('No trash for an invalid target'),
+    ),
+  );
+  const sessions = join(f.directory, 'agents/artist/sessions');
+  const saved = join(f.root, 'saved-sessions');
+  await rename(sessions, saved);
+  await symlink(saved, sessions);
+  await assert.rejects(
+    () =>
+      deleteAgentData(f.store, { ...f.request, target: 'all' }, async () =>
+        assert.fail('Both paths validate before deletion'),
+      ),
+    /ссылк/,
+  );
+  assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
+  assert.equal(await readFile(join(saved, 'history.jsonl'), 'utf8'), 'canonical transcript\n');
+  assert.deepEqual(await readFile(join(f.directory, 'project.json')), document);
+});
+
+test('a previously missing transcript can be reset to allow a new explicit launch', async (t) => {
+  const f = await fixture(t);
+  await rm(join(f.directory, 'agents/artist/sessions'), { recursive: true });
+  const cleared = await deleteAgentData(f.store, { ...f.request, target: 'dialogue' }, async () =>
+    assert.fail('Nothing to trash'),
+  );
+  assert.equal(cleared.agents[0].session, undefined);
+  assert.deepEqual(await readdir(join(f.directory, 'agents/artist/sessions')), []);
+  assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
+});
+
+test('dialogue deletion refuses a verified foreign Pi lease before moving either folder', async (t) => {
+  const f = await fixture(t);
+  const bridge = join(f.root, 'session.mjs');
+  await writeFile(bridge, 'setInterval(()=>{},1000);');
+  const child = spawn(process.execPath, [bridge, 'foreign-run'], { stdio: 'ignore' });
+  const exited = new Promise((resolve) => child.once('exit', resolve));
+  t.after(async () => {
+    child.kill();
+    await exited;
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', reject);
+  });
+  await writeFile(
+    join(f.directory, 'agents/artist/.pistudio-session-lock.json'),
+    JSON.stringify({ pid: child.pid, runId: 'foreign-run' }),
+  );
+  await assert.rejects(
+    () =>
+      deleteAgentData(f.store, { ...f.request, target: 'all' }, async () =>
+        assert.fail('Live foreign Pi must not lose files'),
+      ),
+    /другом процессе Pi/,
+  );
+  assert.equal(child.exitCode, null);
+  assert.equal(await readFile(f.history, 'utf8'), 'canonical transcript\n');
+  assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
+  assert.equal(
+    (await f.store.projects.read(f.project.id)).agents[0].session?.id,
+    'original-session',
+  );
 });

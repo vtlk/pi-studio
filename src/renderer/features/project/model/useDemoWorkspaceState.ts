@@ -1,3 +1,4 @@
+import type { AgentDataTarget } from '../../../../shared/storage';
 import { folderSlug } from '../../../../shared/folderSlug';
 import { useState } from 'react';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
@@ -150,7 +151,8 @@ export function useDemoWorkspaceState() {
             : project,
         ),
       ),
-    clearAgentOutput: async (_projectId: string, _agentId: string) => false,
+    deleteAgentData: async (_projectId: string, _agentId: string, _target: AgentDataTarget) =>
+      false,
     cloneProject: (source: WorkspaceProject, name: string) => {
       const cloned = structuredClone(source);
       cloned.agents = cloned.agents.map((agent) => ({
