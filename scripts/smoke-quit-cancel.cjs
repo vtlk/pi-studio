@@ -241,7 +241,7 @@ process.on('unhandledRejection', fail);
   await until(() => streams.length === 1);
   await until(() =>
     js(
-      `!!document.querySelector('.agent-status-icon[data-status="running"]') && document.querySelector('.project-agent-menu')?.textContent.includes('Работает')`,
+      `!!document.querySelector('.agent-status-icon[data-status="running"]') && document.querySelector('.project-agent-menu .section-menu-item')?.getAttribute('aria-label').includes('Работает')`,
     ),
   );
   console.log('Native Pi request is live; cancelling Quit.');
@@ -272,7 +272,7 @@ process.on('unhandledRejection', fail);
   const state = await js(`window.studio.readProject(${JSON.stringify(projectId)})`);
   await until(() =>
     js(
-      `!!document.querySelector('.agent-status-icon[data-status="stopped"]') && document.querySelector('.project-agent-menu')?.textContent.includes('Диалог сохранён')`,
+      `!!document.querySelector('.agent-status-icon[data-status="stopped"]') && document.querySelector('.project-agent-menu .section-menu-item')?.getAttribute('aria-label').includes('Диалог сохранён')`,
     ),
   );
   assert.deepEqual(state.agents[0].session, binding);
@@ -299,6 +299,11 @@ process.on('unhandledRejection', fail);
     () => children[2].process.exitCode !== null || children[2].process.signalCode !== null,
   );
   assert.equal(win.isDestroyed(), true);
+  const finalRoot = join(studio, 'projects', finalProject.projects.find(item => item.id === finalProject.selectedId).folderName);
+  const usage = JSON.parse(await readFile(join(finalRoot, '.pistudio/usage.json'), 'utf8')).agents[agent.id];
+  assert.equal(usage.run.active, false, 'Confirmed Quit receives the final stopped clock before closing the channel.');
+  assert.equal(usage.duration.unknown, 0, 'A graceful exit does not fabricate a lost accounting tail.');
+  assert.ok(usage.duration.sum > 0);
   const sources = [
     'src/main/ipc/registerDesktopHandlers.ts',
     'src/main/windows/createStudioWindow.ts',
@@ -321,6 +326,7 @@ process.on('unhandledRejection', fail);
       exactBindingAndTranscriptOnIdleResume: true,
       idleResumeDoesNotReplay: true,
       confirmedQuitClosesWindowRequestAndChild: true,
+      confirmedQuitFlushesFinalAccounting: true,
       nativeFirstMessageDialogCreatesCanonicalSession: true,
       liveRequestShowsRunningIconAndLabel: true,
       closedPiChangesRowToSavedDialogue: true,

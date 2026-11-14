@@ -25,6 +25,8 @@ export interface RunDependencies {
   closed?: (run: PreparedRun) => void;
   capabilities?: (run: PreparedRun, executableExtensions: boolean) => void;
   activityChanged?: (run: PreparedRun, working: boolean) => void;
+  accounting?: (run: PreparedRun, sample: unknown) => Promise<void>;
+  accountingLost?: (run: PreparedRun) => Promise<void>;
   tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
   serviceAgent?: boolean;
   failureChanged?: (run: PreparedRun, failure?: RunFailure) => void;

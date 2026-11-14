@@ -51,6 +51,14 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
     activityChanged: (run, working) => options.activity?.set(run, working),
+    accounting: (run, sample) =>
+      service.serialize(async () => {
+        await (await service.load()).accounting.record(run, sample);
+      }),
+    accountingLost: (run) =>
+      service.serialize(async () => {
+        await (await service.load()).accounting.lost(run);
+      }),
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)
@@ -115,6 +123,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         );
         options.images?.bind(run, store.folder, selectedModel);
         await options.browser?.bind(run, store.folder, piPath, selectedModel.imageInput);
+        await store.accounting.begin(run);
         run.modelAuth = modelAuth;
         return { run, piPath };
       }),
@@ -123,12 +132,14 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         const store = await service.load();
         if ((await store.projects.directory(run.project.id)) !== run.projectRoot)
           throw new Error('Папка студии изменилась во время работы Pi.');
-        return store.projects.updateRuntime(
-          run.project.id,
-          run.agent.profile.id,
-          status,
-          session,
-          failure,
+        return store.accounting.enrich(
+          await store.projects.updateRuntime(
+            run.project.id,
+            run.agent.profile.id,
+            status,
+            session,
+            failure,
+          ),
         );
       }),
     read: (run) =>

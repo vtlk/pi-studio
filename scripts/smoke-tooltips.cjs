@@ -130,8 +130,9 @@ const deadline = setTimeout(() => {
     '.project-agent-menu .section-menu-row:nth-child(2) .section-menu-item .section-menu-label',
   );
   assert.deepEqual(await tooltips(), ['2. ' + longName]);
-  await hover('.project-agent-menu .section-menu-row:first-child .agent-status-icon');
-  assert.deepEqual(await tooltips(), [], 'Visible status text needs no duplicate icon tooltip');
+  await hover('.project-agent-menu .section-menu-row:first-child .section-menu-icon-anchor');
+  assert.deepEqual(await tooltips(), ['Не подключена модель'], 'PRJ-18 status belongs only in the icon tooltip.');
+  assert.doesNotMatch(await js(`document.querySelector('.project-agent-menu .section-menu-description').textContent`), /Не подключена модель|Не запускался/);
   await hover('.file-tree-item:first-child');
   // Select files by their text, independent of timestamps/platform ordering.
   await js(
@@ -162,7 +163,7 @@ const deadline = setTimeout(() => {
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/tooltip-smoke.png'), (await window.capturePage()).toPNG());
   console.log(
-    'Tooltip UI passed: visible project/system/constructor labels have no duplicate; clipped names/files expose full text, keyboard/Escape and resize work; status text is visible with no duplicate tooltip.',
+    'Tooltip UI passed: visible project/system/constructor names have no duplicate; clipped names/files expose full text, keyboard/Escape and resize work; project status uses its icon tooltip only.',
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

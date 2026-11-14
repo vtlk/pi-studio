@@ -78,6 +78,12 @@ test('project activity starts on runtime start, survives internal agent_end/stee
   await lifecycle.event(live, { type: 'request', message: 'Steering during work' });
   assert.equal(activity.list()[0].runningAgents, 1);
   await lifecycle.tool(live, 'report_blocked', {});
+  assert.equal(
+    activity.list()[0].runningAgents,
+    1,
+    'The model can still be composing its question until settled.',
+  );
+  await lifecycle.event(live, { type: 'settled', outcome: 'completed' });
   assert.deepEqual(activity.list(), []);
   for (const outcome of ['completed', 'aborted', 'error']) {
     await lifecycle.event(live, { type: 'request', message: 'Next request' });

@@ -1,5 +1,5 @@
 {
-  "sourceVersion": "0.2.0-alpha.54",
+  "sourceVersion": "0.2.0-alpha.55",
   "electronVersion": "45.3.1",
   "piVersion": "1.5.2",
   "beforeFix": "Actual cancelled app.quit destroyed the live native request: expected stream.closed=false, got true.",
@@ -10,6 +10,7 @@
     "exactBindingAndTranscriptOnIdleResume": true,
     "idleResumeDoesNotReplay": true,
     "confirmedQuitClosesWindowRequestAndChild": true,
+    "confirmedQuitFlushesFinalAccounting": true,
     "nativeFirstMessageDialogCreatesCanonicalSession": true,
     "liveRequestShowsRunningIconAndLabel": true,
     "closedPiChangesRowToSavedDialogue": true,
@@ -18,12 +19,12 @@
   "modelRequests": 2,
   "limits": "Actual production main/preload/UI/Electron quit lifecycle and native Pi SDK. Offscreen document visibility simulated to enable normal project polling. Only OS confirmation and Terminal dispatch intercepted; model SSE is loopback, no cloud requests or user studio access. Unsaved state supplied by a test renderer beforeunload guard.",
   "sourceSha256": {
-    "src/main/ipc/registerDesktopHandlers.ts": "c60a57a102bcc656273100227f85ab7c0570fe418af993c8ccb0ae7ffa261cc3",
+    "src/main/ipc/registerDesktopHandlers.ts": "7691faeadec1d915e95baf879339e2fb9aed2c756e8454a66ec2f3cace1f91b8",
     "src/main/windows/createStudioWindow.ts": "db71c5255149d7cf84034e00673bbbd028882d3eabdc977be7f1206fd4466228",
-    "src/main/pi/RunHost.ts": "5d5b2c3e728cd96608e232fddd561447715bb008795ba6b543ceaa079acb71af",
-    "src/main/pi/RunLifecycle.ts": "d9abe812c3da86b04a5e5ff4204f5c7dcec1410a2169648023371313fb647f54",
+    "src/main/pi/RunHost.ts": "96c99757741b9d6eab467aca7a5490b7ebd925f501ec6497e1dbac7dfe42eb0c",
+    "src/main/pi/RunLifecycle.ts": "8de7474aa5534f9875c3fe4d828701b1682422aa85964454c14a388b60e3d7f6",
     "src/renderer/features/project/ui/AgentActions.tsx": "ede034e3dd5bdf1a286a9a50c0936f396473c07a2ebf27af4ceee69ab26962a5",
-    "src/renderer/features/project/model/useNativeWorkspaceState.ts": "5dcadfb6ee274b7b4a8ce169b5adb2ea04a72861926211b710032e744fe9f877",
-    "scripts/smoke-quit-cancel.cjs": "e9e0793267097e49844aeaed07447d6e4a0242759777a051b5a7e76141abd239"
+    "src/renderer/features/project/model/useNativeWorkspaceState.ts": "e28e855d49409a73d655c821b971343937564ff5e0607b8bda9e61362fce7959",
+    "scripts/smoke-quit-cancel.cjs": "8f4b861d2a90f305941f1e1ac10b0e9fb2d3ca694db0e7a6698a6588c77c8c8a"
   }
 }

@@ -15,6 +15,21 @@ export function registerModelConnectionHandlers(
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
   const connections = new ModelConnections(service, directory, scripts, piPath, auth);
+  ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
+    caller(event);
+    return auth.read(id);
+  });
+  ipcMain.handle(desktopChannels.cancelAuthLogin, (event, id: string) => {
+    caller(event);
+    auth.cancel(id);
+  });
+  ipcMain.handle(
+    desktopChannels.answerAuthLogin,
+    (event, id: string, promptId: string, answer: string) => {
+      caller(event);
+      auth.answer(id, promptId, answer);
+    },
+  );
   ipcMain.handle(
     desktopChannels.discoverConnectionModels,
     (event, request: ModelConnectionRequest) => {

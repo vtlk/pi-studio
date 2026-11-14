@@ -1,5 +1,6 @@
 import type { Agent } from './studio';
 import type { RunFailure } from './runFailure';
+import type { AgentUsage } from './projectUsage';
 
 export type OutputEntry = OutputFolder | OutputFile;
 export interface OutputFolder {
@@ -28,6 +29,7 @@ export interface OutputFile {
 }
 export type ProjectAgentProfile = Omit<Agent, 'instructions' | 'mainInstruction'>;
 export interface ProjectAgent {
+  usage?: AgentUsage;
   profile: ProjectAgentProfile;
   outputPath: string;
   session?: SessionBinding;
@@ -37,6 +39,7 @@ export interface ProjectAgent {
 }
 export type AgentRunStatus = 'idle' | 'running' | 'waiting' | 'ready' | 'error' | 'stopped';
 export interface WorkspaceProject {
+  usage?: AgentUsage;
   id: string;
   name: string;
   createdAt: number;

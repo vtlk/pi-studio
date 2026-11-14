@@ -10,7 +10,8 @@ import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
-import { stopRunProcess } from './stopRunProcess.ts';
+import { stopRunProcess, drainRunProcesses, closeRuns } from './stopRunProcess.ts';
+import { assertRunsIdle } from './assertRunsIdle.ts';
 
 class ContinuationCancelled extends Error {}
 interface Continuation {
@@ -289,29 +290,26 @@ export class RunHost {
         }
       }
   }
+  drain() {
+    clearInterval(this.monitor);
+    this.chains.clear();
+    return drainRunProcesses(this.live.values(), this.dependencies);
+  }
   close() {
     clearInterval(this.monitor);
-    for (const live of this.live.values()) {
-      this.dependencies.closed?.(live.run);
-      if (live.pid && processAlive(live.pid)) process.kill(live.pid, 'SIGTERM');
-    }
+    closeRuns(this.live.values(), this.dependencies);
     this.channel.close();
     this.live.clear();
     this.chains.clear();
   }
   assertIdle(projectId?: string) {
-    if (
-      (projectId ? this.changing.has(projectId) : this.changing.size > 0) ||
-      this.opening.size ||
-      [...this.retiring.keys()].some((key) => !projectId || key.startsWith(`${projectId}/`)) ||
-      [...this.live.values()].some(
-        (live) =>
-          (!projectId || live.run.record.projectId === projectId) && live.status === 'running',
-      )
-    )
-      throw new Error(
-        'Дождитесь завершения или остановите работающий Pi перед изменением папки проекта/студии.',
-      );
+    assertRunsIdle(
+      this.changing,
+      this.opening,
+      this.retiring.keys(),
+      this.live.values(),
+      projectId,
+    );
   }
   outputsCleared(projectId: string, agentId: string) {
     this.chains.delete(projectId);
@@ -344,6 +342,7 @@ export class RunHost {
     const live = this.live.get(key);
     if (!live) return;
     await stopRunProcess(live, this.dependencies.closed);
+    await this.dependencies.accountingLost?.(live.run);
     await this.retiring.get(key);
     this.channel.remove(live.run.record.runId);
     this.live.delete(key);

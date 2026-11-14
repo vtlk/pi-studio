@@ -17,6 +17,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { createSystemAgents, type SystemAgent } from '../../shared/systemAgents.ts';
 import type { Agent } from '../../shared/studio.ts';
 import { migrateLibraryAgents } from './migrateLibraryAgents.ts';
+import { ProjectAccounting } from '../accounting/ProjectAccounting.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
@@ -24,9 +25,11 @@ export class StudioStore {
   readonly library: LibraryStore;
   private warnings: string[] = [];
   readonly folder: string;
+  readonly accounting: ProjectAccounting;
   private constructor(folder: string) {
     this.folder = folder;
     this.projects = new ProjectStore(folder);
+    this.accounting = new ProjectAccounting(folder);
     this.library = new LibraryStore(folder);
   }
   static async open(folder: string) {
@@ -47,6 +50,7 @@ export class StudioStore {
       await atomicJson(file, { schemaVersion: 1, sections: {} });
     }
     store.warnings = await store.projects.initialize();
+    await store.accounting.reconcile(store.projects.list(), store.projects.trash());
     const migrated = migrateLibraryAgents(store.sections);
     if (migrated) {
       await atomicJson(file, { schemaVersion: 1, sections: migrated });
@@ -68,8 +72,8 @@ export class StudioStore {
     return {
       folder: this.folder,
       sections: structuredClone(this.sections),
-      projects: this.projects.list(),
-      trashProjects: this.projects.trash(),
+      projects: this.projects.list().map((project) => this.accounting.enrich(project)),
+      trashProjects: this.projects.trash().map((project) => this.accounting.enrich(project)),
       warnings: this.warnings,
     };
   }
@@ -128,7 +132,17 @@ export class StudioStore {
       )
     )
       throw new Error('Системные агенты не включаются в проектные снимки.');
-    return this.projects.command(command);
+    const result = await this.projects.command(command);
+    await this.accounting.reconcile(
+      result.projects,
+      result.trashProjects,
+      command.kind === 'create' ? result.selectedId : undefined,
+    );
+    return {
+      ...result,
+      projects: result.projects.map((project) => this.accounting.enrich(project)),
+      trashProjects: result.trashProjects.map((project) => this.accounting.enrich(project)),
+    };
   }
 }
 

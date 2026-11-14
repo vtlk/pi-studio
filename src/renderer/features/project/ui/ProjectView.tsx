@@ -15,6 +15,8 @@ import { useConfirm } from '@/shared/model/Confirm';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
 import { validateAgentModel } from '../../../../shared/modelConfiguration';
+import { UsageMetrics } from './UsageMetrics';
+import { usageAccessible } from '../model/usageFormat';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   const { confirm } = useConfirm();
@@ -67,12 +69,17 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
                 profiles.find((profile) => profile.id === agent.profile.id)?.model,
                 connections,
               ).ok;
+              const statusLabel = modelConfigured
+                ? getAgentStatusLabel(agent)
+                : 'Не подключена модель';
               return {
                 id: agent.profile.id,
                 label: `${index + 1}. ${agent.profile.name || 'Без названия'}`,
                 muted: !agent.profile.enabled,
                 icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
-                description: modelConfigured ? getAgentStatusLabel(agent) : 'Не подключена модель',
+                iconTooltip: statusLabel,
+                ariaLabel: `${index + 1}. ${agent.profile.name || 'Без названия'}. ${statusLabel}. ${usageAccessible(agent.usage)}`,
+                description: <UsageMetrics usage={agent.usage} />,
                 actions: (
                   <AgentActions
                     agent={agent}

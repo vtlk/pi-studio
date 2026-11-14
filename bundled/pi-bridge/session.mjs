@@ -7,6 +7,7 @@ import { classifyProviderFailure } from './provider-failure.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
 import { loadThinkingApi } from './thinking.mjs';
+import { RuntimeAccounting } from './accounting/RuntimeAccounting.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -123,7 +124,9 @@ export async function runSession(bootstrapPath) {
   ];
   const requiredServers = servers.map((server) => server.name);
   let runtime,
+    accounting,
     heartbeat,
+    accountingTimer,
     bindingTimer,
     closing = false,
     bound = false,
@@ -150,8 +153,10 @@ export async function runSession(bootstrapPath) {
     if (closing) return;
     closing = true;
     clearInterval(heartbeat);
+    clearInterval(accountingTimer);
     clearInterval(bindingTimer);
     await runtime?.dispose();
+    await accounting?.close().catch(() => {});
     await event({ type: 'stopped' }).catch(() => {});
   }
   const shutdown = () => {
@@ -191,9 +196,13 @@ export async function runSession(bootstrapPath) {
         return { action: 'continue' };
       });
       pi.on('agent_start', async () => {
+        accounting?.start();
         await event({ type: 'running' });
+        await accounting?.flush().catch(() => {});
       });
       pi.on('agent_settled', async (settled, ctx) => {
+        accounting?.stop();
+        await accounting?.flush().catch(() => {});
         await bindWrittenSession();
         const last = runtime.session.messages.findLast((message) => message.role === 'assistant');
         await event({
@@ -305,6 +314,13 @@ export async function runSession(bootstrapPath) {
       agentDir: getAgentDir(),
       sessionManager: sessions,
     });
+    if (!envelope.serviceAgent) {
+      accounting = new RuntimeAccounting(runtime.session, event);
+      await accounting.flush().catch(() => {});
+      accountingTimer = setInterval(() => {
+        void accounting.flush().catch(() => {});
+      }, 1000);
+    }
     heartbeat = setInterval(() => {
       void event({ type: 'heartbeat' }).then(
         () => {

@@ -5,6 +5,7 @@ import type { SessionBinding, WorkspaceProject } from './workspace.types';
 import { useStorage } from '@/shared/storage/Storage';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useNotice } from '@/shared/model/Notice';
+import { useProjectUsage } from './useProjectUsage';
 
 export function useNativeWorkspaceState() {
   const { bootstrap, isDesktop, saveNow } = useStorage();
@@ -18,6 +19,7 @@ export function useNativeWorkspaceState() {
   const reading = useRef(false);
   const lastReadError = useRef('');
   const generation = useRef(0);
+  useProjectUsage(setProjects, generation);
   const invalidateReads = useCallback(() => {
     generation.current++;
   }, []);

@@ -577,7 +577,11 @@
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 4px 12px #0002;
-  font: 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font:
+    15px -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 .ui-select-search {
   display: flex;
@@ -621,4 +625,8 @@
   padding: 16px;
   color: var(--muted);
   font-size: 14px;
+}
+.section-menu-item > .section-menu-icon-anchor {
+  display: inline-flex;
+  flex: 0 0 auto;
 }

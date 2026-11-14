@@ -72,7 +72,9 @@
     "test:pi-browser": "node --experimental-strip-types scripts/smoke-pi-browser.ts",
     "test:browser-ui": "npm run build && electron scripts/smoke-browser-ui.cjs",
     "test:pi-browser-services": "node --experimental-strip-types scripts/smoke-pi-browser-services.ts",
-    "test:project-activity": "npm run build && electron scripts/smoke-project-activity.cjs"
+    "test:project-activity": "npm run build && electron scripts/smoke-project-activity.cjs",
+    "test:project-usage": "npm run build && electron scripts/smoke-project-usage.cjs",
+    "test:pi-usage": "node --experimental-strip-types scripts/smoke-native-usage.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

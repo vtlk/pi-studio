@@ -176,6 +176,7 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
         requests.delete(id);
       }
     },
+    drain: () => host.drain(),
     close: () => host.close(),
     assertIdle: () => host.assertIdle(),
   };

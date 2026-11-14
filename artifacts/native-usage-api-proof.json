@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-14T21:56:12.765Z",
+  "pi": "1.5.2",
+  "scope": "Actual native AgentSession.getSessionStats and SessionManager.forkFrom with synthetic usage entries",
+  "modelRequests": 0,
+  "networkRequests": 0,
+  "nativeTokens": {
+    "input": 50,
+    "output": 15,
+    "cacheRead": 35,
+    "cacheWrite": 10,
+    "total": 110
+  },
+  "nativeCost": 5,
+  "ledgerMatchesNativeStats": true,
+  "compactionBranchToolAuxiliaryIncluded": true,
+  "forkEntryIdentitiesPreserved": true,
+  "seededForkNotDoubleCharged": true,
+  "sourceTranscriptUnchanged": true,
+  "costUnits": "USD, verified in pinned Pi model-schema and telemetry contract"
+}

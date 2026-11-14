@@ -3,6 +3,8 @@ import { IconButton } from '@/shared/ui';
 import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import type { WorkspaceProject } from '../model/workspace.types';
+import { UsageMetrics } from './UsageMetrics';
+import { durationText, usageText } from '../model/usageFormat';
 
 const dateFormat = new Intl.DateTimeFormat('ru-RU', {
   day: '2-digit',
@@ -30,6 +32,7 @@ export function ProjectListRow({
   onDelete: () => void;
 }) {
   const folder = project.folderName ?? project.id;
+  const folderLabel = `${usageText(project.usage?.duration, durationText)} · ${folder}`;
   const created = new Date(project.createdAt);
   const activityLabel = activityUnavailable
     ? 'Статус работы недоступен'
@@ -73,13 +76,20 @@ export function ProjectListRow({
             <Tooltip label={project.name} onlyWhenTruncated>
               <strong className="project-list-name">{project.name}</strong>
             </Tooltip>
-            <Tooltip label={folder} onlyWhenTruncated>
-              <span className="project-list-folder" id={`project-folder-${project.id}`}>
-                {folder}
+            <Tooltip label={folderLabel} onlyWhenTruncated>
+              <span
+                className="project-list-folder"
+                id={`project-folder-${project.id}`}
+                aria-label={`Время работы: ${project.usage?.duration.value == null ? 'неизвестно' : `${Math.floor(project.usage.duration.value / 1000)} секунд${project.usage.duration.partial ? ', частичные данные' : ''}`}. Папка: ${folder}`}
+              >
+                {folderLabel}
               </span>
             </Tooltip>
           </span>
         </button>
+      </td>
+      <td className="project-spent">
+        <UsageMetrics usage={project.usage} includeTime={false} />
       </td>
       <td className="project-created">
         <time dateTime={created.toISOString()}>

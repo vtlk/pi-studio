@@ -159,6 +159,13 @@ try {
   release('b');
   assert.equal(await children[1], 0);
   assert.deepEqual(activity.list(), []);
+  const spendBeforeResume = store.accounting.summary(project.id)!;
+  assert.equal(spendBeforeResume.total.tokens.input.value, 2);
+  assert.equal(spendBeforeResume.total.tokens.output.value, 2);
+  assert.equal(spendBeforeResume.total.tokens.cacheRead.value, 0);
+  assert.equal(spendBeforeResume.total.duration.value, spendBeforeResume.agents.a.duration.value! + spendBeforeResume.agents.b.duration.value!);
+  assert.ok(spendBeforeResume.total.duration.value! > 0);
+  assert.equal(spendBeforeResume.total.costPartial, true, 'Technical zero tariff is not confirmed free execution.');
   host.assertIdle(project.id);
   const messages = async (path: string) =>
     (await readFile(join(directory, path), 'utf8'))
@@ -183,6 +190,7 @@ try {
   assert.deepEqual(await Promise.all(paths.map(messages)), before);
   assert.equal(requests, 2, 'Idle resumes send no request or replay');
   assert.deepEqual(activity.list(), []);
+  assert.deepEqual(store.accounting.summary(project.id), spendBeforeResume, 'Idle resume replays neither token usage nor elapsed work.');
   for (const agent of current.agents)
     assert.equal(
       await readFile(join(directory, agent.outputPath, 'marker.txt'), 'utf8'),
@@ -205,6 +213,7 @@ try {
     runIdsDistinct: first.runId !== second.runId,
   };
   await mkdir(resolve('artifacts'), { recursive: true });
+  await writeFile(resolve('artifacts/project-usage-runtime-proof.json'), JSON.stringify({ checkedAt: new Date().toISOString(), nativePi: pi.version, actualProductionHost: true, localModelRequests: requests, externalModelRequests: 0, parallelInput: spendBeforeResume.total.tokens.input.value, parallelOutput: spendBeforeResume.total.tokens.output.value, durationSumVerified: true, technicalZeroCostUnknown: true, exactIdleResumeNoDoubleCharge: true, numericSidecarOnly: true }, null, 2) + '\n');
   await writeFile(
     resolve('artifacts/project-activity-runtime-proof.json'),
     JSON.stringify(

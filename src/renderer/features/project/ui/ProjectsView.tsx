@@ -75,6 +75,7 @@ export function ProjectsView() {
       <table className="projects-table" aria-label="Проекты">
         <colgroup>
           <col className="project-title-column" />
+          <col className="project-spent-column" />
           <col className="project-date-column" />
           <col className="project-number-column" />
           <col className="project-number-column" />
@@ -84,6 +85,7 @@ export function ProjectsView() {
         <thead>
           <tr>
             <th scope="col">Проект</th>
+            <th scope="col">Потрачено</th>
             <th scope="col">Создан</th>
             <th scope="col" className="project-number">
               Агенты
@@ -125,7 +127,7 @@ export function ProjectsView() {
           ))}
           {!shown.length && (
             <tr>
-              <td colSpan={6} className="projects-empty">
+              <td colSpan={7} className="projects-empty">
                 {projects.length ? 'Проекты не найдены.' : 'Проектов пока нет.'}
               </td>
             </tr>

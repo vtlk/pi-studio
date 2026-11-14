@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-14T22:03:33.588Z",
+  "scope": "Actual native renderer/preload/main persisted usage, then isolated incremental usage fixture; runtime producer verified separately",
+  "persistedUsage": true,
+  "projectAndAgentMetrics": true,
+  "inputOutputSeparated": true,
+  "statusOnlyOnIcon": true,
+  "immediateHover": true,
+  "keyboardStatus": true,
+  "missingModelKeepsLaunchHidden": true,
+  "unknownPartialAndTinyCost": true,
+  "pollUpdatesWithoutFocusChange": true,
+  "noModelOrNetwork": true,
+  "offscreen": true
+}

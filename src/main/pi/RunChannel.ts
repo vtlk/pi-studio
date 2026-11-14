@@ -21,6 +21,7 @@ export interface ChannelEvent {
   failure?: unknown;
   message?: string;
   executableExtensions?: boolean;
+  usage?: unknown;
 }
 export interface SessionTool {
   name: string;

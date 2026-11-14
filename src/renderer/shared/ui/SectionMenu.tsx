@@ -6,7 +6,9 @@ interface MenuItem<T> {
   id: T;
   label: string;
   icon?: ReactNode;
-  description?: string;
+  description?: ReactNode;
+  ariaLabel?: string;
+  iconTooltip?: string;
   suffix?: ReactNode;
   actions?: ReactNode;
   onRemove?: () => void;
@@ -30,6 +32,7 @@ export function SectionMenu<T extends string | number>({
   leading,
 }: SectionMenuProps<T>) {
   const [focused, setFocused] = useState<T | null>(null);
+  const [iconFocused, setIconFocused] = useState<T | null>(null);
   return (
     <nav className="section-menu" aria-label={label}>
       {leading}
@@ -38,20 +41,45 @@ export function SectionMenu<T extends string | number>({
           <button
             className={`section-menu-item${selected === item.id ? ' active' : ''}`}
             aria-current={selected === item.id ? 'true' : undefined}
+            aria-label={item.ariaLabel}
             data-muted={item.muted || undefined}
             onClick={() => {
               setFocused(null);
               onSelect(item.id);
             }}
-            onFocus={() => setFocused(item.id)}
-            onBlur={() => setFocused(null)}
+            onFocus={(event) => {
+              setFocused(item.id);
+              setIconFocused(event.currentTarget.matches(':focus-visible') ? item.id : null);
+            }}
+            onBlur={() => {
+              setFocused(null);
+              setIconFocused(null);
+            }}
+            onPointerDown={() => setIconFocused(null)}
             onKeyDown={(event) => {
-              if (event.key === 'Escape') setFocused(null);
+              if (event.key === 'Escape') {
+                setFocused(null);
+                setIconFocused(null);
+              }
             }}
           >
-            {item.icon}
+            {item.iconTooltip ? (
+              <Tooltip label={item.iconTooltip} open={iconFocused === item.id || undefined}>
+                <span className="section-menu-icon-anchor">{item.icon}</span>
+              </Tooltip>
+            ) : (
+              item.icon
+            )}
             <span className="section-menu-text">
-              <Tooltip label={item.label} onlyWhenTruncated open={focused === item.id || undefined}>
+              <Tooltip
+                label={item.label}
+                onlyWhenTruncated
+                open={
+                  item.iconTooltip && iconFocused === item.id
+                    ? false
+                    : focused === item.id || undefined
+                }
+              >
                 <span className="section-menu-label">{item.label}</span>
               </Tooltip>
               {item.description && (

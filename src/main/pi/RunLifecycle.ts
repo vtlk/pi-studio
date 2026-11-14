@@ -22,6 +22,7 @@ export class RunLifecycle {
     this.dependencies = dependencies;
   }
   async processLost(live: LiveRun) {
+    await this.dependencies.accountingLost?.(live.run);
     this.dependencies.activityChanged?.(live.run, false);
     this.dependencies.closed?.(live.run);
     live.status = closedRunStatus(live.status);
@@ -40,6 +41,8 @@ export class RunLifecycle {
         pid: live.pid,
         runId: live.run.record.runId,
       });
+    } else if (event.type === 'accounting') {
+      await this.dependencies.accounting?.(live.run, event.usage);
     } else if (event.type === 'bound') {
       if (
         typeof event.sessionId !== 'string' ||
@@ -205,9 +208,7 @@ export class RunLifecycle {
       };
     }
     if (name === 'report_blocked') {
-      this.dependencies.activityChanged?.(live.run, false);
       live.blocked = true;
-      await this.dependencies.update(live.run, 'waiting');
       return { paused: true };
     }
     if (name === 'complete_stage') {

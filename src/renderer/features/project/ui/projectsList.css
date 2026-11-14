@@ -48,13 +48,16 @@
   color: #18181b;
 }
 .project-title-column {
-  width: 48%;
+  width: 34%;
+}
+.project-spent-column {
+  width: 22%;
 }
 .project-date-column {
-  width: 16%;
+  width: 14%;
 }
 .project-number-column {
-  width: 10%;
+  width: 7%;
 }
 .project-actions-column {
   width: 12%;
@@ -135,6 +138,21 @@
 .project-identity {
   flex: 1;
   min-width: 0;
+}
+.usage-metrics {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.usage-metrics svg {
+  display: inline-block;
+  vertical-align: -2px;
+}
+.project-spent {
+  font-variant-numeric: tabular-nums;
 }
 .project-list-name,
 .project-list-folder {

@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-11-14T22:03:06.951Z",
+  "nativePi": "1.5.2",
+  "actualProductionHost": true,
+  "localModelRequests": 2,
+  "externalModelRequests": 0,
+  "parallelInput": 2,
+  "parallelOutput": 2,
+  "durationSumVerified": true,
+  "technicalZeroCostUnknown": true,
+  "exactIdleResumeNoDoubleCharge": true,
+  "numericSidecarOnly": true
+}

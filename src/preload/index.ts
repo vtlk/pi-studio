@@ -51,6 +51,7 @@ const desktopApi: DesktopApi = {
   projectCommand: (command) => ipcRenderer.invoke(desktopChannels.projectCommand, command),
   readProject: (id) => ipcRenderer.invoke(desktopChannels.readProject, id),
   listProjectActivity: () => ipcRenderer.invoke(desktopChannels.listProjectActivity),
+  listProjectUsage: () => ipcRenderer.invoke(desktopChannels.listProjectUsage),
   readOutput: (request) => ipcRenderer.invoke(desktopChannels.readOutput, request),
   inspectVideoProject: (request) =>
     ipcRenderer.invoke(desktopChannels.inspectVideoProject, request),

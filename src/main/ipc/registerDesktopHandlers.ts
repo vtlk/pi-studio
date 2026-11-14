@@ -13,6 +13,8 @@ import { StudioService, type StudioStore } from '../storage/StudioStore';
 import { snapshotAgent } from '../storage/validation';
 import { loadOutput } from '../storage/outputs';
 import { registerProjectActions } from '../storage/registerProjectActions';
+import { registerProjectQueries } from '../storage/registerProjectQueries';
+import { UsageRecovery } from '../accounting/UsageRecovery';
 import { withReadDeadline } from '../storage/files';
 import { checkPi } from '../pi/checkPi';
 import { importSkill, inspectSkill } from '../storage/skills';
@@ -40,6 +42,7 @@ import type { SkillWriteRequest } from '../../shared/resources';
 import { BrowserSupport } from '../browser/BrowserSupport';
 import { ProjectActivity } from '../pi/ProjectActivity';
 import { registerResourceHandlers } from '../pi/registerResourceHandlers';
+import { registerGracefulQuit } from './registerGracefulQuit';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -72,6 +75,11 @@ export function registerDesktopHandlers(): StudioService {
   );
   const references = new ReferenceFiles(referenceImage);
   const activity = new ProjectActivity();
+  const usageRecovery = new UsageRecovery(
+    service,
+    join(__dirname, '../../bundled/pi-bridge/accounting/read-usage.mjs'),
+    () => startup.path,
+  );
   const mcpSecrets = registerMcpSecretHandlers(service, caller, () => startup.path);
   const { connections: imageConnections, images } = createImageServices(service);
   const browser = new BrowserSupport(
@@ -119,11 +127,10 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
   });
-  // before-quit precedes the renderer's unsaved-changes confirmation: Stay must keep Pi alive.
-  app.on('will-quit', () => {
-    for (const controller of [browserAuth, startup, runs, setup, generators, browser])
-      controller.close();
-  });
+  registerGracefulQuit(
+    [runs, setup, generators],
+    [browserAuth, startup, runs, setup, generators, browser, usageRecovery],
+  );
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (!window || event.senderFrame !== window.webContents.mainFrame) {
@@ -157,25 +164,7 @@ export function registerDesktopHandlers(): StudioService {
     await setup.launch({ projectId: 'pi-setup-assistant', agentId: id, autoContinue: false });
   });
   registerResourceHandlers(resources, caller);
-  ipcMain.handle(desktopChannels.listProjectActivity, (event) => {
-    caller(event);
-    return activity.list();
-  });
-  ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
-    caller(event);
-    return browserAuth.read(id);
-  });
-  ipcMain.handle(desktopChannels.cancelAuthLogin, (event, id: string) => {
-    caller(event);
-    browserAuth.cancel(id);
-  });
-  ipcMain.handle(
-    desktopChannels.answerAuthLogin,
-    (event, id: string, promptId: string, answer: string) => {
-      caller(event);
-      browserAuth.answer(id, promptId, answer);
-    },
-  );
+  registerProjectQueries(service, activity, caller, (store) => usageRecovery.schedule(store));
   handle(
     desktopChannels.getInfo,
     () =>
@@ -311,9 +300,6 @@ export function registerDesktopHandlers(): StudioService {
       ? runs.withProjectChange(command.projectId, command.kind !== 'clone', apply)
       : apply();
   });
-  handle(desktopChannels.readProject, async (_event, id: string) =>
-    withReadDeadline(async () => (await service.load()).projects.read(id)),
-  );
   handle(desktopChannels.readOutput, async (_event, request: FileRequest) => {
     const file = await withReadDeadline(async () =>
       loadOutput(await (await service.load()).projects.directory(request.projectId), request.path),

@@ -32,11 +32,10 @@ export function registerProjectActions(
           await mutation.stopSession(request.projectId, request.agentId);
         }
         return service.serialize(async () => {
-          const project = await deleteAgentData(await service.load(), request, (path) =>
-            shell.trashItem(path),
-          );
+          const store = await service.load();
+          const project = await deleteAgentData(store, request, (path) => shell.trashItem(path));
           mutation.cleared(request.projectId, request.agentId);
-          return project;
+          return store.accounting.enrich(project);
         });
       });
     },
