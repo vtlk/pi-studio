@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0-alpha.70",
+  "sourceCommit": "18b685b4b1298eecbabf1419df65957e533a0790",
+  "checkedAt": "2026-11-15T16:40:49.520402+00:00",
+  "appleDevelopmentStableRequirement": true,
+  "notarized": false,
+  "exactSourceFiles": 55,
+  "upstreamGitBlobsVerified": true,
+  "sha256": "3722c7a06d616f5901d37e74435b7f1d59212288b4a6a39bc7d4532593297fa2",
+  "bytes": 142645843,
+  "installed": true,
+  "billingVerified": false,
+  "actionsEnabled": false,
+  "opened": true,
+  "mainPid": 43202,
+  "studio": "/Users/user1/Movies/Pi Studio",
+  "filesUnchangedBeforeOpen": 17736,
+  "agentsPreserved": 10,
+  "workspaceAndSettingsUnchangedBeforeOpen": true
+}

@@ -1,6 +1,6 @@
 {
   "latestNativeControl": {
-    "checkedAt": "2026-11-15T16:33:09.472Z",
+    "checkedAt": "2026-11-15T16:41:12.076Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",
@@ -14,7 +14,7 @@
       "assignedHelperNestedSkillsOnly": true,
       "assignedPackageSkillsScoped": true,
       "hardFilesystemSandbox": false,
-      "packagedBridge": false,
+      "packagedBridge": true,
       "freshContextWithoutInstructionCopies": true,
       "previousOutputReadByNextAgent": true,
       "oneUserMessagePerStage": true,
