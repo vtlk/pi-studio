@@ -90,7 +90,7 @@ process.on('unhandledRejection', fail);
     js(
       `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(label)}).click()`,
     );
-  const row = `Array.from(document.querySelectorAll('[data-builtin-mcp]')).find(e=>e.textContent.includes('Pi Studio · Компьютер'))`;
+  let row = `Array.from(document.querySelectorAll('[data-builtin-mcp]')).find(e=>e.textContent.includes('Pi Studio · Компьютер'))`;
   const checkRow = async () => {
     await until(`!!(${row})`);
     assert.equal(await js(`(${row}).querySelectorAll('[role="switch"],.hover-delete').length`), 0);
@@ -117,7 +117,16 @@ process.on('unhandledRejection', fail);
   await checkRow();
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
   await click('MCP-серверы');
-  await checkRow();
+  const catalogRow = `Array.from(document.querySelectorAll('.resource-catalog > .resource-row')).find(e=>e.querySelector('strong')?.textContent==='Pi Studio · Компьютер')`;
+  await until(`!!(${catalogRow})`);
+  assert.equal(
+    await js(`(${catalogRow}).querySelectorAll('[role="switch"],.hover-delete').length`),
+    0,
+  );
+  await js(`(${catalogRow}).querySelector('button').click()`);
+  row = `document.querySelector('[role="dialog"]')`;
+  await until(`(${row})?.innerText.includes('Универсальный доступ:')`);
+  assert.equal(await js(`(${row}).querySelector('h2').textContent`), 'Pi Studio · Компьютер');
   assert.equal(permissionActions, 0, 'Opening/listing/probing must never request permissions.');
   simulateDenied = true;
   await click('Проверить разрешения');
@@ -143,6 +152,8 @@ process.on('unhandledRejection', fail);
         ordinaryAgent: true,
         setupAssistant: true,
         settingsCatalog: true,
+        independentCatalogEntry: true,
+        catalogInformationDialog: true,
         rightLock: true,
         noDisableDelete: true,
         automaticPermissionPrompts: 0,
@@ -161,6 +172,9 @@ process.on('unhandledRejection', fail);
     'Computer UI passed: actual SDK status; shared pinned rows; denied-state UI fixture; no OS permission prompts or visible windows.',
   );
   await cleanup();
-  setTimeout(() => { console.error('Graceful Computer runtime quit timed out'); app.exit(1); }, 10000).unref();
+  setTimeout(() => {
+    console.error('Graceful Computer runtime quit timed out');
+    app.exit(1);
+  }, 10000).unref();
   app.quit();
 })().catch(fail);

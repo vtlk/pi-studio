@@ -104,7 +104,28 @@ process.on('unhandledRejection', fail);
   await checkRow();
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
   await click('MCP-серверы');
-  await checkRow();
+  const catalogRow = `Array.from(document.querySelectorAll('.resource-catalog > .resource-row')).find(e=>e.querySelector('strong')?.textContent==='Pi Studio · Браузер')`;
+  await until(`!!(${catalogRow})`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.resource-catalog > .resource-row strong')).map(e=>e.textContent).filter(n=>['Pi Studio · Библиотека','Pi Studio · Браузер','Pi Studio · Компьютер'].includes(n))`,
+    ),
+    ['Pi Studio · Библиотека', 'Pi Studio · Браузер', 'Pi Studio · Компьютер'],
+    'Three independent MCP catalog entries, with no nesting under Library.',
+  );
+  assert.equal(
+    await js(`(${catalogRow}).querySelectorAll('[role="switch"],.hover-delete').length`),
+    0,
+  );
+  await writeFile('artifacts/browser-catalog-ui.png', (await win.capturePage()).toPNG());
+  await js(`(${catalogRow}).querySelector('button').click()`);
+  await until(
+    `document.querySelector('[role="dialog"]')?.innerText.includes('Компоненты ещё не установлены.')`,
+  );
+  assert.equal(
+    await js(`document.querySelector('[role="dialog"] h2').textContent`),
+    'Pi Studio · Браузер',
+  );
   assert.equal(network, 0);
   const persisted = await js('window.studio.loadStudio()');
   assert.deepEqual(
@@ -114,7 +135,6 @@ process.on('unhandledRejection', fail);
   );
   assert.equal(win.isVisible(), false);
   assert.equal(win.webContents.isOffscreen(), true);
-  await writeFile('artifacts/browser-catalog-ui.png', (await win.capturePage()).toPNG());
   await writeFile(
     process.env.PI_STUDIO_QA_PROOF || 'artifacts/browser-ui-proof.json',
     JSON.stringify(
@@ -123,7 +143,10 @@ process.on('unhandledRejection', fail);
         ordinaryAgent: true,
         setupAssistant: true,
         settingsCatalog: true,
+        independentCatalogEntries: true,
+        catalogInformationDialog: true,
         sharedDisclosure: true,
+        sharedDisclosureScope: 'Agent and setup assistant assignments',
         rightLock: true,
         noDisableDelete: true,
         explicitInstallOnly: true,
@@ -137,7 +160,7 @@ process.on('unhandledRejection', fail);
     ) + '\n',
   );
   console.log(
-    'Browser UI passed: locked shared row in agents/helper/catalog, explicit install, no automatic network or visible window.',
+    'Browser UI passed: pinned agent rows, independent MCP catalog entry and information dialog, no automatic network or visible window.',
   );
   await cleanup();
   app.exit(0);

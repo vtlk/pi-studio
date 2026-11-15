@@ -27,9 +27,42 @@
   "metricsTooltipWrapperRemovedFromBothViews": true,
   "githubActionsEnabled": false,
   "oldGeneratedAlpha61BuildCacheRemoved": true,
-  "installed": false,
-  "installedVersion": "0.2.0-alpha.60",
-  "installedMainPidAtCheck": 34806,
-  "pending": "Fresh CUA state request reported locked Mac; manual unlock requested before normal Quit/install. No live app replacement or force termination.",
-  "limits": "No real Keychain repeat-read or Computer capture/input acceptance. Current user app remains the previous version; metrics UI change is in the downloadable release."
+  "installed": true,
+  "installedVersion": "0.2.0-alpha.62",
+  "installedMainPidAtCheck": 79076,
+  "limits": "Real saved-key checks passed three times in two native processes without an observed repeated password prompt. Historical prompt cause and future OS/Keychain-lock behavior are not proven. Computer capture/input acceptance remains pending.",
+  "installation": {
+    "checkedAt": "2026-11-15T07:46:51.256Z",
+    "normalMenuQuit": true,
+    "oldPid": 34806,
+    "newPid": 78099,
+    "oneUserMainProcess": true,
+    "forcedTermination": false,
+    "installedUiObserved": true,
+    "before": {
+      "folder": "/Users/user1/Movies/Pi Studio",
+      "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
+      "settings": "4ee30ccdb1c84fc5263087a1090a8c2efb08258653f08a85a0b26a6c87deb314",
+      "sections": "f4129fc4859194e85fa85dee7438c372d2aac179428a03b6595e5f17757d14d6",
+      "agents": "4f48e3fc86420ff22fc09e62df6496dd32d0d903047bf6a7b2968d1d1430def7",
+      "agentCount": 7,
+      "systemCount": 1,
+      "files": 16845,
+      "aggregate": "3423ef82f9a139aba48862299ccd22418fcfea9c49f63b5bc82d57af4c5c15f5"
+    },
+    "after": {
+      "folder": "/Users/user1/Movies/Pi Studio",
+      "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
+      "settings": "4ee30ccdb1c84fc5263087a1090a8c2efb08258653f08a85a0b26a6c87deb314",
+      "sections": "f4129fc4859194e85fa85dee7438c372d2aac179428a03b6595e5f17757d14d6",
+      "agents": "4f48e3fc86420ff22fc09e62df6496dd32d0d903047bf6a7b2968d1d1430def7",
+      "agentCount": 7,
+      "systemCount": 1,
+      "files": 16845,
+      "aggregate": "3423ef82f9a139aba48862299ccd22418fcfea9c49f63b5bc82d57af4c5c15f5"
+    },
+    "allFingerprintsUnchanged": true,
+    "generatedAppStageRemoved": true
+  },
+  "realKeychainRepeatedReadProof": "artifacts/keychain-real-read-proof.json"
 }

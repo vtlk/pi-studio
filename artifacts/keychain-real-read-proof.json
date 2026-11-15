@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-11-15T08:03:20.123Z",
+  "applicationVersion": "0.2.0-alpha.62",
+  "installedApp": "/Users/user1/Applications/Pi Studio.app",
+  "realInstalledApplication": true,
+  "realMacosSafeStorage": true,
+  "existingSavedImagesConnection": true,
+  "uiCheckInvocations": 3,
+  "processes": [
+    {
+      "pid": 78099,
+      "checks": 2
+    },
+    {
+      "pid": 79076,
+      "checks": 1
+    }
+  ],
+  "normalQuitAndRelaunchBetweenProcesses": true,
+  "uiResult": "Ключ принят API. Доступ к генерации проверяется только при её вызове.",
+  "allChecksAccepted": true,
+  "securityAgentInventorySamplesWithoutDialog": 2,
+  "assistantPasswordEntry": false,
+  "credentialReplacement": false,
+  "credentialOrAclReset": false,
+  "imagesGenerationInvocations": 0,
+  "uiInputsChanged": false,
+  "secretValueReadByAssistant": false,
+  "osPermissionGrantActions": false,
+  "limits": "Three explicit read-only Images connection checks in two native app processes, including after alpha.60 to .62 update. No repeated password prompt was observed. No secret or raw model catalogue was exported. This does not guarantee behavior after future OS/Keychain lock, nor prove the exact cause of historical prompts."
+}
