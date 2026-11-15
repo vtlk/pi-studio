@@ -1,0 +1,13 @@
+{
+  "installedVersion": "0.2.0-alpha.73",
+  "installedPath": "/Users/user1/Applications/Pi Studio.app",
+  "mainPid": 48908,
+  "observedUtc": "2026-11-15T21:38:25.927600+00:00",
+  "signatureVerifiedDeepStrict": true,
+  "sourceCommit": "b31cd1308b20d5144e58461b227a3fbd0f68bc1a",
+  "installedFromVerifiedReleaseZip": true,
+  "userClosedPreviousApp": true,
+  "studioConfigurationChangedByInstaller": false,
+  "applicationBackupsCreated": false,
+  "autoCloseIncluded": false
+}

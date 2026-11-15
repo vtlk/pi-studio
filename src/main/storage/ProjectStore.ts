@@ -55,6 +55,8 @@ export class ProjectStore {
             throw new Error('Повторяющийся ID проекта.');
           target.set(project.id, project);
         } catch (error) {
+          // A manifest defines a Studio project; arbitrary output folders are not broken projects.
+          if (isMissing(error)) continue;
           warnings.push(
             `${relative}/${entry.name}: ${error instanceof Error ? error.message : 'ошибка чтения'}`,
           );

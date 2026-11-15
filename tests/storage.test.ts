@@ -414,3 +414,32 @@ test('Russian project names use Latin folder slugs for create, rename, clone and
     /уже существует/,
   );
 });
+
+test('project discovery skips folders without a manifest and preserves their files, while malformed or symlink manifests remain visible errors', async (t) => {
+  const { store } = await fixture(t);
+  await store.command({ kind: 'create', name: 'Recognized', agents: [] });
+  const orphan = join(store.folder, 'projects/mixed-от-mentov/agents/voice/output');
+  await mkdir(orphan, { recursive: true });
+  await writeFile(join(orphan, 'timing.md'), 'Keep unregistered user bytes');
+  await mkdir(join(store.folder, 'projects/empty-structure/agents/voice/output'), {
+    recursive: true,
+  });
+  const broken = join(store.folder, 'projects/invalid');
+  await mkdir(broken);
+  await writeFile(join(broken, 'project.json'), '{invalid');
+  const linked = join(store.folder, 'projects/linked');
+  await mkdir(linked);
+  await symlink(join(broken, 'project.json'), join(linked, 'project.json'));
+  const reopened = await StudioStore.open(store.folder),
+    state = reopened.bootstrap();
+  assert.equal(state.projects.length, 1);
+  assert.equal(state.warnings.length, 2);
+  assert.ok(state.warnings.some((item) => item.includes('/invalid:')));
+  assert.ok(state.warnings.some((item) => item.includes('/linked:')));
+  assert.equal(
+    state.warnings.some((item) => item.includes('mixed-') || item.includes('empty-structure')),
+    false,
+  );
+  assert.equal(await readFile(join(orphan, 'timing.md'), 'utf8'), 'Keep unregistered user bytes');
+  assert.equal(await readFile(join(broken, 'project.json'), 'utf8'), '{invalid');
+});

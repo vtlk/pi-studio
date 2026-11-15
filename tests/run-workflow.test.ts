@@ -102,3 +102,20 @@ test('questions pause a chain until a new user request; completion still require
   assert.equal(handoffs, 1);
   assert.ok(transitions.includes('error'));
 });
+
+test('fresh prompts direct native writes to cwd-relative output and forbid reconstructing project slugs', () => {
+  const prompt = sessionSystemPrompt({
+    instructions: 'ROLE',
+    record: {
+      projectId: 'project',
+      projectRoot: '/project-real-slug',
+      cwd: '/project-real-slug/agents/voice',
+      output: '/project-real-slug/agents/voice/output',
+      previousOutputs: [],
+    },
+  });
+  assert.match(prompt, /cwd-relative output\/<filename>/);
+  assert.match(prompt, /Use supplied paths verbatim/);
+  assert.match(prompt, /never reconstruct or transliterate a project folder/);
+  assert.match(prompt, /look-alike Cyrillic\/Latin letters/);
+});
