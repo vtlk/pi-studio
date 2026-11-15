@@ -33,5 +33,7 @@
   },
   "installed": false,
   "installedVersion": "0.2.0-alpha.62",
-  "limits": "Signed downloadable package verified; installed .62 is still running and normal Quit awaits the user because the window-control tool is unavailable. Computer Use OS permissions/capture/input and the remaining completion-audit items are not claimed complete."
+  "limits": "Signed downloadable package verified; installed .62 is still running and normal Quit awaits the user because the window-control tool is unavailable. Computer Use OS permissions/capture/input and the remaining completion-audit items are not claimed complete.",
+  "generatedPackageStageRemoved": true,
+  "installationSource": "Verified current ZIP; extract temporary stage after the installed app is closed"
 }
