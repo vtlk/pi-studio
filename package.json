@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.72",
+  "version": "0.2.0-alpha.73",
   "private": true,
   "description": "Pi Studio — локальные проекты и конструктор агентов для macOS и Windows",
   "type": "module",
