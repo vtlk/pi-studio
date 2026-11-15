@@ -40,6 +40,17 @@ for (const file of files) {
     true,
   );
   const imports = source.statements.filter(ts.isImportDeclaration);
+  if (relative.startsWith('renderer/') && relative !== 'renderer/shared/ui/Textarea.tsx') {
+    const checkTextarea = (node) => {
+      if (
+        (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
+        node.tagName.getText(source) === 'textarea'
+      )
+        errors.push(`${relative}: use the shared Textarea component`);
+      ts.forEachChild(node, checkTextarea);
+    };
+    checkTextarea(source);
+  }
   const dependencies = [];
   for (const declaration of imports) {
     const name = declaration.moduleSpecifier.text;

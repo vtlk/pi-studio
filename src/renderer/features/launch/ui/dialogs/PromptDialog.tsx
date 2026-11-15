@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { enabledResources, useResources } from '@/features/resources/model/Resources';
 import { useCoreTools } from '@/features/connections/model/useCoreTools';
 import { systemAgentDefinitions } from '../../../../../shared/systemAgents';
@@ -58,7 +59,7 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
           запуске; тексты skills читаются из текущих файлов.
         </p>
       )}
-      <textarea
+      <Textarea
         className="compiled-prompt"
         aria-label="Итоговые инструкции"
         readOnly

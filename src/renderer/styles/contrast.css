@@ -169,7 +169,7 @@ input::placeholder {
   font-size: 16px;
 }
 .simple-prompt textarea {
-  height: 75px;
+  --textarea-base-height: 75px;
   font-size: 15px;
 }
 .clip {
@@ -353,13 +353,12 @@ input::placeholder {
   font-size: 14px;
 }
 .plan-editor {
-  min-height: 65vh;
+  --textarea-base-height: 65vh;
   line-height: 1.85;
   font-size: 16px;
   padding: 18px;
   border: 1px solid #b5b5c1;
   border-radius: 6px;
-  resize: vertical;
 }
 /* User-selected palette. Foreground and background change together. */
 .button.primary:disabled {
@@ -535,7 +534,6 @@ input::placeholder {
   font-size: 16px;
   line-height: 1.85;
   padding: 18px;
-  resize: vertical;
 }
 .script-actions {
   display: flex;
@@ -547,9 +545,7 @@ input::placeholder {
   font-size: 16px;
 }
 .idea-input {
-  height: 95px;
-  min-height: 95px;
-  resize: vertical;
+  --textarea-base-height: 95px;
   font-size: 16px;
 }
 .script-generation-controls {
@@ -575,7 +571,7 @@ input::placeholder {
   margin: 0;
 }
 .script-editor {
-  min-height: calc(100vh - 420px);
+  --textarea-base-height: max(calc(2lh + 38px), calc(100vh - 420px));
 }
 .scene-choices {
   margin-top: 18px;

@@ -265,8 +265,7 @@
   color: #242027;
 }
 .dialog .compiled-prompt {
-  min-height: 400px;
-  max-height: none;
+  --textarea-base-height: 400px;
   font-size: 16px;
   line-height: 1.8;
 }

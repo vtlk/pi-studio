@@ -192,7 +192,8 @@ const deadline = setTimeout(() => {
   const prompt = await js(
     `(()=>{const el=document.querySelector('[aria-label="Основной промпт агента"]'),s=getComputedStyle(el.parentElement);return {height:el.getBoundingClientRect().height,label:!!el.closest('label'),padding:s.padding,margin:s.margin};})()`,
   );
-  assert.ok(prompt.height >= 360);
+  const viewportHeight = await js('window.innerHeight');
+  assert.equal(prompt.height, 2 * Math.max(360, viewportHeight - 240));
   assert.equal(prompt.label, false);
   assert.equal(prompt.padding, '0px');
   assert.equal(prompt.margin, '0px');
@@ -208,6 +209,69 @@ const deadline = setTimeout(() => {
     assert.equal(focus.active, true);
     assert.equal(focus.shadow, 'none');
   }
+  await click('Инструкции');
+  await js(`document.querySelector('[aria-label="Добавить инструкцию"]').click()`);
+  await until(`!!document.querySelector('.instruction-sortable textarea')`);
+  await js(`document.querySelector('.instruction-sortable [aria-expanded]').click()`);
+  const textareaResize = await js(`(()=>{
+    const el=document.querySelector('.instruction-sortable textarea');
+    el.scrollIntoView({block:'center'});
+    const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+    return {initialHeight:r.height,width:r.width,x:r.right-5,y:r.bottom-5,
+      viewportHeight:innerHeight,hit:document.elementFromPoint(r.right-5,r.bottom-5)?.tagName,
+      resize:s.resize,shared:el.classList.contains('ui-textarea')};
+  })()`);
+  assert.equal(textareaResize.shared, true);
+  assert.equal(textareaResize.resize, 'vertical');
+  assert.equal(textareaResize.initialHeight, 320);
+  const pointer = (type, x, y, extra = {}) =>
+    window.webContents.debugger.sendCommand('Input.dispatchMouseEvent', { type, x, y, ...extra });
+  await pointer('mouseMoved', textareaResize.x, textareaResize.y);
+  await pointer('mousePressed', textareaResize.x, textareaResize.y, {
+    button: 'left',
+    buttons: 1,
+    clickCount: 1,
+  });
+  for (let offset = 10; offset <= 90; offset += 10) {
+    await pointer('mouseMoved', textareaResize.x, textareaResize.y + offset, {
+      button: 'left',
+      buttons: 1,
+    });
+    await js('new Promise(requestAnimationFrame)');
+  }
+  await pointer('mouseReleased', textareaResize.x, textareaResize.y + 90, {
+    button: 'left',
+    buttons: 0,
+    clickCount: 1,
+  });
+  textareaResize.resizedHeight = await js(
+    `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().height`,
+  );
+  assert.ok(
+    textareaResize.resizedHeight >= textareaResize.initialHeight + 80,
+    'Native resize handle must grow the field: ' + JSON.stringify(textareaResize),
+  );
+  const multiline = 'Первая строка\nВторая строка';
+  await js(
+    `(()=>{const el=document.querySelector('.instruction-sortable textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(el,${JSON.stringify(multiline)});el.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await until(
+    `document.querySelector('.instruction-sortable textarea').value===${JSON.stringify(multiline)}`,
+  );
+  textareaResize.heightAfterEdit = await js(
+    `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().height`,
+  );
+  assert.equal(
+    textareaResize.heightAfterEdit,
+    textareaResize.resizedHeight,
+    'Controlled edits must preserve manual size',
+  );
+  assert.equal(
+    await js(
+      `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().width`,
+    ),
+    textareaResize.width,
+  );
   await click('Модель');
   await colors('modelTab', 'nav[aria-label="Настройки агента"] .section-menu-item.active');
   await until(
@@ -227,6 +291,20 @@ const deadline = setTimeout(() => {
         !index || field.x >= modelFields[index - 1].x + modelFields[index - 1].width + 8,
     ),
   );
+  await click('Итоговое задание');
+  await until(`!!document.querySelector('textarea[aria-label="Итоговые инструкции"]')`);
+  const modalTextarea = await js(`(()=>{
+    const el=document.querySelector('textarea[aria-label="Итоговые инструкции"]');
+    return {height:el.getBoundingClientRect().height,readOnly:el.readOnly,
+      shared:el.classList.contains('ui-textarea'),resize:getComputedStyle(el).resize};
+  })()`);
+  assert.deepEqual(modalTextarea, {
+    height: 400,
+    readOnly: true,
+    shared: true,
+    resize: 'vertical',
+  });
+  await click('Закрыть');
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
   await sample('workspace', '.settings-field-row input');
   const file = resolve('artifacts/fields-before.json');
@@ -265,6 +343,8 @@ const deadline = setTimeout(() => {
         samples,
         appearance,
         prompt,
+        textareaResize,
+        modalTextarea,
         modelFields,
         addBorders,
         focusSamples,

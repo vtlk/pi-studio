@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useState } from 'react';
 import { AddArea } from '@/shared/ui/AddArea';
@@ -99,7 +100,7 @@ export function ScenesView() {
                 </Disclosure>
               </DisclosureList>
               <div className="simple-prompt">
-                <textarea
+                <Textarea
                   aria-label="Правка сцены"
                   placeholder="Что изменить в сцене?"
                   value={drafts[currentScene.id] ?? ''}

@@ -134,8 +134,7 @@
   margin-top: 17px;
 }
 .simple-prompt textarea {
-  min-height: 65px;
-  resize: vertical;
+  --textarea-min-height: 65px;
 }
 .simple-prompt > .button {
   align-self: stretch;

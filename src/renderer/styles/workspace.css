@@ -334,7 +334,7 @@
   font-size: 12px;
 }
 .editor-inspector textarea {
-  min-height: 65px;
+  --textarea-base-height: 65px;
   font-size: 12px;
 }
 .editor-playback {

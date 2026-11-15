@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -80,7 +81,7 @@ export function StartAgentDialog({
       >
         <label className="field-label">
           Первое сообщение
-          <textarea
+          <Textarea
             autoFocus
             className="agent-first-message"
             value={message}

@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -103,7 +104,7 @@ export function ManagedSkillEditor({
       </label>
       <label className="field-label">
         Инструкции
-        <textarea
+        <Textarea
           className="skill-instructions-input"
           value={content}
           disabled={loading || saving}

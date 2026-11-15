@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { useAgentProfiles } from '../model/AgentProfiles';
 
 export function PromptPanel() {
@@ -5,7 +6,7 @@ export function PromptPanel() {
   if (!selectedAgent) return null;
   return (
     <div className="agent-prompt-panel">
-      <textarea
+      <Textarea
         aria-label="Основной промпт агента"
         value={selectedAgent.mainInstruction ?? ''}
         onChange={(event) => updateAgent({ mainInstruction: event.target.value })}

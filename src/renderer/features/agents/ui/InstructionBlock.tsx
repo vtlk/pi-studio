@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -80,7 +81,7 @@ export function InstructionBlock({ item }: { item: Instruction }) {
           onChange={(event) => updateInstruction(item.id, { name: event.target.value })}
           placeholder="Название инструкции"
         />
-        <textarea
+        <Textarea
           aria-label={`Текст инструкции: ${item.name}`}
           value={item.content}
           onChange={(event) => updateInstruction(item.id, { content: event.target.value })}

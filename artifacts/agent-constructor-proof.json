@@ -17,16 +17,16 @@
   "allTabAddAreasBelowRowsForOrdinaryAndSystem": true,
   "externalRequests": 0,
   "separateProcessReopen": true,
-  "version": "0.2.0-alpha.58",
-  "verifiedAt": "2026-11-15T00:30:00.776Z",
-  "mainSha256": "45cc2513c24ea338ff17269d859fd28b59388f9b5ef96c382ef713c4d83b61d5",
+  "version": "0.2.0-alpha.67",
+  "verifiedAt": "2026-11-15T12:47:08.468Z",
+  "mainSha256": "10a04a0c3eef509e4e4658a8372c8b1ea6ce2babd545329d2501094a9a239e45",
   "rendererSha256": {
-    "index-CITh7XAi.css": "d1096ef23711b7c4f45126edf81b35d29684546def33d1449ed573232de57b4c",
-    "index-DwwtPf3d.js": "efba7a85508c694abadcf2c9e7d927423ebd570553fe9c57d99134021c9f6f38"
+    "index-BR7DFxiu.js": "6cb343abdf3a625ae6497a71cc6fcf2e9b2184cd6ba89bff69aba056cf6d2a68",
+    "index-DAa-HKWt.css": "b1b7ac69eac938fabc3370bc42bb26c7f3a2bfdbd2ecd8e18a5ff5892b78bc4a"
   },
   "sourceSha256": {
     "src/renderer/features/agents/model/AgentProfiles.tsx": "71a224e17496285ab092162ccbdbac21040e2076ffb961f50c2d7655857ed4d9",
-    "src/renderer/features/agents/ui/InstructionBlock.tsx": "384586c1ea8d74641c75b0e689d7eb00c480404a1da7c11f093abedfea75a723",
+    "src/renderer/features/agents/ui/InstructionBlock.tsx": "33dde9e9e11450250384436e08fd59ed353315c0ecffea2e974250e924f12638",
     "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "763e01208394c5dcd83d2bc18ecf0468f401f49e94bad96050f848defbf252e7",
     "scripts/smoke-agent-constructor.cjs": "a31638b17f982f9459c9518d4913f853edff8f7f4cc06b39cfa05fee4e8513f3"
   },

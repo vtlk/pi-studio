@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import { useState } from 'react';
 import { Modal } from '@/shared/ui/Modal';
@@ -100,7 +101,7 @@ export function AgentActionDialog({ request }: { request: NonNullable<Dialog> })
       {creating && (
         <label className="field-label">
           Описание материала
-          <textarea
+          <Textarea
             autoFocus
             value={description}
             onChange={(event) => setDescription(event.target.value)}

@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { useState } from 'react';
 import { Button, EmptyIntegration } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -84,7 +85,7 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
       {field('name', 'Название')}
       <label className="field-label">
         Описание
-        <textarea
+        <Textarea
           value={draft.description}
           onChange={(event) => setDraft({ ...draft, description: event.target.value })}
         />
@@ -155,7 +156,7 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           {draft.kind === 'plugins' && (
             <label className="field-label">
               Состав пакета
-              <textarea
+              <Textarea
                 value={draft.contents}
                 onChange={(event) => setDraft({ ...draft, contents: event.target.value })}
               />

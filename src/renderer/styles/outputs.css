@@ -288,7 +288,7 @@
   pointer-events: auto;
 }
 .agent-first-message {
-  min-height: 180px;
+  --textarea-base-height: 180px;
 }
 .session-initial-message {
   white-space: pre-wrap;

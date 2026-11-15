@@ -84,11 +84,6 @@ textarea {
   width: 100%;
   font-size: 15px;
 }
-textarea {
-  resize: vertical;
-  line-height: 1.65;
-  min-height: 90px;
-}
 input[type='range'] {
   accent-color: var(--accent);
   height: 3px;

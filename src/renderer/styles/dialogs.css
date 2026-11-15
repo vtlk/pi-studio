@@ -77,8 +77,6 @@
   border-top: 1px solid var(--line);
 }
 .compiled-prompt {
-  max-height: 430px;
-  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 18px;

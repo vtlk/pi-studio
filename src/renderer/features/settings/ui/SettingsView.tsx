@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { useState } from 'react';
 import { useNotice } from '@/shared/model/Notice';
 import { useProject } from '@/features/project/model/projectHooks';
@@ -17,7 +18,7 @@ function LegacyRules() {
   return (
     <>
       <h2>Общие инструкции</h2>
-      <textarea
+      <Textarea
         aria-label="Общие инструкции проекта"
         value={baseInstruction}
         onChange={(event) => setBaseInstruction(event.target.value)}

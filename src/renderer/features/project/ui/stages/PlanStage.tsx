@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { Button } from '@/shared/ui';
 import { useLaunch } from '@/features/launch/model/Launch';
 import { useProject } from '../../model/Project';
@@ -22,7 +23,7 @@ export function PlanStage() {
         </Button>
         <span>Агент: сценарий и раскадровка</span>
       </div>
-      <textarea
+      <Textarea
         className="plan-editor"
         aria-label="План мультфильма"
         value={plan}

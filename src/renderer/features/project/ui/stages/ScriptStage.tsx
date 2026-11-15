@@ -1,3 +1,4 @@
+import { Textarea } from '@/shared/ui/Textarea';
 import { Button } from '@/shared/ui';
 import { PrototypeButton } from '@/features/agents/ui/PrototypeButton';
 import { useNotice } from '@/shared/model/Notice';
@@ -10,7 +11,7 @@ export function ScriptStage() {
     <div className="stage-page script-workspace">
       <label className="field-label script-idea-label">
         Идея
-        <textarea
+        <Textarea
           aria-label="Идея мультфильма"
           className="idea-input"
           defaultValue="Механик находит во дворе странную посылку. Внутри кто-то стучит. Соседка уверяет, что открывать её — плохая идея."
@@ -23,7 +24,7 @@ export function ScriptStage() {
       {script.length > 0 && (
         <label className="field-label scenario-label">
           Сценарий
-          <textarea
+          <Textarea
             className="script-editor"
             aria-label="Текст сценария"
             value={script}
