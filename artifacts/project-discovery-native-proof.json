@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0-alpha.74",
+  "packagedMain": true,
+  "isolatedNative": true,
+  "realProjectVisible": true,
+  "manifestlessFoldersIgnored": true,
+  "malformedManifestStillWarns": true,
+  "unregisteredFileBytesPreserved": true,
+  "userStudioTouched": false,
+  "modelRequests": 0,
+  "desktopFocusChanged": false
+}

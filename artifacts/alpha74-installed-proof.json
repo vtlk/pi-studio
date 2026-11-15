@@ -1,0 +1,17 @@
+{
+  "installedVersion": "0.2.0-alpha.74",
+  "installedPath": "/Users/user1/Applications/Pi Studio.app",
+  "mainPid": 54080,
+  "observedUtc": "2026-11-15T22:05:24.391460+00:00",
+  "sourceCommit": "0ffa39868d45b0afa384b40e1be14e0ff0da7838",
+  "signatureVerifiedDeepStrict": true,
+  "installedFromVerifiedReleaseZip": true,
+  "userClosedPreviousApp": true,
+  "startupReadWarningsAfterCleanup": 0,
+  "allActiveProjectsReadable": 8,
+  "affectedProjectsReadable": 2,
+  "boundAffectedSessionsPresent": 20,
+  "projectManifestsReconstructed": false,
+  "userDataModifiedByInstaller": false,
+  "autoCloseIncluded": false
+}

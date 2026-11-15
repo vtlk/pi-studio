@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0-alpha.74",
+  "sourceCommit": "0ffa39868d45b0afa384b40e1be14e0ff0da7838",
+  "archive": "Pi-Studio-0.2.0-alpha.74-mac-arm64.zip",
+  "bytes": 142671872,
+  "sha256": "01a74b390b93e66626b08ccf6ab0879c627e4a0f1fca728c235c1e95512d6de7",
+  "crcVerified": true,
+  "compiledMainExact": true,
+  "freshPathPromptIncluded": true,
+  "unfinishedAutoCloseExcluded": true,
+  "signatureDeepStrictVerified": true,
+  "identityMatchesInstalled": true,
+  "userProjectMetadataWritten": false,
+  "windowsBuildThisHotfix": false,
+  "release": {
+    "id": 446399795,
+    "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.74",
+    "githubDigestMatches": true,
+    "assetId": 752492692
+  }
+}
