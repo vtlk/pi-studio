@@ -1,0 +1,27 @@
+{
+  "release": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.67",
+  "releaseId": 446058005,
+  "source": "4d7f33b437a57d3e35df0465cea0935f5a08a23b",
+  "assetId": 750991339,
+  "archiveBytes": 142564031,
+  "archiveSha256": "c74c3c5a209fcd0ce274a0fcf73a17392d8a0e8830a1b237b4704b840cc96d31",
+  "published": true,
+  "installed": false,
+  "checkedAt": "2026-11-15T12:52:29.214Z",
+  "remoteTargetSizeDigestUploadedVerified": true,
+  "ciActionsEnabled": false,
+  "signing": "existing Apple Development certificate; not notarized",
+  "packagedFieldUiPassed": true,
+  "constructorPersistencePassed": true,
+  "modalInitialHeightPreserved": true,
+  "textareaDrag": {
+    "initial": 320,
+    "resized": 410,
+    "widthUnchanged": true,
+    "heightPreservedAfterTyping": true
+  },
+  "installedVersion": "0.2.0-alpha.66",
+  "mainPid": 30906,
+  "awaitingNormalQuit": true,
+  "userStudioChangedByTests": false
+}
