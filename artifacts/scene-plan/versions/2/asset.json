@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "fe2178f9-2bd2-411b-843f-0dd535cb8104",
+  "kind": "locations",
+  "version": 2,
+  "title": "Терраса у маяка",
+  "description": "Дневная терраса у маяка с широким небом, перилами, пригодной для действий скамьёй, крюком и открытым передним планом. Без персонажей.",
+  "category": "lighthouse-terrace",
+  "createdAt": 1794713933023,
+  "files": {
+    "reference": "reference.png",
+    "preview": "preview.png",
+    "vector": "location.svg"
+  }
+}

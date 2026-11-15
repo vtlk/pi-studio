@@ -1,0 +1,126 @@
+{
+  "characters": [
+    {
+      "id": "ruby",
+      "name": "Руби",
+      "libraryReference": {
+        "kind": "characters",
+        "id": "30cadbc8-5318-47d7-982e-787c82a16d21",
+        "version": 3
+      }
+    },
+    {
+      "id": "bim",
+      "name": "Бим"
+    }
+  ],
+  "locations": [
+    {
+      "id": "lighthouse-terrace",
+      "name": "Терраса у маяка",
+      "libraryReference": {
+        "kind": "locations",
+        "id": "fe2178f9-2bd2-411b-843f-0dd535cb8104",
+        "version": 1
+      }
+    }
+  ],
+  "props": [
+    {
+      "id": "red-lantern",
+      "name": "Красный фонарь"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "d-ruby-lantern",
+      "speakerId": "ruby",
+      "text": "Этот фонарь поможет путникам"
+    },
+    {
+      "id": "d-bim-bark",
+      "speakerId": "bim",
+      "text": "Гав!"
+    },
+    {
+      "id": "d-ruby-brighter",
+      "speakerId": "ruby",
+      "text": "Теперь дорога светлее"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-a-day",
+      "title": "Сцена A — день",
+      "locationId": "lighthouse-terrace",
+      "characterIds": [
+        "ruby",
+        "bim"
+      ],
+      "propIds": [
+        "red-lantern"
+      ],
+      "dialogueIds": [
+        "d-ruby-lantern",
+        "d-bim-bark"
+      ],
+      "shots": [
+        {
+          "id": "shot-a-01",
+          "order": 1,
+          "camera": "wide terrace view, bench and open foreground",
+          "description": "Руби в красном ставит красный фонарь на скамью; Бим ждёт рядом."
+        }
+      ]
+    },
+    {
+      "id": "scene-b-dusk",
+      "title": "Сцена B — сумерки",
+      "locationId": "lighthouse-terrace",
+      "characterIds": [
+        "ruby",
+        "bim"
+      ],
+      "propIds": [
+        "red-lantern"
+      ],
+      "dialogueIds": [
+        "d-ruby-brighter"
+      ],
+      "shots": [
+        {
+          "id": "shot-b-01",
+          "order": 1,
+          "camera": "medium-wide terrace view, hook prominent",
+          "description": "Руби вешает тот же фонарь на крюк; Бим засыпает рядом."
+        }
+      ]
+    }
+  ],
+  "counters": {
+    "characters": 2,
+    "locations": 1,
+    "props": 1,
+    "dialogues": 3,
+    "scenes": 2,
+    "shots": 2
+  },
+  "libraryRecommendations": [
+    {
+      "characterId": "ruby",
+      "action": "reuse",
+      "assetId": "30cadbc8-5318-47d7-982e-787c82a16d21",
+      "version": 3,
+      "reason": "Существующий персонаж Руби найден и закреплён на текущей версии."
+    },
+    {
+      "characterId": "bim",
+      "action": "create",
+      "reason": "В библиотеке нет персонажа-собаки; создать позже отдельным запросом."
+    }
+  ],
+  "locationUpgradeProposal": {
+    "id": "fe2178f9-2bd2-411b-843f-0dd535cb8104",
+    "version": 2
+  }
+}

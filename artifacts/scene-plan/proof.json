@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-11-15T03:46:42.943Z",
+  "version": "0.2.0-alpha.60",
+  "actualPi": "1.5.2",
+  "model": "gpt-5.6-luna",
+  "locationId": "fe2178f9-2bd2-411b-843f-0dd535cb8104",
+  "projectId": "ba65cbb7-2bb0-41e2-a53c-58410c1c1979",
+  "initialScenarioCounts": {
+    "characters": 2,
+    "locations": 1,
+    "props": 1,
+    "dialogues": 3,
+    "scenes": 2,
+    "shots": 2
+  },
+  "currentCounts": {
+    "characters": 1,
+    "locations": 1,
+    "props": 1,
+    "dialogues": 1,
+    "scenes": 1,
+    "shots": 1
+  },
+  "actualLibraryMcpPublication": true,
+  "sameLocationForBothScenes": true,
+  "oneCurrentLocationTwoPreservedVersions": true,
+  "pinnedV1WithExplicitV2Proposal": true,
+  "existingCharacterRecommendationAndMissingDogProposal": true,
+  "currentSceneCardsMatchTheirDialogue": true,
+  "exactDialogueProjectSceneAndRoleDeletion": true,
+  "libraryUnchangedByProjectDeletion": true,
+  "remainingStableSceneShotCharacterIds": true,
+  "currentAttemptAdditionalEditInputs": 0,
+  "totalSessionUserMessages": 2,
+  "deletionRequestedInCanonicalDialogue": true,
+  "exactIdleResumeWithoutReplay": true,
+  "previewColors": [
+    {
+      "version": 1,
+      "skyPixels": 462036
+    },
+    {
+      "version": 2,
+      "skyPixels": 462036
+    }
+  ],
+  "trustedPreviewCallsInDialogue": 2,
+  "previewFramesThisAttempt": 0,
+  "paidMediaApiCalls": 0,
+  "userStudioTouched": false,
+  "limits": "Small concrete scenario/file workflow through one ordinary agent; no fixed production screens or claim of arbitrary NLP/artistic quality. Native library camera/scene card UI checked separately before cleanup.",
+  "nativeUi": {
+    "checkedAt": "2026-11-15T03:49:20.144Z",
+    "version": "0.2.0-alpha.60",
+    "actualGeneratedLocationV2Loaded": true,
+    "oneCurrentLocationCard": true,
+    "svgAndReferencePngLoad": true,
+    "zoomPanReset": true,
+    "noCharacterControlsForLocation": true,
+    "actualRemainingSceneMarkdownRendered": true,
+    "deletedSceneAbsentFromTree": true,
+    "noRemovedDogInCard": true,
+    "readOnlySceneCard": true,
+    "isolatedOffscreen": true,
+    "newModelRequests": 0
+  },
+  "ownedQaRootCleanedAfterNativeReview": true
+}

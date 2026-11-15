@@ -1,0 +1,21 @@
+{
+  "characters": [
+    {"id":"ruby","name":"Руби","libraryReference":{"kind":"characters","id":"30cadbc8-5318-47d7-982e-787c82a16d21","version":3}}
+  ],
+  "locations": [
+    {"id":"lighthouse-terrace","name":"Терраса у маяка","libraryReference":{"kind":"locations","id":"fe2178f9-2bd2-411b-843f-0dd535cb8104","version":1}}
+  ],
+  "props": [{"id":"red-lantern","name":"Красный фонарь"}],
+  "dialogues": [
+    {"id":"d-ruby-lantern","speakerId":"ruby","text":"Этот фонарь поможет путникам"}
+  ],
+  "scenes": [
+    {"id":"scene-a-day","title":"Сцена A — день","locationId":"lighthouse-terrace","characterIds":["ruby"],"propIds":["red-lantern"],"dialogueIds":["d-ruby-lantern"],"shots":[{"id":"shot-a-01","order":1,"camera":"wide terrace view, bench and open foreground","description":"Руби в красном ставит красный фонарь на скамью."}]}
+  ],
+  "counters":{"characters":1,"locations":1,"props":1,"dialogues":1,"scenes":1,"shots":1},
+  "libraryRecommendations":[
+    {"characterId":"ruby","action":"reuse","assetId":"30cadbc8-5318-47d7-982e-787c82a16d21","version":3,"reason":"Существующий персонаж Руби найден и закреплён на текущей версии."}
+  ],
+  "locationUpgradeProposal":{"id":"fe2178f9-2bd2-411b-843f-0dd535cb8104","version":2},
+  "removed":{"sceneIds":["scene-b-dusk"],"characterIds":["bim"]}
+}
