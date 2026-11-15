@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "checkedAt": "2026-11-15T11:03:36.244Z",
+  "checkedAt": "2026-11-15T11:05:20.266Z",
   "pi": "1.5.2",
   "interactiveModeWithNativeProcessTerminal": true,
   "simultaneousOwnedPseudoTerminals": true,
@@ -11,7 +11,7 @@
   "cyrillicQuotesAndShellCharacters": true,
   "localModelRequests": 2,
   "externalModelRequests": 0,
-  "packagedBridge": false,
+  "packagedBridge": true,
   "terminalAppGuiAcceptance": false,
   "scope": "Real Pi InteractiveMode and native ProcessTerminal in owned captured PTYs. No Terminal.app automation or user data access. GUI title/profile settings remain manual acceptance."
 }
