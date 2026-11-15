@@ -51,7 +51,7 @@ const deadline = setTimeout(() => {
     );
   const field = async (label, value) =>
     js(
-      `(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]') ?? Array.from(document.querySelectorAll('label')).find(element=>element.textContent.trim().startsWith(${JSON.stringify(label)}))?.querySelector('input,textarea');Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+      `(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]') ?? Array.from(document.querySelectorAll('label')).find(element=>element.textContent.trim().startsWith(${JSON.stringify(label)}))?.control;Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
     );
 
   const select = async (label, text) => {
@@ -98,7 +98,7 @@ const deadline = setTimeout(() => {
     `(()=>{const row=document.querySelector('.agent-list-item'),n=row.querySelector('.agent-list-number'),name=row.querySelector('.agent-list-name');return {height:row.offsetHeight,numberWidth:n.offsetWidth,number:n.textContent,font:getComputedStyle(name).fontSize,weight:getComputedStyle(name).fontWeight,background:getComputedStyle(document.querySelector('.agent-stages')).backgroundColor,toolbars:document.querySelectorAll('.agent-stages [role="toolbar"]').length}})()`,
   );
   assert.equal(design.height, 84);
-  assert.equal(design.numberWidth, 32);
+  assert.ok(design.numberWidth >= 32, 'Number gutter may grow to fit multiple digits');
   assert.equal(design.number, '1');
   assert.equal(design.font, '17px');
   assert.equal(design.weight, '600');
@@ -118,12 +118,15 @@ const deadline = setTimeout(() => {
   await click('Встроенные');
   await click('Добавить агенту');
   await click('Готово');
-  await until(`document.querySelectorAll('.resource-binding').length===2`);
+  await until(`document.querySelectorAll('.resource-binding').length===4`);
   const controls = await js(
     `Array.from(document.querySelectorAll('.resource-binding .ui-list-row-toggle')).map(el=>el.getBoundingClientRect().x)`,
   );
-  assert.equal(controls.length, 2);
-  assert.equal(controls[0], controls[1], 'Pinned lock occupies the switch column');
+  assert.equal(controls.length, 4);
+  assert.ok(
+    controls.every((x) => x === controls[0]),
+    'Project/Browser/Computer locks and Library switch share the control column',
+  );
   assert.equal(await js(`!!document.querySelector('[data-builtin-mcp] .ui-list-row-icon')`), false);
   await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await writeFile(
@@ -231,7 +234,13 @@ const deadline = setTimeout(() => {
   );
   assert.deepEqual(
     builtinRows.map((item) => item.name),
-    ['Pi Studio · Проект', 'Pi Studio · Библиотека', 'Pi Studio · Ресурсы и агенты'],
+    [
+      'Pi Studio · Проект',
+      'Pi Studio · Библиотека',
+      'Pi Studio · Браузер',
+      'Pi Studio · Компьютер',
+      'Pi Studio · Ресурсы и агенты',
+    ],
   );
   assert.ok(
     builtinRows.every((item) => !item.delete && !item.actions && item.button === 'Сведения'),

@@ -43,7 +43,7 @@ const deadline = setTimeout(() => {
     );
   const field = async (label, value) =>
     js(
-      `(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]') ?? Array.from(document.querySelectorAll('label')).find(element=>element.textContent.trim().startsWith(${JSON.stringify(label)}))?.querySelector('input,textarea');Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+      `(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]') ?? Array.from(document.querySelectorAll('label')).find(element=>element.textContent.trim().startsWith(${JSON.stringify(label)}))?.control;Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
     );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const initial = await js('window.studio.loadStudio()');

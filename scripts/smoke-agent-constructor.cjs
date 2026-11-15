@@ -151,20 +151,33 @@ async function child() {
       );
     const drag = async (selector, from, to, targetSelector = selector) => {
       await js('new Promise(r=>setTimeout(r,250))');
+      await js(
+        `document.querySelectorAll(${JSON.stringify(selector)})[${from}].scrollIntoView({block:'nearest'})`,
+      );
       const points = await js(
         `(()=>{const starts=document.querySelectorAll(${JSON.stringify(selector)}),targets=document.querySelectorAll(${JSON.stringify(targetSelector)});const a=starts[${from}].getBoundingClientRect(),b=targets[${to}].getBoundingClientRect(),source=targets[${from}].getBoundingClientRect();return {x:Math.round(a.x+a.width/2),y:Math.round(a.y+a.height/2),targetX:Math.round(a.x+a.width/2),targetY:Math.round(a.y+a.height/2+b.y+b.height/2-source.y-source.height/2)};})()`,
       );
+      if (targetSelector === '.instruction-sortable')
+        assert.equal(
+          await js(
+            `!!document.elementFromPoint(${points.x},${points.y})?.closest('.instruction-drag-handle')`,
+          ),
+          true,
+          'A tooltip must not block the next instruction drag',
+        );
+      let pressed = false;
       const send = (type, x, y) =>
         window.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
           type,
           x,
           y,
-          button: type === 'mouseMoved' ? 'none' : 'left',
-          buttons: type === 'mouseReleased' ? 0 : 1,
+          button: type === 'mouseMoved' && !pressed ? 'none' : 'left',
+          buttons: type === 'mouseReleased' ? 0 : pressed || type === 'mousePressed' ? 1 : 0,
           clickCount: 1,
         });
       await send('mouseMoved', points.x, points.y);
       await send('mousePressed', points.x, points.y);
+      pressed = true;
       for (let i = 1; i <= 16; i++) {
         await send(
           'mouseMoved',
@@ -202,7 +215,9 @@ async function child() {
       await until(
         `!!document.querySelector('[aria-label="Название инструкции: Новая инструкция"]')`,
       );
-      await js(`document.querySelector('.instruction-sortable .disclosure-trigger').click()`);
+      await js(
+        `document.querySelector('[aria-label="Название инструкции: Новая инструкция"]').closest('.instruction-sortable').querySelector('.disclosure-trigger').click()`,
+      );
       await field('Название инструкции: Новая инструкция', name);
       await field(`Текст инструкции: ${name}`, content);
       await saved();
@@ -239,7 +254,7 @@ async function child() {
         await js(
           `Array.from(document.querySelectorAll('.instruction-sortable .ui-list-row-label')).map(e=>e.textContent)`,
         ),
-        ['Вернуть блок', 'Новый блок', 'Первый блок'],
+        ['Первый блок', 'Вернуть блок', 'Новый блок'],
       );
       await click('Модель');
       await until(
@@ -338,17 +353,17 @@ async function child() {
       await saved();
       assert.deepEqual(
         (await agent()).instructions.map((i) => i.name),
-        ['Вернуть блок', 'Новый блок', 'Первый блок'],
+        ['Первый блок', 'Вернуть блок', 'Новый блок'],
         'Undo must preserve subsequently added instructions',
       );
       await drag('.instruction-drag-handle', 0, 1, '.instruction-sortable');
       await until(
-        `document.querySelector('.instruction-sortable .ui-list-row-label')?.textContent==='Новый блок'`,
+        `document.querySelector('.instruction-sortable .ui-list-row-label')?.textContent==='Вернуть блок'`,
       );
       await saved();
       await drag('.instruction-drag-handle', 0, 1, '.instruction-sortable');
       await until(
-        `document.querySelector('.instruction-sortable .ui-list-row-label')?.textContent==='Вернуть блок'`,
+        `document.querySelector('.instruction-sortable .ui-list-row-label')?.textContent==='Первый блок'`,
       );
       await saved();
       await named('Использовать инструкцию: Новый блок');

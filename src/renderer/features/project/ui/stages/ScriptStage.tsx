@@ -9,30 +9,28 @@ export function ScriptStage() {
   const { setStep, script, setScript } = useProject();
   return (
     <div className="stage-page script-workspace">
-      <label className="field-label script-idea-label">
-        Идея
-        <Textarea
-          aria-label="Идея мультфильма"
-          className="idea-input"
-          defaultValue="Механик находит во дворе странную посылку. Внутри кто-то стучит. Соседка уверяет, что открывать её — плохая идея."
-          placeholder="Опишите идею мультфильма…"
-        />
-      </label>
+      <Textarea
+        label="Идея"
+        fieldClassName="script-idea-label"
+        aria-label="Идея мультфильма"
+        className="idea-input"
+        defaultValue="Механик находит во дворе странную посылку. Внутри кто-то стучит. Соседка уверяет, что открывать её — плохая идея."
+        placeholder="Опишите идею мультфильма…"
+      />
       <div className="script-generation-controls">
         <PrototypeButton title="Написать сценарий" agentId="writer" />
       </div>
       {script.length > 0 && (
-        <label className="field-label scenario-label">
-          Сценарий
-          <Textarea
-            className="script-editor"
-            aria-label="Текст сценария"
-            value={script}
-            onChange={(event) => {
-              setScript(event.target.value);
-            }}
-          />
-        </label>
+        <Textarea
+          label="Сценарий"
+          fieldClassName="scenario-label"
+          className="script-editor"
+          aria-label="Текст сценария"
+          value={script}
+          onChange={(event) => {
+            setScript(event.target.value);
+          }}
+        />
       )}
       {script.length > 0 && (
         <div className="script-actions">

@@ -1,7 +1,16 @@
 import { Tooltip } from '@/shared/ui/Tooltip';
 import type { OutputFile } from '../model/workspace.types';
+import { CopyOutputButton } from './CopyOutputButton';
 
-export function OutputToolbar({ file, filePath }: { file?: OutputFile; filePath?: string }) {
+export function OutputToolbar({
+  file,
+  filePath,
+  projectId,
+}: {
+  file?: OutputFile;
+  filePath?: string;
+  projectId?: string;
+}) {
   return (
     <div className="project-file-toolbar">
       {file && (
@@ -9,6 +18,11 @@ export function OutputToolbar({ file, filePath }: { file?: OutputFile; filePath?
           <code className="project-active-file">{filePath ?? file.name}</code>
         </Tooltip>
       )}
+      {file &&
+        ['text', 'markdown', 'json'].includes(file.format) &&
+        !file.name.endsWith('.pistudio.json') && (
+          <CopyOutputButton file={file} projectId={projectId} />
+        )}
     </div>
   );
 }

@@ -262,6 +262,21 @@
     "heightAfterEdit": 410,
     "keyboardHeight": 430
   },
+  "textareaFind": {
+    "selection": "[Вступление]",
+    "scrollTop": 1315,
+    "focus": "Найти в поле"
+  },
+  "findGeometry": {
+    "inside": true,
+    "height": 410
+  },
+  "agentNumber": {
+    "text": "12",
+    "width": 44,
+    "scrollWidth": 44,
+    "overflow": "clip"
+  },
   "modalTextarea": {
     "height": 400,
     "readOnly": true,
@@ -271,17 +286,17 @@
   "modelFields": [
     {
       "x": 485,
-      "y": 150,
+      "y": -45,
       "width": 212.28125
     },
     {
       "x": 713.28125,
-      "y": 150,
+      "y": -45,
       "width": 318.421875
     },
     {
       "x": 1047.703125,
-      "y": 150,
+      "y": -45,
       "width": 212.296875
     }
   ],

@@ -102,15 +102,13 @@ export function ManagedSkillEditor({
           onChange={(event) => setDescription(event.target.value)}
         />
       </label>
-      <label className="field-label">
-        Инструкции
-        <Textarea
-          className="skill-instructions-input"
-          value={content}
-          disabled={loading || saving}
-          onChange={(event) => setContent(event.target.value)}
-        />
-      </label>
+      <Textarea
+        label="Инструкции"
+        className="skill-instructions-input"
+        value={content}
+        disabled={loading || saving}
+        onChange={(event) => setContent(event.target.value)}
+      />
       <p className="subtle">
         Общий SKILL.md применяется при следующем запуске назначенных агентов.
       </p>

@@ -83,13 +83,11 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
       }
     >
       {field('name', 'Название')}
-      <label className="field-label">
-        Описание
-        <Textarea
-          value={draft.description}
-          onChange={(event) => setDraft({ ...draft, description: event.target.value })}
-        />
-      </label>
+      <Textarea
+        label="Описание"
+        value={draft.description}
+        onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+      />
       {draft.kind === 'mcps' ? (
         <>
           <label className="field-label">
@@ -154,13 +152,11 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
             </p>
           )}
           {draft.kind === 'plugins' && (
-            <label className="field-label">
-              Состав пакета
-              <Textarea
-                value={draft.contents}
-                onChange={(event) => setDraft({ ...draft, contents: event.target.value })}
-              />
-            </label>
+            <Textarea
+              label="Состав пакета"
+              value={draft.contents}
+              onChange={(event) => setDraft({ ...draft, contents: event.target.value })}
+            />
           )}
           {!window.studio && (
             <Button

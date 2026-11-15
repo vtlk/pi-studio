@@ -79,17 +79,15 @@ export function StartAgentDialog({
           </>
         }
       >
-        <label className="field-label">
-          Первое сообщение
-          <Textarea
-            autoFocus
-            className="agent-first-message"
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="Опишите, что должен сделать агент"
-            aria-describedby="agent-first-message-help"
-          />
-        </label>
+        <Textarea
+          label="Первое сообщение"
+          autoFocus
+          className="agent-first-message"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          placeholder="Опишите, что должен сделать агент"
+          aria-describedby="agent-first-message-help"
+        />
         <ReferenceAttachments value={references} onChange={setReferences} disabled={opening} />
         <p id="agent-first-message-help" className="subtle">
           Будет отправлено первым сообщением в новый диалог Pi. Используем текущие инструкции из

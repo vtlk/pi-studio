@@ -1,7 +1,7 @@
-import { ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
+import { clipboard, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { lstat } from 'node:fs/promises';
 import { desktopChannels } from '../../shared/contracts';
-import type { FileRequest, DeleteAgentDataRequest } from '../../shared/storage';
+import type { FileRequest, CopyOutputRequest, DeleteAgentDataRequest } from '../../shared/storage';
 import type { StudioService } from './StudioStore';
 import { safePath } from './files';
 import { loadOutput } from './outputs';
@@ -17,6 +17,19 @@ export function registerProjectActions(
     cleared: (projectId: string, agentId: string) => void;
   },
 ) {
+  ipcMain.handle(desktopChannels.copyOutput, (event, request: CopyOutputRequest) => {
+    caller(event);
+    stableId(request?.projectId);
+    return service.serialize(async () => {
+      const root = await (await service.load()).projects.directory(request.projectId);
+      const file = await loadOutput(root, request.path);
+      if (!['text', 'markdown', 'json'].includes(file.format) || typeof file.content !== 'string')
+        throw new Error('Копирование доступно только для текстовых файлов.');
+      if (!request.fingerprint || file.fingerprint !== request.fingerprint)
+        throw new Error('Файл изменился. Выберите его заново и повторите копирование.');
+      clipboard.writeText(file.content);
+    });
+  });
   ipcMain.handle(
     desktopChannels.deleteAgentData,
     async (event, request: DeleteAgentDataRequest) => {

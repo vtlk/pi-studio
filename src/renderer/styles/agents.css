@@ -23,7 +23,11 @@
   background: var(--pill-active);
 }
 .agent-stages .agent-list-item > .agent-list-number {
-  flex: 0 0 32px;
+  flex: 0 0 auto;
+  min-width: calc(2ch + 8px);
+  padding-inline: 4px;
+  overflow: visible;
+  text-overflow: clip;
   text-align: center;
   font-size: 28px;
   line-height: 32px;
@@ -60,8 +64,10 @@
   z-index: 3;
   outline: 2px solid #27272a;
 }
-.instruction-sortable .disclosure-content textarea {
+.instruction-sortable .disclosure-content > .ui-textarea-field {
   margin-top: 10px;
+}
+.instruction-sortable .disclosure-content textarea {
   --textarea-base-height: 160px;
   font-size: 16px;
 }

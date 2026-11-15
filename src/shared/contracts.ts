@@ -65,6 +65,7 @@ export interface DesktopApi {
   listProjectActivity(): Promise<ProjectActivity[]>;
   listProjectUsage(): Promise<ProjectUsage[]>;
   readOutput(request: FileRequest): Promise<OutputFile>;
+  copyOutput(request: import('./storage').CopyOutputRequest): Promise<void>;
   inspectVideoProject(request: FileRequest): Promise<VideoProjectInspection>;
   revealOutput(request: FileRequest): Promise<void>;
   revealAgentOutput(request: { projectId: string; agentId: string }): Promise<void>;
@@ -149,6 +150,7 @@ export const desktopChannels = {
   listProjectActivity: 'studio:list-project-activity',
   listProjectUsage: 'studio:list-project-usage',
   readOutput: 'studio:read-output',
+  copyOutput: 'studio:copy-output',
   inspectVideoProject: 'studio:inspect-video-project',
   revealOutput: 'studio:reveal-output',
   revealAgentOutput: 'studio:reveal-agent-output',

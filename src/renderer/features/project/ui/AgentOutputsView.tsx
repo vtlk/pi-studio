@@ -68,7 +68,8 @@ export function AgentOutputsView({
       />
       <div className="output-preview-pane">
         <OutputToolbar
-          file={selected?.file}
+          file={selectedFile}
+          projectId={projectId}
           filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
         />
         <div className="output-browser-content">

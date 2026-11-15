@@ -295,6 +295,162 @@ const deadline = setTimeout(() => {
   await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/textarea-resize.png'), (await window.capturePage()).toPNG());
+  const fieldInput = async (selector, value) =>
+    js(
+      `(()=>{const el=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(el,${JSON.stringify(value)});el.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+    );
+  const key = async (value, code = value, modifiers = 0) => {
+    for (const type of ['keyDown', 'keyUp'])
+      await window.webContents.debugger.sendCommand('Input.dispatchKeyEvent', {
+        type,
+        key: value,
+        code,
+        modifiers,
+        windowsVirtualKeyCode:
+          code === 'KeyF' ? 70 : value === 'Escape' ? 27 : value === 'Enter' ? 13 : 0,
+      });
+    await js('new Promise(requestAnimationFrame)');
+  };
+  const selector = '.instruction-sortable textarea';
+  const searchText =
+    '🙂 [ВСТУПЛЕНИЕ]\n' +
+    Array.from({ length: 120 }, (_, i) =>
+      i === 60 ? '[Вступление]' : 'Обычная длинная строка ' + i,
+    ).join('\n') +
+    '\n[вступление]';
+  await fieldInput(selector, searchText);
+  await js(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.focus();el.setSelectionRange(0,0);})()`,
+  );
+  await key('f', 'KeyF', 4);
+  await until(`!!document.querySelector('[aria-label="Найти в поле"]')`);
+  await fieldInput('[aria-label="Найти в поле"]', '[вступление]');
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim()==='1 / 3'`);
+  assert.equal(
+    await js(`document.querySelector(${JSON.stringify(selector)}).selectionStart`),
+    searchText.indexOf('[ВСТУПЛЕНИЕ]'),
+  );
+  assert.equal(
+    await js(`document.querySelector(${JSON.stringify(selector)}).scrollTop`),
+    0,
+    'First result must reveal the top of the field',
+  );
+  await key('Enter');
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim()==='2 / 3'`);
+  const textareaFind = await js(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});return {selection:el.value.slice(el.selectionStart,el.selectionEnd),scrollTop:el.scrollTop,focus:document.activeElement?.getAttribute('aria-label')};})()`,
+  );
+  const findGeometry = await js(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)}),r=el.getBoundingClientRect(),b=el.closest('.ui-textarea-field').querySelector('.textarea-findbar').getBoundingClientRect();return {inside:b.top>=r.top&&b.bottom<=r.bottom&&b.left>=r.left&&b.right<=r.right,height:r.height};})()`,
+  );
+  assert.equal(findGeometry.inside, true, 'Find bar must stay inside the field border');
+  assert.equal(
+    findGeometry.height,
+    textareaResize.resizedHeight,
+    'Find must not change the field height',
+  );
+  assert.equal(textareaFind.selection, '[Вступление]');
+  assert.ok(textareaFind.scrollTop > 0, 'Far matches must scroll into view');
+  assert.equal(textareaFind.focus, 'Найти в поле');
+  const highlight = await js(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)}),r=el.getBoundingClientRect(),m=el.parentElement.querySelector('mark').getBoundingClientRect();return {visible:m.top>=r.top&&m.bottom<=r.bottom,text:el.parentElement.querySelector('mark').textContent};})()`,
+  );
+  assert.equal(
+    highlight.visible,
+    true,
+    'Current match must be visible while the search input keeps focus',
+  );
+  assert.equal(highlight.text, '[Вступление]');
+  await key('Enter');
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim()==='3 / 3'`);
+  await key('Enter', 'Enter', 8);
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim()==='2 / 3'`);
+  await js('new Promise(resolve=>setTimeout(resolve,80))');
+  await writeFile(resolve('artifacts/textarea-find.png'), (await window.capturePage()).toPNG());
+  await fieldInput('[aria-label="Найти в поле"]', 'нет совпадений [.*]');
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim()==='0 / 0'`);
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Следующее совпадение"]').disabled`),
+    true,
+  );
+  await fieldInput('[aria-label="Найти в поле"]', '🙂');
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim()==='1 / 1'`);
+  await js(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollTop=el.scrollHeight;})()`,
+  );
+  await key('Enter');
+  await until(`document.querySelector(${JSON.stringify(selector)}).scrollTop===0`);
+  await fieldInput('[aria-label="Найти в поле"]', '[вступление]');
+  const updatedText = searchText + '\n[вступление]';
+  await fieldInput(selector, updatedText);
+  await until(`document.querySelector('.textarea-find-count')?.textContent.trim().endsWith('/ 4')`);
+  await js(
+    `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.focus();el.setSelectionRange(0,0);})()`,
+  );
+  await window.webContents.insertText('X');
+  const editedText = 'X' + updatedText;
+  await until(
+    `document.querySelector(${JSON.stringify(selector)}).value===${JSON.stringify(editedText)}`,
+  );
+  assert.deepEqual(
+    await js(
+      `(()=>{const el=document.querySelector(${JSON.stringify(selector)});return [el.selectionStart,el.selectionEnd];})()`,
+    ),
+    [1, 1],
+    'Typing with search open must preserve the editing caret',
+  );
+  await key('Escape');
+  await until(`!document.querySelector('.textarea-findbar')`);
+  assert.equal(await js(`document.querySelector(${JSON.stringify(selector)}).value`), editedText);
+  assert.equal(
+    await js(`document.activeElement===document.querySelector(${JSON.stringify(selector)})`),
+    true,
+  );
+  assert.equal(
+    await js(`document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect().height`),
+    textareaResize.resizedHeight,
+  );
+  await key('а', 'KeyF', 4);
+  await until(`!!document.querySelector('.textarea-findbar')`);
+  await key('Escape');
+  await js(`document.querySelector('[aria-label="Добавить инструкцию"]').click()`);
+  await until(`document.querySelectorAll('.instruction-sortable textarea').length===2`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.instruction-sortable textarea')).map(el=>el.value)`,
+    ),
+    [editedText, ''],
+    'New instruction appends after existing content',
+  );
+  await js(
+    `document.querySelectorAll('.instruction-sortable')[1].querySelector('[aria-expanded]').click()`,
+  );
+  await until(
+    `document.querySelectorAll('.instruction-sortable')[1].querySelector('textarea').getClientRects().length>0`,
+  );
+  await js(
+    `document.querySelectorAll('.instruction-sortable')[1].querySelector('textarea').focus()`,
+  );
+  await key('f', 'KeyF', 4);
+  await until(
+    `!!document.querySelectorAll('.instruction-sortable')[1].querySelector('.textarea-findbar')`,
+  );
+  await fieldInput('[aria-label="Найти в поле"]', '[вступление]');
+  assert.equal(
+    await js(`document.querySelector('.textarea-find-count').textContent.trim()`),
+    '0 / 0',
+    'Search is scoped to the active field',
+  );
+  await key('Escape');
+  for (let i = 0; i < 11; i++)
+    await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await until(`document.querySelectorAll('.agent-list-entry:not([data-system-role])').length===12`);
+  const agentNumber = await js(
+    `(()=>{const el=document.querySelectorAll('.agent-list-entry:not([data-system-role]) .agent-list-number')[11];el.scrollIntoView({block:'nearest'});return {text:el.textContent.trim(),width:el.clientWidth,scrollWidth:el.scrollWidth,overflow:getComputedStyle(el).textOverflow};})()`,
+  );
+  assert.equal(agentNumber.text, '12');
+  assert.ok(agentNumber.width >= agentNumber.scrollWidth, 'Two-digit numbers must not clip');
+  assert.equal(agentNumber.overflow, 'clip');
   await click('Модель');
   await colors('modelTab', 'nav[aria-label="Настройки агента"] .section-menu-item.active');
   await until(
@@ -330,6 +486,19 @@ const deadline = setTimeout(() => {
   assert.equal(
     await js(`document.querySelector('.dialog .textarea-resize-handle').getClientRects().length`),
     0,
+  );
+  await js(`document.querySelector('textarea[aria-label="Итоговые инструкции"]').focus()`);
+  await key('f', 'KeyF', 4);
+  await until(`!!document.querySelector('.dialog .textarea-findbar')`);
+  await fieldInput('.dialog [aria-label="Найти в поле"]', 'Pi Studio');
+  await until(
+    `document.querySelector('.dialog .textarea-find-count')?.textContent.trim()!=='0 / 0'`,
+  );
+  await key('Escape');
+  await until(`!document.querySelector('.dialog .textarea-findbar')`);
+  assert.ok(
+    await js(`!!document.querySelector('[role="dialog"]')`),
+    'Escape closes search before its modal',
   );
   await click('Закрыть');
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
@@ -372,6 +541,9 @@ const deadline = setTimeout(() => {
         appearance,
         prompt,
         textareaResize,
+        textareaFind,
+        findGeometry,
+        agentNumber,
         modalTextarea,
         modelFields,
         addBorders,

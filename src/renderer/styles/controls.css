@@ -409,6 +409,10 @@
 .ui-tooltip-arrow {
   fill: #27272a;
 }
+.ui-tooltip,
+[data-radix-popper-content-wrapper]:has(> .ui-tooltip) {
+  pointer-events: none;
+}
 .add-area {
   display: flex;
   align-items: center;

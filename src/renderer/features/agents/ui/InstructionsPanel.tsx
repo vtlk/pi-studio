@@ -59,13 +59,13 @@ export function InstructionsPanel() {
             onClick={() =>
               updateAgent({
                 instructions: [
+                  ...selectedAgent.instructions,
                   {
                     id: crypto.randomUUID(),
                     name: 'Новая инструкция',
                     content: '',
                     enabled: true,
                   },
-                  ...selectedAgent.instructions,
                 ],
               })
             }

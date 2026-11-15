@@ -99,15 +99,13 @@ export function AgentActionDialog({ request }: { request: NonNullable<Dialog> })
         </label>
       )}
       {creating && (
-        <label className="field-label">
-          Описание материала
-          <Textarea
-            autoFocus
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Какой персонаж или локация нужны?"
-          />
-        </label>
+        <Textarea
+          label="Описание материала"
+          autoFocus
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Какой персонаж или локация нужны?"
+        />
       )}
       {creating && (
         <ReferenceAttachments value={references} onChange={setReferences} disabled={opening} />

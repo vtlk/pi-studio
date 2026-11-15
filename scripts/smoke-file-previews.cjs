@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
 const { mkdtempSync, mkdirSync, realpathSync } = require('node:fs');
 const { mkdir, writeFile, readFile, rm } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
@@ -43,6 +43,10 @@ const deadline = setTimeout(() => {
           : action,
     );
   const revealed = [];
+  const copied = [];
+  clipboard.writeText = (text) => {
+    copied.push(text);
+  };
   shell.showItemInFolder = (path) => revealed.push(path);
   const loaded = new Promise((r) =>
     app.once('browser-window-created', (_, win) => {
@@ -52,7 +56,7 @@ const deadline = setTimeout(() => {
       win.webContents.once('did-finish-load', () => r(win));
     }),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   window = await loaded;
   window.webContents.setAudioMuted(true);
   window.webContents.removeAllListeners('will-prevent-unload');
@@ -118,6 +122,7 @@ const deadline = setTimeout(() => {
   );
   for (const [name, content] of [
     ['notes.txt', 'Текст результата'],
+    ['empty.txt', ''],
     ['data.json', '{"answer":42}'],
     ['source.html', '<script>window.PREVIEW_EXECUTED=true</script>'],
     ['slow.md', '# Запоздавший файл'],
@@ -164,6 +169,57 @@ const deadline = setTimeout(() => {
   );
   assert.deepEqual(nestedKinds, [true, false]);
   await until(`document.querySelector('.output-markdown h1')?.textContent==='Результат'`);
+  const copy = async (name, expected) => {
+    const count = copied.length;
+    await until(`!!document.querySelector('.copy-output-button:not(:disabled)')`);
+    await js(`document.querySelector('.copy-output-button').click()`);
+    for (let i = 0; i < 100 && copied.length === count; i++)
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    await until(
+      `document.querySelector('.toast')?.textContent.includes(${JSON.stringify('«' + name + '»')}) && document.querySelector('.toast')?.textContent.includes('скопировано')`,
+    );
+    assert.equal(copied.length, count + 1);
+    assert.equal(copied.at(-1), expected);
+  };
+  await copy('Обзор.MARKDOWN', await readFile(join(output, 'docs/Обзор.MARKDOWN'), 'utf8'));
+  const copyStyle = await js(
+    `(()=>{const button=document.querySelector('.copy-output-button'),s=getComputedStyle(button),r=button.getBoundingClientRect(),bar=button.closest('.project-file-toolbar').getBoundingClientRect();return {border:s.borderTopWidth,inside:r.right<=bar.right&&r.left>=bar.left};})()`,
+  );
+  assert.equal(copyStyle.border, '0px');
+  assert.equal(copyStyle.inside, true);
+  window.webContents.debugger.attach('1.3');
+  await window.webContents.debugger.sendCommand('DOM.enable');
+  await window.webContents.debugger.sendCommand('CSS.enable');
+  const documentRoot = await window.webContents.debugger.sendCommand('DOM.getDocument');
+  const copyNode = await window.webContents.debugger.sendCommand('DOM.querySelector', {
+    nodeId: documentRoot.root.nodeId,
+    selector: '.copy-output-button',
+  });
+  await window.webContents.debugger.sendCommand('CSS.forcePseudoState', {
+    nodeId: copyNode.nodeId,
+    forcedPseudoClasses: ['hover'],
+  });
+  const copyHover = await js(
+    `(()=>{const s=getComputedStyle(document.querySelector('.copy-output-button'));return {border:s.borderTopWidth,background:s.backgroundColor};})()`,
+  );
+  assert.deepEqual(copyHover, { border: '0px', background: 'rgb(237, 237, 240)' });
+  await window.webContents.debugger.sendCommand('CSS.forcePseudoState', {
+    nodeId: copyNode.nodeId,
+    forcedPseudoClasses: [],
+  });
+  const deniedBefore = copied.length;
+  await assert.rejects(
+    js(
+      `window.studio.copyOutput({projectId:${JSON.stringify(project.id)},path:'project.json',fingerprint:'invalid'})`,
+    ),
+  );
+  const copyRequest = {
+    projectId: project.id,
+    path: agent.outputPath + '/docs/Обзор.MARKDOWN',
+    fingerprint: 'old-version',
+  };
+  await assert.rejects(js(`window.studio.copyOutput(${JSON.stringify(copyRequest)})`));
+  assert.equal(copied.length, deniedBefore, 'Invalid/stale copy never writes the clipboard');
   await until(
     `document.querySelector('.output-markdown img[alt="Локальный кадр"]')?.naturalWidth===40`,
   );
@@ -237,11 +293,18 @@ const deadline = setTimeout(() => {
   while (!pending) await new Promise((r) => setTimeout(r, 30));
   await file('notes.txt');
   await until(`document.querySelector('.output-text')?.textContent==='Текст результата'`);
+  await copy('notes.txt', 'Текст результата');
+  await file('empty.txt');
+  await until(`document.querySelector('.output-text')?.textContent==='Файл пуст.'`);
+  await copy('empty.txt', '');
+  await file('notes.txt');
+  await until(`document.querySelector('.output-text')?.textContent==='Текст результата'`);
   hold = false;
   pending.resolve();
   pending = undefined;
   await js('new Promise(r=>setTimeout(r,100))');
   assert.equal(await js(`document.querySelector('.output-text')?.textContent`), 'Текст результата');
+  await copy('notes.txt', 'Текст результата');
   hold = true;
   await file('slow-error.md');
   while (!pending) await new Promise((r) => setTimeout(r, 30));
@@ -274,6 +337,11 @@ const deadline = setTimeout(() => {
   );
   await file('square.svg');
   await until(`document.querySelector('.output-image img')?.naturalWidth===60`);
+  assert.equal(
+    await js(`!!document.querySelector('.copy-output-button')`),
+    false,
+    'Media has no text-copy action',
+  );
   assert.equal(await js(`!!document.querySelector('.output-image [role="alert"]')`), false);
   await file('styled.svg');
   await until(
@@ -357,6 +425,13 @@ const deadline = setTimeout(() => {
   );
   const proof = {
     passed: true,
+    copiedRawMarkdownPlainAndEmptyText: true,
+    textCopyBorderlessInPathToolbar: true,
+    textCopyHoverVerified: true,
+    copyAfterStaleSelectionTargetsCurrentText: true,
+    invalidAndStaleCopyRejected: true,
+    realUserClipboardUntouched: true,
+    packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
     foldersFirstInMainAndRenderer: true,
     nestedFoldersBeforeOlderFiles: true,
     markdownLocalImage: true,

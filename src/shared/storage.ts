@@ -45,6 +45,9 @@ export interface FileRequest {
   projectId: string;
   path: string;
 }
+export interface CopyOutputRequest extends FileRequest {
+  fingerprint: string;
+}
 export type AgentDataTarget = 'dialogue' | 'files' | 'all';
 export interface DeleteAgentDataRequest {
   target: AgentDataTarget;
