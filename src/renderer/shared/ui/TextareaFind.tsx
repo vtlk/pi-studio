@@ -1,19 +1,12 @@
 import { useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
-import { ArrowDown, ArrowUp, Search, X } from 'lucide-react';
-import { IconButton } from './index';
+import { FindBar } from './FindBar';
+import { literalMatches, isFindShortcut, type TextMatch } from './literalSearch';
 
-type Match = { start: number; end: number };
+type Match = TextMatch;
 function reveal(textarea: HTMLTextAreaElement, match: Match) {
   textarea.setSelectionRange(match.start, match.end);
 }
-export function textareaMatches(value: string, query: string): Match[] {
-  if (!query) return [];
-  const literal = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return [...value.matchAll(new RegExp(literal, 'giu'))].map((match) => ({
-    start: match.index,
-    end: match.index + match[0].length,
-  }));
-}
+export const textareaMatches = literalMatches;
 
 export function useTextareaFind(field: RefObject<HTMLTextAreaElement | null>, value: unknown) {
   const [open, setOpen] = useState(false);
@@ -58,14 +51,7 @@ export function useTextareaFind(field: RefObject<HTMLTextAreaElement | null>, va
   };
   const onKeyDown = (event: KeyboardEvent) => {
     const isMac = navigator.platform.toLowerCase().includes('mac');
-    const command =
-      (event.metaKey && !event.ctrlKey) || (!isMac && event.ctrlKey && !event.metaKey);
-    if (
-      command &&
-      !event.altKey &&
-      !event.shiftKey &&
-      (event.code === 'KeyF' || event.key.toLowerCase() === 'f')
-    ) {
+    if (isFindShortcut(event, isMac)) {
       event.preventDefault();
       event.stopPropagation();
       const textarea = field.current!;
@@ -98,52 +84,21 @@ export function useTextareaFind(field: RefObject<HTMLTextAreaElement | null>, va
 
 export function TextareaFind({ find }: { find: ReturnType<typeof useTextareaFind> }) {
   return (
-    <div className="textarea-findbar" role="search" aria-label="Поиск в поле">
-      <Search size={16} aria-hidden="true" />
-      <input
-        ref={find.input}
-        type="search"
-        aria-label="Найти в поле"
-        placeholder="Найти в поле"
-        value={find.query}
-        autoComplete="off"
-        spellCheck={false}
-        onCompositionStart={() => {
-          find.composing.current = true;
-        }}
-        onCompositionEnd={() => {
-          find.composing.current = false;
-          find.changed();
-        }}
-        onChange={(event) => find.setQuery(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            event.stopPropagation();
-            find.move(event.shiftKey ? -1 : 1);
-          }
-        }}
-      />
-      <span className="textarea-find-count" role="status" aria-live="polite">
-        {find.result.index + 1} / {find.result.matches.length}
-      </span>
-      <IconButton
-        title="Предыдущее совпадение"
-        disabled={!find.result.matches.length}
-        onClick={() => find.move(-1)}
-      >
-        <ArrowUp size={16} />
-      </IconButton>
-      <IconButton
-        title="Следующее совпадение"
-        disabled={!find.result.matches.length}
-        onClick={() => find.move(1)}
-      >
-        <ArrowDown size={16} />
-      </IconButton>
-      <IconButton title="Закрыть поиск" onClick={find.close}>
-        <X size={16} />
-      </IconButton>
-    </div>
+    <FindBar
+      input={find.input}
+      query={find.query}
+      onQueryChange={find.setQuery}
+      count={find.result.matches.length}
+      index={find.result.index}
+      onMove={find.move}
+      onClose={find.close}
+      label="Поиск в поле"
+      inputLabel="Найти в поле"
+      className="textarea-findbar"
+      onCompositionChange={(value) => {
+        find.composing.current = value;
+        if (!value) find.changed();
+      }}
+    />
   );
 }

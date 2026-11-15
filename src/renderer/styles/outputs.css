@@ -196,6 +196,26 @@
   overflow-anchor: none;
   padding: 20px 20px 20px 12px;
 }
+.searchable-preview {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.preview-findbar {
+  flex-shrink: 0;
+  padding-inline: 12px 20px;
+}
+::highlight(pistudio-preview-matches) {
+  background-color: #fff0a3;
+  color: #171717;
+}
+::highlight(pistudio-preview-current) {
+  background-color: #ffda24;
+  color: #171717;
+}
 .project-active-file {
   flex: 1 1 200px;
   min-width: 0;

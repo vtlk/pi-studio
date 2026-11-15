@@ -75,6 +75,8 @@
   left: 1px;
   right: 1px;
   z-index: 2;
+}
+.find-bar {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -88,13 +90,13 @@
 .ui-textarea-control[data-find-open] > .ui-textarea {
   padding-top: 52px;
 }
-.textarea-findbar input {
+.find-bar input {
   flex: 1;
   min-width: 0;
   border: none;
   background: transparent;
 }
-.textarea-findbar input::-webkit-search-cancel-button {
+.find-bar input::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
 .textarea-find-count {

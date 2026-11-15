@@ -288,6 +288,7 @@ const deadline = setTimeout(() => {
   await file('source.html');
   await until(`document.querySelector('.output-text')?.textContent.includes('<script>')`);
   assert.equal(await js('window.PREVIEW_EXECUTED'), undefined);
+  const findProof = await require('./preview-find-checks.cjs')({ window, js, until, file, output, copy });
   hold = true;
   await file('slow.md');
   while (!pending) await new Promise((r) => setTimeout(r, 30));
@@ -304,6 +305,7 @@ const deadline = setTimeout(() => {
   pending = undefined;
   await js('new Promise(r=>setTimeout(r,100))');
   assert.equal(await js(`document.querySelector('.output-text')?.textContent`), 'Текст результата');
+  await until(`document.querySelector('.preview-findbar [role="status"]')?.textContent.trim()==='1 / 1'`);
   await copy('notes.txt', 'Текст результата');
   hold = true;
   await file('slow-error.md');
@@ -343,6 +345,8 @@ const deadline = setTimeout(() => {
     'Media has no text-copy action',
   );
   assert.equal(await js(`!!document.querySelector('.output-image [role="alert"]')`), false);
+  assert.equal(await js(`!!document.querySelector('.preview-findbar')`), false);
+  assert.equal(await js(`CSS.highlights.has('pistudio-preview-matches')`), false);
   await file('styled.svg');
   await until(
     `document.querySelector('.output-image img')?.complete && document.querySelector('.output-image img')?.naturalWidth===60`,
@@ -425,6 +429,7 @@ const deadline = setTimeout(() => {
   );
   const proof = {
     passed: true,
+    previewFind: findProof,
     copiedRawMarkdownPlainAndEmptyText: true,
     textCopyBorderlessInPathToolbar: true,
     textCopyHoverVerified: true,
@@ -459,6 +464,11 @@ const deadline = setTimeout(() => {
   proof.verifiedAt = new Date().toISOString();
   proof.sourceSha256 = {};
   for (const path of [
+    'src/renderer/features/project/ui/SearchablePreview.tsx',
+    'src/renderer/features/project/model/previewSearch.ts',
+    'scripts/preview-find-checks.cjs',
+    'src/renderer/shared/ui/FindBar.tsx',
+    'src/renderer/shared/ui/literalSearch.ts',
     'src/renderer/features/project/model/markdownFiles.ts',
     'src/renderer/features/project/ui/MarkdownPreview.tsx',
     'src/renderer/features/project/ui/AgentOutputsView.tsx',

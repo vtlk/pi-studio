@@ -15,6 +15,8 @@ import { useVideoInspection } from '@/features/editor/model/useVideoInspection';
 import { NativeMontageCard } from '@/features/editor/ui/NativeMontageCard';
 import { DeleteAgentDataButton } from './DeleteAgentDataButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
+import { SearchablePreview } from './SearchablePreview';
+import { getPreviewKind } from '../model/previewCapabilities';
 
 export function AgentOutputsView({
   agent,
@@ -72,7 +74,17 @@ export function AgentOutputsView({
           projectId={projectId}
           filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
         />
-        <div className="output-browser-content">
+        <SearchablePreview
+          enabled={
+            !!selectedFile &&
+            ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile)) &&
+            !nativeManifestPath &&
+            !selectedFile.name.endsWith('.pistudio.json')
+          }
+          ready={!loading && !error}
+          empty={!selectedFile?.content}
+          documentKey={`${projectId}:${agent.profile.id}:${selectedFile?.id}:${selectedFile?.fingerprint}`}
+        >
           {loading ? (
             <p className="output-empty" role="status">
               Читаем файл…
@@ -123,7 +135,7 @@ export function AgentOutputsView({
           ) : (
             <p className="output-empty">Выходных файлов пока нет.</p>
           )}
-        </div>
+        </SearchablePreview>
       </div>
     </div>
   );
