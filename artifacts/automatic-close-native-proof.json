@@ -1,6 +1,6 @@
 {
   "latestNativeControl": {
-    "checkedAt": "2026-11-15T22:16:06.868Z",
+    "checkedAt": "2026-11-15T23:46:11.432Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",
@@ -14,7 +14,7 @@
       "assignedHelperNestedSkillsOnly": true,
       "assignedPackageSkillsScoped": true,
       "hardFilesystemSandbox": false,
-      "packagedBridge": false,
+      "packagedBridge": true,
       "interactiveAutomaticClose": true,
       "manualSuccessRemainsOpen": true,
       "realQuestionRemainsOpen": true,

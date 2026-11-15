@@ -6,9 +6,9 @@
 
 **Новая установка начинается без команд, обычных агентов, проектов и демонстрационных материалов.** Встроен только помощник настройки. Команды и ресурсы создаёте или импортируете вы.
 
-[Скачать macOS Apple Silicon · alpha.74](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.74) · [Статус Windows x64](technical-spec/WINDOWS.md) · [Документация](technical-spec/README.md) · [Обратная связь](https://github.com/vtlk/pi-studio/issues)
+[Скачать macOS Apple Silicon · alpha.75](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.75) · [Статус Windows x64](technical-spec/WINDOWS.md) · [Документация](technical-spec/README.md) · [Обратная связь](https://github.com/vtlk/pi-studio/issues)
 
-Сейчас репозиторий закрытый: для загрузки из Releases нужен доступ. Финальный стабильный выпуск ещё не принят. Опубликованная Mac alpha.74 подписана Apple Development; Developer ID/notarization пока не настроены. Windows x64 alpha.73 доступна в prerelease alpha.73 как portable preview ZIP; запуск на самой Windows ещё не проверен.
+Сейчас репозиторий закрытый: для загрузки из Releases нужен доступ. Финальный стабильный выпуск ещё не принят. Опубликованная Mac alpha.75 подписана Apple Development; Developer ID/notarization пока не настроены. Windows x64 alpha.75 доступна в prerelease alpha.75 как portable preview ZIP; запуск на самой Windows ещё не проверен.
 
 ## Как устроена работа
 
@@ -76,11 +76,11 @@ Windows использует Windows Terminal и штатный для Pi Git Ba
 
 | Область | Статус |
 |---|---|
-| macOS 13+ · Apple Silicon | Alpha.74 опубликована; оставшаяся ручная приёмка отражена в аудите |
-| Windows 10/11 · x64 | Предварительная кросс-сборка alpha.73; нативная приёмка открыта |
+| macOS 13+ · Apple Silicon | Alpha.75 опубликована; оставшаяся ручная приёмка отражена в аудите |
+| Windows 10/11 · x64 | Предварительная кросс-сборка alpha.75; нативная приёмка открыта |
 | Claude Code · подписка | Провайдер встроен; проверка настоящего подписочного аккаунта и биллинга отложена |
 | Browser / Computer Use | Встроенные MCP; для Computer Use нужны доступ ОС и подходящая модель. Реальная desktop-приёмка ещё не завершена |
-| Автообновление | Добавлено в ТЗ, пока не реализовано |
+| Автообновление | В разработке: ядро и UI проверены отдельно; установщик и сквозная приёмка ещё не готовы |
 
 [Поэлементный аудит MVP](technical-spec/MVP_COMPLETION_AUDIT.md) отделяет настоящие интеграционные проверки от UI/fixture-проверок и перечисляет оставшиеся задачи. Наличие alpha или Windows ZIP не означает завершение всего MVP.
 

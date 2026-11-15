@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-15T23:52:06.842Z",
+  "version": "0.2.0-alpha.75",
+  "mainPid": 85733,
+  "mainProcessCount": 1,
+  "normalQuitPreviousPid": 54080,
+  "forcedTermination": false,
+  "signatureVerified": true,
+  "signatureIdentityUnchanged": true,
+  "studioFolderUnchanged": true,
+  "filesCompared": 3144,
+  "directoryAndFileEntriesCompared": 3852,
+  "canonicalJsonlFilesCompared": 65,
+  "contentSha256Unchanged": true,
+  "merkleSha256": "7d8e156b6e5f72a4c21bdfb13faabc0f69b9e4ca543757a4b092611a62db99a6",
+  "userFileContentsCopiedOrBackedUp": false,
+  "installer": "Explicitly authorized external update; not the unfinished in-app updater",
+  "fullUpdaterAccepted": false,
+  "temporaryPackagedApplicationRemoved": true,
+  "currentLocalReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.75-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.75-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.75-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.75-win32-x64.update.json"
+  ]
+}

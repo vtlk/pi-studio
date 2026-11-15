@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-11-15T23:49:05.367Z",
+  "version": "0.2.0-alpha.75",
+  "sourceCommit": "cccdb0b869be9d837a450903c3880e00aeeaf52c",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.75",
+  "prerelease": true,
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.75-darwin-arm64.update.json",
+      "id": 752749929,
+      "bytes": 622,
+      "sha256": "82638f7c96c892acc5323deda749e4f6b761ac51447d4cb57df1c0e34e9a125a",
+      "githubDigestMatches": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip",
+      "id": 752749964,
+      "bytes": 142268629,
+      "sha256": "c55e5c368686be358095d618ad51195a3e7ae6cad26fbe8de39866d6e0ba15b6",
+      "githubDigestMatches": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip.sha256",
+      "id": 752749930,
+      "bytes": 105,
+      "sha256": "dddc34b595d521b9405b31ba82756e45b56350a1de0ed7b11277acd6cef70cb7",
+      "githubDigestMatches": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.75-win-x64.zip",
+      "id": 752749928,
+      "bytes": 171485244,
+      "sha256": "0a530ab7540f8c31cc4aa2914598c27b86b5774a100b82eef8b74ed08693324e",
+      "githubDigestMatches": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.75-win-x64.zip.sha256",
+      "id": 752749937,
+      "bytes": 103,
+      "sha256": "02caec793b530f02ac487f21f1e78a95c1c67cd8dc7ce7643b5d7a5b65ece61e",
+      "githubDigestMatches": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.75-win32-x64.update.json",
+      "id": 752749972,
+      "bytes": 630,
+      "sha256": "667a0fd03302b9f30de8f6543b0a9ab136fd8bcdaade9876bc061c412b9b56b6",
+      "githubDigestMatches": true
+    }
+  ],
+  "macSignatureIdentityMatchesInstalled": true,
+  "macSignatureDeepStrictVerified": true,
+  "archivesCrcVerified": true,
+  "macCompiledMainExact": true,
+  "macEmptyAndLegacyNativeUiVerified": true,
+  "windowsNativeAcceptance": false,
+  "authenticode": false,
+  "fullUpdaterConnected": false,
+  "privateSigningKeyBundled": false
+}

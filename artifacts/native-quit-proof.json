@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-11-15T05:18:26.858Z",
-  "version": "0.2.0-alpha.61",
+  "checkedAt": "2026-11-15T23:27:00.981Z",
+  "version": "0.2.0-alpha.75",
   "realProcessExit": true,
   "windowsNotPredestroyed": true,
   "isolatedUserData": true,
   "permissionRequests": false,
-  "packagedEntry": true,
+  "packagedEntry": false,
   "cases": [
     {
       "mode": "idle",
