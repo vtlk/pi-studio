@@ -93,7 +93,7 @@ test('the Pi SDK bridge delegates login and emits no credentials or raw errors',
     sdk,
     `export const ModelRuntime = { async create(options) {
     if (options.allowModelNetwork !== false) throw new Error('must not generate');
-    return { getProviders(){return [];}, async login(provider, kind, interaction) {
+    return { getProviders(){return [];}, async refresh(){return {errors:new Map()};}, async login(provider, kind, interaction) {
       console.log('UNSTRUCTURED_EXTENSION_OUTPUT');
       if (provider !== 'openai-codex' || kind !== 'oauth') throw new Error('wrong provider');
       const method = await interaction.prompt({type:'select', message:'Choose login', options:[{id:'browser',label:'Browser'}]});

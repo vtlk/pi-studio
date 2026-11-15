@@ -1,0 +1,28 @@
+{
+  "latestNativeControl": {
+    "checkedAt": "2026-11-15T16:33:09.472Z",
+    "result": {
+      "passed": true,
+      "pi": "1.5.2",
+      "claudeCodeProvider": true,
+      "officialCliBillingVerified": false,
+      "nativeBashAndMcpCompletion": true,
+      "disabledStageSkipped": true,
+      "currentRoleAtHandoff": true,
+      "newlyEnabledInstructionDeliveredAtHandoff": true,
+      "scopeRulesReceivedInNativeSystemPrompt": true,
+      "assignedHelperNestedSkillsOnly": true,
+      "assignedPackageSkillsScoped": true,
+      "hardFilesystemSandbox": false,
+      "packagedBridge": false,
+      "freshContextWithoutInstructionCopies": true,
+      "previousOutputReadByNextAgent": true,
+      "oneUserMessagePerStage": true,
+      "armedIdleResumeNoReplay": true,
+      "idleResumeFreshContextAndExactBinding": true,
+      "localModelRequests": 6,
+      "externalModelRequests": 0,
+      "scope": "Actual Pi SDK/production RunHost/bridge with synthetic local OpenAI SSE tools; no Terminal UI or user studio changes."
+    }
+  }
+}

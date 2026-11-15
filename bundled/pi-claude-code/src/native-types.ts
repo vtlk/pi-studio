@@ -78,4 +78,3 @@ export type AnthropicStreamEvent =
     }
   | { type: "message_stop" }
   | { type: "error"; error?: { type?: string; message?: string } };
-

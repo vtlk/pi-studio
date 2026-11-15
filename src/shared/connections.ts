@@ -31,6 +31,7 @@ export interface ModelConnectionStatus {
   connectionId: string;
   provider: string;
   status: 'ready' | 'not_ready' | 'invalid';
+  detail?: string;
 }
 export interface ModelLoginRequest extends ModelConnectionRequest {
   method: 'oauth' | 'api_key';

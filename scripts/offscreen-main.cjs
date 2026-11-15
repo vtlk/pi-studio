@@ -21,6 +21,8 @@ module.exports.configureQaRuntime = () => {
   electron.app.setName = () => setName('Pi Studio QA');
   electron.app.setName();
   if (process.platform === 'darwin') electron.app.setActivationPolicy('accessory');
+  // Native child CLIs do not inherit Chromium's mock Keychain. Never probe the user's Claude login.
+  process.env.PI_CLAUDE_CODE_COMMAND ??= resolve(data, 'no-user-claude-cli');
   configured = true;
 };
 

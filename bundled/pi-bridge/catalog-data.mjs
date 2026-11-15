@@ -21,18 +21,29 @@ export async function catalogData(sdk, runtime, cwd, scope, sdkPath) {
     // in the catalog. Never advertise the isolation guard as a provider's auth method.
     const auth =
       scope && provider.id !== scope.provider
-        ? (nativeProviderAuth(runtime, provider.id) ?? builtins.getProvider(provider.id)?.auth ?? provider.auth)
+        ? (nativeProviderAuth(runtime, provider.id) ??
+          builtins.getProvider(provider.id)?.auth ??
+          provider.auth)
         : provider.auth;
     return {
       id: provider.id,
       name: provider.name || provider.id,
       configured: runtime.hasConfiguredAuth(provider.id),
       subscription: runtime.isUsingSubscription(provider.id),
-      isolatedAuth: !!nativeProviderAuth(runtime, provider.id) || !!builtins.getProvider(provider.id) || scope?.provider === provider.id,
-      loginMethods: [
-        ...(auth.oauth ? [{ id: 'oauth', label: auth.oauth.loginLabel || auth.oauth.name }] : []),
-        ...(auth.apiKey?.login ? [{ id: 'api_key', label: auth.apiKey.name }] : []),
-      ],
+      isolatedAuth:
+        provider.id !== 'claude-code' &&
+        (!!nativeProviderAuth(runtime, provider.id) ||
+          !!builtins.getProvider(provider.id) ||
+          scope?.provider === provider.id),
+      loginMethods:
+        provider.id === 'claude-code'
+          ? []
+          : [
+              ...(auth.oauth
+                ? [{ id: 'oauth', label: auth.oauth.loginLabel || auth.oauth.name }]
+                : []),
+              ...(auth.apiKey?.login ? [{ id: 'api_key', label: auth.apiKey.name }] : []),
+            ],
     };
   });
   const models = runtime.getModels().map((model) => ({

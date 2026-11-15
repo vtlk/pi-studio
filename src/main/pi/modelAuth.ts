@@ -26,6 +26,13 @@ export async function connectionAuthScope(
   connection: Connection,
 ): Promise<ModelAuthScope | undefined> {
   const custom = connection.purpose === 'compatible' || connection.purpose === 'local';
+  if (connection.providerId === 'claude-code') {
+    if (connection.authScope === 'connection')
+      throw new Error(
+        'Claude Code использует общий вход своего CLI. Выберите эту область в настройках подключения.',
+      );
+    return;
+  }
   if (!custom && connection.authScope !== 'connection') return;
   stableId(connection.id);
   const endpoint = custom
@@ -61,7 +68,7 @@ export async function modelAuthOperation<T>(
   piPath: string,
   script: string,
   request: {
-    action: 'status' | 'catalog' | 'logout' | 'discover';
+    action: 'status' | 'catalog' | 'logout' | 'discover' | 'claude-status';
     provider?: string;
     scope?: ModelAuthScope;
     cwd?: string;

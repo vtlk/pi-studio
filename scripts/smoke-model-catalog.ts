@@ -17,6 +17,7 @@ try {
   assert.equal(pi.supported, true);
   const sdkPath = await resolvePiSdk(await realpath(pi.path));
   process.env.PI_CODING_AGENT_DIR = join(root, 'NativePi');
+  process.env.PI_CLAUDE_CODE_COMMAND = join(root, 'no-user-claude');
   process.env.OPENAI_API_KEY = 'qa-ambient-not-a-real-key';
   await mkdir(process.env.PI_CODING_AGENT_DIR, { recursive: true });
   const attempts = join(root, 'network-attempts');
@@ -78,17 +79,23 @@ globalThis.fetch = async () => {
   );
   assert.deepEqual(
     catalog.providers
-      .filter((p) => p.id !== scope.provider)
+      .filter((p) => p.id !== scope.provider && p.id !== 'claude-code')
       .map((p) => p.id)
       .sort(),
     nativeProviders.map((p) => p.id).sort(),
   );
   assert.deepEqual(
     catalog.models
-      .filter((m) => m.provider !== scope.provider)
+      .filter((m) => m.provider !== scope.provider && m.provider !== 'claude-code')
       .map((m) => `${m.provider}\0${m.id}`)
       .sort(),
     nativeModels.map((m) => `${m.provider}\0${m.id}`).sort(),
+  );
+  assert.equal(catalog.providers.filter((p) => p.id === 'claude-code').length, 1);
+  assert.equal(catalog.providers.find((p) => p.id === 'claude-code')?.isolatedAuth, false);
+  assert.deepEqual(
+    catalog.models.filter((m) => m.provider === 'claude-code'),
+    [],
   );
   for (const native of nativeProviders) {
     const provider = catalog.providers.find((p) => p.id === native.id)!;
@@ -124,15 +131,19 @@ globalThis.fetch = async () => {
     root,
     { provider: 'openai-codex', authPath: join(root, 'codex-auth.json') },
   );
-  assert.equal(selectedCodex.providers.length, nativeProviders.length);
+  assert.equal(selectedCodex.providers.length, nativeProviders.length + 1);
   assert.deepEqual(
-    selectedCodex.providers.map((p) => [p.id, p.loginMethods]),
-    catalog.providers.filter((p) => p.id !== scope.provider).map((p) => [p.id, p.loginMethods]),
+    selectedCodex.providers
+      .filter((p) => p.id !== 'claude-code')
+      .map((p) => [p.id, p.loginMethods]),
+    catalog.providers
+      .filter((p) => p.id !== scope.provider && p.id !== 'claude-code')
+      .map((p) => [p.id, p.loginMethods]),
   );
   assert.ok(selectedCodex.providers.every((p) => !p.configured));
   assert.deepEqual(
     selectedCodex.models,
-    catalog.models.filter((m) => m.provider !== scope.provider),
+    catalog.models.filter((m) => m.provider !== scope.provider && m.provider !== 'claude-code'),
   );
   await assert.rejects(readFile(attempts), { code: 'ENOENT' });
   console.log(

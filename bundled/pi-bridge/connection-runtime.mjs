@@ -1,28 +1,49 @@
 import { registerEndpoint } from './endpoint-runtime.mjs';
 import { nativeExtensionPaths } from './native-extensions.mjs';
+import { withClaudeExtension } from './claude-code/extensions.mjs';
 
 const providerAuth = new WeakMap();
 export const nativeProviderAuth = (runtime, id) => providerAuth.get(runtime)?.get(id);
 
 export async function createConnectionServices(sdk, scope, cwd = process.cwd(), options = {}) {
   const runtime = await createBaseRuntime(sdk, scope);
-  const nativePaths = options.nativePaths ?? await nativeExtensionPaths(sdk, cwd);
+  const nativePaths = options.nativePaths ?? (await nativeExtensionPaths(sdk, cwd));
   const { additionalExtensionPaths = [], ...loaderOptions } = options.resourceLoaderOptions ?? {};
   const services = await sdk.createAgentSessionServices({
     cwd,
     modelRuntime: runtime,
-    settingsManager: options.settingsManager ?? sdk.SettingsManager.inMemory({ packages: [], extensions: [], skills: [], prompts: [] }),
+    settingsManager:
+      options.settingsManager ??
+      sdk.SettingsManager.inMemory({ packages: [], extensions: [], skills: [], prompts: [] }),
     resourceLoaderOptions: {
-      noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true,
-      systemPrompt: '', appendSystemPrompt: [],
+      noExtensions: true,
+      noSkills: true,
+      noPromptTemplates: true,
+      noThemes: true,
+      noContextFiles: true,
+      systemPrompt: '',
+      appendSystemPrompt: [],
       ...loaderOptions,
-      additionalExtensionPaths: [...new Set([...nativePaths, ...additionalExtensionPaths])],
+      additionalExtensionPaths: await withClaudeExtension([
+        ...nativePaths,
+        ...additionalExtensionPaths,
+      ]),
     },
   });
-  if (services.resourceLoader.getExtensions().errors.length || services.diagnostics.some(item => item.type === 'error'))
+  if (
+    services.resourceLoader.getExtensions().errors.length ||
+    services.diagnostics.some((item) => item.type === 'error')
+  )
     throw Error('A native or selected Pi extension could not load');
-  providerAuth.set(runtime, new Map(runtime.getProviders().map(provider => [provider.id, provider.auth])));
+  providerAuth.set(
+    runtime,
+    new Map(runtime.getProviders().map((provider) => [provider.id, provider.auth])),
+  );
   await isolateConnection(runtime, scope);
+  // Native registration also schedules asynchronous refreshes. Finish a scoped
+  // pass before reading its dynamic CLI catalog for preflight/session creation.
+  if (!scope || scope.provider === 'claude-code')
+    await runtime.refresh({ allowNetwork: false, providers: ['claude-code'] });
   return services;
 }
 

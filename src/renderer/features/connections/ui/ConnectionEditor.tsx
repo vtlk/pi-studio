@@ -9,6 +9,7 @@ import { usePiCatalog } from '../model/usePiCatalog';
 import { useStorage } from '@/shared/storage/Storage';
 import { ImageKeyFields } from './ImageKeyFields';
 import { NativeConnectionAuth } from './NativeConnectionAuth';
+import { ClaudeCodeAuth } from './ClaudeCodeAuth';
 import { EndpointFields } from './EndpointFields';
 import { endpointProviderId } from '../../../../shared/modelEndpoint';
 
@@ -41,6 +42,7 @@ export function ConnectionEditor({
   const [busy, setBusy] = useState(false);
   const [authActive, setAuthActive] = useState(false);
   const custom = draft.purpose === 'compatible' || draft.purpose === 'local';
+  const claudeCode = draft.providerId === 'claude-code';
   const provider = custom
     ? {
         id: draft.providerId,
@@ -57,7 +59,7 @@ export function ConnectionEditor({
   const save = async () => {
     if (!draft.name.trim() || !draft.providerId.trim())
       throw new Error('Укажите название и провайдера подключения.');
-    saveConnection(draft);
+    saveConnection(claudeCode ? { ...draft, authScope: 'native' } : draft);
     if (!(await saveNow())) throw new Error('Сначала сохраните настройки подключения.');
   };
   const close = () => {
@@ -172,7 +174,13 @@ export function ConnectionEditor({
                   ? [{ value: draft.providerId, label: draft.providerId }]
                   : []),
               ]}
-              onValueChange={(id) => setDraft({ ...draft, providerId: id === 'none' ? '' : id })}
+              onValueChange={(id) =>
+                setDraft({
+                  ...draft,
+                  providerId: id === 'none' ? '' : id,
+                  authScope: id === 'claude-code' ? 'native' : draft.authScope,
+                })
+              }
             />
           ) : (
             <input
@@ -222,12 +230,16 @@ export function ConnectionEditor({
               Авторизация
               <Select
                 label="Область авторизации Pi"
-                disabled={busy || authActive}
-                value={draft.authScope ?? 'native'}
-                options={[
-                  { value: 'connection', label: 'Отдельный вход для этого подключения' },
-                  { value: 'native', label: 'Общий вход Pi' },
-                ]}
+                disabled={busy || authActive || claudeCode}
+                value={claudeCode ? 'native' : (draft.authScope ?? 'native')}
+                options={
+                  claudeCode
+                    ? [{ value: 'native', label: 'Общий вход Claude Code CLI' }]
+                    : [
+                        { value: 'connection', label: 'Отдельный вход для этого подключения' },
+                        { value: 'native', label: 'Общий вход Pi' },
+                      ]
+                }
                 onValueChange={(value) =>
                   setDraft({ ...draft, authScope: value as 'connection' | 'native' })
                 }
@@ -284,14 +296,23 @@ export function ConnectionEditor({
             />
           )}
           {error && <p role="alert">{error}</p>}
-          <NativeConnectionAuth
-            connection={draft}
-            provider={provider}
-            busy={busy}
-            setBusy={setBusy}
-            onActiveChange={setAuthActive}
-            beforeAuth={save}
-          />
+          {claudeCode ? (
+            <ClaudeCodeAuth
+              connectionId={draft.id}
+              busy={busy}
+              setBusy={setBusy}
+              beforeAuth={save}
+            />
+          ) : (
+            <NativeConnectionAuth
+              connection={draft}
+              provider={provider}
+              busy={busy}
+              setBusy={setBusy}
+              onActiveChange={setAuthActive}
+              beforeAuth={save}
+            />
+          )}
           <Button disabled={loading || busy || authActive} onClick={() => void reload()}>
             Загрузить каталог Pi
           </Button>

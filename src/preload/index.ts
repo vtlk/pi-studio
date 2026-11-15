@@ -68,6 +68,7 @@ const desktopApi: DesktopApi = {
   checkPi: (path) => ipcRenderer.invoke(desktopChannels.checkPi, path),
   getConnectionStatus: (request) =>
     ipcRenderer.invoke(desktopChannels.getConnectionStatus, request),
+  manageClaudeCode: (request) => ipcRenderer.invoke(desktopChannels.manageClaudeCode, request),
   beginConnectionLogin: (request) =>
     ipcRenderer.invoke(desktopChannels.beginConnectionLogin, request),
   removeConnectionLogin: (request) =>

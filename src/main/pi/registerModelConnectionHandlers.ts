@@ -15,6 +15,13 @@ export function registerModelConnectionHandlers(
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
   const connections = new ModelConnections(service, directory, scripts, piPath, auth);
+  ipcMain.handle(
+    desktopChannels.manageClaudeCode,
+    (event, request: ModelConnectionRequest & { action: 'install' | 'login' | 'logout' }) => {
+      caller(event);
+      return connections.claudeCode(request);
+    },
+  );
   ipcMain.handle(desktopChannels.readAuthLogin, (event, id: string) => {
     caller(event);
     return auth.read(id);

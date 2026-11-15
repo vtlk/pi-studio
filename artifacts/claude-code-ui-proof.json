@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-15T16:38:48.241Z",
+  "scope": "Actual Electron main/preload/renderer, bundled Claude Code provider with owned CLI, no catalog stubs",
+  "extensionProviderVisibleInConnectionEditor": true,
+  "nativeLoginAvailable": true,
+  "extensionModelSearchAndKeyboardSelection": true,
+  "selectionPersistsAfterReload": true,
+  "extensionStdoutNotInUi": true,
+  "modelOrCloudRequests": 0,
+  "offscreen": true,
+  "packagedEntry": false
+}

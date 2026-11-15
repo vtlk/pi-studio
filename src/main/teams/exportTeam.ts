@@ -32,6 +32,10 @@ export async function exportTeam(
   const requirements = [
     'Требуется Pi Studio с встроенными Project/Browser/Computer MCP. Runtime/provider расширения Pi не копируются глобально: проверьте поддержку каждого указанного провайдера.',
   ];
+  if (profiles.some((agent) => agent.model?.provider === 'claude-code'))
+    requirements.push(
+      'Claude Code: требуется встроенный провайдер Pi Studio @earendil-works/pi-claude-code 0.1.0 (d5b5e04c314d3452d357174d16d10dda34daa2d2), совместимый официальный Claude CLI 2.1+ (2.x) и явный общий подписочный вход. CLI, его авторизация и история не переносятся; сопоставление подключения выполняется явно, без API/extra usage fallback.',
+    );
   for (const agent of profiles) {
     const settings: NonNullable<typeof agent.capabilitySettings> = {};
     for (const kind of ['skills', 'mcps', 'plugins'] as const) {

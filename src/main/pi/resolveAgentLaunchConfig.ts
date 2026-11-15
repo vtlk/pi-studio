@@ -41,7 +41,8 @@ export async function resolveAgentLaunchConfig(
     modelAuth,
     folder,
   );
-  if (status.status !== 'ready') throw new Error('Войдите в выбранный аккаунт Pi перед запуском.');
+  if (status.status !== 'ready')
+    throw new Error(status.detail ?? 'Войдите в выбранный аккаунт Pi перед запуском.');
   const models = await readPiCatalog(piPath, catalog, folder, modelAuth);
   const selectedModel = models.models.find(
     (item) => item.provider === model.provider && item.id === model.id,

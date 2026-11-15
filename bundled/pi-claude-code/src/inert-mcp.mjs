@@ -35,4 +35,3 @@ for await (const line of lines) {
     process.stdout.write(`${JSON.stringify({ jsonrpc: "2.0", id: request.id, result })}\n`);
   }
 }
-

@@ -11,6 +11,7 @@ import { stableId } from '../storage/validation.ts';
 import type { BrowserAuth } from './BrowserAuth.ts';
 import { connectionAuthScope, modelAuthOperation } from './modelAuth.ts';
 import { readPiCatalog } from './catalog.ts';
+import { openClaudeCodeAction, type ClaudeCodeAction } from './claudeCode.ts';
 
 export class ModelConnections {
   private service: StudioService;
@@ -99,6 +100,10 @@ export class ModelConnections {
   async login(request: ModelLoginRequest) {
     if (!['oauth', 'api_key'].includes(request.method)) throw new Error('Выберите способ входа.');
     const saved = await this.descriptor(request);
+    if (saved.connection.providerId === 'claude-code')
+      throw new Error(
+        'Используйте штатный вход Claude Code. Авторизация Pi для него не применяется.',
+      );
     return this.browserAuth.startProvider(saved.path, {
       provider: saved.connection.providerId,
       method: request.method,
@@ -132,11 +137,26 @@ export class ModelConnections {
   }
   async logout(request: ModelConnectionRequest) {
     const saved = await this.descriptor(request);
+    if (saved.connection.providerId === 'claude-code')
+      throw new Error('Общий вход принадлежит Claude Code. Используйте «Выйти из Claude Code».');
     await modelAuthOperation(saved.path, join(this.scripts, 'model-auth.mjs'), {
       action: 'logout',
       provider: saved.connection.providerId,
       scope: saved.scope,
       cwd: saved.cwd,
     });
+  }
+  async claudeCode(request: ModelConnectionRequest & { action: ClaudeCodeAction }) {
+    const saved = await this.descriptor(request);
+    if (saved.connection.providerId !== 'claude-code')
+      throw new Error('Выберите подключение Claude Code.');
+    const state = await modelAuthOperation<{ command?: string; status: string; detail?: string }>(
+      saved.path,
+      join(this.scripts, 'model-auth.mjs'),
+      { action: 'claude-status' },
+    );
+    if ((await this.descriptor(request)).signature !== saved.signature)
+      throw new Error('Подключение изменилось во время проверки.');
+    await openClaudeCodeAction(request.action, state, saved.cwd);
   }
 }

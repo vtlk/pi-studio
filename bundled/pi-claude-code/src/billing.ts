@@ -47,4 +47,3 @@ export function describeUsageCreditsRejection(message: string): string | undefin
     message
   );
 }
-

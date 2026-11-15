@@ -21,4 +21,3 @@ export default function claudeCodeExtension(pi: ExtensionAPI): void {
 
 export { createClaudeCodeProvider } from "./provider.ts";
 export { streamClaudeCode } from "./stream.ts";
-

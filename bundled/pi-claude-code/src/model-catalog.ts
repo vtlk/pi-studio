@@ -195,4 +195,3 @@ export function modelForDiscoveredRoute(route: string, label?: string): ClaudeCo
   const known = CLAUDE_CODE_MODELS.find((model) => model.id === canonical);
   return known ? { ...known, name: label ? `${label} (Claude Code)` : known.name } : undefined;
 }
-

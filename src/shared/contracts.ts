@@ -82,6 +82,9 @@ export interface DesktopApi {
   checkPi(path: string): Promise<PiCheck>;
   getProviderStatus(provider: string): Promise<ProviderStatus>;
   getConnectionStatus(request: ModelConnectionRequest): Promise<ModelConnectionStatus>;
+  manageClaudeCode(
+    request: ModelConnectionRequest & { action: 'install' | 'login' | 'logout' },
+  ): Promise<void>;
   beginConnectionLogin(request: ModelLoginRequest): Promise<AuthLoginState>;
   removeConnectionLogin(request: ModelConnectionRequest): Promise<void>;
   openProviderLogin(provider: string): Promise<void>;
@@ -121,6 +124,7 @@ export interface DesktopApi {
 export interface ProviderStatus {
   provider: string;
   status: 'ready' | 'not_ready' | 'invalid';
+  detail?: string;
 }
 
 export interface PiCheck {
@@ -170,6 +174,7 @@ export const desktopChannels = {
   checkPi: 'studio:check-pi',
   getProviderStatus: 'studio:provider-status',
   getConnectionStatus: 'studio:connection-status',
+  manageClaudeCode: 'studio:claude-code',
   beginConnectionLogin: 'studio:connection-login',
   removeConnectionLogin: 'studio:connection-logout',
   openProviderLogin: 'studio:provider-login',

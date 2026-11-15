@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-15T16:39:03.629Z",
+  "upstream": "d5b5e04c314d3452d357174d16d10dda34daa2d2",
+  "pi": "1.5.2",
+  "nativeProvider": true,
+  "catalogSingleEntry": true,
+  "sharedCliAuth": true,
+  "cliModelDiscovery": true,
+  "fixtureModelRequest": true,
+  "canonicalPiTranscript": true,
+  "idleExactResumeNoReplay": true,
+  "quotaFailureNoFallback": true,
+  "longMcpToolNamesAndCanonicalHistory": true,
+  "overageDetectionStopsSubsequentRequestsOnly": true,
+  "noGenerationDuringChecks": true,
+  "noApiKeyInCli": true,
+  "missingCliAndWrongAuthAndVersionRejected": true,
+  "billingAcceptance": false,
+  "installedAcceptance": false,
+  "externalRequests": 0
+}

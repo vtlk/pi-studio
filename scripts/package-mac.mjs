@@ -4,6 +4,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { constants } from 'node:fs';
 import { homedir } from 'node:os';
 import { packageCua } from './package-cua.mjs';
+import { verifyClaudePackage } from './verify-claude-package.mjs';
 
 if (process.platform !== 'darwin') throw new Error('Packaging Pi Studio requires macOS.');
 const signingIdentity = process.env.PI_STUDIO_SIGN_IDENTITY?.trim();
@@ -12,6 +13,7 @@ if (!signingIdentity || signingIdentity === '-')
     'Set PI_STUDIO_SIGN_IDENTITY to an existing certificate signing identity before packaging. Ad-hoc fallback is disabled to preserve Keychain application identity.',
   );
 const root = resolve(import.meta.dirname, '..');
+await verifyClaudePackage(join(root, 'bundled/pi-claude-code'));
 const metadata = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 // Documents may be cloud-managed and acquire FinderInfo during signing. Build in local cache.
 const targetRoot = join(
@@ -57,6 +59,7 @@ await writeFile(
     'Corresponding source: https://registry.npmjs.org/mediabunny/-/mediabunny-1.64.0.tgz (includes src/).',
     'Zod 4.6.7: MIT; see Zod-LICENSE.txt. Source: https://github.com/colinhacks/zod',
     'Editor Starter and Remotion Timeline are not included.',
+    '@earendil-works/pi-claude-code 0.1.0: MIT, pinned d5b5e04c314d3452d357174d16d10dda34daa2d2. See bundled/pi-claude-code/LICENSE and UPSTREAM.json. Official Claude CLI is a separately installed, unmodified dependency; its credentials are not bundled.',
     'Saxes 6.0.0: ISC; see Saxes-LICENSE.txt. Source: https://github.com/lddubeau/saxes',
     'xmlchars 2.2.0: MIT; see Xmlchars-LICENSE.txt. Source: https://github.com/lddubeau/xmlchars',
     'Cua Driver 0.49.11: MIT; @ubjs runtimes 0.31.0-3: MPL-2.0. See Cua-MIT.txt, MPL-2.0.txt, Cua-node-runtime-NOTICE.md and Cua-SOURCES.md for exact corresponding source.',
@@ -76,6 +79,7 @@ const cuaBinaries = await packageCua(root, application, process.arch);
 await cp(join(root, 'bundled/pi-bridge'), join(application, 'bundled/pi-bridge'), {
   recursive: true,
 });
+await cp(join(root, 'bundled/pi-claude-code'), join(application, 'bundled/pi-claude-code'), { recursive: true });
 await cp(join(root, 'bundled/pi-runtime'), join(application, 'bundled/pi-runtime'), {
   recursive: true,
 });

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile, mkdir, readdir } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -12,7 +12,23 @@ import type { Agent } from '../src/shared/studio.ts';
 import type { Resource } from '../src/shared/resources.ts';
 import { importSkill } from '../src/main/storage/skills.ts';
 
+const claude = process.argv.includes('--claude-code');
+const previousEnvironment = { ...process.env };
 const root = await mkdtemp(join(tmpdir(), 'pistudio-chain-local-'));
+if (claude) {
+  process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --import=${new URL('./fixtures/deny-external.mjs', import.meta.url).href}`;
+  process.env.PI_CODING_AGENT_DIR = join(root, 'NativePi');
+  process.env.PI_CLAUDE_CODE_COMMAND = join(root, 'claude');
+  process.env.PI_CLAUDE_CODE_CONFIG_DIR = join(root, 'ClaudeConfig');
+  process.env.PI_STUDIO_QA_CLAUDE_STATE = join(root, 'claude-state.json');
+  process.env.PI_STUDIO_QA_CLAUDE_LOG = join(root, 'claude-log.jsonl');
+  await mkdir(process.env.PI_CODING_AGENT_DIR, { recursive: true });
+  await writeFile(process.env.PI_STUDIO_QA_CLAUDE_STATE, '{}');
+  await cp(
+    new URL('./fixtures/claude-cli.cjs', import.meta.url),
+    process.env.PI_CLAUDE_CODE_COMMAND,
+  );
+}
 const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
 const store = await service.load(),
   pi = await checkPi('');
@@ -119,30 +135,43 @@ const server = createServer(async (req, res) => {
 });
 await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
 const port = (server.address() as { port: number }).port;
-const connection = {
-  id: 'qa-chain',
-  name: 'Local chain fixture',
-  purpose: 'local' as const,
-  providerId: endpointProviderId('qa-chain'),
-  authScope: 'connection' as const,
-  endpoint: `http://127.0.0.1:${port}/v1`,
-  account: '',
-  createdAt: 1,
-  endpointConfig: {
-    api: 'openai-completions' as const,
-    auth: 'none' as const,
-    models: [
-      {
-        id: 'qa-chain',
-        name: 'QA chain',
-        imageInput: false,
-        reasoning: false,
-        contextWindow: 16384,
-        maxTokens: 1024,
+if (claude)
+  process.env.PI_STUDIO_QA_CLAUDE_UPSTREAM = `http://127.0.0.1:${port}/v1/chat/completions`;
+const connection: import('../src/shared/connections.ts').Connection = claude
+  ? {
+      id: 'qa-chain',
+      name: 'Claude subscription fixture',
+      purpose: 'pi',
+      providerId: 'claude-code',
+      authScope: 'native',
+      endpoint: '',
+      account: '',
+      createdAt: 1,
+    }
+  : {
+      id: 'qa-chain',
+      name: 'Local chain fixture',
+      purpose: 'local' as const,
+      providerId: endpointProviderId('qa-chain'),
+      authScope: 'connection' as const,
+      endpoint: `http://127.0.0.1:${port}/v1`,
+      account: '',
+      createdAt: 1,
+      endpointConfig: {
+        api: 'openai-completions' as const,
+        auth: 'none' as const,
+        models: [
+          {
+            id: 'qa-chain',
+            name: 'QA chain',
+            imageInput: false,
+            reasoning: false,
+            contextWindow: 16384,
+            maxTokens: 1024,
+          },
+        ],
       },
-    ],
-  },
-};
+    };
 await store.saveSection('connections', [connection]);
 const directSkills: Record<string, Resource> = {};
 for (const stage of ['first', 'last']) {
@@ -207,7 +236,7 @@ const agents: Agent[] = ['first', 'skip', 'last'].map((id) => ({
   model: {
     connectionId: connection.id,
     provider: connection.providerId,
-    id: 'qa-chain',
+    id: claude ? 'claude-sonnet-5' : 'qa-chain',
     reasoning: 'По умолчанию',
     temperature: '',
   },
@@ -216,6 +245,8 @@ await store.saveSection('agents', agents);
 const project = (await store.command({ kind: 'create', name: 'Native local chain', agents }))
   .projects[0];
 const children: Promise<number | null>[] = [];
+let childDiagnostics = '';
+
 const host = createStudioRunHost(service, {
   bootstraps: join(root, 'boots'),
   bridge:
@@ -226,9 +257,17 @@ const host = createStudioRunHost(service, {
   headless: true,
   openTerminal: async (node, bridge, bootstrap) => {
     const child = spawn(node, [bridge, bootstrap], {
-      stdio: 'ignore',
+      stdio: claude ? ['ignore', 'pipe', 'pipe'] : 'ignore',
       env: { ...process.env, PI_OFFLINE: '1', PI_TELEMETRY: '0' },
     });
+    if (claude) {
+      child.stdout?.on('data', (chunk) => {
+        childDiagnostics = (childDiagnostics + chunk).slice(-12000);
+      });
+      child.stderr?.on('data', (chunk) => {
+        childDiagnostics = (childDiagnostics + chunk).slice(-12000);
+      });
+    }
     children.push(
       new Promise((r, reject) => {
         child.once('error', reject);
@@ -251,6 +290,10 @@ try {
       throw Error('Native local chain failed');
     await new Promise((r) => setTimeout(r, 50));
     current = await store.projects.read(project.id);
+  }
+  if (claude && current.agents.some((a) => a.enabled && a.runStatus !== 'ready')) {
+    console.error(childDiagnostics);
+    console.error(await readFile(process.env.PI_STUDIO_QA_CLAUDE_LOG!, 'utf8'));
   }
   assert.equal(current.agents[0].runStatus, 'ready');
   assert.equal(current.agents[2].runStatus, 'ready');
@@ -311,6 +354,8 @@ try {
   const proof = {
     passed: true,
     pi: pi.version,
+    claudeCodeProvider: claude,
+    officialCliBillingVerified: false,
     nativeBashAndMcpCompletion: true,
     disabledStageSkipped: true,
     currentRoleAtHandoff: true,
@@ -332,11 +377,18 @@ try {
   };
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(
-    resolve('artifacts/local-chain-proof.json'),
+    resolve(claude ? 'artifacts/claude-code-chain-proof.json' : 'artifacts/local-chain-proof.json'),
     JSON.stringify(
       {
         ...JSON.parse(
-          await readFile(resolve('artifacts/local-chain-proof.json'), 'utf8').catch(() => '{}'),
+          await readFile(
+            resolve(
+              claude
+                ? 'artifacts/claude-code-chain-proof.json'
+                : 'artifacts/local-chain-proof.json',
+            ),
+            'utf8',
+          ).catch(() => '{}'),
         ),
         latestNativeControl: { checkedAt: new Date().toISOString(), result: proof },
       },
@@ -351,4 +403,7 @@ try {
   server.closeAllConnections();
   await new Promise<void>((r) => server.close(() => r()));
   await rm(root, { recursive: true, force: true });
+  for (const key of Object.keys(process.env))
+    if (!(key in previousEnvironment)) delete process.env[key];
+  Object.assign(process.env, previousEnvironment);
 }
