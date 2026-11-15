@@ -41,7 +41,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded,
     js = (code) => window.webContents.executeJavaScript(code, true);
   window.webContents.debugger.attach('1.3');
@@ -339,6 +339,7 @@ const deadline = setTimeout(() => {
     JSON.stringify(
       {
         version: (await js('window.studio.getInfo()')).version,
+        packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
         viewport: { width: 1280, height: 900 },
         samples,
         appearance,
