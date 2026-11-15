@@ -114,6 +114,11 @@ export class StudioStore {
   async addImportedTeam(team: AgentTeam, agents: Agent[], resources: Resource[]) {
     const previous = this.agentCatalog();
     const currentResources = (this.sections.resources ?? []) as Resource[];
+    const systemIds = new Set(
+      ((this.sections.systemAgents ?? []) as SystemAgent[]).map((agent) => agent.id),
+    );
+    if (agents.some((agent) => systemIds.has(agent.id)))
+      throw new Error('Системный помощник не входит в импортируемые команды.');
     if (
       previous.teams.some((item) => item.id === team.id) ||
       agents.some((agent) => previous.agents.some((item) => item.id === agent.id)) ||

@@ -107,6 +107,14 @@ test('team catalog is atomic and rejects duplicate/foreign/missing membership, s
   );
   const helper = (store.bootstrap().sections.systemAgents as Agent[])[0];
   await assert.rejects(
+    store.addImportedTeam(
+      { id: 'imported-system', name: 'Invalid', agentIds: [helper.id] },
+      [helper],
+      [],
+    ),
+    /Системный помощник/,
+  );
+  await assert.rejects(
     store.saveSection('agentCatalog', {
       agents: [helper],
       teams: [{ id: 'x', name: 'X', agentIds: [helper.id] }],
