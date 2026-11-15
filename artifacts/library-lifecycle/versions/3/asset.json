@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "30cadbc8-5318-47d7-982e-787c82a16d21",
+  "kind": "characters",
+  "version": 3,
+  "title": "QA Руби",
+  "description": "Friendly humanoid mascot with a bright red triangular torso, expressive face, arms, and legs.",
+  "category": "mascot",
+  "createdAt": 1794706880640,
+  "files": {
+    "reference": "reference.png",
+    "preview": "preview.png",
+    "vector": "character.svg",
+    "rig": "rig.json"
+  }
+}

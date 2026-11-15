@@ -74,13 +74,23 @@ export const libraryTools: SessionTool[] = [
         character: schema({
           action: { enum: rigActions },
           emotion: { enum: rigEmotions },
-          time: { type: 'number', minimum: 0, maximum: 3600 },
+          time: {
+            type: 'number',
+            minimum: 0,
+            maximum: 3600,
+            description:
+              'Shared animation-clock seconds. For a fully closed automatic blink use time 3.54 and blink true; compare with the same time/pose and blink false.',
+          },
           intensity: { type: 'number', minimum: 0, maximum: 1 },
           headTilt: { type: 'number', minimum: -10, maximum: 10 },
           gazeX: { type: 'number', minimum: -1, maximum: 1 },
           gazeY: { type: 'number', minimum: -1, maximum: 1 },
           autoGaze: { type: 'boolean' },
-          blink: { type: 'boolean' },
+          blink: {
+            type: 'boolean',
+            description:
+              'Enable the periodic automatic blink (4.1-second cycle, left starts at 3.4, right at 3.41). It does not close eyes immediately. Both lids are closed at time 3.54; at time 0.13 they remain open.',
+          },
         }),
         camera: schema({
           zoom: { type: 'number', minimum: 1, maximum: 4 },
@@ -133,6 +143,7 @@ export const libraryContract = {
     'Characters may add files.rig referencing a validated pistudio-character-1 rig.json and files.vector referencing compatible SVG. See characterRig below. No rig means explicitly static; location rigs are not supported.',
     'Updates use existingId and preserve earlier versions, not duplicate cards. No instruction copies are stored in asset packages.',
     'library_render_preview accepts this agent preparation token before preview.png exists. Defaults: 512x512; rig idle/neutral at time 0, intensity 1, zero tilt/manual gaze, no auto blink/gaze. Camera x/y are pixels after fit, clamped like the UI; zoom 1-4. Copy the chosen returned PNG into the declared preview path before validate/publish.',
+    'For a deterministic closed-eye control frame, use character:{action:"idle",emotion:"neutral",time:3.54,blink:true}. Compare with the same time/pose and blink:false. The blink flag enables the periodic automatic cycle, not an immediate UI blink; the UI button starts its own local blink. A sample at time 0.13 has not reached the automatic blink.',
   ],
   characterRig: characterRigContract,
 };
