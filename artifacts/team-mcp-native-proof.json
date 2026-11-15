@@ -13,5 +13,8 @@
   "revokedOnExplicitOpen": true,
   "ordinaryResumeUserMessages": 0,
   "windowsRuntimeAccepted": false,
-  "visibleTerminalAccepted": false
+  "visibleTerminalAccepted": false,
+  "packagedBridge": true,
+  "buildVersion": "0.2.0-alpha.73",
+  "sourceCommit": "b31cd13"
 }

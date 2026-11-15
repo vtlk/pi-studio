@@ -264,7 +264,9 @@ const team = new TeamSupport(service);
 const host = createStudioRunHost(service, {
   team,
   bootstraps: join(root, 'boots'),
-  bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
+  bridge:
+    process.env.PI_STUDIO_QA_BRIDGE ||
+    new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
   piPath: () => pi.path,
   headless: true,
@@ -351,6 +353,7 @@ try {
   assert.equal(workerStep, 7, 'Ordinary resume did not request model');
   const proof = {
     nativePi: pi.version,
+    packagedBridge: !!process.env.PI_STUDIO_QA_BRIDGE,
     loopbackModel: true,
     externalModelRequests: 0,
     userStudioTouched: false,

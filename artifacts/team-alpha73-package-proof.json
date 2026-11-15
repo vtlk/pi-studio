@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0-alpha.73",
+  "sourceCommit": "b31cd1308b20d5144e58461b227a3fbd0f68bc1a",
+  "archives": [
+    {
+      "platform": "mac-arm64",
+      "file": "Pi-Studio-0.2.0-alpha.73-mac-arm64.zip",
+      "bytes": 142670416,
+      "sha256": "b8f5b91eda222fad12daa020b8d21839a1692dca199aa1c6f6f7391ceaef7b77",
+      "crcPassed": true,
+      "compiledPayloadExact": true,
+      "bundledBridgeExact": true,
+      "teamIncluded": true,
+      "noStudioOrDemoData": true,
+      "amd64PeFiles": []
+    },
+    {
+      "platform": "win-x64",
+      "file": "Pi-Studio-0.2.0-alpha.73-win-x64.zip",
+      "bytes": 171333793,
+      "sha256": "9e0d4d285f0f8c1daaf759142759861f6bf472572c94c2a2d1fcc0c98a7ed7c9",
+      "crcPassed": true,
+      "compiledPayloadExact": true,
+      "bundledBridgeExact": true,
+      "teamIncluded": true,
+      "noStudioOrDemoData": true,
+      "amd64PeFiles": [
+        "Pi Studio/Pi Studio.exe",
+        "Pi Studio/resources/app/node_modules/@trycua/cua-driver-win32-x64-msvc/cua_driver_sdk.dll",
+        "Pi Studio/resources/app/node_modules/@trycua/cua-driver-win32-x64-msvc/cua_driver_node_runtime.node"
+      ]
+    }
+  ],
+  "installedAppChanged": false,
+  "userStudioTouched": false,
+  "nativeWindowsAccepted": false,
+  "visibleTerminalAccepted": false,
+  "macCertificateRequirementMatchesInstalled": true,
+  "macNotarized": false,
+  "windowsAuthenticodeSigned": false,
+  "macRequirementCheckedFromCombinedOutput": true,
+  "release": {
+    "id": 446368987,
+    "tag": "v0.2.0-alpha.73",
+    "target": "b31cd1308b20d5144e58461b227a3fbd0f68bc1a",
+    "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.73",
+    "publishedPrerelease": true,
+    "githubAssetDigestsMatch": true,
+    "assetIds": [
+      752360489,
+      752360482,
+      752360481,
+      752360480
+    ]
+  }
+}

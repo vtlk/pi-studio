@@ -26,7 +26,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded;
   window.webContents.removeAllListeners('will-prevent-unload');
   window.webContents.on('will-prevent-unload', () => {
