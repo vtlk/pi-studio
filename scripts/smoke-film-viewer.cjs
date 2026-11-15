@@ -7,7 +7,7 @@ const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const assert = require('node:assert/strict');
 let temporary;
-const artifact = resolve('artifacts/film-workflow');
+const artifact = resolve(process.env.PI_STUDIO_QA_FILM_ARTIFACT || 'artifacts/film-workflow');
 const deadline = setTimeout(() => {
   console.error('Real film viewer timed out');
   app.exit(1);

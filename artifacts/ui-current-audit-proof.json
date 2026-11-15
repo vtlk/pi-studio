@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-11-15T01:23:50.907Z",
+  "version": "0.2.0-alpha.59",
+  "rendererModules": 182,
+  "lucideModules": 38,
+  "rawSelectCheckboxDetailsUiSvgOrOtherIconPackViolations": [],
+  "rendererSourceAggregate": "5521e6807c72cf53680aca556d5bae7af2636e6d1597b8a6efd717f5f70d9129",
+  "nativeDisclosureProof": "disclosure-current-proof.json",
+  "nativeLibrary": {
+    "passed": true,
+    "emptyStart": true,
+    "ordinaryAgentReferenceCancelPreflight": true,
+    "publishUpdateSingleCard": true,
+    "searchCategoryOrderPlus": true,
+    "vanishedCategoryRegression": true,
+    "categoryDoesNotReactivate": true,
+    "nativePngSvg": true,
+    "staticControls": true,
+    "scopedMedia": true,
+    "characterAndLocationConfirmedDeleteUndo": true,
+    "persistentHiddenIdsPreserveSources": true,
+    "locationZoomPointerKeyboardReset": true,
+    "cameraGeometry": {
+      "width": 1271,
+      "height": 714,
+      "transform": "matrix(1, 0, 0, 1, 0, 0)",
+      "naturalWidth": 200,
+      "naturalHeight": 150
+    },
+    "externalInvalidSvgRejected": true,
+    "modelRequests": 0,
+    "publisher": "production LibraryStore fixture, not LLM"
+  },
+  "nativeViewerScreenshot": "film-revision/studio-viewer.png",
+  "limits": "Source inventory plus native UI fixtures. Library publication fixture is production LibraryStore data, not a new model-generated library asset. No OS permission grants or user studio changes."
+}

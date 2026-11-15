@@ -1,0 +1,8 @@
+{
+  "type":"pi-studio.timeline","schemaVersion":1,"width":1080,"height":1920,"fps":30,"durationInFrames":240,"background":"#FFF4DE",
+  "assets":[{"id":"film","type":"video","src":"film.mp4"}],
+  "tracks":[
+    {"id":"visual-film","name":"Готовый мультфильм","type":"visual","items":[{"id":"film-item","name":"Капля заботы — 8 секунд","from":0,"duration":240,"assetId":"film","width":1080,"height":1920,"fit":"contain"}]},
+    {"id":"subtitles","name":"Русские субтитры","type":"subtitles","items":[{"id":"sub1","name":"Первая реплика","from":16,"duration":67,"text":"ЦВЕТОК УСТАЛ. Я ПОМОГУ.","y":1680,"height":130,"fontSize":54,"color":"#FFFFFF","background":"#325A46CC","align":"center"},{"id":"sub2","name":"Финальная реплика","from":134,"duration":61,"text":"ДОБРОТА РАСПУСКАЕТ ЧУДЕСА.","y":1680,"height":130,"fontSize":54,"color":"#FFFFFF","background":"#325A46CC","align":"center"}]}
+  ]
+}

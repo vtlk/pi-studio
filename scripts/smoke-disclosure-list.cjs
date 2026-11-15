@@ -99,7 +99,7 @@ const deadline = setTimeout(() => {
     );
   const point = async (selector, left = false) =>
     js(
-      `(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(r.x+${left ? '4' : 'r.width/2'}),y:Math.round(r.y+r.height/2)}})()`,
+      `(()=>{const element=document.querySelector(${JSON.stringify(selector)});element.scrollIntoView({block:'nearest',inline:'nearest'});const r=element.getBoundingClientRect();return{x:Math.round(r.x+${left ? '4' : 'r.width/2'}),y:Math.round(r.y+r.height/2)}})()`,
     );
   const mouse = async (selector, left = false, activate = false) => {
     const pos = await point(selector, left);
@@ -272,11 +272,25 @@ const deadline = setTimeout(() => {
     `document.querySelector('.instruction-sortable .ui-list-row-label')?.textContent==='Вторая инструкция'`,
   );
   await click('MCP');
-  await until(`document.querySelectorAll('.resource-binding').length===2`);
+  await until(`document.querySelectorAll('.resource-binding').length===4`);
   const pinned = '[data-builtin-mcp]';
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll(${JSON.stringify(pinned)})).map(row=>row.querySelector('.ui-list-row-label').textContent)`,
+    ),
+    ['Pi Studio · Проект', 'Pi Studio · Браузер', 'Pi Studio · Компьютер'],
+  );
   assert.equal(
-    await js(`!!document.querySelector(${JSON.stringify(pinned)}+' [role="switch"]')`),
-    false,
+    await js(
+      `document.querySelectorAll(${JSON.stringify(pinned)}+' [role="switch"], '+${JSON.stringify(pinned)}+' .hover-delete').length`,
+    ),
+    0,
+  );
+  assert.equal(
+    await js(
+      `document.querySelectorAll(${JSON.stringify(pinned)}+' .ui-list-row-toggle .ui-list-row-lock').length`,
+    ),
+    3,
   );
   await mouse(pinned + ' .ui-list-row-lock', false, true);
   assert.equal(
@@ -298,7 +312,7 @@ const deadline = setTimeout(() => {
   );
   await mouse(external + ' .ui-list-row-label');
   await until(
-    `document.querySelector('[role="tooltip"]')?.textContent.includes(${JSON.stringify(resourceName)})`,
+    `Array.from(document.querySelectorAll('[role="tooltip"]')).some(el=>el.textContent.includes(${JSON.stringify(resourceName.trim())}))`,
   );
   await mouse(external + ' .ui-list-row', true, true);
   await until(
@@ -318,23 +332,30 @@ const deadline = setTimeout(() => {
   );
   assert.equal(saved.sections.agents[0].instructions.find((i) => i.id === 'first').enabled, false);
   assert.equal(saved.sections.agents[0].capabilitySettings['mcps:qa-mcp'].enabled, false);
-  console.log(
-    JSON.stringify({
-      sharedListRow: true,
-      wholeRowHoverAndPaddingClick: true,
-      iconAndChevronClick: true,
-      onlyChevronRotates: true,
-      enterSpace: true,
-      switchIndependent: true,
-      deleteConfirmation: true,
-      dragKeyboard: true,
-      hidesEmptyTrash: true,
-      flatFieldsAndAddAreaBorders: true,
-      longLabelTooltip: true,
-      persisted: true,
-      modelRequests: 0,
-    }),
+  const proof = {
+    checkedAt: new Date().toISOString(),
+    version: require('../package.json').version,
+    nativeOffscreenIsolated: true,
+    threeMandatoryMcpLockedWithoutSwitchOrDelete: true,
+    sharedListRow: true,
+    wholeRowHoverAndPaddingClick: true,
+    iconAndChevronClick: true,
+    onlyChevronRotates: true,
+    enterSpace: true,
+    switchIndependent: true,
+    deleteConfirmation: true,
+    dragKeyboard: true,
+    hidesEmptyTrash: true,
+    flatFieldsAndAddAreaBorders: true,
+    longLabelTooltip: true,
+    persisted: true,
+    modelRequests: 0,
+  };
+  await writeFile(
+    resolve('artifacts/disclosure-current-proof.json'),
+    JSON.stringify(proof, null, 2) + '\n',
   );
+  console.log(JSON.stringify(proof));
   clearTimeout(deadline);
   for (const w of BrowserWindow.getAllWindows()) w.destroy();
   await new Promise((resolve) => setTimeout(resolve, 500));

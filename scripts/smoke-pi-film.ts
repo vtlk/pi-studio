@@ -9,10 +9,12 @@ import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import { readVideoProject } from '../src/main/video/readVideoProject.ts';
 import type { Agent } from '../src/shared/studio.ts';
+import type { LaunchAgentRequest, LaunchAgentResult } from '../src/shared/runtime.ts';
 
 // Opt-in integration: actual selected Pi agents create all artwork, sound and video through bash.
 // No Images API/paid media service, fixture movie, preinstalled roles or user-studio modifications.
 const root = await mkdtemp(join(tmpdir(), 'pistudio-live-film-'));
+const revise = process.argv.includes('--revision');
 const deadline = Date.now() + 15 * 60_000;
 const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
 const store = await service.load();
@@ -197,22 +199,6 @@ try {
   };
   await inspect(output);
   assert.ok(total < 32 * 1024 ** 2 && count < 100, 'QA output must stay small');
-  const artifact = resolve('artifacts/film-workflow');
-  await rm(artifact, { recursive: true, force: true });
-  await mkdir(artifact, { recursive: true });
-  await cp(output, artifact, { recursive: true });
-  execFileSync('/opt/homebrew/bin/ffmpeg', [
-    '-v',
-    'error',
-    '-i',
-    join(artifact, 'film.mp4'),
-    '-vf',
-    'fps=1/2,scale=270:480,tile=4x1',
-    '-frames:v',
-    '1',
-    '-y',
-    join(artifact, 'contact-sheet.png'),
-  ]);
   const transcriptMessages = (text: string) =>
     text
       .split('\n')
@@ -247,7 +233,201 @@ try {
       .length,
     transcriptMessages(transcripts[2]).length,
   );
+  let revisionProof;
+  if (revise) {
+    const pixels = (frame: number, crop?: string) =>
+      execFileSync('/opt/homebrew/bin/ffmpeg', [
+        '-v',
+        'error',
+        '-i',
+        join(output, 'film.mp4'),
+        '-vf',
+        `select=eq(n\\,${frame}),${crop || 'scale=108:192'}`,
+        '-frames:v',
+        '1',
+        '-pix_fmt',
+        'rgb24',
+        '-f',
+        'rawvideo',
+        '-',
+      ]);
+    const firstPixels = pixels(30),
+      secondPixels = pixels(180, 'crop=160:160:880:80');
+    const fingerprints = async (path: string): Promise<[string, string][]> => {
+      const files: [string, string][] = [];
+      for (const entry of await readdir(path, { withFileTypes: true })) {
+        const file = join(path, entry.name);
+        assert.equal(entry.isSymbolicLink(), false);
+        if (entry.isDirectory()) files.push(...(await fingerprints(file)));
+        else
+          files.push([
+            file,
+            createHash('sha256')
+              .update(await readFile(file))
+              .digest('hex'),
+          ]);
+      }
+      return files.sort(([a], [b]) => a.localeCompare(b));
+    };
+    const previousOutputs = await Promise.all(
+      finished.agents.slice(0, 2).map((agent) => fingerprints(join(directory, agent.outputPath))),
+    );
+    const message =
+      'Revise the existing movie in this exact dialogue. Keep the current story, original assets, all 8 seconds / 240 frames / 1080x1920 / 30fps, narration, subtitles, and first shot unchanged. Make exactly one visible change: during the second shot only (frames 120 through 239), add a clearly visible golden five-point star centered at x=960,y=160, outer radius 55 px, within the upper-right region x=880..1040,y=80..240. Do not add it before frame 120. Modify your existing render source minimally and rerender film.mp4 at its existing path; do not recreate or alter previous agents outputs or unrelated files. Keep the same film.pistudio.json/timeline contract, updating references/revision only as needed. Use get_video_contract/validate_video_project and complete_stage after checking the result. No approval step, extra dialogue, paid API, dependency installation, backups, or copied old movie. This is a real local film revision, not a marker-only response.';
+    const internal = host as unknown as {
+      open(request: LaunchAgentRequest, message: string): Promise<LaunchAgentResult>;
+    };
+    console.log(JSON.stringify({ phase: 'revision', action: 'same dialogue, second shot only' }));
+    await internal.open(
+      { projectId: project.id, agentId: agents[2].id, autoContinue: false },
+      message,
+    );
+    assert.equal(await children.at(-1), 0, 'The real revision request must finish normally');
+    const until = Date.now() + 10000;
+    let updated = await store.projects.read(project.id);
+    while (updated.agents[2].runStatus !== 'ready' && Date.now() < until) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      updated = await store.projects.read(project.id);
+    }
+    assert.equal(
+      updated.agents[2].runStatus,
+      'ready',
+      'Revised outputs require validated completion',
+    );
+    assert.equal(updated.agents[2].session?.path, finished.agents[2].session?.path);
+    for (let i = 0; i < 2; i++)
+      assert.deepEqual(
+        await fingerprints(join(directory, finished.agents[i].outputPath)),
+        previousOutputs[i],
+      );
+    const changed = createHash('sha256')
+      .update(await readFile(join(output, 'film.mp4')))
+      .digest('hex');
+    assert.notEqual(changed, hash);
+    const revisedDocument = await readVideoProject(
+      directory,
+      project.id,
+      `${finished.agents[2].outputPath}/film.pistudio.json`,
+    );
+    assert.notEqual(revisedDocument.revision, document.revision);
+    assert.deepEqual(
+      [
+        revisedDocument.timeline.width,
+        revisedDocument.timeline.height,
+        revisedDocument.timeline.fps,
+        revisedDocument.timeline.durationInFrames,
+      ],
+      [1080, 1920, 30, 240],
+    );
+    const distance = (before: Buffer, after: Buffer) => {
+      assert.equal(after.length, before.length);
+      return before.reduce((sum, value, i) => sum + Math.abs(value - after[i]), 0) / before.length;
+    };
+    const firstFrameMeanDifference = distance(firstPixels, pixels(30));
+    const secondRegionMeanDifference = distance(secondPixels, pixels(180, 'crop=160:160:880:80'));
+    assert.ok(firstFrameMeanDifference < 2, 'Unchanged first shot must remain visually the same');
+    assert.ok(
+      secondRegionMeanDifference > 8,
+      'The requested second-shot region must visibly change',
+    );
+    const afterText = await readFile(join(directory, finished.agents[2].session!.path), 'utf8');
+    const userMessages = (text: string) =>
+      transcriptMessages(text).filter((entry) => entry.message?.role === 'user');
+    assert.equal(userMessages(afterText).length, userMessages(transcripts[2]).length + 1);
+    assert.ok(afterText.includes('Revise the existing movie in this exact dialogue'));
+    await host.launch({ projectId: project.id, agentId: agents[2].id, autoContinue: false });
+    assert.equal(await children.at(-1), 0);
+    assert.equal(
+      await readFile(join(directory, finished.agents[2].session!.path), 'utf8'),
+      afterText,
+    );
+    assert.equal(
+      createHash('sha256')
+        .update(await readFile(join(output, 'film.mp4')))
+        .digest('hex'),
+      changed,
+    );
+    revisionProof = {
+      exactDialogue: true,
+      oneNewUserMessage: true,
+      earlierAgentOutputsUnchanged: true,
+      firstFrameMeanDifference,
+      secondRegionMeanDifference,
+      changedMovieHash: changed,
+      changedDocumentRevision: revisedDocument.revision,
+      idleResumeAfterRevisionWithoutReplay: true,
+    };
+  }
+  if (revisionProof) {
+    const revisedProbe = JSON.parse(
+      execFileSync(
+        '/opt/homebrew/bin/ffprobe',
+        ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', join(output, 'film.mp4')],
+        { encoding: 'utf8' },
+      ),
+    );
+    const revisedVideo = revisedProbe.streams.find(
+      (stream: { codec_type: string }) => stream.codec_type === 'video',
+    );
+    const revisedAudio = revisedProbe.streams.find(
+      (stream: { codec_type: string }) => stream.codec_type === 'audio',
+    );
+    assert.deepEqual(
+      [
+        revisedVideo.codec_name,
+        revisedVideo.width,
+        revisedVideo.height,
+        revisedVideo.avg_frame_rate,
+        Number(revisedVideo.nb_frames),
+      ],
+      ['h264', 1080, 1920, '30/1', 240],
+    );
+    assert.equal(revisedAudio?.codec_name, 'aac');
+    assert.ok(Math.abs(Number(revisedProbe.format.duration) - 8) < 0.15);
+    const revisedFrames = execFileSync(
+      '/opt/homebrew/bin/ffmpeg',
+      [
+        '-v',
+        'error',
+        '-i',
+        join(output, 'film.mp4'),
+        '-vf',
+        'fps=2,scale=90:160',
+        '-f',
+        'framemd5',
+        '-',
+      ],
+      { encoding: 'utf8' },
+    )
+      .split('\n')
+      .filter((line) => /^0,/.test(line))
+      .map((line) => line.split(',').at(-1)?.trim());
+    assert.ok(new Set(revisedFrames).size >= 8, 'The revised movie must retain actual motion');
+    total = 0;
+    count = 0;
+    await inspect(output);
+    assert.ok(total < 32 * 1024 ** 2 && count < 100);
+  }
+  const artifact = resolve(revise ? 'artifacts/film-revision' : 'artifacts/film-workflow');
+  await rm(artifact, { recursive: true, force: true });
+  await mkdir(artifact, { recursive: true });
+  await cp(output, artifact, { recursive: true });
+  execFileSync('/opt/homebrew/bin/ffmpeg', [
+    '-v',
+    'error',
+    '-i',
+    join(artifact, 'film.mp4'),
+    '-vf',
+    'fps=1/2,scale=270:480,tile=4x1',
+    '-frames:v',
+    '1',
+    '-y',
+    join(artifact, 'contact-sheet.png'),
+  ]);
   const proof = {
+    checkedAt: new Date().toISOString(),
+    version: JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+      .version,
     actualPi: pi.version,
     model: agents[0].model!.id,
     stages: finished.agents.map((agent) => ({ name: agent.profile.name, status: agent.runStatus })),
@@ -258,8 +438,9 @@ try {
     fps: 30,
     frames: 240,
     audio: audio.codec_name,
-    sha256: hash,
-    revision: document.revision,
+    sha256: revisionProof?.changedMovieHash ?? hash,
+    revision: revisionProof?.changedDocumentRevision ?? document.revision,
+    ...(revisionProof ? { revisionCheck: revisionProof } : {}),
     exactIdleResume: true,
     outputBytes: total,
   };

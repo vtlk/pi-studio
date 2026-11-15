@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-15T01:19:15.509Z",
+  "version": "0.2.0-alpha.59",
+  "nativeOffscreenIsolated": true,
+  "threeMandatoryMcpLockedWithoutSwitchOrDelete": true,
+  "sharedListRow": true,
+  "wholeRowHoverAndPaddingClick": true,
+  "iconAndChevronClick": true,
+  "onlyChevronRotates": true,
+  "enterSpace": true,
+  "switchIndependent": true,
+  "deleteConfirmation": true,
+  "dragKeyboard": true,
+  "hidesEmptyTrash": true,
+  "flatFieldsAndAddAreaBorders": true,
+  "longLabelTooltip": true,
+  "persisted": true,
+  "modelRequests": 0
+}
