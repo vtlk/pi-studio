@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-15T22:49:45.890Z",
+  "baseHead": "184a8ef1c0787dff1ff24afbd06c42d2293d1a73",
+  "currentCheckoutHasUncommittedChanges": true,
+  "mac": {
+    "sourceVersion": "0.2.0-alpha.74",
+    "signatureVerified": true,
+    "packagingFlags": [
+      "--norsrc",
+      "--noextattr"
+    ],
+    "bytes": 142109846,
+    "root": "Pi Studio.app",
+    "entryCount": 1157,
+    "unpackedBytes": 318205891
+  },
+  "windows": {
+    "sourceArchive": "Pi-Studio-0.2.0-alpha.73-win-x64.zip",
+    "root": "Pi Studio",
+    "entryCount": 632,
+    "unpackedBytes": 411226741
+  },
+  "extractionOrInstallationPerformed": false,
+  "applicationWindowsOpened": false,
+  "studioOrDialogueAccess": false,
+  "temporaryArchiveRemoved": true,
+  "scope": "Actual signed Mac app repackaged with production flags, and published Windows preview ZIP structure only; not an installed-app update cycle or native Windows acceptance."
+}

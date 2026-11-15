@@ -16,7 +16,7 @@ const cuaIntegrity =
   'fTiUKzVGUKpVteQluu6W+HP9NfQPCVhv8XggR7v9xWtXMRXqlK1agrlsnIqBlTDLMKd4Iz+ajDGN5t9sEOmXAA==';
 const stage = await mkdtemp(join(tmpdir(), 'pistudio-windows-x64-'));
 const run = (file, args) =>
-  execFileSync(file, args, { stdio: 'pipe', timeout: 120000, windowsHide: true });
+  execFileSync(file, args, { cwd: root, stdio: 'pipe', timeout: 120000, windowsHide: true });
 const ps = (text) => [
   '-NoProfile',
   '-NonInteractive',
@@ -61,7 +61,7 @@ try {
   await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
   for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code'])
     await cp(join(root, 'bundled', name), join(application, 'bundled', name), { recursive: true });
-  for (const name of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser'])
+  for (const name of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
     await cp(join(root, 'node_modules', name), join(application, 'node_modules', name), {
       recursive: true,
     });
@@ -70,6 +70,9 @@ try {
     ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
     ['zod/LICENSE', 'Zod-LICENSE.txt'],
     ['jsonc-parser/LICENSE.md', 'JSONC-parser-LICENSE.md'],
+    ['semver/LICENSE', 'Semver-LICENSE.txt'],
+    ['yauzl/LICENSE', 'Yauzl-LICENSE.txt'],
+    ['pend/LICENSE', 'Pend-LICENSE.txt'],
     ['xmlchars/LICENSE', 'Xmlchars-LICENSE.txt'],
   ])
     await cp(join(root, 'node_modules', source), join(application, 'licenses', name));
@@ -148,9 +151,20 @@ try {
     .update(await readFile(output))
     .digest('hex');
   await writeFile(output + '.sha256', `${digest}  ${output.split(/[\\/]/).at(-1)}\n`);
+  if (process.env.PI_STUDIO_UPDATE_SIGNING_KEY)
+    run(process.execPath, [
+      '--experimental-strip-types',
+      join(root, 'scripts/release-updates.ts'),
+      'sign',
+      output,
+      'win32',
+      'x64',
+      '10.0.0',
+      run('git', ['rev-parse', 'HEAD']).toString().trim(),
+    ]);
   for (const file of await readdir(join(root, 'dist')))
     if (
-      /^Pi-Studio-.*-win-x64\.zip(?:\.sha256)?$/.test(file) &&
+      /^Pi-Studio-.*-(?:win-x64\.zip(?:\.sha256)?|win32-x64\.update\.json)$/.test(file) &&
       !file.startsWith(`Pi-Studio-${metadata.version}-`)
     )
       await rm(join(root, 'dist', file));

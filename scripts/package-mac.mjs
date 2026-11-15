@@ -44,6 +44,9 @@ for (const [source, name] of [
   ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
   ['zod/LICENSE', 'Zod-LICENSE.txt'],
   ['jsonc-parser/LICENSE.md', 'JSONC-parser-LICENSE.md'],
+  ['semver/LICENSE', 'Semver-LICENSE.txt'],
+  ['yauzl/LICENSE', 'Yauzl-LICENSE.txt'],
+  ['pend/LICENSE', 'Pend-LICENSE.txt'],
   ['saxes/README.md', 'Saxes-README.txt'],
   ['saxes/package.json', 'Saxes-package.json'],
   ['xmlchars/LICENSE', 'Xmlchars-LICENSE.txt'],
@@ -60,6 +63,7 @@ await writeFile(
     'Corresponding source: https://registry.npmjs.org/mediabunny/-/mediabunny-1.64.0.tgz (includes src/).',
     'Zod 4.6.7: MIT; see Zod-LICENSE.txt. Source: https://github.com/colinhacks/zod',
     'jsonc-parser 3.3.1: MIT; see JSONC-parser-LICENSE.md. Source: https://github.com/microsoft/node-jsonc-parser',
+    'semver 7.8.6: ISC; yauzl 3.4.0 and pend 1.2.0: MIT. See Semver-LICENSE.txt, Yauzl-LICENSE.txt, Pend-LICENSE.txt. Sources: https://github.com/npm/node-semver, https://github.com/thejoshwolfe/yauzl, https://github.com/andrewrk/node-pend',
     'Editor Starter and Remotion Timeline are not included.',
     '@earendil-works/pi-claude-code 0.1.0: MIT, pinned d5b5e04c314d3452d357174d16d10dda34daa2d2. See bundled/pi-claude-code/LICENSE and UPSTREAM.json. Official Claude CLI is a separately installed, unmodified dependency; its credentials are not bundled.',
     'Saxes 6.0.0: ISC; see Saxes-LICENSE.txt. Source: https://github.com/lddubeau/saxes',
@@ -73,7 +77,7 @@ await cp(join(root, 'out'), join(application, 'out'), {
   filter: (source) =>
     !['characters', 'scenes', 'library-runtime', 'source.json'].includes(source.split('/').at(-1)),
 });
-for (const dependency of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser'])
+for (const dependency of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
   await cp(join(root, 'node_modules', dependency), join(application, 'node_modules', dependency), {
     recursive: true,
   });
@@ -135,10 +139,35 @@ if (
 const archive = join(root, 'dist', `Pi-Studio-${metadata.version}-mac-${process.arch}.zip`);
 await mkdir(join(root, 'dist'), { recursive: true });
 await rm(archive, { force: true });
-execFileSync('/usr/bin/ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', bundle, archive]);
+execFileSync('/usr/bin/ditto', [
+  '-c',
+  '-k',
+  '--norsrc',
+  '--noextattr',
+  '--keepParent',
+  bundle,
+  archive,
+]);
+if (process.env.PI_STUDIO_UPDATE_SIGNING_KEY)
+  execFileSync(
+    process.execPath,
+    [
+      '--experimental-strip-types',
+      join(root, 'scripts/release-updates.ts'),
+      'sign',
+      archive,
+      'darwin',
+      process.arch,
+      '13.0.0',
+      execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+    ],
+    { stdio: 'inherit' },
+  );
 for (const file of await readdir(join(root, 'dist'))) {
   if (
-    /^Pi-Studio-.*-mac-(arm64|x64)\.zip$/.test(file) &&
+    /^Pi-Studio-.*-(?:mac-(?:arm64|x64)\.zip(?:\.sha256)?|darwin-(?:arm64|x64)\.update\.json)$/.test(
+      file,
+    ) &&
     !file.startsWith(`Pi-Studio-${metadata.version}-`)
   )
     await rm(join(root, 'dist', file));

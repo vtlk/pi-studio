@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-15T22:50:38.856Z",
+  "unitFsTests": 268,
+  "passed": 268,
+  "failed": 0,
+  "targetUpdateTests": 10,
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 383,
+  "signing": {
+    "algorithm": "Ed25519",
+    "externalPrivateKeyMode": "0600",
+    "publicIdentityMatches": true,
+    "publicKeySha256": "f9b3e263ccd990dd439781720479839ef51f0f254092dd36a079e4624ff19208",
+    "privateKeyPrintedOrBundled": false
+  },
+  "anonymousPrivateRepositoryCheck": "404 unavailable, no credentials",
+  "actualArchiveProof": "update-archives-proof.json",
+  "appLifecycleAndUiIntegrated": false,
+  "installerImplemented": false,
+  "githubToInstalledAppCycleVerified": false,
+  "installedApplicationChanged": false
+}
