@@ -107,6 +107,44 @@ const timeout = setTimeout(() => {
     state.sections.agentTeams.map((team) => team.agentIds.length),
     [2, 1],
   );
+  // Reorder through the actual keyboard sensor while a neighbouring team exists.
+  window.webContents.debugger.attach('1.3');
+  await window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
+  const key = async (key, code, number, text = '') => {
+    for (const type of ['keyDown', 'keyUp'])
+      await window.webContents.debugger.sendCommand('Input.dispatchKeyEvent', {
+        type,
+        key,
+        code,
+        windowsVirtualKeyCode: number,
+        ...(type === 'keyDown' && text ? { text, unmodifiedText: text } : {}),
+      });
+    await js('new Promise(resolve=>requestAnimationFrame(resolve))');
+  };
+  await js(`document.querySelector('.agent-team .agent-list-item').focus({preventScroll:true})`);
+  await key(' ', 'Space', 32, ' ');
+  await until(`!!document.querySelector('.agent-list-entry[data-dragging]')`);
+  await key('ArrowDown', 'ArrowDown', 40);
+  await js('new Promise(resolve=>setTimeout(resolve,350))');
+  await key(' ', 'Space', 32, ' ');
+  await until(`document.querySelector('.agent-team .agent-list-name')?.textContent==='Второй'`);
+  await saved();
+  const reordered = await load();
+  assert.deepEqual(
+    reordered.sections.agentTeams[0].agentIds,
+    [...state.sections.agentTeams[0].agentIds].reverse(),
+  );
+  assert.deepEqual(reordered.sections.agentTeams[1], state.sections.agentTeams[1]);
+  assert.deepEqual(
+    reordered.sections.agents.filter((agent) =>
+      state.sections.agentTeams[1].agentIds.includes(agent.id),
+    ),
+    state.sections.agents.filter((agent) =>
+      state.sections.agentTeams[1].agentIds.includes(agent.id),
+    ),
+  );
   assert.equal(
     await js(`getComputedStyle(document.querySelector('.agent-stages')).backgroundColor`),
     'rgb(247, 247, 248)',
@@ -244,6 +282,7 @@ const timeout = setTimeout(() => {
     isolatedOffscreen: true,
     emptyNoFallback: true,
     twoIndependentTeams: true,
+    keyboardReorderPreservesNeighbourTeamAndProfiles: true,
     collapseRenameAdd: true,
     projectExplicitSelection: true,
     projectScopedToSelectedTeam: true,

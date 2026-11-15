@@ -17,12 +17,12 @@
   "allTabAddAreasBelowRowsForOrdinaryAndSystem": true,
   "externalRequests": 0,
   "separateProcessReopen": true,
-  "version": "0.2.0-alpha.68",
-  "verifiedAt": "2026-11-15T14:43:34.153Z",
-  "mainSha256": "61475933e757fe099c0dd7c99c1aef792390bf984ff19336aead0bbf6f95e9c0",
+  "version": "0.2.0-alpha.71",
+  "verifiedAt": "2026-11-15T17:09:02.157Z",
+  "mainSha256": "9fab8d3e4c347adf37c2520e48308f009f39562ffc73368c689c9745d8c0cb7f",
   "rendererSha256": {
-    "index-BF_wMLQh.css": "b325f944726b1df98fb1b7a3ada2aaeedb4168dccb4071bbb32e491bbb0a96d5",
-    "index-FRvEXghO.js": "27076336009e368bd53f9d955a6eb67082bc8e18bd8d4b2e3ad2b84c958db6f8"
+    "index-B4hFOjPU.js": "5ca414080cac792425acc917719b8ff1a017753a8938cc6297da819c3265b194",
+    "index-aeDW_MhW.css": "14632d5b477036bac7924d8195ce001af23821a55d9385845600e325c29bebf1"
   },
   "sourceSha256": {
     "src/renderer/features/agents/model/AgentProfiles.tsx": "28e82afff1241707eaf88ec69c749947eb87a22335660931c77c60700aea8107",
