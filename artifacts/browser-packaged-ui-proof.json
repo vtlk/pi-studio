@@ -1,9 +1,12 @@
 {
-  "checkedAt": "2026-11-14T20:34:08.954Z",
+  "checkedAt": "2026-11-15T08:59:19.400Z",
   "ordinaryAgent": true,
   "setupAssistant": true,
   "settingsCatalog": true,
+  "independentCatalogEntries": true,
+  "catalogInformationDialog": true,
   "sharedDisclosure": true,
+  "sharedDisclosureScope": "Agent and setup assistant assignments",
   "rightLock": true,
   "noDisableDelete": true,
   "explicitInstallOnly": true,
