@@ -281,3 +281,10 @@
 .agent-team > .disclosure > .ui-list-row:hover {
   background: #eeeef0;
 }
+.agent-stages .add-area.agent-team-create {
+  min-height: 38px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 14px;
+}

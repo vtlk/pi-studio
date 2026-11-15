@@ -92,7 +92,10 @@ const deadline = setTimeout(() => {
   await assert.rejects(
     access(join((await js('window.studio.loadStudio()')).folder, '.pistudio/setup-assistant')),
   );
-  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await js(`document.querySelector('[aria-label="Создать команду"]').click()`);
+  await field('Название команды', 'Library QA');
+  await click('Создать');
+  await js(`document.querySelector('[aria-label="Добавить агента в «Library QA»"]').click()`);
   await field('Название агента', 'Artist');
   const design = await js(
     `(()=>{const row=document.querySelector('.agent-list-item'),n=row.querySelector('.agent-list-number'),name=row.querySelector('.agent-list-name');return {height:row.offsetHeight,numberWidth:n.offsetWidth,number:n.textContent,font:getComputedStyle(name).fontSize,weight:getComputedStyle(name).fontWeight,background:getComputedStyle(document.querySelector('.agent-stages')).backgroundColor,toolbars:document.querySelectorAll('.agent-stages [role="toolbar"]').length}})()`,

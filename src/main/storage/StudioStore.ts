@@ -22,6 +22,7 @@ import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
 import { teamAgents } from '../../shared/agentTeams.ts';
 import { reconcileTeams } from './agentCatalog.ts';
 import { snapshotAgent } from './validation.ts';
+import type { Resource } from '../../shared/resources.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
@@ -55,19 +56,26 @@ export class StudioStore {
     }
     const migrated = migrateLibraryAgents(store.sections);
     const initial = migrated ?? store.sections;
+    store.warnings = await store.projects.initialize();
     if (initial.agentTeams === undefined || migrated) {
+      const teams = reconcileTeams(
+        (initial.agents ?? []) as Agent[],
+        (initial.agentTeams ?? []) as AgentTeam[],
+      );
+      if (
+        initial.agentTeams === undefined &&
+        !teams.length &&
+        (store.projects.list().length || store.projects.trash().length)
+      )
+        teams.push({ id: randomUUID(), name: 'Моя команда', agentIds: [] });
       const next = {
         ...initial,
-        agentTeams: reconcileTeams(
-          (initial.agents ?? []) as Agent[],
-          (initial.agentTeams ?? []) as AgentTeam[],
-        ),
+        agentTeams: teams,
       };
       parseSection('agentCatalog', { agents: next.agents ?? [], teams: next.agentTeams });
       await atomicJson(file, { schemaVersion: 1, sections: next });
       store.sections = next;
     } else parseSection('agentCatalog', store.agentCatalog());
-    store.warnings = await store.projects.initialize();
     const legacyTeamId =
       (store.sections.agentTeams as AgentTeam[])[0]?.id ?? 'legacy-unassigned-team';
     await store.projects.migrateLegacyTeam(legacyTeamId);
@@ -101,6 +109,33 @@ export class StudioStore {
   }
   teamProfiles(teamId: string) {
     return teamAgents(this.agentCatalog(), teamId);
+  }
+  /** One atomic local commit after the entire portable package has been validated/materialized. */
+  async addImportedTeam(team: AgentTeam, agents: Agent[], resources: Resource[]) {
+    const previous = this.agentCatalog();
+    const currentResources = (this.sections.resources ?? []) as Resource[];
+    if (
+      previous.teams.some((item) => item.id === team.id) ||
+      agents.some((agent) => previous.agents.some((item) => item.id === agent.id)) ||
+      resources.some((resource) => currentResources.some((item) => item.id === resource.id))
+    )
+      throw new Error('ID импорта уже используется. Существующие данные не изменены.');
+    const catalog = parseSection('agentCatalog', {
+      agents: [...previous.agents, ...agents],
+      teams: [...previous.teams, team],
+    }) as AgentCatalog;
+    const nextResources = parseSection('resources', [...resources, ...currentResources]);
+    const sections = {
+      ...this.sections,
+      agents: catalog.agents,
+      agentTeams: catalog.teams,
+      resources: nextResources,
+    };
+    await atomicJson(await safePath(this.folder, '.pistudio/studio.json'), {
+      schemaVersion: 1,
+      sections,
+    });
+    this.sections = sections;
   }
   async saveSection(section: StorageSection, value: unknown) {
     const validated = parseSection(section, value);

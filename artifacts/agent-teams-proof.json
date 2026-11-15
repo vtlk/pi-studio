@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-15T14:49:27.180Z",
+  "checkedAt": "2026-11-15T15:27:11.388Z",
   "nativeMain": true,
   "isolatedOffscreen": true,
   "emptyNoFallback": true,
@@ -11,5 +11,8 @@
   "teamDeletePreservesProjectAndOutput": true,
   "undoPreservesLaterEdits": true,
   "reloadPersistence": true,
+  "nativeExportImportPicker": true,
+  "canceledImportPreservesCatalog": true,
+  "missingAssistantModelKeepsPackageAndTargetsExactModelTab": true,
   "userStudioChanged": false
 }

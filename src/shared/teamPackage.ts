@@ -1,0 +1,59 @@
+import type { Agent } from './studio';
+
+export interface PortableResource {
+  id: string;
+  name: string;
+  kind: 'skills' | 'mcps' | 'plugins';
+  description: string;
+  version: string;
+  source: string;
+  filesRoot?: string;
+  mcp?: Record<string, unknown>;
+  requirements: string[];
+}
+export interface PortableConnection {
+  id: string;
+  name: string;
+  provider: string;
+  purpose: string;
+  endpoint?: string;
+  endpointConfig?: import('./modelEndpoint').ModelEndpoint;
+}
+export interface TeamPackageManifest {
+  format: 'pi-studio-team';
+  version: 1;
+  team: { name: string };
+  agents: Agent[];
+  resources: PortableResource[];
+  connections: PortableConnection[];
+  requirements: string[];
+}
+export interface TeamPackageFile {
+  path: string;
+  sha256: string;
+  data: string;
+  executable: boolean;
+}
+export interface TeamPackage {
+  manifest: TeamPackageManifest;
+  files: TeamPackageFile[];
+}
+export interface TeamImportReport {
+  id: string;
+  teamId: string;
+  teamName: string;
+  createdAt: number;
+  handoff: 'pending' | 'sending' | 'sent' | 'uncertain';
+  agents: { agentId: string; name: string; issues: string[] }[];
+  requirements: string[];
+}
+export interface TeamPackageRequest {
+  folder: string;
+  teamId: string;
+}
+export interface TeamSetupResult {
+  report: TeamImportReport;
+  assistantId: string;
+  outcome: 'opened' | 'busy' | 'needs_configuration' | 'pending' | 'uncertain';
+  message?: string;
+}

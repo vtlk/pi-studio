@@ -63,6 +63,44 @@ export const setupTools: SessionTool[] = [
     inputSchema: object({ id: string, name: string }, ['name']),
   },
   {
+    name: 'list_team_imports',
+    description:
+      'List pending imported teams and their actual setup reports in this Studio. Never launches production agents.',
+    inputSchema: object({}),
+  },
+  {
+    name: 'read_team_import',
+    description:
+      'Read the validated portable manifest, current import report and exact local ID mappings for one imported team. Acknowledges receipt of its installation task. Includes current package prompts/instructions, requirements and file metadata; no credentials or histories.',
+    inputSchema: object({ packageId: string }, ['packageId']),
+  },
+  {
+    name: 'read_team_import_file',
+    description:
+      'Read only a listed file inside a validated imported package. Bounded byte range, base64 and UTF-8; never arbitrary filesystem paths or executable evaluation.',
+    inputSchema: object(
+      {
+        packageId: string,
+        path: string,
+        offset: { type: 'integer', minimum: 0 },
+        limit: { type: 'integer', minimum: 1, maximum: 65536 },
+      },
+      ['packageId', 'path'],
+    ),
+  },
+  {
+    name: 'restore_team_import_resource',
+    description:
+      'Restore one requested resource of this imported team via normal native Pi configure/install/check. Package-manager lifecycle scripts may run when installing an explicitly trusted package. Review the package/source first. Does not overwrite changed configurations or infer sender-local paths. Credentials require native OAuth/protected entry, never chat.',
+    inputSchema: object({ packageId: string, resourceId: string }, ['packageId', 'resourceId']),
+  },
+  {
+    name: 'check_team_import',
+    description:
+      'Check this team’s current exact model/account/effort and enabled resources through native Pi, and save per-agent errors. Does not launch production agents or generation; does not claim resources loaded into an already running production session.',
+    inputSchema: object({ packageId: string }, ['packageId']),
+  },
+  {
     name: 'configure_agent',
     description:
       'Create an ordinary constructor agent only when requested with explicit teamId (append inside that team), or update named fields of an existing ordinary profile or the built-in setup assistant by stable ID. Only the setup assistant is a system agent; character and location generators are ordinary agents with optional Pi Studio Library access. Never create another system agent. Does not change existing project snapshots or launch work. Assign the built-in library MCP separately with assign_resource; the administrative MCP stays pinned to the assistant.',

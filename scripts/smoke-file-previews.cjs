@@ -90,7 +90,7 @@ const deadline = setTimeout(() => {
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   await js(
-    `(async()=>{const before=await window.studio.loadStudio();const saved=await window.studio.saveSection('agents',[{id:'files',name:'Файлы',enabled:true,instructions:[],skills:[],mcps:[],plugins:[]}],{folder:before.folder,base:before.sections.agents});if(!saved.saved)throw Error('QA save conflict');await window.studio.projectCommand({kind:'create',name:'File previews',agents:[]});})()`,
+    `(async()=>{const before=await window.studio.loadStudio();const saved=await window.studio.saveSection('agents',[{id:'files',name:'Файлы',enabled:true,instructions:[],skills:[],mcps:[],plugins:[]}],{folder:before.folder,base:before.sections.agents});if(!saved.saved)throw Error('QA save conflict');const ready=await window.studio.loadStudio();await window.studio.projectCommand({kind:'create',name:'File previews',teamId:ready.sections.agentTeams[0].id,agents:[]});})()`,
   );
   const studio = await js('window.studio.loadStudio()'),
     project = studio.projects[0],

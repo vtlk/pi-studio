@@ -37,8 +37,9 @@ test('legacy creators become ordinary profiles once, preserving IDs, current tex
     mainInstruction: `Сохранённый текст ${index}`,
     skills: [`custom-${index}`],
   }));
+  const { agentCatalog: _virtual, ...persisted } = store.bootstrap().sections;
   const sections = {
-    ...store.bootstrap().sections,
+    ...persisted,
     agents: [profile('story')],
     systemAgents: [...creators, helper],
   };

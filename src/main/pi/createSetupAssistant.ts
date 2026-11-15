@@ -20,8 +20,10 @@ import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
 import type { ComputerSupport } from '../computer/ComputerSupport.ts';
+import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 
 interface Options {
+  teamImports?: TeamImportTools;
   bootstraps: string;
   bridge: string;
   catalog: string;
@@ -54,6 +56,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         piPath: options.piPath,
         mcpSecrets: options.mcpSecrets,
       }),
+    options.teamImports,
   );
   return new RunHost({
     mcpGroups: (run) => options.computer?.groups(run) ?? [],

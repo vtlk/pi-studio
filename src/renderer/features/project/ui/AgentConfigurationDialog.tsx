@@ -11,7 +11,7 @@ export function AgentConfigurationDialog({
   agentId: string;
   onClose: () => void;
 }) {
-  const { agents, setAgentId, setAgentTab } = useAgentProfiles();
+  const { agents, systemAgents, setAgentId, setAgentTab } = useAgentProfiles();
   const { navigate } = useNavigation();
   const { demo } = useNotice();
   return (
@@ -24,7 +24,7 @@ export function AgentConfigurationDialog({
           <Button
             kind="primary"
             onClick={() => {
-              if (!agents.some((agent) => agent.id === agentId)) {
+              if (![...agents, ...systemAgents].some((agent) => agent.id === agentId)) {
                 demo('Этот агент удалён из конструктора. Другой профиль не подставляется.');
                 return;
               }

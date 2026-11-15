@@ -10,6 +10,9 @@ export async function atomicJson(file: string, value: unknown) {
   await atomicText(file, content);
 }
 export async function atomicText(file: string, value: string) {
+  return atomicFile(file, value);
+}
+export async function atomicFile(file: string, value: string | Uint8Array) {
   await mkdir(dirname(file), { recursive: true });
   const temporary = `${file}.${randomUUID()}.tmp`;
   try {

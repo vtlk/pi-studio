@@ -6,19 +6,14 @@ import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { hasLiveSessionLease } from '../storage/sessionLease.ts';
-import type { LiveRun, RunDependencies } from './RunTypes.ts';
+import { hasConnectedRun, runKey, type LiveRun, type RunDependencies } from './RunTypes.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
 import { focusRunningTerminal, openSessionTerminal, processAlive } from './terminal.ts';
 import { stopRunProcess, drainRunProcesses, closeRuns } from './stopRunProcess.ts';
 import { assertRunsIdle } from './assertRunsIdle.ts';
 import { runTerminalTitle } from './terminalTitle.ts';
-
-class ContinuationCancelled extends Error {}
-interface Continuation {
-  token: symbol;
-  check: () => void;
-}
+import { ContinuationCancelled, type Continuation } from './RunTypes.ts';
 
 export class RunHost {
   private readonly channel = new RunChannel();
@@ -29,16 +24,14 @@ export class RunHost {
   private readonly chains = new Map<string, symbol>();
   private readonly dependencies: RunDependencies;
   private readonly lifecycle: RunLifecycle;
-  private monitor = setInterval(() => {
-    void this.checkLiveness();
-  }, 3000);
+  private monitor = setInterval(() => void this.checkLiveness(), 3000);
   constructor(dependencies: RunDependencies) {
     this.dependencies = dependencies;
     this.lifecycle = new RunLifecycle({
       ...dependencies,
       beforeRequest: async (run) => {
         this.assertUnchanged(run.project.id);
-        const own = this.key({ projectId: run.project.id, agentId: run.agent.profile.id });
+        const own = runKey({ projectId: run.project.id, agentId: run.agent.profile.id });
         const live = this.live.get(own);
         const automaticCheck = live?.automaticCheck;
         const check = () => {
@@ -62,17 +55,21 @@ export class RunHost {
     this.monitor.unref();
   }
   get connected() {
-    return [...this.live.values()].some(
-      (live) => live.pid && processAlive(live.pid) && Date.now() - live.heartbeat < 20000,
-    );
-  }
-  private key(request: Pick<LaunchAgentRequest, 'projectId' | 'agentId'>) {
-    return `${request.projectId}/${request.agentId}`;
+    return hasConnectedRun(this.live.values(), processAlive);
   }
   launch = (request: LaunchAgentRequest) => this.open(request);
+  launchServiceTask(
+    request: LaunchAgentRequest,
+    message: string,
+    beforeDispatch?: () => Promise<void>,
+  ) {
+    if (!this.dependencies.serviceAgent || !message.trim() || message.length > 200_000)
+      throw new Error('Недопустимое служебное задание.');
+    return this.open(request, message, undefined, beforeDispatch);
+  }
   continuation(run: PreparedRun) {
     const live = this.live.get(
-      this.key({ projectId: run.project.id, agentId: run.agent.profile.id }),
+      runKey({ projectId: run.project.id, agentId: run.agent.profile.id }),
     );
     if (
       !live ||
@@ -111,6 +108,7 @@ export class RunHost {
     request: LaunchAgentRequest,
     automaticMessage?: string,
     continuation?: Continuation,
+    beforeDispatch?: () => Promise<void>,
   ): Promise<LaunchAgentResult> {
     this.assertUnchanged(request.projectId);
     if (typeof request.autoContinue !== 'boolean') throw new Error('Некорректный режим запуска.');
@@ -123,7 +121,7 @@ export class RunHost {
       throw new Error('Некорректный список референсов.');
     if (request.attachments?.length && !request.firstMessage)
       throw new Error('Референсы отправляются только вместе с первым сообщением нового диалога.');
-    const key = this.key(request);
+    const key = runKey(request);
     continuation?.check();
     const chain = continuation?.token ?? (request.autoContinue ? Symbol() : undefined);
     if (!continuation) {
@@ -234,6 +232,7 @@ export class RunHost {
       const headless = this.dependencies.headless === true;
       await atomicJson(bootstrap, { ...transport, sdk, headless });
       continuation?.check();
+      await beforeDispatch?.();
       await (this.dependencies.openTerminal ?? openSessionTerminal)(
         join(dirname(pi.path), 'node'),
         this.dependencies.bridge,
@@ -314,7 +313,7 @@ export class RunHost {
   }
   outputsCleared(projectId: string, agentId: string) {
     this.chains.delete(projectId);
-    const live = this.live.get(this.key({ projectId, agentId }));
+    const live = this.live.get(runKey({ projectId, agentId }));
     if (live) this.lifecycle.outputsCleared(live);
   }
   private assertUnchanged(projectId: string) {
@@ -337,7 +336,7 @@ export class RunHost {
   }
   async stopAgent(projectId: string, agentId: string) {
     this.chains.delete(projectId);
-    const key = this.key({ projectId, agentId });
+    const key = runKey({ projectId, agentId });
     if (this.opening.has(key)) throw new Error('Дождитесь открытия Pi перед удалением агента.');
     await this.retiring.get(key);
     const live = this.live.get(key);

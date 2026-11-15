@@ -126,7 +126,12 @@ export function AgentList() {
           </div>
         );
       })}
-      <AddArea label="Создать команду" onClick={() => setNaming({})} />
+      <AddArea
+        label="Создать команду"
+        showLabel
+        className="agent-team-create"
+        onClick={() => setNaming({})}
+      />
       {naming && (
         <TeamNameDialog
           name={naming.name}

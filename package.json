@@ -95,7 +95,8 @@
     "test:cua-sdk": "electron scripts/smoke-cua-sdk.cjs",
     "test:computer-mcp": "node --experimental-strip-types scripts/smoke-computer-mcp.ts",
     "test:computer-ui": "npm run build && electron scripts/smoke-computer-ui.cjs",
-    "test:agent-teams": "npm run build && electron scripts/smoke-agent-teams.cjs"
+    "test:agent-teams": "npm run build && electron scripts/smoke-agent-teams.cjs",
+    "test:pi-team-import": "node --experimental-strip-types scripts/smoke-pi-team-import.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

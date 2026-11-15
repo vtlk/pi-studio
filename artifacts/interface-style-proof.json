@@ -1,6 +1,6 @@
 {
-  "version": "0.2.0-alpha.68",
-  "packagedEntry": true,
+  "version": "0.2.0-alpha.69",
+  "packagedEntry": false,
   "viewport": {
     "width": 1280,
     "height": 900
@@ -201,20 +201,20 @@
       "contrast": 21
     },
     "primaryAction": {
-      "background": "rgb(39, 39, 42)",
-      "foreground": "rgb(255, 255, 255)",
+      "background": "rgb(238, 238, 238)",
+      "foreground": "rgb(98, 98, 107)",
       "radius": "6px",
       "border": "1px",
       "transform": "none",
-      "contrast": 14.894588477600598
+      "contrast": 5.203029028411976
     },
     "primaryActionHover": {
-      "background": "rgb(65, 65, 70)",
-      "foreground": "rgb(255, 255, 255)",
+      "background": "rgb(238, 238, 238)",
+      "foreground": "rgb(98, 98, 107)",
       "radius": "6px",
       "border": "1px",
       "transform": "none",
-      "contrast": 10.148254062961305
+      "contrast": 5.203029028411976
     },
     "selectedAgent": {
       "background": "rgb(255, 212, 71)",
@@ -286,17 +286,17 @@
   "modelFields": [
     {
       "x": 485,
-      "y": -45,
+      "y": -87,
       "width": 212.28125
     },
     {
       "x": 713.28125,
-      "y": -45,
+      "y": -87,
       "width": 318.421875
     },
     {
       "x": 1047.703125,
-      "y": -45,
+      "y": -87,
       "width": 212.296875
     }
   ],

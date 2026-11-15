@@ -39,6 +39,15 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  exportAgentTeam(
+    request: import('./teamPackage').TeamPackageRequest,
+  ): Promise<{ requirements: string[] } | null>;
+  importAgentTeam(folder: string): Promise<import('./teamPackage').TeamSetupResult | null>;
+  listTeamImports(folder: string): Promise<import('./teamPackage').TeamImportReport[]>;
+  continueTeamImport(request: {
+    folder: string;
+    id: string;
+  }): Promise<import('./teamPackage').TeamSetupResult>;
   getComputerState(): Promise<ComputerState>;
   requestComputerPermissions(): Promise<ComputerState>;
   openComputerSettings(kind: 'accessibility' | 'screen-recording'): Promise<void>;
@@ -123,6 +132,10 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  exportAgentTeam: 'studio:export-agent-team',
+  importAgentTeam: 'studio:import-agent-team',
+  listTeamImports: 'studio:list-team-imports',
+  continueTeamImport: 'studio:continue-team-import',
   getComputerState: 'studio:computer-state',
   requestComputerPermissions: 'studio:computer-permissions',
   openComputerSettings: 'studio:computer-settings',

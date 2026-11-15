@@ -21,6 +21,26 @@ const agent = (id: string): Agent => ({
   ],
 });
 
+test('legacy projects with no remaining constructor profiles get a stable empty source team; a fresh studio stays empty', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-empty-legacy-team-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = await StudioStore.open(root);
+  assert.deepEqual(store.agentCatalog().teams, []);
+  const project = (await store.command({ kind: 'create', name: 'Empty legacy', agents: [] }))
+    .projects[0];
+  const file = join(root, '.pistudio/studio.json'),
+    document = JSON.parse(await readFile(file, 'utf8'));
+  delete document.sections.agentTeams;
+  await writeFile(file, JSON.stringify(document));
+  const migrated = await StudioStore.open(root),
+    team = migrated.agentCatalog().teams[0];
+  assert.equal(team.name, 'Моя команда');
+  assert.deepEqual(team.agentIds, []);
+  assert.equal((await migrated.projects.read(project.id)).sourceTeamId, team.id);
+  const reopened = await StudioStore.open(root);
+  assert.deepEqual(reopened.agentCatalog().teams, [team]);
+});
+
 test('legacy team migration preserves exact IDs, order, paths, output and canonical dialogue; restart is idempotent', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-teams-'));
   t.after(() => rm(root, { recursive: true, force: true }));

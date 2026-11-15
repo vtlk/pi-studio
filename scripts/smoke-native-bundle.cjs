@@ -74,7 +74,7 @@ const deadline = setTimeout(() => {
   await click('Библиотека');
   await until(`!!document.querySelector('[aria-label="Создать персонажа"]')`);
   await click('Агенты');
-  await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);
+  await until(`!!document.querySelector('[aria-label="Создать команду"]')`);
   await js(`document.querySelector('.topbar [aria-label="Настройки"]').click()`);
   await until(`!!document.querySelector('[aria-label="Настройки студии"]')`);
   assert.equal(
@@ -142,7 +142,7 @@ const deadline = setTimeout(() => {
   }
   const project = (
     await js(
-      `window.studio.projectCommand(${JSON.stringify({ kind: 'create', name: 'Legacy project', agents: legacy.agents })})`,
+      `window.studio.loadStudio().then(state=>window.studio.projectCommand({...${JSON.stringify({ kind: 'create', name: 'Legacy project', agents: legacy.agents })},teamId:state.sections.agentTeams[0].id}))`,
     )
   ).projects[0];
   const projectFile = join(empty.folder, 'projects', project.folderName, 'project.json');

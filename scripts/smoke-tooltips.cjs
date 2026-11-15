@@ -91,7 +91,7 @@ const deadline = setTimeout(() => {
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const created = await js(
-    `window.studio.projectCommand({kind:'create',name:'Tooltip project',agents:[]})`,
+    `window.studio.loadStudio().then(state=>window.studio.projectCommand({kind:'create',name:'Tooltip project',teamId:state.sections.agentTeams[0].id,agents:[]}))`,
   );
   const project = created.projects[0],
     output = join(studio, 'projects/tooltip-project', project.agents[0].outputPath);
@@ -131,8 +131,15 @@ const deadline = setTimeout(() => {
   );
   assert.deepEqual(await tooltips(), ['2. ' + longName]);
   await hover('.project-agent-menu .section-menu-row:first-child .section-menu-icon-anchor');
-  assert.deepEqual(await tooltips(), ['Не подключена модель'], 'PRJ-18 status belongs only in the icon tooltip.');
-  assert.doesNotMatch(await js(`document.querySelector('.project-agent-menu .section-menu-description').textContent`), /Не подключена модель|Не запускался/);
+  assert.deepEqual(
+    await tooltips(),
+    ['Не подключена модель'],
+    'PRJ-18 status belongs only in the icon tooltip.',
+  );
+  assert.doesNotMatch(
+    await js(`document.querySelector('.project-agent-menu .section-menu-description').textContent`),
+    /Не подключена модель|Не запускался/,
+  );
   await hover('.file-tree-item:first-child');
   // Select files by their text, independent of timestamps/platform ordering.
   await js(

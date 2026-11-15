@@ -149,7 +149,7 @@ const timeout = setTimeout(() => {
     );
   const rows = () =>
     js(
-      `Array.from(document.querySelectorAll('.projects-table tbody tr.project-list-item')).map(row=>({name:row.querySelector('.project-list-name').textContent,folder:row.querySelector('.project-list-folder').textContent,date:row.querySelector('time').dateTime,counts:Array.from(row.querySelectorAll('.project-number')).map(e=>e.textContent)}))`,
+      `Array.from(document.querySelectorAll('.projects-table tbody tr.project-list-item')).map(row=>({name:row.querySelector('.project-list-name').textContent,folder:row.querySelector('.project-list-folder').getAttribute('aria-label').split('. Папка: ')[1],date:row.querySelector('time').dateTime,counts:Array.from(row.querySelectorAll('.project-number')).map(e=>e.textContent)}))`,
     );
   const hover = async (selector) => {
     const rect = await js(
@@ -176,9 +176,9 @@ const timeout = setTimeout(() => {
   assert.equal(displayed[0].date, '2026-11-13T10:00:00.000Z');
   assert.deepEqual(
     await js(
-      `Array.from(document.querySelectorAll('.projects-table thead th')).slice(0,4).map(e=>e.textContent)`,
+      `Array.from(document.querySelectorAll('.projects-table thead th')).slice(0,5).map(e=>e.textContent)`,
     ),
-    ['Проект', 'Создан', 'Агенты', 'Файлы'],
+    ['Проект', 'Потрачено', 'Создан', 'Агенты', 'Файлы'],
   );
   assert.equal(
     await js(`document.querySelector('[aria-label="Создать проект"]').textContent.trim()`),
@@ -278,13 +278,16 @@ const timeout = setTimeout(() => {
   assert.equal(workspaceStyle.weight, '600');
   assert.equal(workspaceStyle.iconWidth, 32);
   assert.equal(workspaceStyle.iconBeforeName, true);
-  assert.equal(workspaceStyle.status, 'Не запускался');
+  assert.equal(workspaceStyle.status.includes('Не запускался'), false);
+  assert.ok(workspaceStyle.status.includes('·'), 'The subtitle contains accumulated metrics only');
   assert.equal(workspaceStyle.refresh, 'rgb(39, 39, 42)');
   assert.equal(workspaceStyle.agentsBg, 'rgb(247, 247, 248)');
   assert.equal(workspaceStyle.filesBg, workspaceStyle.agentsBg);
   assert.equal(
-    await js(`document.querySelectorAll('.project-file-toolbar button').length`),
-    0,
+    await js(
+      `Array.from(document.querySelectorAll('.project-file-toolbar button')).every(button=>button.getAttribute('aria-label')==='Копировать')`,
+    ),
+    true,
     'File header contains no agent actions',
   );
   assert.notEqual(
@@ -366,8 +369,7 @@ const timeout = setTimeout(() => {
       `document.querySelector('[aria-label="Ширина колонки агентов"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))`,
     );
   await hover('.agent-status-icon');
-  await new Promise((resolve) => setTimeout(resolve, 450));
-  assert.equal(await js(`!!document.querySelector('[role="tooltip"]')`), false);
+  await until(`document.querySelector('[role="tooltip"]')?.textContent==='Не запускался'`);
   await js(`document.querySelector('.project-agent-menu .section-menu-item').focus()`);
   assert.equal(await js(`getComputedStyle(document.activeElement).outlineStyle`), 'none');
   await mkdir(resolve('artifacts'), { recursive: true });
@@ -413,7 +415,7 @@ const timeout = setTimeout(() => {
   await click('Переименовать');
   await until(`!document.querySelector('[role="dialog"]')`);
   await until(
-    `document.querySelector('.project-list-folder')?.textContent==='gorod-posle-dozhdya-novaya-versiya'`,
+    `document.querySelector('.project-list-folder')?.textContent.endsWith('gorod-posle-dozhdya-novaya-versiya')`,
   );
   assert.equal(
     await readFile(
@@ -513,6 +515,9 @@ const timeout = setTimeout(() => {
   await js(`document.querySelector('[aria-label="Создать проект"]').click()`);
   await until(`!!document.querySelector('[role="dialog"] input')`);
   await input('.dialog-body input', 'Новый мультфильм');
+  await js(`document.querySelector('[aria-label="Команда агентов"]').click()`);
+  await until(`!!document.querySelector('[role="option"]')`);
+  await js(`document.querySelector('[role="option"]').click()`);
   await click('Создать');
   await until(`document.querySelector('.project-header h1')?.textContent==='Новый мультфильм'`);
   const createdState = await js('window.studio.loadStudio()');

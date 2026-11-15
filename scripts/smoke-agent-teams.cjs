@@ -1,4 +1,4 @@
-const { app, ipcMain } = require('electron');
+const { app, ipcMain, dialog } = require('electron');
 const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
 const { mkdtemp, mkdir, writeFile, readFile, rm } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
@@ -15,6 +15,16 @@ const timeout = setTimeout(() => {
     studio = join(root, 'Studio');
   mkdirSync(userData);
   writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
+  const packagePath = join(root, 'qa-export.pistudio-team');
+  let cancelPicker = false;
+  dialog.showSaveDialog = async () => ({
+    canceled: cancelPicker,
+    filePath: cancelPicker ? undefined : packagePath,
+  });
+  dialog.showOpenDialog = async () => ({
+    canceled: cancelPicker,
+    filePaths: cancelPicker ? [] : [packagePath],
+  });
   app.setPath('userData', userData);
   app.setPath('videos', root);
   const handle = ipcMain.handle.bind(ipcMain);
@@ -25,7 +35,7 @@ const timeout = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolveWindow(window)),
     ),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded;
   window.webContents.setAudioMuted(true);
   window.webContents.removeAllListeners('will-prevent-unload');
@@ -171,13 +181,66 @@ const timeout = setTimeout(() => {
   assert.deepEqual((await load()).sections.agentCatalog, restored.sections.agentCatalog);
   await click('Агенты');
   assert.equal(await js(`document.querySelectorAll('.agent-team').length`), 2);
+  await js('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+  await new Promise((resolve) => setTimeout(resolve, 150));
   await writeFile(
     resolve('artifacts/agent-teams.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
+  await named('Настройки');
+  await click('Команды агентов');
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('button')).find(e=>e.textContent.trim()==='Экспорт команды агентов').disabled`,
+    ),
+    true,
+  );
+  await named('Команда для экспорта');
+  await until(`document.querySelectorAll('[role="option"]').length===2`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="option"]')).find(e=>e.textContent==='Переименована').click()`,
+  );
+  await click('Экспорт команды агентов');
+  await until(
+    `document.querySelector('.settings-content [role="status"]')?.textContent.includes('Пакет сохранён')`,
+  );
+  assert.ok((await readFile(packagePath)).length > 0);
+  const beforeImport = await load();
+  cancelPicker = true;
+  await click('Импорт команды агентов');
+  await js('new Promise(resolve=>setTimeout(resolve,200))');
+  assert.deepEqual((await load()).sections.agentCatalog, beforeImport.sections.agentCatalog);
+  cancelPicker = false;
+  await click('Импорт команды агентов');
+  await until(
+    `document.querySelector('[role="dialog"]')?.textContent.includes('Сначала настройте подключение Агента')`,
+  );
+  const imported = await load();
+  assert.equal(imported.sections.agentTeams.length, 3);
+  assert.deepEqual(
+    imported.sections.agents.filter((agent) =>
+      restored.sections.agents.some((previous) => previous.id === agent.id),
+    ),
+    restored.sections.agents,
+  );
+  const reports = await js(`window.studio.listTeamImports(${JSON.stringify(imported.folder)})`);
+  assert.equal(reports.length, 1);
+  assert.equal(reports[0].handoff, 'pending');
+  await click('Перейти');
+  await until(`!!document.querySelector('.agent-model-panel')`);
+  assert.equal(
+    await js(
+      `document.querySelector('.agent-list-item[aria-current="true"]').closest('[data-system-role]').getAttribute('data-system-role')`,
+    ),
+    'assistant',
+  );
+  assert.equal(await readFile(marker, 'utf8'), 'Keep output');
+  await saved();
   const proof = {
     checkedAt: new Date().toISOString(),
     nativeMain: true,
+    packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
+    version: (await js('window.studio.getInfo()')).version,
     isolatedOffscreen: true,
     emptyNoFallback: true,
     twoIndependentTeams: true,
@@ -188,6 +251,9 @@ const timeout = setTimeout(() => {
     teamDeletePreservesProjectAndOutput: true,
     undoPreservesLaterEdits: true,
     reloadPersistence: true,
+    nativeExportImportPicker: true,
+    canceledImportPreservesCatalog: true,
+    missingAssistantModelKeepsPackageAndTargetsExactModelTab: true,
     userStudioChanged: false,
   };
   await mkdir(resolve('artifacts'), { recursive: true });

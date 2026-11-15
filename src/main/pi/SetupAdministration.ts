@@ -1,4 +1,5 @@
 import { configureTeam, saveTeamAgent } from './teamAdministration.ts';
+import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 import { randomUUID } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { parseAgent, stableId } from '../storage/validation.ts';
@@ -23,16 +24,31 @@ export class SetupAdministration {
   private readonly service: StudioService;
   private readonly catalog: () => Promise<PiModelCatalog>;
   private readonly native?: StudioResources;
+  private readonly teamImports?: TeamImportTools;
   constructor(
     service: StudioService,
     catalog: () => Promise<PiModelCatalog>,
     native?: StudioResources,
+    teamImports?: TeamImportTools,
   ) {
     this.service = service;
     this.catalog = catalog;
     this.native = native;
+    this.teamImports = teamImports;
   }
   async call(run: PreparedRun, name: string, args: Record<string, unknown>) {
+    if (
+      [
+        'list_team_imports',
+        'read_team_import',
+        'read_team_import_file',
+        'restore_team_import_resource',
+        'check_team_import',
+      ].includes(name)
+    ) {
+      if (!this.teamImports) throw new Error('Инструменты импорта команды недоступны.');
+      return this.teamImports.call(run, name, args);
+    }
     const resourceTools = [
       'configure_mcp',
       'import_mcp',

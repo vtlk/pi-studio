@@ -3,15 +3,10 @@ import { outputMediaUrl } from '../../shared/outputPaths';
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
-import type {
-  FileRequest,
-  ProjectCommand,
-  StorageSection,
-  SectionEdit,
-} from '../../shared/storage';
-import { StudioService, type StudioStore } from '../storage/StudioStore';
-import { snapshotAgent } from '../storage/validation';
+import type { FileRequest, StorageSection, SectionEdit } from '../../shared/storage';
+import { StudioService } from '../storage/StudioStore';
 import { loadOutput } from '../storage/outputs';
+import { registerProjectCommands } from '../storage/registerProjectCommands';
 import { registerProjectActions } from '../storage/registerProjectActions';
 import { registerProjectQueries } from '../storage/registerProjectQueries';
 import { UsageRecovery } from '../accounting/UsageRecovery';
@@ -44,6 +39,8 @@ import { registerResourceHandlers } from '../pi/registerResourceHandlers';
 import { registerGracefulQuit } from './registerGracefulQuit';
 import { ComputerSupport } from '../computer/ComputerSupport';
 import { registerComputerHandlers } from '../computer/registerComputerHandlers';
+import { createTeamImportTools } from '../teams/createTeamImportTools';
+import { registerTeamHandlers } from '../teams/registerTeamHandlers';
 
 export function registerDesktopHandlers(): StudioService {
   const service = new StudioService(
@@ -114,7 +111,13 @@ export function registerDesktopHandlers(): StudioService {
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
     piPath: () => startup.path,
   });
+  const teamImports = createTeamImportTools(service, resources, {
+    userData: app.getPath('userData'),
+    bridgeDirectory: join(__dirname, '../../bundled/pi-bridge'),
+    piPath: () => startup.path,
+  });
   const setup = createSetupAssistant(service, {
+    teamImports,
     computer,
     browser,
     failureChanged,
@@ -170,6 +173,7 @@ export function registerDesktopHandlers(): StudioService {
     await setup.launch({ projectId: 'pi-setup-assistant', agentId: id, autoContinue: false });
   });
   registerResourceHandlers(resources, caller);
+  registerTeamHandlers(service, setup, caller);
   registerProjectQueries(service, activity, caller, (store) => usageRecovery.schedule(store));
   handle(
     desktopChannels.getInfo,
@@ -264,55 +268,7 @@ export function registerDesktopHandlers(): StudioService {
     async (_event, section: StorageSection, value: unknown, edit: SectionEdit) =>
       (await service.load()).editSection(section, value, edit),
   );
-  ipcMain.handle(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
-    caller(event);
-    const templates = async (store: StudioStore) => {
-      const teamId =
-        command.kind === 'create'
-          ? command.teamId
-          : command.kind === 'update-agents'
-            ? (await store.projects.read(command.projectId)).sourceTeamId
-            : undefined;
-      if (!teamId) throw new Error('Выберите команду агентов для проекта.');
-      const current = store.teamProfiles(teamId);
-      if (
-        command.kind === 'update-agents' &&
-        JSON.stringify(current.map((agent) => snapshotAgent(agent).profile)) !==
-          JSON.stringify(command.agents.map((agent) => snapshotAgent(agent).profile))
-      )
-        throw new Error(
-          'Общий список агентов изменился. Перечитайте настройки и откройте сравнение заново.',
-        );
-      return current;
-    };
-    if (command.kind === 'remove-agent') await runs.stopAgent(command.projectId, command.agentId);
-    else if ('projectId' in command) {
-      runs.assertIdle(command.projectId);
-      images.assertIdle(command.projectId);
-    }
-    if (command.kind === 'update-agents') {
-      const removed = await service.serialize(async () => {
-        const store = await service.load();
-        const ids = new Set((await templates(store)).map((agent) => agent.id));
-        return (await store.projects.read(command.projectId)).agents
-          .filter((agent) => !ids.has(agent.profile.id))
-          .map((agent) => agent.profile.id);
-      });
-      for (const id of removed) await runs.stopAgent(command.projectId, id);
-    }
-    const apply = () =>
-      service.serialize(async () => {
-        const store = await service.load();
-        return store.command(
-          command.kind === 'create' || command.kind === 'update-agents'
-            ? { ...command, agents: await templates(store) }
-            : command,
-        );
-      });
-    return command.kind === 'clone' || command.kind === 'rename' || command.kind === 'remove'
-      ? runs.withProjectChange(command.projectId, command.kind !== 'clone', apply)
-      : apply();
-  });
+  registerProjectCommands(service, runs, images, caller);
   handle(desktopChannels.readOutput, async (_event, request: FileRequest) => {
     const file = await withReadDeadline(async () =>
       loadOutput(await (await service.load()).projects.directory(request.projectId), request.path),

@@ -170,14 +170,19 @@ const deadline = setTimeout(() => {
   await colors('primaryActionHover', '[role="dialog"] .button.primary', true);
   await click('Отмена');
   await click('Агенты');
-  await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+  await js(`document.querySelector('[aria-label="Создать команду"]').click()`);
+  await js(
+    `(()=>{const e=document.querySelector('[aria-label="Название команды"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'Style QA');e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await click('Создать');
+  await js(`document.querySelector('[aria-label="Добавить агента в «Style QA»"]').click()`);
   await until(`!!document.querySelector('[aria-label="Основной промпт агента"]')`);
   assert.equal(
     await js(`document.querySelector('.agent-stages').getBoundingClientRect().width`),
     320,
   );
   const addBorders = await js(
-    `(()=>{const s=getComputedStyle(document.querySelector('[aria-label="Добавить агента"]'));return ['Top','Right','Bottom','Left'].map(side=>({width:s['border'+side+'Width'],style:s['border'+side+'Style']}));})()`,
+    `(()=>{const s=getComputedStyle(document.querySelector('[aria-label="Добавить агента в «Style QA»"]'));return ['Top','Right','Bottom','Left'].map(side=>({width:s['border'+side+'Width'],style:s['border'+side+'Style']}));})()`,
   );
   assert.ok(addBorders.every((border) => border.width === '1px' && border.style === 'dashed'));
   const pill = await colors('selectedAgent', '.agent-list-item.active');
@@ -443,7 +448,7 @@ const deadline = setTimeout(() => {
   );
   await key('Escape');
   for (let i = 0; i < 11; i++)
-    await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
+    await js(`document.querySelector('[aria-label="Добавить агента в «Style QA»"]').click()`);
   await until(`document.querySelectorAll('.agent-list-entry:not([data-system-role])').length===12`);
   const agentNumber = await js(
     `(()=>{const el=document.querySelectorAll('.agent-list-entry:not([data-system-role]) .agent-list-number')[11];el.scrollIntoView({block:'nearest'});return {text:el.textContent.trim(),width:el.clientWidth,scrollWidth:el.scrollWidth,overflow:getComputedStyle(el).textOverflow};})()`,

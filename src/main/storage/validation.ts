@@ -338,5 +338,7 @@ export function parseStudio(value: unknown): StudioSections {
   if (document.schemaVersion !== 1)
     throw new Error('Неподдерживаемая версия studio.json. Файл не изменён.');
   const entries = Object.entries(record(document.sections));
+  if (entries.some(([key]) => key === 'agentCatalog'))
+    throw new Error('Виртуальный каталог не должен хранить копии профилей на диске.');
   return Object.fromEntries(entries.map(([key, value]) => [key, parseSection(key, value)]));
 }

@@ -57,3 +57,16 @@ export interface LiveRun {
   ready: (result: LaunchAgentResult) => void;
   fail: (error: Error) => void;
 }
+
+export function runKey(request: Pick<LaunchAgentRequest, 'projectId' | 'agentId'>) {
+  return `${request.projectId}/${request.agentId}`;
+}
+export function hasConnectedRun(live: Iterable<LiveRun>, alive: (pid: number) => boolean) {
+  return [...live].some((run) => run.pid && alive(run.pid) && Date.now() - run.heartbeat < 20000);
+}
+
+export class ContinuationCancelled extends Error {}
+export interface Continuation {
+  token: symbol;
+  check: () => void;
+}

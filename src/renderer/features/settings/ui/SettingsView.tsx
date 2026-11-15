@@ -12,6 +12,7 @@ import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import type { CapabilityKind } from '@/entities/studio/types';
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import type { PiCheck } from '../../../../shared/contracts';
+import { TeamTransferPanel } from '@/features/agents/ui/TeamTransferPanel';
 
 function LegacyRules() {
   const { baseInstruction, setBaseInstruction } = useProject();
@@ -44,6 +45,7 @@ export function SettingsView() {
           { id: 'workspace', label: 'Рабочее пространство' },
           { id: 'connections', label: 'Подключения' },
           { id: 'assistant', label: 'Помощник подключения' },
+          { id: 'teams', label: 'Команды агентов' },
           { id: 'skills', label: 'Каталог Skills' },
           { id: 'mcps', label: 'MCP-серверы' },
           { id: 'plugins', label: 'Пакеты Pi' },
@@ -53,7 +55,9 @@ export function SettingsView() {
         onSelect={setSection}
       />
       <section className="settings-content">
-        {section === 'workspace' ? (
+        {section === 'teams' ? (
+          <TeamTransferPanel />
+        ) : section === 'workspace' ? (
           <>
             <h2>Рабочее пространство</h2>
             <p>

@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "pi": "1.5.2",
+  "realNativeAdministrativeMcp": true,
+  "validatedPackageManifestAndFileRead": true,
+  "actualResourceChecks": true,
+  "importedMcpConfiguredAndConnected": true,
+  "localPiPackageInstalledWithSameAssignmentId": true,
+  "nativeMcpListCalls": 1,
+  "missingModelNeverReplaced": true,
+  "oneTaskInCanonicalDialogue": true,
+  "exactIdleResumeWithoutReplay": true,
+  "productionProjectsCreated": 0,
+  "productionAgentsLaunched": 0,
+  "localModelRequests": 6,
+  "externalModelRequests": 0,
+  "scope": "Actual pinned Pi/production service RunHost and MCP; synthetic loopback model, headless, isolated Studio, no Terminal UI/user data."
+}
