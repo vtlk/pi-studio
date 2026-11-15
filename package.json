@@ -26,6 +26,7 @@
     "test:pi-library-agents": "node --experimental-strip-types scripts/smoke-pi-library-agents.ts",
     "test:pi-library-lifecycle": "node --experimental-strip-types scripts/smoke-pi-library-lifecycle.ts",
     "test:pi-scene-plan": "node --experimental-strip-types scripts/smoke-pi-scene-plan.ts",
+    "test:pi-animated-scene": "node --experimental-strip-types scripts/smoke-pi-animated-scene.ts",
     "test:scene-plan-ui": "electron scripts/smoke-scene-plan-ui.cjs",
     "test:library-lifecycle-ui": "electron scripts/smoke-library-lifecycle-ui.cjs",
     "test:qa-isolation": "electron scripts/smoke-qa-isolation.cjs",
