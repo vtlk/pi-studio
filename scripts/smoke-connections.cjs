@@ -193,6 +193,7 @@ const deadline = setTimeout(() => {
   await edit(isolated[0].name);
   await click('Удалить сохранённый вход');
   await until(`document.querySelectorAll('[role="alertdialog"]').length===1`);
+  assert.ok(await js(`document.querySelector('[role="alertdialog"]').textContent.includes(${JSON.stringify(isolated[0].name)})`));
   await js(`document.querySelector('[role="alertdialog"]').querySelectorAll('button')[0].click()`);
   await until(`document.querySelectorAll('[role="dialog"]').length===1`);
   assert.equal(

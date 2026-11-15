@@ -6,12 +6,14 @@ import { useConnections } from '../model/Connections';
 
 export function ImageKeyFields({
   id,
+  name,
   value,
   setValue,
   busy,
   setBusy,
 }: {
   id: string;
+  name: string;
   value: string;
   setValue: (value: string) => void;
   busy: boolean;
@@ -52,7 +54,7 @@ export function ImageKeyFields({
           disabled={busy}
           onClick={() =>
             confirm({
-              title: 'Удалить API-ключ?',
+              title: `Удалить API-ключ подключения «${name.trim() || id}»?`,
               description:
                 'Ключ будет удалён с этого Mac. Подключение и ссылки агентов останутся; для генерации понадобится ввести ключ заново.',
               confirmLabel: 'Удалить ключ',

@@ -232,7 +232,7 @@ export function NativeConnectionAuth({
             disabled={!window.studio || !request || busy || active || !matches}
             onClick={() =>
               confirm({
-                title: 'Удалить сохранённый вход?',
+                title: `Удалить сохранённый вход подключения «${connection.name.trim() || connection.id}»?`,
                 description:
                   connection.authScope === 'connection'
                     ? 'Pi удалит локальную авторизацию только этого подключения. Проекты и диалоги сохранятся. Это не отзыв доступа на стороне сервиса.'

@@ -164,6 +164,7 @@ global.fetch = async (url, init) => {
   await click('Настроить');
   await click('Удалить сохранённый ключ');
   await until(`!!document.querySelector('[role="alertdialog"]')`);
+  assert.ok(await js(`document.querySelector('[role="alertdialog"]').textContent.includes('QA Images')`));
   await js(
     `Array.from(document.querySelectorAll('[role="alertdialog"] button')).find(button=>button.textContent.trim()==='Отмена').click()`,
   );

@@ -188,6 +188,7 @@ export function ConnectionEditor({
         <>
           <ImageKeyFields
             id={draft.id}
+            name={draft.name}
             value={imageKey}
             setValue={setImageKey}
             busy={busy}

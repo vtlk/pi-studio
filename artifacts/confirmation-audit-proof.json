@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-15T02:56:11.006Z",
+  "version": "0.2.0-alpha.60",
+  "nativeUiPersistentDeletionPathsReviewed": true,
+  "confirmationBeforeMutation": true,
+  "connectionNameAddedToImageKeyAndPiLogout": true,
+  "nativeCancelConfirmAndNamedTargetPassed": true,
+  "actualUserKeychainAccess": false,
+  "limits": "Source review plus targeted native scenarios. Earlier project/library/resource/data-deletion proofs cover their own paths; unsent attachment deselection leaves source data intact.",
+  "sourceSha256": {
+    "src/renderer/shared/ui/HoverDeleteButton.tsx": "7f672f555c52574b928e5abea26db928dd32ed1cc5e9a0706383dd38abd1f177",
+    "src/renderer/features/agents/ui/AgentListItem.tsx": "b515eb2ed16e01639983d8bf3c73d3d0b5af547728d2dd560a3f8e849abcf0a1",
+    "src/renderer/features/agents/ui/InstructionBlock.tsx": "384586c1ea8d74641c75b0e689d7eb00c480404a1da7c11f093abedfea75a723",
+    "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "763e01208394c5dcd83d2bc18ecf0468f401f49e94bad96050f848defbf252e7",
+    "src/renderer/features/project/ui/ProjectListRow.tsx": "de860270160596b5c7a35cdaece42df2bed1d7dacad83abf753d62515deb6b1f",
+    "src/renderer/features/project/ui/ProjectAgentDeleteButton.tsx": "49659e119774377fb53b9d1cd4ec802ba4001b0b9290d8dd55547479d3b87aa3",
+    "src/renderer/features/project/ui/DeleteAgentDataButton.tsx": "392fd24558d5d70ebd3e69d008eecaf63f693ea22ac963f69166a603ee6a5390",
+    "src/renderer/features/resources/ui/ResourceCatalog.tsx": "08676017709f485fb289c515ff2654551313fd58948f71378e59f934505cc341",
+    "src/renderer/features/resources/ui/McpSecretsDialog.tsx": "048ec7eb7fed0ba18d9a90db02309f04812a5e2ae87ada9546d6c74adf18eb19",
+    "src/renderer/features/library/ui/LibraryView.tsx": "0a4afdf861476e066e15c5dfb3a84550de4fb14edcf8e01e2fca27d8b4193849",
+    "src/renderer/features/connections/ui/ConnectionsPanel.tsx": "5232bad019d851de862c77a4a6511de87b62add74cf66bb5a53faa87fedc210c",
+    "src/renderer/features/connections/ui/NativeConnectionAuth.tsx": "80f6fb015e97d2e19cb83096334d9adbb25e48da1727b6911518f2b4ba4d946d",
+    "src/renderer/features/connections/ui/ImageKeyFields.tsx": "1172a07f20ee450080be18826469109dd0c95a93a51729b450da533f5ce8f386",
+    "src/renderer/features/connections/ui/EndpointFields.tsx": "55a21b421b82a4667f7ee50ea6720c95407d7f563685bd87122338db5e94bd97",
+    "src/renderer/features/settings/ui/LegacyTemplateCleanup.tsx": "d164fe302e4c30aac45b0df0e5c93b421ace54119cfaefec33d461d5158876a8",
+    "scripts/smoke-connections.cjs": "811b84554fc9d2fe94bd76ee83995de14ce0e81fcf8855d97130d7c4fefc8590",
+    "scripts/smoke-image-settings.cjs": "7e6f8cfd717264e9fda54bad079ff55c67952b241ef0f6928041fd9f0215fc73"
+  }
+}
