@@ -1,3 +1,5 @@
+import { checkRunLiveness } from './runLiveness.ts';
+import { closeSuccessfulRun } from './automaticClose.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
 import { runTeamAccess } from './runTeamAccess.ts';
 import { runContinuation } from './runContinuation.ts';
@@ -94,7 +96,14 @@ export class RunHost {
   teamUnavailable = this.teamAccess.teamUnavailable.bind(this.teamAccess);
   assertTeamDispatch = this.teamAccess.assertTeamDispatch.bind(this.teamAccess);
   launchTeamTask = this.teamAccess.launchTeamTask.bind(this.teamAccess);
-  finishChain = this.teamAccess.finishChain.bind(this.teamAccess);
+  closeCompleted(run: PreparedRun, sequence: number, check: () => void) {
+    return closeSuccessfulRun(run, sequence, check, {
+      live: this.live,
+      retiring: this.retiring,
+      dependencies: this.dependencies,
+      removeChannel: (id) => this.channel.remove(id),
+    });
+  }
   private async open(
     request: LaunchAgentRequest,
     automaticMessage?: string,
@@ -273,24 +282,14 @@ export class RunHost {
       this.opening.delete(key);
     }
   }
-  private async checkLiveness() {
-    for (const [key, live] of this.live)
-      if (
-        !this.retiring.has(key) &&
-        ((live.pid && !processAlive(live.pid)) || Date.now() - live.heartbeat > 20000)
-      ) {
-        const cleanup = this.lifecycle.processLost(live).then(async () => {
-          await this.dependencies.observed?.(live.run, { type: 'stopped' });
-          this.channel.remove(live.run.record.runId);
-          this.live.delete(key);
-        });
-        this.retiring.set(key, cleanup);
-        try {
-          await cleanup;
-        } finally {
-          this.retiring.delete(key);
-        }
-      }
+  private checkLiveness() {
+    return checkRunLiveness({
+      live: this.live,
+      retiring: this.retiring,
+      lifecycle: this.lifecycle,
+      dependencies: this.dependencies,
+      remove: (id) => this.channel.remove(id),
+    });
   }
   drain() {
     this.stopping = true;

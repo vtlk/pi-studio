@@ -1,3 +1,4 @@
+import { ContinuationCancelled } from './RunTypes.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import type { PreviewRenderer } from '../library/previewOptions.ts';
 import { RunHost } from './RunHost.ts';
@@ -34,6 +35,7 @@ interface Options {
   libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
+  captureTerminal?: RunDependencies['captureTerminal'];
   failureChanged?: RunDependencies['failureChanged'];
   openTerminal?: typeof openSessionTerminal;
 }
@@ -82,6 +84,8 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,
+    captureTerminal: options.captureTerminal,
+    beforeAutomaticClose: (run) => options.images?.assertRunIdle(run),
     failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     prepare: (request) =>
@@ -165,23 +169,25 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       const sequence = run.requestSequence;
       const continueStage = host.continuation(run);
       if (!continueStage) return;
-      const project = await service.serialize(async () =>
-        (await service.load()).projects.read(run.project.id),
-      );
-      const next = nextEnabledStage(project, run.agent.profile.id);
-      if (!next) {
-        host.finishChain(run, sequence);
-        return;
+      try {
+        const project = await service.serialize(async () =>
+          (await service.load()).projects.read(run.project.id),
+        );
+        const next = nextEnabledStage(project, run.agent.profile.id);
+        await host.closeCompleted(run, sequence!, continueStage.check);
+        if (!next) {
+          continueStage.finish();
+          return;
+        }
+        await continueStage(
+          { projectId: project.id, agentId: next.profile.id, autoContinue: true },
+          nextStageMessage(run, outputs, message),
+        );
+      } catch (error) {
+        if (error instanceof ContinuationCancelled) return;
+        continueStage.pause();
+        throw error;
       }
-      const input = nextStageMessage(run, outputs, message);
-      await continueStage(
-        {
-          projectId: project.id,
-          agentId: next.profile.id,
-          autoContinue: true,
-        },
-        input,
-      );
     },
   });
   options.team?.attach(host);

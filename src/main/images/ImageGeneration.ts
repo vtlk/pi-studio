@@ -38,6 +38,10 @@ export class ImageGeneration {
         'Дождитесь окончания операции изображения перед изменением папки проекта или студии.',
       );
   }
+  assertRunIdle(run: PreparedRun) {
+    if (this.requests.has(run))
+      throw new Error('Операция изображения этого агента ещё не завершена.');
+  }
   bind(run: PreparedRun, folder: string, model: PiModelSummary) {
     // Unknown protocols and executable extensions keep image capabilities unknown.
     const adapterConfirmed = confirmedChatAdapter(model);

@@ -34,7 +34,7 @@ export function runContinuation(
       throw new ContinuationCancelled();
   };
   let used = false;
-  return async (request: LaunchAgentRequest, message: string) => {
+  const handoff = async (request: LaunchAgentRequest, message: string) => {
     if (used) return;
     used = true;
     try {
@@ -43,7 +43,23 @@ export function runContinuation(
       check();
       return await state.open({ ...request, autoContinue: true }, message, { token, check });
     } catch (error) {
+      try {
+        check();
+      } catch (cancelled) {
+        if (cancelled instanceof ContinuationCancelled) return;
+        throw cancelled;
+      }
       if (!(error instanceof ContinuationCancelled)) throw error;
     }
   };
+  return Object.assign(handoff, {
+    check,
+    finish: () => {
+      check();
+      state.chains.delete(run.project.id);
+    },
+    pause: () => {
+      if (state.chains.get(run.project.id) === token) state.chains.delete(run.project.id);
+    },
+  });
 }

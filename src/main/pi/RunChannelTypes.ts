@@ -17,6 +17,7 @@ export interface ChannelEvent {
   messageId?: string;
   entryId?: string;
   pid?: number;
+  terminalIdentity?: import('../../shared/runtime.ts').TerminalIdentity;
   sessionId?: string;
   sessionFile?: string;
   outcome?: string;

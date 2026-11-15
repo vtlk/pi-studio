@@ -20,6 +20,8 @@ export interface RunDependencies {
   openTerminal?: typeof openSessionTerminal;
   activateTerminal?: (pid: number, title?: string) => Promise<void>;
   headless?: boolean;
+  beforeAutomaticClose?: (run: PreparedRun) => void | Promise<void>;
+  captureTerminal?: typeof import('./automaticClose.ts').captureOwnedTab;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
   tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
   mcpGroups?: (run: PreparedRun) => readonly SessionMcpGroup[];
@@ -43,6 +45,7 @@ export interface LiveRun {
   run: PreparedRun;
   request: LaunchAgentRequest;
   pid?: number;
+  terminalIdentity?: import('../../shared/runtime.ts').TerminalIdentity;
   stop?: () => void;
   status: AgentRunStatus;
   failure?: RunFailure;
@@ -56,6 +59,7 @@ export interface LiveRun {
   blocked: boolean;
   bound?: SessionBinding;
   opened?: boolean;
+  autoCloseSequence?: number;
   heartbeat: number;
   ready: (result: LaunchAgentResult) => void;
   fail: (error: Error) => void;

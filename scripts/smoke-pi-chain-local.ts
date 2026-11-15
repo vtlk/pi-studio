@@ -1,9 +1,11 @@
+import { promisify } from 'node:util';
+import { piPty } from './helpers/piPty.ts';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
@@ -13,8 +15,14 @@ import type { Resource } from '../src/shared/resources.ts';
 import { importSkill } from '../src/main/storage/skills.ts';
 
 const claude = process.argv.includes('--claude-code');
+const autoClose = process.argv.includes('--auto-close');
+assert.ok(!(claude && autoClose));
 const previousEnvironment = { ...process.env };
 const root = await mkdtemp(join(tmpdir(), 'pistudio-chain-local-'));
+if (autoClose) {
+  process.env.PI_CODING_AGENT_DIR = join(root, 'NativePi');
+  await mkdir(process.env.PI_CODING_AGENT_DIR, { recursive: true });
+}
 if (claude) {
   process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --import=${new URL('./fixtures/deny-external.mjs', import.meta.url).href}`;
   process.env.PI_CODING_AGENT_DIR = join(root, 'NativePi');
@@ -69,10 +77,16 @@ const server = createServer(async (req, res) => {
     const step = steps.get(stage) ?? 0;
     steps.set(stage, step + 1);
     requests++;
+    const blocked = system.includes('QA_BLOCKED');
     assert.ok(step < 3, 'No unexpected model retry or additional turn');
     const tools = body.tools.map((t: { function: { name: string } }) => t.function);
     let tool: { name: string } | undefined, args;
-    if (step === 0) {
+    if (blocked && step === 0) {
+      tool = tools.find((t: { name: string }) => t.name.endsWith('report_blocked'));
+      args = {};
+    } else if (blocked) {
+      /* A real question settles without completion. */
+    } else if (step === 0) {
       tool = tools.find((t: { name: string }) => t.name === 'bash');
       args = {
         command:
@@ -100,7 +114,7 @@ const server = createServer(async (req, res) => {
         );
       }
     }
-    if (step < 2) assert.ok(tool, 'Native bash/complete_stage is available');
+    if (step < (blocked ? 1 : 2)) assert.ok(tool, 'Native bash/complete_stage is available');
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     const delta = tool
       ? {
@@ -114,7 +128,7 @@ const server = createServer(async (req, res) => {
             },
           ],
         }
-      : { role: 'assistant', content: 'Task completed.' };
+      : { role: 'assistant', content: blocked ? 'Which input should I use?' : 'Task completed.' };
     const item = (delta: object, finish_reason: string | null) => ({
       id: `chain-${stage}-${step}`,
       object: 'chat.completion.chunk',
@@ -246,6 +260,8 @@ const project = (await store.command({ kind: 'create', name: 'Native local chain
   .projects[0];
 const children: Promise<number | null>[] = [];
 let childDiagnostics = '';
+const captured: string[] = [],
+  closed: string[] = [];
 
 const host = createStudioRunHost(service, {
   bootstraps: join(root, 'boots'),
@@ -254,13 +270,48 @@ const host = createStudioRunHost(service, {
     new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
   piPath: () => pi.path,
-  headless: true,
+  headless: !autoClose,
+  captureTerminal: async (pid, runId, bridge) => {
+    assert.ok(autoClose);
+    assert.ok(pid > 1);
+    assert.ok(bridge.endsWith('session.mjs'));
+    const runtime = host.inspect(project.id, captured.length === 0 ? 'first' : 'last');
+    assert.equal(runtime?.status, 'ready');
+    assert.equal(runtime?.run.record.runId, runId);
+    if (process.platform === 'darwin') {
+      const { stdout } = await promisify(execFile)('/bin/ps', [
+        '-ww',
+        '-p',
+        String(pid),
+        '-o',
+        'tty=',
+        '-o',
+        'lstart=',
+        '-o',
+        'command=',
+      ]);
+      assert.match(stdout.trim(), /^ttys\d+\s/);
+      assert.ok(stdout.includes(runId + '.json') && stdout.includes('session.mjs'));
+    }
+    captured.push(runId);
+    return {
+      verify: async () => {
+        assert.doesNotThrow(() => process.kill(pid, 0));
+      },
+      close: async () => {
+        assert.throws(() => process.kill(pid, 0));
+        closed.push(runId);
+      },
+    };
+  },
   openTerminal: async (node, bridge, bootstrap) => {
-    const child = spawn(node, [bridge, bootstrap], {
-      stdio: claude ? ['ignore', 'pipe', 'pipe'] : 'ignore',
-      env: { ...process.env, PI_OFFLINE: '1', PI_TELEMETRY: '0' },
-    });
-    if (claude) {
+    const child = autoClose
+      ? piPty(node, bridge, bootstrap)
+      : spawn(node, [bridge, bootstrap], {
+          stdio: claude ? ['ignore', 'pipe', 'pipe'] : 'ignore',
+          env: { ...process.env, PI_OFFLINE: '1', PI_TELEMETRY: '0' },
+        });
+    if (claude || autoClose) {
       child.stdout?.on('data', (chunk) => {
         childDiagnostics = (childDiagnostics + chunk).slice(-12000);
       });
@@ -300,6 +351,17 @@ try {
   assert.equal(current.agents[1].session, undefined);
   assert.equal(children.length, 2);
   assert.deepEqual(await Promise.all([...children]), [0, 0]);
+  if (autoClose) {
+    const deadline = Date.now() + 12000;
+    while (closed.length < 2 && Date.now() < deadline)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.deepEqual(
+      closed,
+      captured,
+      'Both successful interactive Pi stages close, including the last',
+    );
+    assert.equal(closed.length, 2);
+  }
   assert.equal(requests, 6);
   const directory = await store.projects.directory(project.id);
   assert.equal(
@@ -340,6 +402,13 @@ try {
     join(directory, current.agents[0].outputPath),
   );
   await host.launch({ projectId: project.id, agentId: 'first', autoContinue: true });
+  if (autoClose) {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    assert.equal(closed.length, 2, 'Idle automatic reopen never closes without a new request');
+    assert.equal(captured.length, 2);
+    assert.ok(host.inspect(project.id, 'first'));
+    await host.stopAgent(project.id, 'first');
+  }
   assert.equal(await children[2], 0);
   assert.equal(children.length, 3);
   assert.equal(requests, 6);
@@ -351,6 +420,52 @@ try {
     3,
     'Idle resume builds a fresh context package',
   );
+  if (autoClose) {
+    for (const blocked of [false, true]) {
+      steps.set('first', 0);
+      const currentProfiles = store.bootstrap().sections.agents as Agent[];
+      const profile = currentProfiles.find((item) => item.id === 'first')!;
+      await store.saveSection(
+        'agents',
+        currentProfiles.map((item) =>
+          item.id === 'first'
+            ? { ...item, mainInstruction: 'QA_STAGE:first' + (blocked ? ' QA_BLOCKED' : '') }
+            : item,
+        ),
+      );
+      const extra = (
+        await store.command({
+          kind: 'create',
+          name: blocked ? 'Question stays open' : 'Manual stays open',
+          agents: [profile],
+        })
+      ).projects[0];
+      await host.launch({
+        projectId: extra.id,
+        agentId: 'first',
+        autoContinue: blocked,
+        firstMessage: 'Run the isolated task',
+      });
+      const deadline = Date.now() + 20000;
+      while (Date.now() < deadline) {
+        const state = (await store.projects.read(extra.id)).agents[0].runStatus;
+        if (state === (blocked ? 'waiting' : 'ready') && steps.get('first') === (blocked ? 2 : 3))
+          break;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      assert.equal(
+        (await store.projects.read(extra.id)).agents[0].runStatus,
+        blocked ? 'waiting' : 'ready',
+      );
+      assert.ok(host.inspect(extra.id, 'first'), 'Manual success and real questions remain open');
+      assert.equal(captured.length, 2);
+      assert.equal(closed.length, 2);
+      await host.stopAgent(extra.id, 'first');
+      assert.equal(await children.at(-1), 0);
+    }
+    assert.equal(requests, 11);
+  }
   const proof = {
     passed: true,
     pi: pi.version,
@@ -365,6 +480,13 @@ try {
     assignedPackageSkillsScoped: true,
     hardFilesystemSandbox: false,
     packagedBridge: !!process.env.PI_STUDIO_QA_BRIDGE,
+    interactiveAutomaticClose: autoClose,
+    manualSuccessRemainsOpen: autoClose,
+    realQuestionRemainsOpen: autoClose,
+    nativeTerminalWindowVerified: false,
+    terminalAdapter: autoClose
+      ? 'Injected capture/close around real owned PTY/Pi processes'
+      : 'Headless; no OS terminal',
     freshContextWithoutInstructionCopies: true,
     previousOutputReadByNextAgent: true,
     oneUserMessagePerStage: true,
@@ -376,22 +498,18 @@ try {
       'Actual Pi SDK/production RunHost/bridge with synthetic local OpenAI SSE tools; no Terminal UI or user studio changes.',
   };
   await mkdir(resolve('artifacts'), { recursive: true });
+  const proofPath = resolve(
+    autoClose
+      ? 'artifacts/automatic-close-native-proof.json'
+      : claude
+        ? 'artifacts/claude-code-chain-proof.json'
+        : 'artifacts/local-chain-proof.json',
+  );
+  const previous = autoClose ? {} : JSON.parse(await readFile(proofPath, 'utf8').catch(() => '{}'));
   await writeFile(
-    resolve(claude ? 'artifacts/claude-code-chain-proof.json' : 'artifacts/local-chain-proof.json'),
+    proofPath,
     JSON.stringify(
-      {
-        ...JSON.parse(
-          await readFile(
-            resolve(
-              claude
-                ? 'artifacts/claude-code-chain-proof.json'
-                : 'artifacts/local-chain-proof.json',
-            ),
-            'utf8',
-          ).catch(() => '{}'),
-        ),
-        latestNativeControl: { checkedAt: new Date().toISOString(), result: proof },
-      },
+      { ...previous, latestNativeControl: { checkedAt: new Date().toISOString(), result: proof } },
       null,
       2,
     ) + '\n',

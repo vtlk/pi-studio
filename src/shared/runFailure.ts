@@ -7,6 +7,7 @@ export const runFailureCodes = [
   'outputs',
   'opening',
   'continuation',
+  'terminal_close',
 ] as const;
 export type RunFailure = (typeof runFailureCodes)[number];
 export function runFailure(value: unknown): RunFailure {
@@ -21,6 +22,7 @@ export const runFailureLabels: Record<RunFailure, string> = {
   outputs: 'Ошибка результата',
   opening: 'Ошибка запуска Pi',
   continuation: 'Цепочка остановлена',
+  terminal_close: 'Не удалось закрыть Pi',
 };
 export const runFailureMessages: Record<RunFailure, string> = {
   usage_limit:
@@ -34,6 +36,8 @@ export const runFailureMessages: Record<RunFailure, string> = {
   outputs:
     'Выходные файлы отсутствуют или изменились после сообщения о готовности. Проверьте результат в том же диалоге Pi.',
   opening: 'Не удалось открыть Pi. Проверьте выбранную модель, авторизацию и назначенные ресурсы.',
+  terminal_close:
+    'Результат сохранён, но Studio не смогла безопасно закрыть вкладку Pi. Цепочка приостановлена; другие окна не закрывались. Проверьте завершение операций и настройки Terminal или продолжите работу вручную. Автоматического повтора нет.',
   continuation:
     'Не удалось запустить следующего агента цепочки. Предыдущий результат готов и сохранён. Проверьте подключение, модель и ресурсы следующего агента, затем запустите его вручную. Автоматического повтора нет.',
 };

@@ -65,18 +65,5 @@ export function runTeamAccess(state: {
       )
         throw new Error('Цепочка или точный диалог изменились до передачи team.');
     },
-    finishChain(run: PreparedRun, sequence: number | undefined) {
-      const live = state.live.get(
-        runKey({ projectId: run.project.id, agentId: run.agent.profile.id }),
-      );
-      if (
-        live?.run === run &&
-        live.sequence === sequence &&
-        live.status === 'ready' &&
-        live.chain &&
-        state.chains.get(run.project.id) === live.chain
-      )
-        state.chains.delete(run.project.id);
-    },
   };
 }

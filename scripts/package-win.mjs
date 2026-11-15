@@ -61,7 +61,7 @@ try {
   await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
   for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code'])
     await cp(join(root, 'bundled', name), join(application, 'bundled', name), { recursive: true });
-  for (const name of ['yaml', 'saxes', 'xmlchars'])
+  for (const name of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser'])
     await cp(join(root, 'node_modules', name), join(application, 'node_modules', name), {
       recursive: true,
     });
@@ -69,6 +69,7 @@ try {
     ['@remotion/player/LICENSE.md', 'Remotion-LICENSE.md'],
     ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
     ['zod/LICENSE', 'Zod-LICENSE.txt'],
+    ['jsonc-parser/LICENSE.md', 'JSONC-parser-LICENSE.md'],
     ['xmlchars/LICENSE', 'Xmlchars-LICENSE.txt'],
   ])
     await cp(join(root, 'node_modules', source), join(application, 'licenses', name));
@@ -141,7 +142,8 @@ try {
         `Compress-Archive -LiteralPath ${literal(bundle)} -DestinationPath ${literal(output)} -CompressionLevel Optimal`,
       ),
     );
-  else run('/usr/bin/ditto', ['-c', '-k', '--norsrc', '--noextattr', '--keepParent', bundle, output]);
+  else
+    run('/usr/bin/ditto', ['-c', '-k', '--norsrc', '--noextattr', '--keepParent', bundle, output]);
   const digest = createHash('sha256')
     .update(await readFile(output))
     .digest('hex');

@@ -35,3 +35,9 @@ export interface RunContextRecord {
   instructionIds: string[];
   attachments?: SavedAttachment[];
 }
+
+export interface TerminalIdentity {
+  kind: 'windows-terminal';
+  sessionId: string;
+  profileId: string;
+}

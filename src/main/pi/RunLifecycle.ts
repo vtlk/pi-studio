@@ -1,3 +1,5 @@
+import { validStudioTerminalIdentity } from './terminal-close/windowsProfile.ts';
+import { AutomaticCloseError } from './automaticClose.ts';
 import { relative, join } from 'node:path';
 import { stat, rm } from 'node:fs/promises';
 import { atomicJson, safePath } from '../storage/files.ts';
@@ -36,6 +38,14 @@ export class RunLifecycle {
     live.heartbeat = Date.now();
     if (event.type === 'hello') {
       if (!Number.isSafeInteger(event.pid) || event.pid! < 2) throw new Error('Invalid process');
+      if (process.platform === 'win32' && !this.dependencies.headless) {
+        const terminal = event.terminalIdentity;
+        if (!validStudioTerminalIdentity(terminal))
+          throw new Error(
+            'Перезапустите Windows Terminal, чтобы загрузить профиль Pi Studio, затем откройте диалог снова.',
+          );
+        live.terminalIdentity = terminal;
+      }
       live.pid = event.pid;
       await atomicJson(join(live.run.record.cwd, '.pistudio-session-lock.json'), {
         pid: live.pid,
@@ -161,14 +171,21 @@ export class RunLifecycle {
       ) {
         live.notifiedSequence = live.sequence;
         const sequence = live.sequence;
-        void this.dependencies.completed?.(live.run, completion!, live.userMessage).catch(() => {
-          if (live.sequence !== sequence) return;
-          // The current output remains validated. Report the failed handoff
-          // separately and disarm it until the next explicit Studio action.
-          live.blocked = true;
-          live.request.autoContinue = false;
-          this.dependencies.failureChanged?.(live.run, 'continuation');
-        });
+        void this.dependencies
+          .completed?.(live.run, completion!, live.userMessage)
+          .catch(async (error) => {
+            if (live.sequence !== sequence) return;
+            // The current output remains validated. Report the failed handoff
+            // separately and disarm it until the next explicit Studio action.
+            live.blocked = true;
+            live.request.autoContinue = false;
+            const failure = error instanceof AutomaticCloseError ? error.failure : 'continuation';
+            if (failure === 'outputs') {
+              live.status = 'error';
+              await this.dependencies.update(live.run, 'error', undefined, failure).catch(() => {});
+            }
+            this.dependencies.failureChanged?.(live.run, failure);
+          });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {
       this.dependencies.activityChanged?.(live.run, false);

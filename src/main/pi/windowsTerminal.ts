@@ -1,3 +1,4 @@
+import { ensureWindowsProfile } from './terminal-close/windowsProfile.ts';
 import { execFile } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import { basename, delimiter, dirname, join } from 'node:path';
@@ -33,6 +34,7 @@ export async function openWindowsSession(
   bootstrap: string,
   title = 'Pi Studio',
 ) {
+  const profile = await ensureWindowsProfile();
   const name = basename(bootstrap, '.json');
   if (!/^[a-zA-Z0-9_-]{1,128}$/.test(name)) throw new Error('Некорректный ID окна Pi.');
   const env = piEnvironment(dirname(node));
@@ -43,6 +45,8 @@ export async function openWindowsSession(
       '-w',
       `pi-studio-${name}`,
       'new-tab',
+      '--profile',
+      profile,
       '--title',
       titleArgument(title),
       '--suppressApplicationTitle',
