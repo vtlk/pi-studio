@@ -1,5 +1,4 @@
 {
-  "diagnosedUtc": "2026-11-15T22:00:00Z",
   "orphanDirectories": 2,
   "validProjectManifests": 2,
   "firstDirectoryContainsOnlyEmptyDirectories": true,
@@ -9,5 +8,6 @@
   "sessionHeadersUseCorrectCanonicalCwd": true,
   "userProjectContentsWritten": false,
   "userPathsOrConversationTextIncludedInProof": false,
-  "cleanupRequiresUserConfirmation": true
+  "cleanupRequiresUserConfirmation": true,
+  "recordedUtc": "2026-11-15T21:50:47.386557+00:00"
 }

@@ -1,0 +1,26 @@
+{
+  "observedUtc": "2026-11-15T21:48:57.939745+00:00",
+  "explicitUserCleanupAuthorization": true,
+  "orphanDirectoriesMovedToSystemTrash": 2,
+  "canonicalProjectsPreserved": [
+    {
+      "agents": 10,
+      "outputs": 417,
+      "boundSessionsPresent": 10,
+      "canonicalHeaderIdsMatch": true,
+      "manifestUnchanged": true
+    },
+    {
+      "agents": 10,
+      "outputs": 546,
+      "boundSessionsPresent": 10,
+      "canonicalHeaderIdsMatch": true,
+      "manifestUnchanged": true
+    }
+  ],
+  "onlyExtraRegularFileWasByteIdenticalDuplicate": true,
+  "projectMetadataReconstructed": false,
+  "projectsAlreadyIntact": true,
+  "studioSettingsWritten": false,
+  "userPathsOrConversationTextIncluded": false
+}
