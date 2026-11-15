@@ -133,6 +133,29 @@ export async function runSession(bootstrapPath) {
     bound = false,
     binding = false;
   let failures = 0;
+  let teamRequestAdmitted = false,
+    teamReceiptSent = false;
+  async function teamReceipt() {
+    if (!envelope.teamDelivery || !teamRequestAdmitted || teamReceiptSent || !bound) return;
+    const entry = sessions.getEntries().findLast(
+      (entry) =>
+        entry.type === 'message' &&
+        entry.message.role === 'user' &&
+        (typeof entry.message.content === 'string'
+          ? entry.message.content
+          : entry.message.content
+              .filter((part) => part.type === 'text')
+              .map((part) => part.text)
+              .join('')) === initialMessage,
+    );
+    if (!entry) return;
+    await event({
+      type: 'team_received',
+      messageId: envelope.teamDelivery.messageId,
+      entryId: entry.id,
+    });
+    teamReceiptSent = true;
+  }
   async function bindWrittenSession() {
     if (bound || binding) return;
     binding = true;
@@ -186,7 +209,14 @@ export async function runSession(bootstrapPath) {
           return { action: 'handled' };
         }
         try {
-          await event({ type: 'request', message: input.text });
+          const isTeam =
+            !!envelope.teamDelivery && !teamRequestAdmitted && input.text === initialMessage;
+          await event({
+            type: 'request',
+            message: input.text,
+            ...(isTeam ? { messageId: envelope.teamDelivery.messageId } : {}),
+          });
+          if (isTeam) teamRequestAdmitted = true;
         } catch {
           ctx.ui.notify(
             'Studio недоступна или выполняется операция с папкой проекта. Запрос не отправлен. Повторите после восстановления связи или завершения операции.',
@@ -205,6 +235,7 @@ export async function runSession(bootstrapPath) {
         accounting?.stop();
         await accounting?.flush().catch(() => {});
         await bindWrittenSession();
+        await teamReceipt();
         const last = runtime.session.messages.findLast((message) => message.role === 'assistant');
         await event({
           type: 'settled',
@@ -326,7 +357,10 @@ export async function runSession(bootstrapPath) {
     heartbeat = setInterval(() => {
       void event({ type: 'heartbeat' }).then(
         (result) => {
-          if (result.stop === true) { shutdown(); return; }
+          if (result.stop === true) {
+            shutdown();
+            return;
+          }
           failures = 0;
         },
         () => {
@@ -335,7 +369,9 @@ export async function runSession(bootstrapPath) {
       );
     }, 3000);
     bindingTimer = setInterval(() => {
-      void bindWrittenSession().catch(() => {});
+      void bindWrittenSession()
+        .then(teamReceipt)
+        .catch(() => {});
     }, 100);
     if (bootstrap.headless) {
       await runtime.session.bindExtensions({});

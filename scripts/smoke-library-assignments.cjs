@@ -155,6 +155,25 @@ const deadline = setTimeout(() => {
   );
   await js(`document.querySelector('[aria-label="Использовать: pistudio-library"]').click()`);
   await saved();
+  await js(`document.querySelector('[aria-label="Добавить MCP"]').click()`);
+  await until(`!!document.querySelector('[aria-label="Источник MCP"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="dialog"] .resource-row')).find(row=>row.querySelector('strong')?.textContent==='team').querySelector('button').click()`,
+  );
+  await click('Готово');
+  await saved();
+  assert.deepEqual((await js('window.studio.loadStudio()')).sections.agents[0].mcps, [
+    'pistudio-library',
+    'pistudio-team',
+  ]);
+  await js(`document.querySelector('[aria-label="Использовать: pistudio-team"]').click()`);
+  await saved();
+  assert.equal(
+    (await js('window.studio.loadStudio()')).sections.agents[0].capabilitySettings[
+      'mcps:pistudio-team'
+    ].enabled,
+    false,
+  );
   await click('Skills');
   await js(`document.querySelector('[aria-label="Добавить Skills"]').click()`);
   await js(
@@ -211,7 +230,7 @@ const deadline = setTimeout(() => {
   await js(`document.querySelector('[aria-label="Убрать pistudio-library у агента"]').click()`);
   await until(`!!document.querySelector('[role="alertdialog"]')`);
   await js(`document.querySelector('[role="alertdialog"] button').click()`);
-  assert.deepEqual((await saved()).sections.agents[0].mcps, ['pistudio-library']);
+  assert.deepEqual((await saved()).sections.agents[0].mcps, ['pistudio-library', 'pistudio-team']);
   await js(`document.querySelector('[aria-label="Убрать pistudio-library у агента"]').click()`);
   await until(`!!document.querySelector('[role="alertdialog"]')`);
   await js(`document.querySelector('[role="alertdialog"] .button.primary').click()`);
@@ -240,6 +259,7 @@ const deadline = setTimeout(() => {
     [
       'Pi Studio · Проект',
       'Pi Studio · Библиотека',
+      'team',
       'Pi Studio · Браузер',
       'Pi Studio · Компьютер',
       'Pi Studio · Ресурсы и агенты',
@@ -281,7 +301,7 @@ const deadline = setTimeout(() => {
   assert.equal(state.sections.systemAgents.length, 1);
   assert.equal(state.sections.resources.length, 1);
   console.log(
-    'Library assignment UI passed: one helper; built-in/custom MCP picker, explicit binding/switch/confirmed removal; reusable skill create/assign/edit/current file; independent library choices and same profile for both; missing capability rejects without fallback/project/session; persistence/reload. No model requests.',
+    'Library/team assignment UI passed: one helper; built-in/custom MCP picker, explicit binding/switch/confirmed removal; reusable skill create/assign/edit/current file; independent library choices and same profile for both; missing capability rejects without fallback/project/session; persistence/reload. No model requests.',
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

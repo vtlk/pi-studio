@@ -4,7 +4,7 @@ import type { ProjectAgentProfile } from '../../shared/project.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
 import { nativeMcpConfig } from './nativeMcp.ts';
-import { libraryMcpId, reservedMcpName } from '../../shared/builtinResources.ts';
+import { optionalBuiltinMcps, reservedMcpName } from '../../shared/builtinResources.ts';
 
 export type McpConfigResolver = (
   resource: Resource,
@@ -44,7 +44,7 @@ export async function resolveResources(
   for (const kind of ['skills', 'mcps', 'plugins'] as const)
     for (const id of profile[kind]) {
       if (profile.capabilitySettings?.[`${kind}:${id}`]?.enabled === false) continue;
-      if (kind === 'mcps' && id === libraryMcpId) continue;
+      if (kind === 'mcps' && optionalBuiltinMcps.some((item) => item.id === id)) continue;
       const resource = catalog.find((item) => item.id === id && item.kind === kind);
       if (!resource)
         throw new Error(

@@ -1,5 +1,6 @@
 import { constants } from 'node:fs';
 import { lstat, open, readdir, realpath } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { safePath, withReadDeadline } from '../storage/files.ts';
 
@@ -16,7 +17,7 @@ function integer(value: unknown, fallback: number, min: number, max: number) {
   return value;
 }
 /** The session selects the root. Arguments cannot select another project or a global path. */
-export function listProjectFiles(root: string, args: Record<string, unknown>) {
+export function listProjectFiles(root: string, args: Record<string, unknown>, foldersFirst = false) {
   return withReadDeadline(async () => {
     const relative = projectPath(args.path, true);
     const offset = integer(args.offset, 0, 0, 10000),
@@ -50,7 +51,7 @@ export function listProjectFiles(root: string, args: Record<string, unknown>) {
       });
     }
     entries.sort(
-      (a, b) => a.createdAt - b.createdAt || a.name.localeCompare(b.name, 'ru', { numeric: true }),
+      (a, b) => (foldersFirst ? Number(b.kind === 'directory') - Number(a.kind === 'directory') : 0) || a.createdAt - b.createdAt || a.name.localeCompare(b.name, 'ru', { numeric: true }),
     );
     return {
       path: relative || '.',
@@ -70,12 +71,13 @@ export function readProjectFile(root: string, args: Record<string, unknown>) {
     const encoding = args.encoding ?? 'auto';
     if (!['auto', 'utf8', 'base64'].includes(String(encoding)))
       throw new Error('encoding: auto, utf8 или base64.');
-    const file = await open(
-      await safePath(root, relative),
-      constants.O_RDONLY | constants.O_NOFOLLOW,
-    );
+    const path = await safePath(root, relative);
+    const checked = await lstat(path);
+    const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
     try {
       const before = await file.stat();
+      if (checked.dev !== before.dev || checked.ino !== before.ino || checked.isSymbolicLink())
+        throw new Error('Файл был подменён перед чтением.');
       if (!before.isFile()) throw new Error('Выбранный путь не является обычным файлом.');
       if (offset > before.size) throw new Error('Смещение выходит за размер файла.');
       const buffer = Buffer.alloc(Math.min(maxBytes, before.size - offset));
@@ -107,9 +109,17 @@ export function readProjectFile(root: string, args: Record<string, unknown>) {
         before.ctimeMs !== after.ctimeMs
       )
         throw new Error('Файл изменился во время чтения. Повторите запрос.');
+      if (await safePath(root, relative) !== path) throw new Error('Путь изменился.');
+      const current = await lstat(path);
+      if (current.ino !== before.ino || current.dev !== before.dev || current.isSymbolicLink())
+        throw new Error('Файл был подменён во время чтения.');
+      const fingerprint = createHash('sha256').update(JSON.stringify([before.dev, before.ino, before.size, before.mtimeMs, before.ctimeMs])).digest('hex');
+      if (args.fingerprint !== undefined && args.fingerprint !== fingerprint)
+        throw new Error('Файл изменился между фрагментами. Начните чтение заново.');
       const text = content !== undefined;
       return {
         path: relative,
+        fingerprint,
         encoding: text ? 'utf8' : 'base64',
         content: content ?? buffer.subarray(0, bytesRead).toString('base64'),
         size: before.size,

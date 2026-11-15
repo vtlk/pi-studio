@@ -1,3 +1,4 @@
+import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import type { PreviewRenderer } from '../library/previewOptions.ts';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -26,6 +27,7 @@ import type { BrowserSupport } from '../browser/BrowserSupport.ts';
 import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 
 interface Options {
+  team?: TeamSupport;
   bootstraps: string;
   bridge: string;
   catalog: string;
@@ -48,7 +50,11 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
   const host = new RunHost({
     ...options,
     serviceAgent: true,
-    mcpGroups: (run) => options.computer?.groups(run) ?? [],
+    mcpGroups: (run) => [
+      ...(options.computer?.groups(run) ?? []),
+      ...(options.team?.groups(run) ?? []),
+    ],
+    observed: (run, event) => options.team?.event(run, event) ?? Promise.resolve(),
     tools: (run) => [
       ...productionTools,
       ...(run.libraryAccess

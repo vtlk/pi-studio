@@ -55,7 +55,7 @@
     }
   },
   "latestNativeControl": {
-    "checkedAt": "2026-11-15T18:32:23.029Z",
+    "checkedAt": "2026-11-15T20:56:40.421Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",

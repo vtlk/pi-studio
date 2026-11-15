@@ -102,7 +102,9 @@
     "test:claude-code-chain": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --claude-code",
     "package:win": "npm run build && node scripts/package-win.mjs",
     "audit:repository": "node scripts/audit-repository.mjs --fetch-refs",
-    "audit:release-assets": "node scripts/audit-repository.mjs --fetch-refs --releases"
+    "audit:release-assets": "node scripts/audit-repository.mjs --fetch-refs --releases",
+    "test:pi-team": "node --experimental-strip-types scripts/smoke-pi-team.ts",
+    "test:team-messages": "npm run build && electron scripts/smoke-team-messages.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

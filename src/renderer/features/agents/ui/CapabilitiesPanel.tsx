@@ -10,7 +10,7 @@ import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { resourceStatus } from '@/features/resources/model/resourceStatus';
 import { systemAgentDefinitions } from '../../../../shared/systemAgents';
-import { libraryMcp } from '../../../../shared/builtinResources';
+import { builtinResource } from '../../../../shared/builtinResources';
 import { McpPicker } from './McpPicker';
 import { BrowserResourceRow } from '@/features/resources/ui/BrowserResourceRow';
 import { ComputerResourceRow } from '@/features/resources/ui/ComputerResourceRow';
@@ -69,8 +69,8 @@ export function CapabilitiesPanel() {
         {selectedAgent[field].map((id) => {
           const key = `${field}:${id}`;
           const resource =
-            field === 'mcps' && id === libraryMcp.id
-              ? libraryMcp
+            field === 'mcps' && builtinResource(id)
+              ? builtinResource(id)
               : resources.find((item) => item.kind === field && item.id === id);
           const binding = selectedAgent.capabilitySettings?.[key] ?? { enabled: true };
           const updateBinding = (update: Partial<typeof binding>) =>
@@ -118,7 +118,7 @@ export function CapabilitiesPanel() {
                 </p>
                 <p className="subtle">
                   {resource
-                    ? resource.id === libraryMcp.id
+                    ? resource.source.startsWith('builtin:')
                       ? 'Встроенный · подключается при следующем запуске Pi'
                       : `${resource.version ? `${resource.version} · ` : ''}${resourceStatus(resource, !!window.studio)}`
                     : 'Недоступен'}

@@ -1,3 +1,4 @@
+import { TeamMessages } from './TeamMessages';
 import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui';
@@ -39,6 +40,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
     <div className="project-workspace">
       <div className="project-header">
         <h1>{project.name}</h1>
+        {window.studio && <TeamMessages project={project} />}
         <Button
           kind="primary"
           onClick={() =>

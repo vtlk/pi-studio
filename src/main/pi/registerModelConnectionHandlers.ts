@@ -88,4 +88,5 @@ export function registerModelConnectionHandlers(
       );
     });
   });
+  return connections;
 }

@@ -72,6 +72,7 @@ export class RunLifecycle {
         createdAt: live.run.agent.session?.createdAt ?? Date.now(),
       };
       const project = await this.dependencies.update(live.run, live.status, live.bound);
+      live.run.agent.session = live.bound;
       live.ready({ runId: live.run.record.runId, project });
     } else if (event.type === 'capabilities') {
       if (typeof event.executableExtensions !== 'boolean')

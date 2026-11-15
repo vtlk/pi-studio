@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { libraryMcp } from '../../../../shared/builtinResources';
+import { optionalBuiltinMcps, libraryMcp } from '../../../../shared/builtinResources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { Button } from '@/shared/ui';
 
@@ -27,22 +27,24 @@ export function McpPicker({
           </button>
         ))}
       </nav>
-      {mode === 'Встроенные' && !allowLibrary ? (
-        <p>Административный MCP помощника уже подключён. Библиотека назначается обычным агентам.</p>
-      ) : mode === 'Встроенные' ? (
-        <div className="resource-row">
-          <div>
-            <strong>{libraryMcp.name}</strong>
-            <p>{libraryMcp.description}</p>
-          </div>
-          <Button
-            kind="primary"
-            disabled={attached.includes(libraryMcp.id)}
-            onClick={() => onPick(libraryMcp.id)}
-          >
-            {attached.includes(libraryMcp.id) ? 'Добавлен' : 'Добавить агенту'}
-          </Button>
-        </div>
+      {mode === 'Встроенные' ? (
+        optionalBuiltinMcps
+          .filter((item) => allowLibrary || item.id !== libraryMcp.id)
+          .map((resource) => (
+            <div className="resource-row" key={resource.id}>
+              <div>
+                <strong>{resource.name}</strong>
+                <p>{resource.description}</p>
+              </div>
+              <Button
+                kind="primary"
+                disabled={attached.includes(resource.id)}
+                onClick={() => onPick(resource.id)}
+              >
+                {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
+              </Button>
+            </div>
+          ))
       ) : (
         <ResourceCatalog kind="mcps" attached={attached} onPick={onPick} />
       )}

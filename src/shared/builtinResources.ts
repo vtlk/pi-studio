@@ -34,6 +34,22 @@ export const computerMcp: Resource = {
   description:
     'Управление приложениями macOS по снимкам окна и координатам. Нужны модель с поддержкой изображений и разрешения macOS для Pi Studio. Некоторые действия требуют активного окна.',
 };
+export const teamMcpId = 'pistudio-team';
+export const teamMcp: Resource = {
+  ...libraryMcp,
+  id: teamMcpId,
+  name: 'team',
+  source: 'builtin:team',
+  description:
+    'Агенты своей команды в текущем проекте: чтение настроек и результатов, передача сообщений в точный диалог. Назначается явно; вне проекта недоступен.',
+};
+export const optionalBuiltinMcps = [libraryMcp, teamMcp];
+export function hasTeamMcp(agent: Pick<Agent, 'mcps' | 'capabilitySettings'>) {
+  return (
+    agent.mcps.includes(teamMcpId) &&
+    agent.capabilitySettings?.[`mcps:${teamMcpId}`]?.enabled !== false
+  );
+}
 export const builtinResources: readonly Resource[] = [
   {
     ...libraryMcp,
@@ -44,6 +60,7 @@ export const builtinResources: readonly Resource[] = [
       'Обязательные инструменты проектной сессии: текущий контекст и файлы проекта, веб-поиск, проверка результата и монтажного манифеста. Подключается автоматически к проектным агентам.',
   },
   libraryMcp,
+  teamMcp,
   browserMcp,
   computerMcp,
   {
@@ -56,7 +73,7 @@ export const builtinResources: readonly Resource[] = [
   },
 ];
 export function reservedMcpName(name: string) {
-  return ['pi_studio', 'pi_studio_browser', 'pi_studio_computer'].includes(
+  return ['pi_studio', 'pi_studio_browser', 'pi_studio_computer', 'team'].includes(
     name.replaceAll('-', '_'),
   );
 }

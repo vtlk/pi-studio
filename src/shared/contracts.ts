@@ -39,6 +39,8 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  listTeamMessages(projectId: string): Promise<import('./teamMessages').TeamMessageInfo[]>;
+  manageTeamMessage(request: import('./teamMessages').TeamMessageAction): Promise<void>;
   exportAgentTeam(
     request: import('./teamPackage').TeamPackageRequest,
   ): Promise<{ requirements: string[] } | null>;
@@ -136,6 +138,8 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  listTeamMessages: 'studio:list-team-messages',
+  manageTeamMessage: 'studio:manage-team-message',
   exportAgentTeam: 'studio:export-agent-team',
   importAgentTeam: 'studio:import-agent-team',
   listTeamImports: 'studio:list-team-imports',

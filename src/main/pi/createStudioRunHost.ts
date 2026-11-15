@@ -1,3 +1,4 @@
+import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import type { PreviewRenderer } from '../library/previewOptions.ts';
 import { RunHost } from './RunHost.ts';
 import { buildRunContext } from './ContextBuilder.ts';
@@ -20,6 +21,7 @@ import type { ProjectActivity } from './ProjectActivity.ts';
 import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 
 interface Options {
+  team?: TeamSupport;
   bootstraps: string;
   bridge: string;
   catalog: string;
@@ -37,7 +39,11 @@ interface Options {
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
   const host: RunHost = new RunHost({
-    mcpGroups: (run) => options.computer?.groups(run) ?? [],
+    mcpGroups: (run) => [
+      ...(options.computer?.groups(run) ?? []),
+      ...(options.team?.groups(run) ?? []),
+    ],
+    observed: (run, event) => options.team?.event(run, event) ?? Promise.resolve(),
     tools: (run) => [
       ...productionTools,
       ...(run.libraryAccess
@@ -156,13 +162,17 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     read: (run) =>
       service.serialize(async () => (await service.load()).projects.read(run.project.id)),
     completed: async (run, outputs, message) => {
+      const sequence = run.requestSequence;
       const continueStage = host.continuation(run);
       if (!continueStage) return;
       const project = await service.serialize(async () =>
         (await service.load()).projects.read(run.project.id),
       );
       const next = nextEnabledStage(project, run.agent.profile.id);
-      if (!next) return;
+      if (!next) {
+        host.finishChain(run, sequence);
+        return;
+      }
       const input = nextStageMessage(run, outputs, message);
       await continueStage(
         {
@@ -174,5 +184,6 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       );
     },
   });
+  options.team?.attach(host);
   return host;
 }

@@ -1,0 +1,17 @@
+{
+  "nativePi": "1.5.2",
+  "loopbackModel": true,
+  "externalModelRequests": 0,
+  "userStudioTouched": false,
+  "sourceTeamScoped": true,
+  "allToolsThroughNativeMcp": true,
+  "blockingWait": true,
+  "recipientTasks": 2,
+  "exactExistingBinding": true,
+  "duplicateReplay": false,
+  "cycleRejected": true,
+  "revokedOnExplicitOpen": true,
+  "ordinaryResumeUserMessages": 0,
+  "windowsRuntimeAccepted": false,
+  "visibleTerminalAccepted": false
+}

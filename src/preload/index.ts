@@ -5,6 +5,8 @@ import { runFailure } from '../shared/runFailure';
 const desktopApi: DesktopApi = {
   exportAgentTeam: (request) => ipcRenderer.invoke(desktopChannels.exportAgentTeam, request),
   importAgentTeam: (folder) => ipcRenderer.invoke(desktopChannels.importAgentTeam, folder),
+  listTeamMessages: (projectId) => ipcRenderer.invoke(desktopChannels.listTeamMessages, projectId),
+  manageTeamMessage: (request) => ipcRenderer.invoke(desktopChannels.manageTeamMessage, request),
   listTeamImports: (folder) => ipcRenderer.invoke(desktopChannels.listTeamImports, folder),
   continueTeamImport: (request) => ipcRenderer.invoke(desktopChannels.continueTeamImport, request),
   getComputerState: () => ipcRenderer.invoke(desktopChannels.getComputerState),

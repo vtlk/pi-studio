@@ -1,0 +1,10 @@
+{
+  "isolatedNative": true,
+  "restartAutoLaunch": false,
+  "pendingShown": true,
+  "confirmedCancel": true,
+  "explicitResumePreflight": true,
+  "modelRequests": 0,
+  "userStudioTouched": false,
+  "outputPreserved": true
+}

@@ -1,3 +1,4 @@
+import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { RunHost } from './RunHost.ts';
@@ -23,6 +24,7 @@ import type { ComputerSupport } from '../computer/ComputerSupport.ts';
 import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 
 interface Options {
+  team?: TeamSupport;
   teamImports?: TeamImportTools;
   bootstraps: string;
   bridge: string;
@@ -59,7 +61,11 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     options.teamImports,
   );
   return new RunHost({
-    mcpGroups: (run) => options.computer?.groups(run) ?? [],
+    mcpGroups: (run) => [
+      ...(options.computer?.groups(run) ?? []),
+      ...(options.team?.groups(run) ?? []),
+    ],
+    observed: (run, event) => options.team?.event(run, event) ?? Promise.resolve(),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     serviceAgent: true,

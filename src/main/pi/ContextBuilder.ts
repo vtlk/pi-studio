@@ -10,12 +10,14 @@ import { atomicJson, safePath } from '../storage/files.ts';
 import { resolveResources, type ResolvedResources, type McpConfigResolver } from './resources.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
-import { hasLibraryMcp, libraryMcpId } from '../../shared/builtinResources.ts';
+import { hasLibraryMcp, hasTeamMcp, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
 
 import type { ModelAuthScope } from './modelAuth.ts';
 
 export interface PreparedRun {
   libraryAccess?: boolean;
+  teamAccess?: boolean;
+  teamDelivery?: import('../team-mcp/types.ts').TeamDelivery;
   libraryKind?: 'characters' | 'locations';
   modelAuth?: ModelAuthScope;
   requestSequence?: number;
@@ -47,18 +49,23 @@ export async function buildRunContext(
     throw new Error('Выберите подключение, модель и уровень рассуждения агента в конструкторе.');
   // This app-owned capability is revoked from the current constructor on each explicit open.
   const libraryAccess = hasLibraryMcp(current);
+  const teamAccess = hasTeamMcp(current);
+  const optionalIds = optionalBuiltinMcps.map((item) => item.id);
+  const enabledIds = optionalIds.filter(
+    (id) =>
+      current.mcps.includes(id) && current.capabilitySettings?.[`mcps:${id}`]?.enabled !== false,
+  );
   const agent: ProjectAgent = {
     ...saved,
     profile: {
       ...saved.profile,
       model: structuredClone(model),
-      mcps: [
-        ...saved.profile.mcps.filter((id) => id !== libraryMcpId),
-        ...(libraryAccess ? [libraryMcpId] : []),
-      ],
+      mcps: [...saved.profile.mcps.filter((id) => !optionalIds.includes(id)), ...enabledIds],
       capabilitySettings: {
         ...saved.profile.capabilitySettings,
-        [`mcps:${libraryMcpId}`]: { enabled: libraryAccess },
+        ...Object.fromEntries(
+          optionalIds.map((id) => [`mcps:${id}`, { enabled: enabledIds.includes(id) }]),
+        ),
       },
     },
   };
@@ -108,6 +115,7 @@ export async function buildRunContext(
   await atomicJson(join(directory, 'context.json'), record);
   return {
     libraryAccess,
+    teamAccess,
     record,
     instructions: [
       current.mainInstruction ?? '',

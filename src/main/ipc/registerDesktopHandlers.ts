@@ -1,3 +1,5 @@
+import { registerTeamMessageHandlers } from '../team-mcp/registerTeamMessageHandlers';
+import { TeamSupport } from '../team-mcp/TeamSupport';
 import { rasterizePreview } from '../library/rasterizePreview';
 import { outputMediaUrl } from '../../shared/outputPaths';
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
@@ -63,7 +65,7 @@ export function registerDesktopHandlers(): StudioService {
       }
     },
   });
-  registerModelConnectionHandlers(
+  const modelConnections = registerModelConnectionHandlers(
     service,
     join(app.getPath('userData'), 'model-auth'),
     join(__dirname, '../../bundled/pi-bridge'),
@@ -86,7 +88,12 @@ export function registerDesktopHandlers(): StudioService {
     join(app.getPath('userData'), 'runtime/browser'),
     join(__dirname, '../../bundled/pi-bridge/browser/server.mjs'),
   );
+  const team = new TeamSupport(service, (folder, connectionId) =>
+    modelConnections.status({ folder, connectionId }),
+  );
+  registerTeamMessageHandlers(team, caller);
   const productionResources = {
+    team,
     computer,
     references,
     images,
@@ -117,6 +124,7 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {
+    team,
     teamImports,
     computer,
     browser,
@@ -137,8 +145,8 @@ export function registerDesktopHandlers(): StudioService {
     piPath: () => startup.path,
   });
   registerGracefulQuit(
-    [runs, setup, generators, computer],
-    [browserAuth, startup, runs, setup, generators, browser, usageRecovery],
+    [team, runs, setup, generators, computer],
+    [browserAuth, startup, runs, setup, generators, browser, usageRecovery, team],
   );
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);

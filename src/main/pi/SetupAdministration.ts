@@ -13,7 +13,11 @@ import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
-import { libraryMcp, builtinResources } from '../../shared/builtinResources.ts';
+import {
+  libraryMcp,
+  builtinResources,
+  optionalBuiltinMcps,
+} from '../../shared/builtinResources.ts';
 import {
   endpointProviderId,
   parseModelEndpoint,
@@ -303,7 +307,7 @@ export class SetupAdministration {
         if (!['skills', 'mcps', 'plugins'].includes(String(args.kind)))
           throw new Error('Некорректный вид ресурса.');
         const kind = args.kind as CapabilityKind;
-        const resource = [...resources, libraryMcp].find(
+        const resource = [...resources, ...optionalBuiltinMcps].find(
           (item) => item.id === args.resourceId && item.kind === kind,
         );
         if (!resource) throw new Error('Ресурс отсутствует в каталоге.');

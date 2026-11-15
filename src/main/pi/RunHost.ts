@@ -1,3 +1,7 @@
+import { validateLaunchRequest } from './validateLaunchRequest.ts';
+import { runTeamAccess } from './runTeamAccess.ts';
+import { runContinuation } from './runContinuation.ts';
+import type { TeamDelivery } from '../team-mcp/types.ts';
 import { piNode } from './platform.ts';
 import { join } from 'node:path';
 import { mkdir, realpath, rm } from 'node:fs/promises';
@@ -16,6 +20,7 @@ import { assertRunsIdle } from './assertRunsIdle.ts';
 import { runTerminalTitle } from './terminalTitle.ts';
 import { ContinuationCancelled, type Continuation } from './RunTypes.ts';
 export class RunHost {
+  private stopping = false;
   private readonly channel = new RunChannel();
   private readonly live = new Map<string, LiveRun>();
   private readonly opening = new Set<string>();
@@ -69,59 +74,36 @@ export class RunHost {
     return this.open(request, message, undefined, beforeDispatch);
   }
   continuation(run: PreparedRun) {
-    const live = this.live.get(
-      runKey({ projectId: run.project.id, agentId: run.agent.profile.id }),
-    );
-    if (
-      !live ||
-      live.run !== run ||
-      !live.request.autoContinue ||
-      !live.chain ||
-      live.sequence < (live.continueAfterSequence ?? 1)
-    )
-      return;
-    const token = live.chain,
-      sequence = live.sequence;
-    const check = () => {
-      if (
-        this.chains.get(run.project.id) !== token ||
-        live.sequence !== sequence ||
-        live.blocked ||
-        live.status !== 'ready'
-      )
-        throw new ContinuationCancelled();
-    };
-    let used = false;
-    return async (request: LaunchAgentRequest, message: string) => {
-      if (used) return;
-      used = true;
-      try {
-        if (request.projectId !== run.project.id)
-          throw new Error('Цепочка не может перейти в другой проект.');
-        check();
-        return await this.open({ ...request, autoContinue: true }, message, { token, check });
-      } catch (error) {
-        if (!(error instanceof ContinuationCancelled)) throw error;
-      }
-    };
+    return runContinuation(run, {
+      live: this.live,
+      chains: this.chains,
+      open: (request, message, continuation) => this.open(request, message, continuation),
+    });
   }
+  private readonly teamAccess = runTeamAccess({
+    live: this.live,
+    chains: this.chains,
+    changing: this.changing,
+    opening: this.opening,
+    retiring: this.retiring,
+    assertUnchanged: (id) => this.assertUnchanged(id),
+    open: (request, text, before, delivery) =>
+      this.open(request, text, undefined, before, delivery),
+  });
+  inspect = this.teamAccess.inspect.bind(this.teamAccess);
+  teamUnavailable = this.teamAccess.teamUnavailable.bind(this.teamAccess);
+  assertTeamDispatch = this.teamAccess.assertTeamDispatch.bind(this.teamAccess);
+  launchTeamTask = this.teamAccess.launchTeamTask.bind(this.teamAccess);
+  finishChain = this.teamAccess.finishChain.bind(this.teamAccess);
   private async open(
     request: LaunchAgentRequest,
     automaticMessage?: string,
     continuation?: Continuation,
-    beforeDispatch?: () => Promise<void>,
+    beforeDispatch?: (run: PreparedRun) => Promise<void>,
+    teamDelivery?: TeamDelivery,
   ): Promise<LaunchAgentResult> {
     this.assertUnchanged(request.projectId);
-    if (typeof request.autoContinue !== 'boolean') throw new Error('Некорректный режим запуска.');
-    if (
-      request.attachments !== undefined &&
-      (!Array.isArray(request.attachments) ||
-        request.attachments.length > 32 ||
-        request.attachments.some((id) => typeof id !== 'string'))
-    )
-      throw new Error('Некорректный список референсов.');
-    if (request.attachments?.length && !request.firstMessage)
-      throw new Error('Референсы отправляются только вместе с первым сообщением нового диалога.');
+    validateLaunchRequest(request);
     const key = runKey(request);
     continuation?.check();
     const chain = continuation?.token ?? (request.autoContinue ? Symbol() : undefined);
@@ -144,7 +126,7 @@ export class RunHost {
       continuation?.check();
       const active = this.live.get(key);
       if (active?.pid && processAlive(active.pid)) {
-        if (automaticMessage && active.chain !== chain)
+        if (automaticMessage && !teamDelivery && active.chain !== chain)
           throw new Error('Диалог следующего агента уже открыт вручную. Цепочка приостановлена.');
         if (request.firstMessage !== undefined)
           throw new Error(
@@ -172,6 +154,8 @@ export class RunHost {
       }
       const { run, piPath } = await this.dependencies.prepare(request);
       prepared = run;
+      this.assertUnchanged(request.projectId);
+      run.teamDelivery = teamDelivery;
       continuation?.check();
       if (run.agent.session && request.firstMessage !== undefined)
         throw new Error('У агента уже есть диалог. Продолжение не отправляет сообщение.');
@@ -197,7 +181,9 @@ export class RunHost {
           request: { ...request },
           chain,
           continueAfterSequence: 1,
-          automaticCheck: continuation?.check,
+          automaticCheck: teamDelivery
+            ? () => this.assertTeamDispatch(request.projectId, request.agentId, run.record.runId)
+            : continuation?.check,
           status: 'waiting',
           sequence: 0,
           blocked: false,
@@ -215,6 +201,8 @@ export class RunHost {
         run.record.runId,
         {
           terminalTitle,
+          teamAccess: run.teamAccess,
+          teamDelivery,
           record: run.record,
           modelAuth: run.modelAuth,
           instructions: run.instructions,
@@ -224,7 +212,13 @@ export class RunHost {
           firstMessage: message,
           serviceAgent: this.dependencies.serviceAgent,
         },
-        (event) => this.lifecycle.event(live, event),
+        async (event) => {
+          await this.lifecycle.event(live, event);
+          if (event.type === 'opened') live.opened = true;
+          if (event.type === 'request' && event.messageId !== live.run.teamDelivery?.messageId)
+            live.run.teamDelivery = undefined;
+          await this.dependencies.observed?.(live.run, event);
+        },
         (name, args) => this.lifecycle.tool(live, name, args),
         typeof tools === 'function' ? () => tools(run) : tools,
         this.dependencies.mcpGroups?.(run),
@@ -235,7 +229,10 @@ export class RunHost {
       const headless = this.dependencies.headless === true;
       await atomicJson(bootstrap, { ...transport, sdk, headless });
       continuation?.check();
-      await beforeDispatch?.();
+      if (teamDelivery)
+        this.assertTeamDispatch(request.projectId, request.agentId, run.record.runId);
+      await beforeDispatch?.(run);
+      this.assertUnchanged(request.projectId);
       await (this.dependencies.openTerminal ?? openSessionTerminal)(
         node,
         this.dependencies.bridge,
@@ -282,7 +279,8 @@ export class RunHost {
         !this.retiring.has(key) &&
         ((live.pid && !processAlive(live.pid)) || Date.now() - live.heartbeat > 20000)
       ) {
-        const cleanup = this.lifecycle.processLost(live).then(() => {
+        const cleanup = this.lifecycle.processLost(live).then(async () => {
+          await this.dependencies.observed?.(live.run, { type: 'stopped' });
           this.channel.remove(live.run.record.runId);
           this.live.delete(key);
         });
@@ -295,11 +293,13 @@ export class RunHost {
       }
   }
   drain() {
+    this.stopping = true;
     clearInterval(this.monitor);
     this.chains.clear();
     return drainRunProcesses(this.live.values(), this.dependencies);
   }
   close() {
+    this.stopping = true;
     clearInterval(this.monitor);
     closeRuns(this.live.values(), this.dependencies);
     this.channel.close();
@@ -316,6 +316,7 @@ export class RunHost {
     if (live) this.lifecycle.outputsCleared(live);
   }
   private assertUnchanged(projectId: string) {
+    if (this.stopping) throw new Error('Studio закрывается. Новые запросы не отправляются.');
     if (this.changing.has(projectId))
       throw new Error('Файлы проекта переносятся или копируются. Повторите позже.');
   }

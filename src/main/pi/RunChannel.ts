@@ -1,47 +1,19 @@
 import { createServer, type ServerResponse, type IncomingMessage } from 'node:http';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
-import type { PreparedRun } from './ContextBuilder.ts';
 
-export interface SessionEnvelope {
-  terminalTitle?: string;
-  modelAuth?: PreparedRun['modelAuth'];
-  record: PreparedRun['record'];
-  instructions: string;
-  resources: PreparedRun['resources'];
-  sessionPath?: string;
-  fork?: boolean;
-  firstMessage?: string;
-  serviceAgent?: boolean;
-}
-export interface ChannelEvent {
-  type: string;
-  pid?: number;
-  sessionId?: string;
-  sessionFile?: string;
-  outcome?: string;
-  failure?: unknown;
-  message?: string;
-  executableExtensions?: boolean;
-  usage?: unknown;
-}
-export interface SessionTool {
-  name: string;
-  description: string;
-  inputSchema: Record<string, unknown>;
-}
-export interface SessionMcpResult {
-  content: ({ type: 'text'; text: string } | { type: 'image'; mimeType: string; data: string })[];
-  isError?: boolean;
-}
-export interface SessionMcpGroup {
-  name: string;
-  tools: readonly SessionTool[];
-  call: (
-    name: string,
-    args: Record<string, unknown>,
-    signal: AbortSignal,
-  ) => Promise<SessionMcpResult>;
-}
+export type {
+  SessionEnvelope,
+  ChannelEvent,
+  SessionTool,
+  SessionMcpResult,
+  SessionMcpGroup,
+} from './RunChannelTypes.ts';
+import type {
+  SessionEnvelope,
+  ChannelEvent,
+  SessionTool,
+  SessionMcpGroup,
+} from './RunChannelTypes.ts';
 interface Lease {
   stopping?: boolean;
   token: string;
@@ -184,7 +156,7 @@ export class RunChannel {
       new Set(groups.map((group) => group.name)).size !== groups.length ||
       groups.some(
         (group) =>
-          !/^pi_studio_[a-z_]+$/.test(group.name) ||
+          !/^(?:pi_studio_[a-z_]+|team)$/.test(group.name) ||
           envelope.resources.mcpServers.some((server) => server.name === group.name),
       )
     )
@@ -205,7 +177,7 @@ export class RunChannel {
                   url: `${url}/mcp/${group.name}`,
                   headers: { Authorization: `Bearer ${token}` },
                   exposure: 'direct',
-                  timeout: 120,
+                  timeout: group.name === 'team' ? 86400 : 120,
                 },
               })),
             ],
@@ -233,7 +205,7 @@ export class RunChannel {
       if (request.headers.origin || !request.headers.host?.startsWith('127.0.0.1:'))
         return json(response, 403, { error: 'Forbidden' });
       const match =
-        /^\/session\/([a-zA-Z0-9_-]+)\/(context|event|mcp)(?:\/(pi_studio_[a-z_]+))?$/.exec(
+        /^\/session\/([a-zA-Z0-9_-]+)\/(context|event|mcp)(?:\/(pi_studio_[a-z_]+|team))?$/.exec(
           request.url ?? '',
         );
       const lease = match ? this.leases.get(match[1]) : undefined;

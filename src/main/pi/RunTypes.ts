@@ -3,7 +3,7 @@ import type { AgentRunStatus, SessionBinding, WorkspaceProject } from '../../sha
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { validateCompletedOutputs } from './completeStage.ts';
 import type { openSessionTerminal } from './terminal.ts';
-import type { SessionTool, SessionMcpGroup } from './RunChannel.ts';
+import type { SessionTool, SessionMcpGroup, ChannelEvent } from './RunChannel.ts';
 import type { RunFailure } from '../../shared/runFailure.ts';
 
 export interface RunDependencies {
@@ -30,6 +30,7 @@ export interface RunDependencies {
   accounting?: (run: PreparedRun, sample: unknown) => Promise<void>;
   accountingLost?: (run: PreparedRun) => Promise<void>;
   tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
+  observed?: (run: PreparedRun, event: ChannelEvent) => Promise<void>;
   serviceAgent?: boolean;
   failureChanged?: (run: PreparedRun, failure?: RunFailure) => void;
   completed?: (
@@ -54,6 +55,7 @@ export interface LiveRun {
   completion?: Awaited<ReturnType<typeof validateCompletedOutputs>>;
   blocked: boolean;
   bound?: SessionBinding;
+  opened?: boolean;
   heartbeat: number;
   ready: (result: LaunchAgentResult) => void;
   fail: (error: Error) => void;
