@@ -61,7 +61,7 @@
 .settings-content > .field-label {
   max-width: 680px;
 }
-.settings-content > textarea {
+.settings-content > .ui-textarea-field {
   margin: 12px 0 20px;
 }
 .settings-content .section-space {

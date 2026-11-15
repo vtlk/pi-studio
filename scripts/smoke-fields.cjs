@@ -216,13 +216,18 @@ const deadline = setTimeout(() => {
   const textareaResize = await js(`(()=>{
     const el=document.querySelector('.instruction-sortable textarea');
     el.scrollIntoView({block:'center'});
-    const r=el.getBoundingClientRect(),s=getComputedStyle(el);
-    return {initialHeight:r.height,width:r.width,x:r.right-5,y:r.bottom-5,
-      viewportHeight:innerHeight,hit:document.elementFromPoint(r.right-5,r.bottom-5)?.tagName,
+    const r=el.getBoundingClientRect(),s=getComputedStyle(el),
+      handle=el.parentElement.querySelector('.textarea-resize-handle'),h=handle.getBoundingClientRect();
+    return {initialHeight:r.height,width:r.width,x:h.x+h.width/2,y:h.y+h.height/2,
+      viewportHeight:innerHeight,handleHeight:h.height,handleWidth:h.width,
+      controlsField:handle.getAttribute('aria-controls')===el.id,
       resize:s.resize,shared:el.classList.contains('ui-textarea')};
   })()`);
   assert.equal(textareaResize.shared, true);
-  assert.equal(textareaResize.resize, 'vertical');
+  assert.equal(textareaResize.resize, 'none');
+  assert.equal(textareaResize.controlsField, true);
+  assert.ok(textareaResize.handleWidth >= textareaResize.width - 2);
+  assert.equal(textareaResize.handleHeight, 20);
   assert.equal(textareaResize.initialHeight, 320);
   const pointer = (type, x, y, extra = {}) =>
     window.webContents.debugger.sendCommand('Input.dispatchMouseEvent', { type, x, y, ...extra });
@@ -249,7 +254,7 @@ const deadline = setTimeout(() => {
   );
   assert.ok(
     textareaResize.resizedHeight >= textareaResize.initialHeight + 80,
-    'Native resize handle must grow the field: ' + JSON.stringify(textareaResize),
+    'Visible lower-edge handle must grow the field: ' + JSON.stringify(textareaResize),
   );
   const multiline = 'Первая строка\nВторая строка';
   await js(
@@ -272,6 +277,24 @@ const deadline = setTimeout(() => {
     ),
     textareaResize.width,
   );
+  await js(
+    `(()=>{const handle=document.querySelector('.instruction-sortable .textarea-resize-handle');handle.focus({preventScroll:true});handle.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));})()`,
+  );
+  await until(
+    `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().height===${textareaResize.resizedHeight + 20}`,
+  );
+  textareaResize.keyboardHeight = await js(
+    `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().height`,
+  );
+  await js(
+    `document.querySelector('.instruction-sortable .textarea-resize-handle').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true}))`,
+  );
+  await until(
+    `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().height===${textareaResize.resizedHeight}`,
+  );
+  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await mkdir(resolve('artifacts'), { recursive: true });
+  await writeFile(resolve('artifacts/textarea-resize.png'), (await window.capturePage()).toPNG());
   await click('Модель');
   await colors('modelTab', 'nav[aria-label="Настройки агента"] .section-menu-item.active');
   await until(
@@ -304,6 +327,10 @@ const deadline = setTimeout(() => {
     shared: true,
     resize: 'vertical',
   });
+  assert.equal(
+    await js(`document.querySelector('.dialog .textarea-resize-handle').getClientRects().length`),
+    0,
+  );
   await click('Закрыть');
   await js(`document.querySelector('[aria-label="Настройки"]').click()`);
   await sample('workspace', '.settings-field-row input');

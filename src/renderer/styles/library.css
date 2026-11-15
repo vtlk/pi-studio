@@ -304,6 +304,6 @@
 .settings-panel .field-label {
   max-width: 550px;
 }
-.settings-panel > textarea {
+.settings-panel > .ui-textarea-field {
   margin-bottom: 15px;
 }

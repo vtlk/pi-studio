@@ -60,7 +60,7 @@
   z-index: 3;
   outline: 2px solid #27272a;
 }
-.instruction-sortable .disclosure-content > textarea {
+.instruction-sortable .disclosure-content textarea {
   margin-top: 10px;
   --textarea-base-height: 160px;
   font-size: 16px;
@@ -94,7 +94,7 @@
 .agent-settings-content {
   max-width: 900px;
 }
-.agent-prompt-panel > textarea {
+.agent-prompt-panel textarea {
   margin: 0;
   --textarea-base-height: max(360px, calc(100dvh - 240px));
   --textarea-min-height: 360px;

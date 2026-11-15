@@ -19,3 +19,47 @@
 .dialog {
   --textarea-height-scale: 1;
 }
+
+.ui-textarea-field {
+  position: relative;
+  display: flow-root;
+  width: 100%;
+  min-width: 0;
+}
+
+:where(.ui-textarea-field:not(.dialog *)) > .ui-textarea {
+  resize: none;
+  padding-bottom: 28px;
+}
+
+.textarea-resize-handle {
+  position: absolute;
+  bottom: 1px;
+  left: 1px;
+  right: 1px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #ececee;
+  background: #fafafa;
+  color: #71717a;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.textarea-resize-handle:hover,
+.textarea-resize-handle[data-dragging] {
+  background: #ededf0;
+  color: #27272a;
+}
+
+.textarea-resize-handle[aria-disabled='true'] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.dialog .textarea-resize-handle {
+  display: none;
+}
