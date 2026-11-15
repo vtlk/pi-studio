@@ -126,6 +126,39 @@ test('instruction scope names only assigned skills, including narrow helper-nest
   assert.equal(prompt.includes('/studio/other-agent/forbidden-skill'), false);
   assert.match(prompt, /binaries, libraries and fonts, remain usable/);
   assert.match(prompt, /Explicit task changes supplied by the user in this dialogue remain valid/);
+  const helper = sessionSystemPrompt({
+    serviceAgent: true,
+    instructions: 'ADMIN_ROLE',
+    record: {
+      projectId: 'pi-setup-assistant',
+      projectRoot: '/studio/.pistudio/setup-assistant',
+      cwd: '/studio/.pistudio/setup-assistant/agents/helper',
+      output: '/studio/.pistudio/setup-assistant/agents/helper/output',
+      previousOutputs: [],
+    },
+  });
+  assert.equal(helper.includes('Filesystem and instruction scope rules'), false);
+  assert.ok(helper.includes('ADMIN_ROLE'));
+  const library = sessionSystemPrompt(
+    {
+      serviceAgent: true,
+      instructions: 'LIBRARY_ROLE',
+      record: {
+        projectId: 'library-job',
+        projectRoot: '/studio/library-job',
+        cwd: '/studio/library-job/agent',
+        output: '/studio/library-job/agent/output',
+        previousOutputs: [],
+      },
+    },
+    [packaged],
+  );
+  assert.ok(library.includes('Filesystem and instruction scope rules'));
+  assert.ok(
+    library.includes(
+      'Do not browse, grep, find or recursively search the setup-assistant workspace',
+    ),
+  );
 });
 
 test('enabling a current instruction reaches the next bound-session context without instruction snapshots', async (t) => {
