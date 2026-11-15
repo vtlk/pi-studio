@@ -320,6 +320,36 @@ test('run context explains current image-tool restrictions without checking cred
   assert.equal(protectedStorage, 0);
 });
 
+test('shared Images is available to other confirmed chat adapters, while image APIs and extensions stay gated', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return imageResponse();
+  });
+  for (const candidate of [
+    { ...model, provider: 'anthropic', api: 'anthropic-messages' },
+    { ...model, provider: 'google', api: 'google-generative-ai' },
+    { ...model, provider: 'studio-custom', api: 'openai-completions', imageInput: false },
+  ]) {
+    f.images.bind(f.run, f.store.folder, candidate);
+    f.images.runtime(f.run, false);
+    assert.equal(f.images.tools(f.run).length, 2);
+    assert.equal(f.images.availability(f.run).available, true);
+    f.images.runtime(f.run, true);
+    assert.deepEqual(f.images.tools(f.run), []);
+    await assert.rejects(f.images.tool(f.run, 'generate_image', params), /не подтверждены/);
+  }
+  f.images.bind(f.run, f.store.folder, {
+    ...model,
+    provider: 'openrouter',
+    api: 'openrouter-images',
+  });
+  f.images.runtime(f.run, false);
+  assert.deepEqual(f.images.tools(f.run), []);
+  assert.equal(f.images.availability(f.run).reason, 'unconfirmed-adapter');
+  assert.equal(calls, 0);
+});
+
 test('generation writes one validated PNG to the bound output, keeps the agent model, and deduplicates retries within a user request', async (t) => {
   let calls = 0;
   const f = await fixture(t, async (url, init) => {

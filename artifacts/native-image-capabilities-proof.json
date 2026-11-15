@@ -1,0 +1,91 @@
+{
+  "checkedAt": "2026-11-15T05:37:27.632Z",
+  "version": "0.2.0-alpha.62",
+  "actualPi": "1.5.2",
+  "primarySource": "https://github.com/earendil-works/pi/blob/v1.5.2/packages/ai/src/types.ts",
+  "sdkTypesSha256": "c0ecd26c0170c7d6016c734ec38b551c7d8c7d8e6573f82f7f6a3818df84acd8",
+  "sdkSessionSha256": "c43e4e1d49ac3ec4b9f48465bf2081bc5980b55f23d44040d02e9046dea45725",
+  "chatSessionUsesStreamSimple": true,
+  "bridgeDoesNotExposeOtherModelImageOperations": true,
+  "confirmedNativeChatApis": [
+    "openai-completions",
+    "mistral-conversations",
+    "openai-responses",
+    "azure-openai-responses",
+    "openai-codex-responses",
+    "anthropic-messages",
+    "bedrock-converse-stream",
+    "google-generative-ai",
+    "google-vertex",
+    "pi-messages"
+  ],
+  "assistantContentKinds": "(TextContent | ThinkingContent | ToolCall)[]",
+  "explicitImageApiRemainsUnknown": true,
+  "unknownApiRemainsUnknown": true,
+  "actualNativeClient": "openai-completions",
+  "observed": {
+    "eligible": {
+      "calls": 4,
+      "toolNames": [
+        "read",
+        "bash",
+        "edit",
+        "write",
+        "mcp__pi_studio__web_search",
+        "mcp__pi_studio__get_run_context",
+        "mcp__pi_studio__list_project_files",
+        "mcp__pi_studio__read_project_file",
+        "mcp__pi_studio__get_video_contract",
+        "mcp__pi_studio__validate_video_project",
+        "mcp__pi_studio__complete_stage",
+        "mcp__pi_studio__report_blocked",
+        "mcp__pi_studio__generate_image",
+        "mcp__pi_studio__get_image_operation"
+      ],
+      "availability": {
+        "available": true,
+        "reason": "confirmed-chat-adapter",
+        "explanation": "The shared generate_image MCP tool is available. This does not check its saved connection, model or credentials and does not authorize an automatic paid fallback."
+      }
+    },
+    "gated": {
+      "calls": 4,
+      "toolNames": [
+        "read",
+        "bash",
+        "edit",
+        "write",
+        "mcp__pi_studio__web_search",
+        "mcp__pi_studio__get_run_context",
+        "mcp__pi_studio__list_project_files",
+        "mcp__pi_studio__read_project_file",
+        "mcp__pi_studio__get_video_contract",
+        "mcp__pi_studio__validate_video_project",
+        "mcp__pi_studio__complete_stage",
+        "mcp__pi_studio__report_blocked"
+      ],
+      "availability": {
+        "available": false,
+        "reason": "executable-extensions",
+        "explanation": "Executable Pi extensions may change image capabilities; Studio has not confirmed this runtime. Changing the Images API key does not resolve this restriction."
+      }
+    }
+  },
+  "imageFixtureCalls": 1,
+  "cloudModelRequests": 0,
+  "paidImageRequests": 0,
+  "realKeychainAccess": 0,
+  "exactIdleResumeWithoutReplay": true,
+  "noRuntimeCapabilitySnapshot": true,
+  "userStudioTouched": false,
+  "sourceSha256": {
+    "src/main/images/imageRuntime.ts": "9e6f6de584381cdd161ad08bc81bbbb9cf7b652b2a26ea64400ce4eb40438436",
+    "src/main/images/ImageGeneration.ts": "7f5d23184048dc9ebae022a07f5e8c4eed516e9b18890ee1257be3e5bd462ef7",
+    "src/main/pi/createStudioRunHost.ts": "300aecb5b616e1aeb8a3ff874a8871c855cb8079229c95d0df09f8e86b43cf0c",
+    "src/main/pi/createLibraryRunHost.ts": "353e8100244fc837b936b5c204dfd43930da5f9462d75d6d8476e752ae358997",
+    "src/main/pi/RunLifecycle.ts": "35761dd07ca0103d28f866d131e5e2acf80c4eebb12f811a3a9dcca42be02dd8",
+    "bundled/pi-bridge/session.mjs": "62d9848500773ea17d1989cebb7cf0a7231997038dcd649b1c6f75a3ce84e190",
+    "scripts/smoke-native-image-capabilities.ts": "49024717c85fc80a9a680dfd9f0aff29084e9745f6e4c3bd7a9fdfe6e6983123"
+  },
+  "limits": "Actual native Pi protocol/tool transport driven by a local scripted SSE model and injected Images HTTP fixture, not a real non-Codex cloud account or artistic image generation."
+}

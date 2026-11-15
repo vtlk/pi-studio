@@ -10,6 +10,7 @@ import { imageParameters, ImagesApiError } from './ImagesApi.ts';
 import { ImageOperations, type ImageOperation } from './ImageOperations.ts';
 import { imageTools } from './tools.ts';
 import { readImageReferences } from './imageReferences.ts';
+import { confirmedChatAdapter } from './imageRuntime.ts';
 
 interface Binding {
   folder: string;
@@ -38,10 +39,8 @@ export class ImageGeneration {
       );
   }
   bind(run: PreparedRun, folder: string, model: PiModelSummary) {
-    // Pi 1.5.2's Codex chat adapter plus this bundled bridge inject only hosted web search.
-    // Assigned executable extensions can alter capabilities; those sessions stay unknown.
-    const adapterConfirmed =
-      model.provider === 'openai-codex' && model.api === 'openai-codex-responses';
+    // Unknown protocols and executable extensions keep image capabilities unknown.
+    const adapterConfirmed = confirmedChatAdapter(model);
     this.bindings.set(run, {
       folder,
       adapterConfirmed,
