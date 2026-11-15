@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0-alpha.71",
+  "checkedAt": "2026-11-15T17:04:55.509541+00:00",
+  "sourceCommit": "3f7be92a2fa0d3c2c1c09a5a86f37c13f8d09822",
+  "releaseId": 446215594,
+  "assetId": 751681363,
+  "releaseUrl": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.71",
+  "sha256": "4a28977b48bdeeef733861694a073cbb4457e31dfa8a24aefc23ababb433a267",
+  "bytes": 142648233,
+  "remoteDigestAndSizeVerified": true,
+  "signedPackagedMainPreloadRendererPassed": true,
+  "unitTests": 227,
+  "actionsEnabled": false,
+  "stagingRemoved": true,
+  "installed": false,
+  "installedUserVersion": "0.2.0-alpha.70",
+  "userAppRestarted": false,
+  "claudeBillingAcceptance": "deferred by user until subscription purchase"
+}
