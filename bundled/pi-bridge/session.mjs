@@ -237,7 +237,10 @@ export async function runSession(bootstrapPath) {
         envelope.resources.plugins,
       );
       const nativePaths = await nativeExtensionPaths(sdk, cwd);
-      await event({ type: 'capabilities', executableExtensions: nativePaths.length + packages.extensions.length > 0 });
+      await event({
+        type: 'capabilities',
+        executableExtensions: nativePaths.length + packages.extensions.length > 0,
+      });
       const services = await createConnectionServices(sdk, envelope.modelAuth, cwd, {
         nativePaths,
         settingsManager: settings,
@@ -254,7 +257,7 @@ export async function runSession(bootstrapPath) {
           ],
           additionalPromptTemplatePaths: packages.prompts,
           additionalThemePaths: packages.themes,
-          appendSystemPrompt: [sessionSystemPrompt(envelope)],
+          appendSystemPrompt: [sessionSystemPrompt(envelope, packages.skills)],
           extensionFactories: [
             control,
             // The agent has one selected LLM; no implicit calls to other globally authenticated models.

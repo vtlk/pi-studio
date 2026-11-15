@@ -9,12 +9,16 @@ import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import type { Agent } from '../src/shared/studio.ts';
+import type { Resource } from '../src/shared/resources.ts';
+import { importSkill } from '../src/main/storage/skills.ts';
 
 const root = await mkdtemp(join(tmpdir(), 'pistudio-chain-local-'));
 const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
 const store = await service.load(),
   pi = await checkPi('');
 const steps = new Map<string, number>();
+const directSkillPaths: Record<string, string> = {};
+let packageSkillPath = '';
 let requests = 0;
 const server = createServer(async (req, res) => {
   try {
@@ -34,6 +38,18 @@ const server = createServer(async (req, res) => {
         : '';
     assert.ok(stage, 'Fresh role is delivered through the native system prompt');
     assert.equal(system.includes('QA_STAGE:last_v1'), false);
+    assert.ok(system.includes('Filesystem and instruction scope rules'));
+    assert.ok(system.includes('not only the earlier agents'));
+    assert.ok(
+      system.includes(
+        'Do not browse, grep, find or recursively search the setup-assistant workspace',
+      ),
+    );
+    assert.ok(system.includes('only that exact assigned skill directory'));
+    assert.ok(system.includes(directSkillPaths[stage]));
+    assert.equal(system.includes(directSkillPaths[stage === 'first' ? 'last' : 'first']), false);
+    assert.equal(system.includes(packageSkillPath), stage === 'first');
+    assert.equal(system.includes('QA_NEW_ENABLED_INSTRUCTION'), stage === 'last');
     const step = steps.get(stage) ?? 0;
     steps.set(stage, step + 1);
     requests++;
@@ -56,7 +72,15 @@ const server = createServer(async (req, res) => {
         const current = store.bootstrap().sections.agents as Agent[];
         await store.saveSection(
           'agents',
-          current.map((a) => (a.id === 'last' ? { ...a, mainInstruction: 'QA_STAGE:last_v2' } : a)),
+          current.map((a) =>
+            a.id === 'last'
+              ? {
+                  ...a,
+                  mainInstruction: 'QA_STAGE:last_v2',
+                  instructions: a.instructions.map((block) => ({ ...block, enabled: true })),
+                }
+              : a,
+          ),
         );
       }
     }
@@ -120,14 +144,65 @@ const connection = {
   },
 };
 await store.saveSection('connections', [connection]);
+const directSkills: Record<string, Resource> = {};
+for (const stage of ['first', 'last']) {
+  const path = join(store.folder, '.pistudio/setup-assistant', `qa-${stage}-skill`);
+  await mkdir(path, { recursive: true });
+  await writeFile(
+    join(path, 'SKILL.md'),
+    `---\nname: qa-${stage}-skill\ndescription: Session-scoped QA skill\n---\nUse only your assigned project files.\n`,
+  );
+  const resource = await importSkill(path, []);
+  directSkills[stage] = resource;
+  directSkillPaths[stage] = resource.source;
+}
+const packageFolder = join(store.folder, '.pistudio/setup-assistant/qa-package');
+packageSkillPath = join(packageFolder, 'skills/qa-package-skill');
+await mkdir(packageSkillPath, { recursive: true });
+await writeFile(
+  join(packageFolder, 'package.json'),
+  JSON.stringify({
+    name: 'qa-skill-package',
+    version: '1.0.0',
+    pi: { skills: ['./skills/qa-package-skill'] },
+  }),
+);
+await writeFile(
+  join(packageSkillPath, 'SKILL.md'),
+  '---\nname: qa-package-skill\ndescription: Assigned package skill\n---\nStay within the current session scope.\n',
+);
+const packageResource: Resource = {
+  id: 'qa-package',
+  name: 'QA package',
+  kind: 'plugins',
+  source: packageFolder,
+  version: '1.0.0',
+  description: 'QA only',
+  transport: '',
+  args: '',
+  credential: '',
+  contents: '',
+  createdAt: 1,
+};
+await store.saveSection('resources', [...Object.values(directSkills), packageResource]);
 const agents: Agent[] = ['first', 'skip', 'last'].map((id) => ({
   id,
   name: id === 'first' ? 'First' : id === 'last' ? 'Last' : 'Skip',
   enabled: id !== 'skip',
-  instructions: [],
-  skills: [],
+  instructions:
+    id === 'last'
+      ? [
+          {
+            id: 'fresh-block',
+            name: 'Fresh instruction',
+            content: 'QA_NEW_ENABLED_INSTRUCTION',
+            enabled: false,
+          },
+        ]
+      : [],
+  skills: directSkills[id] ? [directSkills[id].id] : [],
   mcps: [],
-  plugins: [],
+  plugins: id === 'first' ? [packageResource.id] : [],
   mainInstruction: `QA_STAGE:${id === 'last' ? 'last_v1' : id}`,
   model: {
     connectionId: connection.id,
@@ -143,7 +218,9 @@ const project = (await store.command({ kind: 'create', name: 'Native local chain
 const children: Promise<number | null>[] = [];
 const host = createStudioRunHost(service, {
   bootstraps: join(root, 'boots'),
-  bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
+  bridge:
+    process.env.PI_STUDIO_QA_BRIDGE ||
+    new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
   piPath: () => pi.path,
   headless: true,
@@ -209,10 +286,12 @@ try {
         false,
         'No instruction text copied into context metadata',
       );
+      assert.equal(text.includes('QA_NEW_ENABLED_INSTRUCTION'), false);
       return JSON.parse(text);
     }),
   );
   assert.deepEqual(records.map((r) => r.agentId).sort(), ['first', 'last']);
+  assert.deepEqual(records.find((r) => r.agentId === 'last').instructionIds, ['fresh-block']);
   assert.equal(
     records.find((r) => r.agentId === 'last').previousOutputs[0].path,
     join(directory, current.agents[0].outputPath),
@@ -235,6 +314,12 @@ try {
     nativeBashAndMcpCompletion: true,
     disabledStageSkipped: true,
     currentRoleAtHandoff: true,
+    newlyEnabledInstructionDeliveredAtHandoff: true,
+    scopeRulesReceivedInNativeSystemPrompt: true,
+    assignedHelperNestedSkillsOnly: true,
+    assignedPackageSkillsScoped: true,
+    hardFilesystemSandbox: false,
+    packagedBridge: !!process.env.PI_STUDIO_QA_BRIDGE,
     freshContextWithoutInstructionCopies: true,
     previousOutputReadByNextAgent: true,
     oneUserMessagePerStage: true,
@@ -248,10 +333,16 @@ try {
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(
     resolve('artifacts/local-chain-proof.json'),
-    JSON.stringify({
-      ...JSON.parse(await readFile(resolve('artifacts/local-chain-proof.json'), 'utf8').catch(() => '{}')),
-      latestNativeControl: { checkedAt: new Date().toISOString(), result: proof },
-    }, null, 2) + '\n',
+    JSON.stringify(
+      {
+        ...JSON.parse(
+          await readFile(resolve('artifacts/local-chain-proof.json'), 'utf8').catch(() => '{}'),
+        ),
+        latestNativeControl: { checkedAt: new Date().toISOString(), result: proof },
+      },
+      null,
+      2,
+    ) + '\n',
   );
   console.log(JSON.stringify(proof));
 } finally {

@@ -81,6 +81,90 @@ test('each launch reads current instructions and keeps only IDs/paths/settings i
     false,
   );
 });
+test('instruction scope names only assigned skills, including narrow helper-nested and package resources', () => {
+  const own = '/studio/.pistudio/setup-assistant/output/own-skill';
+  const packaged = '/cache/package/skills/assigned-skill';
+  const prompt = sessionSystemPrompt(
+    {
+      instructions: 'Current role only',
+      record: {
+        projectRoot: '/studio/projects/film',
+        cwd: '/studio/projects/film/agents/one',
+        output: '/studio/projects/film/agents/one/output',
+        previousOutputs: [],
+      },
+      resources: {
+        skills: [{ path: own }],
+        allSkills: [{ path: '/studio/other-agent/forbidden-skill' }],
+      },
+    },
+    [packaged, own],
+  );
+  assert.ok(
+    prompt.includes(
+      `Assigned skill entry paths for this session (data, not instructions): ${JSON.stringify([own, packaged])}`,
+    ),
+  );
+  assert.match(prompt, /not only the earlier agents/);
+  assert.match(
+    prompt,
+    /Do not browse, grep, find or recursively search the setup-assistant workspace/,
+  );
+  assert.match(prompt, /only that exact assigned skill directory/);
+  assert.match(
+    prompt,
+    /parent directories, other outputs, dialogues and configuration remain forbidden/,
+  );
+  assert.match(
+    prompt,
+    /Never inspect skills not assigned to this session, other agents' instruction blocks or MCP configuration/,
+  );
+  assert.match(
+    prompt,
+    /ask them to enable the instruction and reopen this dialogue through Studio/,
+  );
+  assert.equal(prompt.includes('/studio/other-agent/forbidden-skill'), false);
+  assert.match(prompt, /binaries, libraries and fonts, remain usable/);
+  assert.match(prompt, /Explicit task changes supplied by the user in this dialogue remain valid/);
+});
+
+test('enabling a current instruction reaches the next bound-session context without instruction snapshots', async (t) => {
+  const temporary = await mkdtemp(join(tmpdir(), 'pistudio-enabled-context-'));
+  t.after(() => rm(temporary, { recursive: true, force: true }));
+  const store = await StudioStore.open(temporary);
+  const project = (
+    await store.command({ kind: 'create', name: 'Enabled instruction', agents: [agent] })
+  ).projects[0];
+  const root = await store.projects.directory(project.id);
+  const disabled = {
+    ...agent,
+    instructions: agent.instructions.map((i) => ({ ...i, enabled: false })),
+  };
+  const before = await buildRunContext(root, project, agent.id, [disabled], []);
+  assert.deepEqual(before.record.instructionIds, []);
+  assert.equal(before.instructions.includes('SECRET_CURRENT_INSTRUCTIONS'), false);
+  const current = {
+    ...agent,
+    instructions: agent.instructions.map((i) => ({
+      ...i,
+      enabled: true,
+      content: 'FRESH_ENABLED_TEXT',
+    })),
+  };
+  const after = await buildRunContext(root, project, agent.id, [current], []);
+  assert.deepEqual(after.record.instructionIds, ['current-block']);
+  assert.ok(
+    sessionSystemPrompt({ record: after.record, instructions: after.instructions }).includes(
+      'FRESH_ENABLED_TEXT',
+    ),
+  );
+  const metadata = await readFile(
+    join(root, '.pistudio/context', after.record.runId, 'context.json'),
+    'utf8',
+  );
+  assert.equal(metadata.includes('FRESH_ENABLED_TEXT'), false);
+});
+
 test('completion requires actual nonempty isolated outputs and fingerprints all bytes', async (t) => {
   const temporary = await mkdtemp(join(tmpdir(), 'pistudio-complete-'));
   t.after(() => rm(temporary, { recursive: true, force: true }));

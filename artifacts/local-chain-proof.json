@@ -74,13 +74,18 @@
     }
   },
   "latestNativeControl": {
-    "checkedAt": "2026-11-15T00:59:13.432Z",
+    "checkedAt": "2026-11-15T10:17:25.812Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",
       "nativeBashAndMcpCompletion": true,
       "disabledStageSkipped": true,
       "currentRoleAtHandoff": true,
+      "newlyEnabledInstructionDeliveredAtHandoff": true,
+      "scopeRulesReceivedInNativeSystemPrompt": true,
+      "assignedHelperNestedSkillsOnly": true,
+      "assignedPackageSkillsScoped": true,
+      "hardFilesystemSandbox": false,
       "freshContextWithoutInstructionCopies": true,
       "previousOutputReadByNextAgent": true,
       "oneUserMessagePerStage": true,
