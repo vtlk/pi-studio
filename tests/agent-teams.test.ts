@@ -21,6 +21,27 @@ const agent = (id: string): Agent => ({
   ],
 });
 
+test('new native studios persist no teams or ordinary agents, including after reopen and an explicit empty save', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-no-bundled-teams-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  for (let pass = 0; pass < 3; pass++) {
+    const store = await StudioStore.open(root);
+    const bootstrap = store.bootstrap();
+    assert.deepEqual(store.agentCatalog(), { agents: [], teams: [] });
+    assert.deepEqual(bootstrap.sections.agentTeams, []);
+    assert.deepEqual(bootstrap.sections.agents, []);
+    assert.deepEqual(bootstrap.projects, []);
+    assert.deepEqual(bootstrap.trashProjects, []);
+    const system = bootstrap.sections.systemAgents as Agent[];
+    assert.equal(system.length, 1);
+    assert.equal(system[0].systemRole, 'assistant');
+    if (pass === 1) await store.saveSection('agentCatalog', { agents: [], teams: [] });
+    const persisted = JSON.parse(await readFile(join(root, '.pistudio/studio.json'), 'utf8'));
+    assert.deepEqual(persisted.sections.agentTeams, []);
+    assert.deepEqual(persisted.sections.agents, []);
+  }
+});
+
 test('legacy projects with no remaining constructor profiles get a stable empty source team; a fresh studio stays empty', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-empty-legacy-team-'));
   t.after(() => rm(root, { recursive: true, force: true }));

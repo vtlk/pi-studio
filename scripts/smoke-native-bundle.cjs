@@ -58,8 +58,9 @@ const deadline = setTimeout(() => {
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   const empty = await js('window.studio.loadStudio()');
-  for (const name of ['agents', 'connections', 'resources'])
+  for (const name of ['agents', 'agentTeams', 'connections', 'resources'])
     assert.deepEqual(empty.sections[name], []);
+  assert.deepEqual(empty.sections.agentCatalog, { agents: [], teams: [] });
   assert.equal(empty.sections.systemAgents.length, 1);
   assert.equal(empty.sections.systemAgents[0].systemRole, 'assistant');
   assert.deepEqual(empty.projects, []);

@@ -144,8 +144,9 @@ async function child() {
     await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
     const data = await js('window.studio.loadStudio()');
     assert.equal(data.folder, join(root, 'Videos/Pi Studio'));
-    for (const name of ['agents', 'connections', 'resources'])
+    for (const name of ['agents', 'agentTeams', 'connections', 'resources'])
       assert.deepEqual(data.sections[name], []);
+    assert.deepEqual(data.sections.agentCatalog, { agents: [], teams: [] });
     assert.deepEqual(data.projects, []);
     assert.deepEqual((await js('window.studio.listLibrary()')).assets, []);
     assert.equal(data.sections.systemAgents.length, 1);
