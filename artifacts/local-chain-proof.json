@@ -74,10 +74,12 @@
     }
   },
   "latestNativeControl": {
-    "checkedAt": "2026-11-15T14:49:33.794Z",
+    "checkedAt": "2026-11-15T18:29:33.819Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",
+      "claudeCodeProvider": false,
+      "officialCliBillingVerified": false,
       "nativeBashAndMcpCompletion": true,
       "disabledStageSkipped": true,
       "currentRoleAtHandoff": true,
