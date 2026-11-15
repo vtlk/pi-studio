@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0-alpha.70",
+  "releaseId": 446203530,
+  "assetId": 751631244,
+  "releaseUrl": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.70",
+  "sourceCommit": "18b685b4b1298eecbabf1419df65957e533a0790",
+  "sha256": "3722c7a06d616f5901d37e74435b7f1d59212288b4a6a39bc7d4532593297fa2",
+  "bytes": 142645843,
+  "remoteDigestAndSizeVerified": true,
+  "installed": true,
+  "openedMainPid": 43202,
+  "billingAcceptance": "deferred by user until subscription purchase",
+  "filesPreservedBeforeOpen": 17736,
+  "agentsPreserved": 10,
+  "ciActionsEnabled": false,
+  "stageRemoved": true
+}
