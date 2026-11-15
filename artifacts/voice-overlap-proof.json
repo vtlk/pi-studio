@@ -1,0 +1,63 @@
+{
+  "checkedAt": "2026-11-15T09:19:41.017Z",
+  "version": "0.2.0-alpha.63",
+  "sourceVoiceFiles": [
+    "d1.wav",
+    "d2.wav"
+  ],
+  "sourceVoiceSha256": [
+    "9a9b5bcdaef2c65b9daab8c932bf623622a929015f77d0b675658c3b840099d9",
+    "bb2bb253bdcc981d754c62fab17b26095dfcc05f81e0ca85e32a1b346ba43546"
+  ],
+  "fixtureBasedOnRealAgentSpeech": true,
+  "fixtureTimingIsDeterministicQa": true,
+  "actualNativeMainPreloadRenderer": true,
+  "officialRemotionPlayer": true,
+  "validatedTwoTrackManifest": true,
+  "beforeVoices": {
+    "frame": 6,
+    "rms": [
+      0,
+      0
+    ],
+    "frequency": [
+      0,
+      0
+    ],
+    "state": "running",
+    "time": 0.2773333333333333
+  },
+  "overlap": {
+    "frame": 30,
+    "rms": [
+      0.013231524748557374,
+      0.07551558982136361
+    ],
+    "frequency": [
+      6867.1875,
+      187.5
+    ],
+    "state": "running",
+    "time": 1.088
+  },
+  "secondOnly": {
+    "frame": 60,
+    "rms": [
+      2.9412519483167993e-18,
+      0.04803428743795234
+    ],
+    "frequency": [
+      117.1875,
+      117.1875
+    ],
+    "state": "running",
+    "time": 2.0906666666666665
+  },
+  "allPannersDisconnected": true,
+  "offscreen": true,
+  "desktopAudioPlayback": false,
+  "originalVoiceFilesUnchanged": true,
+  "newModelRequests": 0,
+  "paidMediaApiCalls": 0,
+  "limits": "Native playback of overlapping distinct real speech files, isolated left/right to measure both independent channels. No subjective voice quality, continuous forced alignment or new model-authored overlap is claimed."
+}

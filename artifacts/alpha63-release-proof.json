@@ -31,9 +31,43 @@
     "uncommittedSourceOverwritten": false,
     "whyOsEvictedFilesUnknown": true
   },
-  "installed": false,
-  "installedVersion": "0.2.0-alpha.62",
-  "limits": "Signed downloadable package verified; installed .62 is still running and normal Quit awaits the user because the window-control tool is unavailable. Computer Use OS permissions/capture/input and the remaining completion-audit items are not claimed complete.",
+  "installed": true,
+  "installedVersion": "0.2.0-alpha.63",
+  "limits": "Installed from the same verified ZIP and reopened; process/bundle version and preserved studio files verified. Window-control tool unavailable; no assistant visual inspection of the user window. User subsequently interacted with project Refresh. Computer Use acceptance and remaining completion-audit items stay open.",
   "generatedPackageStageRemoved": true,
-  "installationSource": "Verified current ZIP; extract temporary stage after the installed app is closed"
+  "installationSource": "Verified current ZIP; extract temporary stage after the installed app is closed",
+  "installedMainPidAtCheck": 1286,
+  "installedMainSha256": "ab519517b3092f34d4c5457a3a6d455b25a0c57582333b37c4a44017544c8025",
+  "installedMainMatchesBuiltOutput": true,
+  "installedFromVerifiedZip": true,
+  "oneUserMainProcess": true,
+  "installation": {
+    "before": {
+      "folder": "/Users/user1/Movies/Pi Studio",
+      "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
+      "settings": "10e49c14ed08347f252819935b072e0a9a903c8402a76666e5939555676494e8",
+      "files": 16859,
+      "agentCount": 9,
+      "systemCount": 1,
+      "unhashedDatalessFiles": 0,
+      "aggregate": "23f3c37968bbf242d90056a4a83e76438391c6b1e04f376932429c90a002d162"
+    },
+    "after": {
+      "folder": "/Users/user1/Movies/Pi Studio",
+      "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
+      "settings": "10e49c14ed08347f252819935b072e0a9a903c8402a76666e5939555676494e8",
+      "files": 16859,
+      "agentCount": 9,
+      "systemCount": 1,
+      "unhashedDatalessFiles": 0,
+      "aggregate": "23f3c37968bbf242d90056a4a83e76438391c6b1e04f376932429c90a002d162"
+    },
+    "afterInstallAndAfterOpenFingerprintsEqual": true,
+    "userStudioUntouched": true,
+    "generatedAppStageRemoved": true
+  },
+  "normalUserQuitConfirmed": true,
+  "forcedTermination": false,
+  "installedUiObservedByAssistant": false,
+  "userInteractedWithUpdatedApp": true
 }
