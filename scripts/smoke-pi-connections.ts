@@ -296,6 +296,57 @@ try {
     keys[1],
   );
   await verifyProductionResumes();
+  // The production scopes above contain actual native SDK credential records, outside projects.
+  const credentialBytes = await Promise.all(scopes.map((scope) => readFile(scope!.authPath)));
+  const originalProject = (await store.projects.list())[0];
+  assert.ok(originalProject);
+  const cloned = await store.command({
+    kind: 'clone',
+    projectId: originalProject.id,
+    name: 'Scoped clone',
+  });
+  const clonedId = cloned.selectedId!;
+  await store.command({ kind: 'rename', projectId: originalProject.id, name: 'Scoped renamed' });
+  async function assertNoCredentialCopies(directory: string): Promise<void> {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      assert.equal(entry.isSymbolicLink(), false);
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) await assertNoCredentialCopies(path);
+      else {
+        const bytes = await readFile(path);
+        for (const key of keys) assert.equal(bytes.includes(Buffer.from(key)), false, entry.name);
+        for (const scope of scopes)
+          assert.equal(bytes.includes(Buffer.from(scope!.authPath)), false, entry.name);
+      }
+    }
+  }
+  for (const id of [originalProject.id, clonedId]) {
+    assert.equal((await store.projects.read(id)).agents[0].profile.model?.connectionId, 'two');
+    await assertNoCredentialCopies(await store.projects.directory(id));
+  }
+  for (let i = 0; i < scopes.length; i++)
+    assert.deepEqual(await readFile(scopes[i]!.authPath), credentialBytes[i]);
+  await writeFile(
+    new URL('../artifacts/connection-project-moves-proof.json', import.meta.url),
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        version: JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+          .version,
+        nativeSdkCredentials: true,
+        sameProviderSeparateAccounts: true,
+        realCloneAndRename: true,
+        allProjectFilesScannedForSyntheticKeysAndCredentialPaths: true,
+        stableSelectedConnectionId: true,
+        externalCredentialFilesUnchanged: true,
+        modelInferenceRequests: 0,
+        limits:
+          'Synthetic credentials in isolated native Pi auth storage; no real user Keychain, OAuth consent or Terminal UI.',
+      },
+      null,
+      2,
+    ) + '\n',
+  );
   const cancelled = await connections.login({ ...request('one'), method: 'api_key' });
   await until(
     () => auth.read(cancelled.id),

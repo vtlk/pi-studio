@@ -74,8 +74,7 @@
     }
   },
   "latestNativeControl": {
-    "checkedAt": "2026-11-14T22:41:28.037Z",
-    "applicationVersion": "0.2.0-alpha.57",
+    "checkedAt": "2026-11-15T00:59:13.432Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",

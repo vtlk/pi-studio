@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-15T01:01:56.439Z",
+  "version": "0.2.0-alpha.59",
+  "nativeMainPreload": true,
+  "isolatedOffscreen": true,
+  "ordinaryAndSystemAgentUsage": true,
+  "projectUsage": true,
+  "confirmCancelEscapeUndoAndReload": true,
+  "missingConnectionShown": true,
+  "projectAndHelperLaunchRejectMissingConnection": true,
+  "sameProviderAlternativeNotUsed": true,
+  "profilesSessionsAndOutputsUnchanged": true,
+  "modelRequests": 0,
+  "limits": "Startup/catalog/status fixtures only; no real OAuth, Keychain or Terminal actions."
+}

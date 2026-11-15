@@ -17,7 +17,7 @@ export function ConnectionsPanel() {
     providerStatuses,
     imageStatuses,
   } = useConnections();
-  const { agents } = useAgentProfiles();
+  const { agents, systemAgents } = useAgentProfiles();
   const { projects } = useWorkspace();
   const { demo } = useNotice();
   const [edit, setEdit] = useState<Connection | null>(null);
@@ -47,7 +47,7 @@ export function ConnectionsPanel() {
         {connections.map((connection) => {
           const uses = (agent: Pick<(typeof agents)[number], 'model'>) =>
             agent.model?.connectionId === connection.id;
-          const users = agents.filter(uses).map((agent) => agent.name);
+          const users = [...agents, ...systemAgents].filter(uses).map((agent) => agent.name);
           const projectUsers = projects
             .filter((project) => project.agents.some((agent) => uses(agent.profile)))
             .map((project) => project.name);

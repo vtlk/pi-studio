@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-15T01:03:36.887Z",
+  "version": "0.2.0-alpha.59",
+  "nativeSdkCredentials": true,
+  "sameProviderSeparateAccounts": true,
+  "realCloneAndRename": true,
+  "allProjectFilesScannedForSyntheticKeysAndCredentialPaths": true,
+  "stableSelectedConnectionId": true,
+  "externalCredentialFilesUnchanged": true,
+  "modelInferenceRequests": 0,
+  "limits": "Synthetic credentials in isolated native Pi auth storage; no real user Keychain, OAuth consent or Terminal UI."
+}

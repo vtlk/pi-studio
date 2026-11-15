@@ -184,6 +184,32 @@ try {
   const legacyState = JSON.parse(await readFile(join(directory, 'state.json'), 'utf8'));
   assert.equal(legacyState.session.path, relative(directory, legacyFile));
   assert.equal(legacyState.outputPath, 'agents/setup/output');
+  await writeFile(
+    new URL('../artifacts/setup-agent-current-proof.json', import.meta.url),
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        version: JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+          .version,
+        pi: pi.version,
+        provider: 'openai-codex',
+        model: 'gpt-6.1-sol',
+        realModelRequest: true,
+        publicOpenIdleWithoutMutation: true,
+        currentHelperPromptApplied: true,
+        ordinaryAgentConfigured: true,
+        assignedBuiltinLibraryMcp: true,
+        localPackageInstalledCheckedAndAssigned: true,
+        exactIdleResumeWithoutReplay: true,
+        legacyCwdAndTranscriptPreservedAfterRename: true,
+        isolatedStudio: true,
+        limits:
+          'One explicit synthetic user request through the internal headless open path. No Terminal UI automation, user studio changes, OS permission grants or external service authentication.',
+      },
+      null,
+      2,
+    ) + '\n',
+  );
   console.log(
     'Real setup assistant passed: edited system role and explicit model, native package install/check/assignment, no extra profiles/resources/projects, exact idle resume and preserved legacy setup cwd/dialogue after rename.',
   );

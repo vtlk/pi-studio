@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-15T01:02:42.592Z",
+  "version": "0.2.0-alpha.59",
+  "pi": "1.5.2",
+  "provider": "openai-codex",
+  "model": "gpt-6.1-sol",
+  "realModelRequest": true,
+  "publicOpenIdleWithoutMutation": true,
+  "currentHelperPromptApplied": true,
+  "ordinaryAgentConfigured": true,
+  "assignedBuiltinLibraryMcp": true,
+  "localPackageInstalledCheckedAndAssigned": true,
+  "exactIdleResumeWithoutReplay": true,
+  "legacyCwdAndTranscriptPreservedAfterRename": true,
+  "isolatedStudio": true,
+  "limits": "One explicit synthetic user request through the internal headless open path. No Terminal UI automation, user studio changes, OS permission grants or external service authentication."
+}
