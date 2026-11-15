@@ -1,0 +1,483 @@
+{
+  "checkedAt": "2026-11-15T20:02:49.327Z",
+  "revision": "3d7f1cfc949fe85c89181efe524a85582b7f05a7",
+  "scanner": {
+    "name": "Gitleaks",
+    "version": "8.30.1",
+    "configHashes": {
+      "default": "27630a96d6c55755cc37620f3933d5cab94b1eb78a726a32e11212972525d76e",
+      "tree": "21599dadd1fb1547b07f62aaf6ef9a47d5e900995631f87eb198a7d5a2cad9d5"
+    },
+    "redacted": true,
+    "allowCommentsIgnored": true,
+    "ignoreFileEmpty": true
+  },
+  "coverage": [
+    {
+      "scope": "local-archive:Pi-Studio-0.2.0-alpha.71-mac-arm64.zip",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "dist/Pi-Studio-0.2.0-alpha.71-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-B4hFOjPU.js",
+          "line": 102782,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "local-archive:Pi-Studio-0.2.0-alpha.72-win-x64.zip",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "dist/Pi-Studio-0.2.0-alpha.72-win-x64.zip!Pi Studio/resources/app/out/renderer/assets/index-Cvg6nmpL.js",
+          "line": 102783,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-release-metadata-all-pages",
+      "findings": [],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:751681363:v0.2.0-alpha.71",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.71-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-B4hFOjPU.js",
+          "line": 102782,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:751631244:v0.2.0-alpha.70",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.70-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-B1kSK62-.js",
+          "line": 102574,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:751498496:v0.2.0-alpha.69",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.69-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-CrHVmpX0.js",
+          "line": 102472,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:751241339:v0.2.0-alpha.68",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.68-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-CFr2qHCe.js",
+          "line": 102158,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:750991339:v0.2.0-alpha.67",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.67-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-C0pe3Y33.js",
+          "line": 101724,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:750720520:v0.2.0-alpha.66",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.66-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DAYDO0Lc.js",
+          "line": 101716,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:750635213:v0.2.0-alpha.65",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.65-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DAYDO0Lc.js",
+          "line": 101716,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:750520871:v0.2.0-alpha.64",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.64-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DAYDO0Lc.js",
+          "line": 101716,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:750425979:v0.2.0-alpha.63",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.63-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DMAO19w0.js",
+          "line": 101715,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:749996609:v0.2.0-alpha.62",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.62-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DsIuDqcC.js",
+          "line": 101715,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:749929892:v0.2.0-alpha.61",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.61-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DporHnj4.js",
+          "line": 101729,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:749624574:v0.2.0-alpha.60",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.60-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DporHnj4.js",
+          "line": 101729,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:749403218:v0.2.0-alpha.59",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.59-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-BpYcKS39.js",
+          "line": 101728,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:749321945:v0.2.0-alpha.58",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.58-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DwwtPf3d.js",
+          "line": 101728,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:749134801:v0.2.0-alpha.57",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.57-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-Bgn8FIg_.js",
+          "line": 101702,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:748928778:v0.2.0-alpha.56",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.56-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DCLrffJH.js",
+          "line": 101567,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:748700906:v0.2.0-alpha.55",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.55-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-xm2lIstt.js",
+          "line": 101370,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:748489251:v0.2.0-alpha.54",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.54-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-CoO6fLmT.js",
+          "line": 101295,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:748426958:v0.2.0-alpha.53",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.53-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-CoO6fLmT.js",
+          "line": 101295,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-asset:748308007:v0.2.0-alpha.52",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "Pi-Studio-0.2.0-alpha.52-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-DE22M1XD.js",
+          "line": 101295,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    }
+  ],
+  "github": {
+    "repository": "vtlk/pi-studio",
+    "releases": 49,
+    "assets": [
+      {
+        "tag": "v0.2.0-alpha.71",
+        "id": 751681363,
+        "name": "Pi-Studio-0.2.0-alpha.71-mac-arm64.zip",
+        "bytes": 142648233,
+        "digest": "sha256:4a28977b48bdeeef733861694a073cbb4457e31dfa8a24aefc23ababb433a267",
+        "sha256": "4a28977b48bdeeef733861694a073cbb4457e31dfa8a24aefc23ababb433a267",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.70",
+        "id": 751631244,
+        "name": "Pi-Studio-0.2.0-alpha.70-mac-arm64.zip",
+        "bytes": 142645843,
+        "digest": "sha256:3722c7a06d616f5901d37e74435b7f1d59212288b4a6a39bc7d4532593297fa2",
+        "sha256": "3722c7a06d616f5901d37e74435b7f1d59212288b4a6a39bc7d4532593297fa2",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.69",
+        "id": 751498496,
+        "name": "Pi-Studio-0.2.0-alpha.69-mac-arm64.zip",
+        "bytes": 142584422,
+        "digest": "sha256:48e934cd1abc9116d1f15c7dffdf002a1f33a75de4f2afed369917fe16bae41e",
+        "sha256": "48e934cd1abc9116d1f15c7dffdf002a1f33a75de4f2afed369917fe16bae41e",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.68",
+        "id": 751241339,
+        "name": "Pi-Studio-0.2.0-alpha.68-mac-arm64.zip",
+        "bytes": 142568188,
+        "digest": "sha256:30a35a90bbc084e40dd9453e4264b393471baee67072b18df8b6e5a64d330d02",
+        "sha256": "30a35a90bbc084e40dd9453e4264b393471baee67072b18df8b6e5a64d330d02",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.67",
+        "id": 750991339,
+        "name": "Pi-Studio-0.2.0-alpha.67-mac-arm64.zip",
+        "bytes": 142564031,
+        "digest": "sha256:c74c3c5a209fcd0ce274a0fcf73a17392d8a0e8830a1b237b4704b840cc96d31",
+        "sha256": "c74c3c5a209fcd0ce274a0fcf73a17392d8a0e8830a1b237b4704b840cc96d31",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.66",
+        "id": 750720520,
+        "name": "Pi-Studio-0.2.0-alpha.66-mac-arm64.zip",
+        "bytes": 142563875,
+        "digest": "sha256:129b8cda04ba9485bf0b4eb64fa1b4678ebce4c53ef65567303390ebdfb59996",
+        "sha256": "129b8cda04ba9485bf0b4eb64fa1b4678ebce4c53ef65567303390ebdfb59996",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.65",
+        "id": 750635213,
+        "name": "Pi-Studio-0.2.0-alpha.65-mac-arm64.zip",
+        "bytes": 142562053,
+        "digest": "sha256:01edd2197b707d853247eee4b43933f7c29b9efee3812eaa24fb2af9ec8308e8",
+        "sha256": "01edd2197b707d853247eee4b43933f7c29b9efee3812eaa24fb2af9ec8308e8",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.64",
+        "id": 750520871,
+        "name": "Pi-Studio-0.2.0-alpha.64-mac-arm64.zip",
+        "bytes": 142560964,
+        "digest": "sha256:dc7d86067f6b968bfbc01a4f55cb33afc0fafc4416beec67cffa876e30a4e8c3",
+        "sha256": "dc7d86067f6b968bfbc01a4f55cb33afc0fafc4416beec67cffa876e30a4e8c3",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.63",
+        "id": 750425979,
+        "name": "Pi-Studio-0.2.0-alpha.63-mac-arm64.zip",
+        "bytes": 142560933,
+        "digest": "sha256:7c2f2ffe0de5efb9376bf1283d12e22e08be6e429b21a1ed2ba1500265ed9c67",
+        "sha256": "7c2f2ffe0de5efb9376bf1283d12e22e08be6e429b21a1ed2ba1500265ed9c67",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.62",
+        "id": 749996609,
+        "name": "Pi-Studio-0.2.0-alpha.62-mac-arm64.zip",
+        "bytes": 142560964,
+        "digest": "sha256:2abb9b54a5ca4480308f5909cc479042401914cd7644c356acdada6eda109f19",
+        "sha256": "2abb9b54a5ca4480308f5909cc479042401914cd7644c356acdada6eda109f19",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.61",
+        "id": 749929892,
+        "name": "Pi-Studio-0.2.0-alpha.61-mac-arm64.zip",
+        "bytes": 142561158,
+        "digest": "sha256:f296b9a3556ce48ef23ccb6b0939c3791920e04691ab5758df95a20aa81cef8e",
+        "sha256": "f296b9a3556ce48ef23ccb6b0939c3791920e04691ab5758df95a20aa81cef8e",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.60",
+        "id": 749624574,
+        "name": "Pi-Studio-0.2.0-alpha.60-mac-arm64.zip",
+        "bytes": 142560487,
+        "digest": "sha256:205baebb56241039b860614248bb25f1430a54c6304149dec8112032e7bfc225",
+        "sha256": "205baebb56241039b860614248bb25f1430a54c6304149dec8112032e7bfc225",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.59",
+        "id": 749403218,
+        "name": "Pi-Studio-0.2.0-alpha.59-mac-arm64.zip",
+        "bytes": 142560096,
+        "digest": "sha256:e7f855d3f9b2bf3bc941907157c25486dd29a1b442c83961f933894e27f8cda2",
+        "sha256": "e7f855d3f9b2bf3bc941907157c25486dd29a1b442c83961f933894e27f8cda2",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.58",
+        "id": 749321945,
+        "name": "Pi-Studio-0.2.0-alpha.58-mac-arm64.zip",
+        "bytes": 142560055,
+        "digest": "sha256:9687e709bcdee9197e865768618ec9aaac33012e7e0cc3575d9718ad82bc092b",
+        "sha256": "9687e709bcdee9197e865768618ec9aaac33012e7e0cc3575d9718ad82bc092b",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.57",
+        "id": 749134801,
+        "name": "Pi-Studio-0.2.0-alpha.57-mac-arm64.zip",
+        "bytes": 142558975,
+        "digest": "sha256:facf5f6400e8a810e1a66ce8e825db5a7a47d8adc79a6366773627dd344382f0",
+        "sha256": "facf5f6400e8a810e1a66ce8e825db5a7a47d8adc79a6366773627dd344382f0",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.56",
+        "id": 748928778,
+        "name": "Pi-Studio-0.2.0-alpha.56-mac-arm64.zip",
+        "bytes": 124214543,
+        "digest": "sha256:f54b89a0169c84fcbf85b99102442c0a922e3f5685ecb6b71f2a53264270ec0e",
+        "sha256": "f54b89a0169c84fcbf85b99102442c0a922e3f5685ecb6b71f2a53264270ec0e",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.55",
+        "id": 748700906,
+        "name": "Pi-Studio-0.2.0-alpha.55-mac-arm64.zip",
+        "bytes": 124199409,
+        "digest": "sha256:8182bbf1738b681da43fc8b70fb88259de01d506722e59f4f057e0f12fd7f299",
+        "sha256": "8182bbf1738b681da43fc8b70fb88259de01d506722e59f4f057e0f12fd7f299",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.54",
+        "id": 748489251,
+        "name": "Pi-Studio-0.2.0-alpha.54-mac-arm64.zip",
+        "bytes": 124176478,
+        "digest": "sha256:f647c9073b1c47d9c0681a24d713f15af9bf4f9d20cdc50c7eb6a55e8db7ed9d",
+        "sha256": "f647c9073b1c47d9c0681a24d713f15af9bf4f9d20cdc50c7eb6a55e8db7ed9d",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.53",
+        "id": 748426958,
+        "name": "Pi-Studio-0.2.0-alpha.53-mac-arm64.zip",
+        "bytes": 124176403,
+        "digest": "sha256:4bacb5f5ebadeb0aac60d7fd14019e170498ad00379e764a8ee982d19576d5c0",
+        "sha256": "4bacb5f5ebadeb0aac60d7fd14019e170498ad00379e764a8ee982d19576d5c0",
+        "scanned": true
+      },
+      {
+        "tag": "v0.2.0-alpha.52",
+        "id": 748308007,
+        "name": "Pi-Studio-0.2.0-alpha.52-mac-arm64.zip",
+        "bytes": 124176410,
+        "digest": "sha256:71665c20fd6a6eee8c2ffedc6ed0fc82cfd78881869fd770430ecc30d114d376",
+        "sha256": "71665c20fd6a6eee8c2ffedc6ed0fc82cfd78881869fd770430ecc30d114d376",
+        "scanned": true
+      }
+    ],
+    "allAssetsRequested": true
+  },
+  "failures": [],
+  "allPublishedAssetsScanned": true,
+  "unreviewedArchiveOrMetadataFindings": 0,
+  "sourceTreeAndHistorySupersededBy": "repository-source-audit-proof.json",
+  "cleanupPerformed": false,
+  "historyRewritten": false,
+  "releasesDeleted": false,
+  "repositoryVisibilityChanged": false,
+  "fullRel02Accepted": false,
+  "scope": "All 20 published ZIP assets and all 49 releases metadata plus both local current ZIPs. Source tree/history findings from this pass are superseded by the separate current-source report, which verifies current and historical source SHA references."
+}
