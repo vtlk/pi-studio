@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-15T15:50:04.714Z",
+  "source": "1f90a0f309136eb607bdb88eef5708c99072e36b",
+  "version": "0.2.0-alpha.69",
+  "architecture": "arm64",
+  "minimumOS": "13.0",
+  "archiveBytes": 142584422,
+  "archiveSha256": "48e934cd1abc9116d1f15c7dffdf002a1f33a75de4f2afed369917fe16bae41e",
+  "compiledOutputMatches": true,
+  "bridgeAndPrivateRuntimeMatch": true,
+  "sdkAndJsRuntimeMatch": true,
+  "nativeSdkVersion": "0.49.11",
+  "nativeBinariesSeparatelySignedAndVerified": true,
+  "deepStrictSignature": true,
+  "designatedRequirementMatchesInstalled": true,
+  "licenseAndExactSourceNoticesMatch": true,
+  "notarized": false,
+  "installed": false,
+  "minimumOSReadFromPlist": "13.0",
+  "mainMachOArchitecture": "arm64",
+  "nonemptyStableDesignatedRequirementsVerified": true
+}

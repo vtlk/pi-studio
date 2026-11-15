@@ -1,6 +1,8 @@
 {
-  "checkedAt": "2026-11-15T15:27:11.388Z",
+  "checkedAt": "2026-11-15T15:50:06.810Z",
   "nativeMain": true,
+  "packagedEntry": true,
+  "version": "0.2.0-alpha.69",
   "isolatedOffscreen": true,
   "emptyNoFallback": true,
   "twoIndependentTeams": true,
