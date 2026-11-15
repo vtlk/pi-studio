@@ -1,6 +1,6 @@
 {
   "version": "0.2.0-alpha.68",
-  "packagedEntry": false,
+  "packagedEntry": true,
   "viewport": {
     "width": 1280,
     "height": 900

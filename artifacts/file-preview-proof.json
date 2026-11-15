@@ -2,8 +2,11 @@
   "passed": true,
   "copiedRawMarkdownPlainAndEmptyText": true,
   "textCopyBorderlessInPathToolbar": true,
+  "textCopyHoverVerified": true,
+  "copyAfterStaleSelectionTargetsCurrentText": true,
   "invalidAndStaleCopyRejected": true,
   "realUserClipboardUntouched": true,
+  "packagedEntry": true,
   "foldersFirstInMainAndRenderer": true,
   "nestedFoldersBeforeOlderFiles": true,
   "markdownLocalImage": true,
@@ -26,7 +29,7 @@
   "newModelRequests": 0,
   "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
   "version": "0.2.0-alpha.68",
-  "verifiedAt": "2026-11-15T14:14:07.796Z",
+  "verifiedAt": "2026-11-15T14:19:57.544Z",
   "sourceSha256": {
     "src/renderer/features/project/model/markdownFiles.ts": "d02c7439d28e3fec9c66b41dd0c04c7e74f82222cb685f288bba0e17ee19f2da",
     "src/renderer/features/project/ui/MarkdownPreview.tsx": "e0f22f00e83c0eb15dfe5c37ec8d055a6240622fa0e6f752f476d5cfab6539ac",
@@ -37,7 +40,7 @@
     "src/main/storage/outputs.ts": "f58c885e869bdbe7ecd5981f6e6fd1684fc5af70cf0ba73edf30fc1eee6dc6f5",
     "src/shared/outputOrder.ts": "12792c1e99d6bd8b52c1ac497f866bb19d1b0670a72e1de9067be467f0e3db1a",
     "src/shared/outputPaths.ts": "b58932ad11b9730493cd366e08edb164ce9fc7f3ba06cd10b5d83e5329d9e09b",
-    "scripts/smoke-file-previews.cjs": "d6016a0196b1de70b9cca2af2cd771c80fe73eff2262bf3ec765998a7d404895",
+    "scripts/smoke-file-previews.cjs": "f0a5a9e1af461257ff3caef20784e8affeaf72da62c67c0a461337de3b775dd6",
     "out/main/index.cjs": "c00c29cedf47b5b21915f1091f6491a9664401088362f344f2157cc85ea6e715"
   }
 }
