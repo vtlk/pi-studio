@@ -273,12 +273,16 @@ async function child() {
       );
     } else {
       await click('Агенты');
-      await named('Добавить агента');
+      await named('Создать команду');
+      await field('Название команды', 'QA команда');
+      await click('Создать');
+      await saved();
+      await named('Добавить агента в «QA команда»');
       await field('Название агента', 'Первый агент');
       await field('Основной промпт агента', 'Основная роль: создать мультфильм');
       await saved();
       const firstId = (await agent()).id;
-      await named('Добавить агента');
+      await named('Добавить агента в «QA команда»');
       await field('Название агента', 'Второй агент');
       await saved();
       assert.deepEqual(
@@ -291,7 +295,7 @@ async function child() {
       );
       assert.equal(
         await js(
-          `(()=>{const plus=document.querySelector('[aria-label="Добавить агента"]'),system=document.querySelector('[data-system-role]');return Array.from(document.querySelectorAll('.agent-list-entry:not([data-system-role])')).every(row=>!!(row.compareDocumentPosition(plus)&Node.DOCUMENT_POSITION_FOLLOWING))&&!!(plus.compareDocumentPosition(system)&Node.DOCUMENT_POSITION_FOLLOWING);})()`,
+          `(()=>{const plus=document.querySelector('[aria-label="Добавить агента в «QA команда»"]'),system=document.querySelector('[data-system-role]');return Array.from(document.querySelectorAll('.agent-list-entry:not([data-system-role])')).every(row=>!!(row.compareDocumentPosition(plus)&Node.DOCUMENT_POSITION_FOLLOWING))&&!!(plus.compareDocumentPosition(system)&Node.DOCUMENT_POSITION_FOLLOWING);})()`,
         ),
         true,
       );
@@ -465,7 +469,7 @@ async function child() {
       await click('Проекты');
       const state = await load();
       await js(
-        `window.studio.projectCommand({kind:'create',name:'Constructor snapshot',agents:[]})`,
+        `window.studio.projectCommand({kind:'create',name:'Constructor snapshot',teamId:${JSON.stringify(state.sections.agentTeams[0].id)},agents:[]})`,
       );
       const project = (await load()).projects[0];
       assert.deepEqual(

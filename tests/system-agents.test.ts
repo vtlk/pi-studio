@@ -83,10 +83,17 @@ test('the setup assistant edits existing system resources/instructions but creat
     mainInstruction: 'Updated service instructions',
     name: 'Custom helper',
   });
-  const a = (await admin.call(run, 'configure_agent', { name: 'First role' })) as {
+  const team = (await admin.call(run, 'configure_team', { name: 'My team' })) as { teamId: string };
+  const a = (await admin.call(run, 'configure_agent', {
+    name: 'First role',
+    teamId: team.teamId,
+  })) as {
     agentId: string;
   };
-  const b = (await admin.call(run, 'configure_agent', { name: 'Second role' })) as {
+  const b = (await admin.call(run, 'configure_agent', {
+    name: 'Second role',
+    teamId: team.teamId,
+  })) as {
     agentId: string;
   };
   assert.deepEqual(

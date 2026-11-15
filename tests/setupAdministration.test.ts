@@ -26,6 +26,7 @@ test('setup tools change only current constructor/catalog links and never snapsh
     ],
   }));
   assert.deepEqual(store.bootstrap().sections.agents, []);
+  const team = (await admin.call(run, 'configure_team', { name: 'My team' })) as { teamId: string };
   const result = (await admin.call(run, 'register_connection', {
     name: 'My subscription',
     provider: 'provider',
@@ -54,6 +55,7 @@ test('setup tools change only current constructor/catalog links and never snapsh
   assert.equal(local.connection.providerId, 'studio-' + local.connection.id);
   const localAgent = (await admin.call(run, 'configure_agent', {
     name: 'Local role',
+    teamId: team.teamId,
     model: {
       connectionId: local.connection.id,
       provider: local.connection.providerId,
@@ -74,6 +76,7 @@ test('setup tools change only current constructor/catalog links and never snapsh
   );
   const created = (await admin.call(run, 'configure_agent', {
     name: 'My role',
+    teamId: team.teamId,
     mainInstruction: 'Current role only',
     model: {
       connectionId: result.connection.id,

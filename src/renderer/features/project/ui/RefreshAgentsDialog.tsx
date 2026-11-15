@@ -11,10 +11,13 @@ import { useStorage } from '@/shared/storage/Storage';
 export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
   const { selectedProject, refreshAgents, restoreProjectAgent, busy } = useWorkspace();
   const { isDesktop } = useStorage();
-  const { agents } = useAgentProfiles();
+  const { agents: allAgents, teams } = useAgentProfiles();
   const { demo } = useNotice();
   const [updateExisting, setUpdateExisting] = useState(false);
   if (!selectedProject) return null;
+  const team = teams.find((team) => team.id === selectedProject.sourceTeamId);
+  const agents =
+    team?.agentIds.flatMap((id) => allAgents.find((agent) => agent.id === id) ?? []) ?? [];
   const diff = compareAgents(selectedProject.agents, agents);
   const hasChanges =
     diff.added.length > 0 ||
@@ -34,7 +37,7 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
           </Button>
           <Button
             kind="primary"
-            disabled={busy || !hasChanges}
+            disabled={busy || !team || !hasChanges}
             onClick={async () => {
               if ((await refreshAgents(updateExisting)) === false) return;
               demo(
@@ -60,19 +63,28 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="agent-diff">
-        {diff.added.length > 0 ? (
-          <section>
-            <h3>Добавятся в проект</h3>
-            <ul>
-              {diff.added.map((agent) => (
-                <li key={agent.id}>{agent.name || 'Без названия'}</li>
-              ))}
-            </ul>
-          </section>
+        {!team ? (
+          <p role="alert">
+            Исходная команда удалена или отсутствует. Синхронизация недоступна; файлы и диалоги
+            проекта сохранены.
+          </p>
         ) : (
-          <p>Новых агентов нет.</p>
+          <p>Команда: {team.name}</p>
         )}
-        {diff.changed.length > 0 && (
+        {team &&
+          (diff.added.length > 0 ? (
+            <section>
+              <h3>Добавятся в проект</h3>
+              <ul>
+                {diff.added.map((agent) => (
+                  <li key={agent.id}>{agent.name || 'Без названия'}</li>
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <p>Новых агентов нет.</p>
+          ))}
+        {team && diff.changed.length > 0 && (
           <section>
             <h3>Настройки изменились</h3>
             <ul>
@@ -90,7 +102,7 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
             </label>
           </section>
         )}
-        {diff.missing.length > 0 && (
+        {team && diff.missing.length > 0 && (
           <section>
             <h3>Уберутся из проекта</h3>
             <ul>
@@ -104,7 +116,7 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
             </p>
           </section>
         )}
-        {diff.reordered && <p>Порядок этапов будет соответствовать вкладке «Агенты».</p>}
+        {team && diff.reordered && <p>Порядок этапов будет соответствовать исходной команде.</p>}
         {(diff.added.length > 0 || diff.changed.length > 0 || diff.missing.length > 0) && (
           <p>Существующие выходные файлы сохраняются.</p>
         )}

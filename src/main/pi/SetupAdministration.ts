@@ -1,3 +1,4 @@
+import { configureTeam, saveTeamAgent } from './teamAdministration.ts';
 import { randomUUID } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { parseAgent, stableId } from '../storage/validation.ts';
@@ -97,6 +98,7 @@ export class SetupAdministration {
       if (name === 'list_configuration')
         return {
           studio: store.folder,
+          teams: store.agentCatalog().teams,
           agents: agents.map(({ mainInstruction: _text, instructions, ...profile }) => ({
             ...profile,
             instructions: instructions.map(({ content: _content, ...block }) => block),
@@ -188,6 +190,7 @@ export class SetupAdministration {
         ]);
         return { resource, loadedInAgentSession: false };
       }
+      if (name === 'configure_team') return configureTeam(store, args);
       if (name === 'configure_agent') {
         const old =
           typeof args.id === 'string'
@@ -257,9 +260,10 @@ export class SetupAdministration {
             ),
           );
         else
-          await store.saveSection(
-            'agents',
-            old ? agents.map((item) => (item.id === agent.id ? agent : item)) : [...agents, agent],
+          await saveTeamAgent(
+            store,
+            agent,
+            typeof args.teamId === 'string' ? args.teamId : undefined,
           );
         return { agentId: agent.id, name: agent.name, updatedProjectSnapshots: false };
       }

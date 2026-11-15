@@ -1,11 +1,63 @@
 import { useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
+import type { AgentCatalog, AgentTeam } from '../../../../shared/agentTeams';
+import { teamAgents } from '../../../../shared/agentTeams';
 import type { Agent, Instruction } from '../../../../shared/studio';
 import { createSystemAgents, type SystemAgent } from '../../../../shared/systemAgents';
 
 function useProfilesState(initial: Agent[]) {
-  const [agents, setAgents] = useStoredState<Agent[]>('agents', initial);
+  const [catalog, writeCatalog] = useStoredState<AgentCatalog>('agentCatalog', () => ({
+    agents: initial,
+    teams: initial.length
+      ? [
+          {
+            id: 'web-example-team',
+            name: 'Моя команда',
+            agentIds: initial.map((agent) => agent.id),
+          },
+        ]
+      : [],
+  }));
+  const setCatalog = (action: (previous: AgentCatalog) => AgentCatalog) =>
+    writeCatalog((previous) => {
+      const next = action(previous);
+      return { ...next, agents: next.teams.flatMap((team) => teamAgents(next, team.id)) };
+    });
+  const { agents, teams } = catalog;
+  const setAgents = (action: (previous: Agent[]) => Agent[]) =>
+    setCatalog((previous) => ({ ...previous, agents: action(previous.agents) }));
+  const addTeam = (name: string) => {
+    const team = { id: crypto.randomUUID(), name: name.trim(), agentIds: [] };
+    setCatalog((previous) => ({ ...previous, teams: [...previous.teams, team] }));
+    return team.id;
+  };
+  const renameTeam = (id: string, name: string) =>
+    setCatalog((previous) => ({
+      ...previous,
+      teams: previous.teams.map((team) => (team.id === id ? { ...team, name: name.trim() } : team)),
+    }));
+  const removeTeam = (id: string) =>
+    setCatalog((previous) => {
+      const ids = new Set(previous.teams.find((team) => team.id === id)?.agentIds ?? []);
+      return {
+        agents: previous.agents.filter((agent) => !ids.has(agent.id)),
+        teams: previous.teams.filter((team) => team.id !== id),
+      };
+    });
+  const restoreTeam = (team: AgentTeam, profiles: Agent[], position: number) =>
+    setCatalog((previous) => {
+      if (previous.teams.some((item) => item.id === team.id)) return previous;
+      const restored = profiles.filter(
+        (agent) => !previous.agents.some((item) => item.id === agent.id),
+      );
+      const next = [...previous.teams];
+      next.splice(Math.min(position, next.length), 0, {
+        ...team,
+        agentIds: restored.map((agent) => agent.id),
+      });
+      return { agents: [...previous.agents, ...restored], teams: next };
+    });
   const [systemAgents, setSystemAgents] = useStoredState<SystemAgent[]>('systemAgents', () =>
     createSystemAgents(() => crypto.randomUUID()),
   );
@@ -19,7 +71,8 @@ function useProfilesState(initial: Agent[]) {
   const selectedSystemRole = systemAgents.find(
     (agent) => agent.id === selectedAgent?.id,
   )?.systemRole;
-  const addAgent = () => {
+  const addAgent = (teamId: string) => {
+    if (!teams.some((team) => team.id === teamId)) return;
     const agent: Agent = {
       id: crypto.randomUUID(),
       name: 'Новый агент',
@@ -29,33 +82,59 @@ function useProfilesState(initial: Agent[]) {
       mcps: [],
       plugins: [],
     };
-    setAgents((previous) => [...previous, agent]);
+    setCatalog((previous) => ({
+      agents: [...previous.agents, agent],
+      teams: previous.teams.map((team) =>
+        team.id === teamId ? { ...team, agentIds: [...team.agentIds, agent.id] } : team,
+      ),
+    }));
     setAgentId(agent.id);
     setAgentTab('Промпт');
   };
   const moveAgent = (fromId: string, toId: string) =>
-    setAgents((previous) => {
-      const from = previous.findIndex((agent) => agent.id === fromId);
-      const to = previous.findIndex((agent) => agent.id === toId);
-      if (from < 0 || to < 0 || from === to) return previous;
-      const next = [...previous];
-      const [agent] = next.splice(from, 1);
-      next.splice(to, 0, agent);
-      return next;
+    setCatalog((previous) => {
+      const team = previous.teams.find(
+        (team) => team.agentIds.includes(fromId) && team.agentIds.includes(toId),
+      );
+      if (!team || fromId === toId) return previous;
+      const ids = [...team.agentIds];
+      ids.splice(ids.indexOf(toId), 0, ...ids.splice(ids.indexOf(fromId), 1));
+      const next = {
+        ...previous,
+        teams: previous.teams.map((item) =>
+          item.id === team.id ? { ...item, agentIds: ids } : item,
+        ),
+      };
+      return { ...next, agents: next.teams.flatMap((item) => teamAgents(next, item.id)) };
     });
   const removeAgent = (id: string) => {
-    if (!agents.some((agent) => agent.id === id)) return;
     const position = agents.findIndex((agent) => agent.id === id);
-    setAgents((previous) => previous.filter((agent) => agent.id !== id));
+    setCatalog((previous) => ({
+      agents: previous.agents.filter((agent) => agent.id !== id),
+      teams: previous.teams.map((team) => ({
+        ...team,
+        agentIds: team.agentIds.filter((member) => member !== id),
+      })),
+    }));
     if (selectedAgent?.id === id)
       setAgentId(agents[position + 1]?.id ?? agents[position - 1]?.id ?? '');
   };
-  const restoreAgent = (agent: Agent, position: number) => {
-    setAgents((previous) => {
-      if (previous.some((item) => item.id === agent.id)) return previous;
-      const next = [...previous];
-      next.splice(position, 0, agent);
-      return next;
+  const restoreAgent = (agent: Agent, position: number, teamId: string) => {
+    setCatalog((previous) => {
+      if (
+        previous.agents.some((item) => item.id === agent.id) ||
+        !previous.teams.some((team) => team.id === teamId)
+      )
+        return previous;
+      return {
+        agents: [...previous.agents, agent],
+        teams: previous.teams.map((team) => {
+          if (team.id !== teamId) return team;
+          const agentIds = [...team.agentIds];
+          agentIds.splice(Math.min(position, agentIds.length), 0, agent.id);
+          return { ...team, agentIds };
+        }),
+      };
     });
     setAgentId(agent.id);
   };
@@ -83,6 +162,12 @@ function useProfilesState(initial: Agent[]) {
   };
   return {
     agents,
+    teams,
+    catalog,
+    addTeam,
+    renameTeam,
+    removeTeam,
+    restoreTeam,
     systemAgents,
     selectedSystemRole,
     agentId,

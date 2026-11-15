@@ -58,7 +58,8 @@ test('stale CRUD writes cannot overwrite helper edits; a fresh read permits savi
   assert.ok(saved.saved);
   assert.deepEqual(store.bootstrap().sections.agents, updated);
   const parsed = JSON.parse(await disk());
-  assert.deepEqual(parsed, { schemaVersion: 1, sections: store.bootstrap().sections });
+  const { agentCatalog: _virtual, ...persisted } = store.bootstrap().sections;
+  assert.deepEqual(parsed, { schemaVersion: 1, sections: persisted });
   assert.equal(
     (
       await store.editSection('agents', updated, {

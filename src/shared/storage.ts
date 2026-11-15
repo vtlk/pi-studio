@@ -3,6 +3,8 @@ import type { WorkspaceProject } from './project';
 
 export const storageSections = [
   'agents',
+  'agentTeams',
+  'agentCatalog',
   'systemAgents',
   'libraryAgents',
   'resources',
@@ -30,7 +32,7 @@ export interface StudioBootstrap {
   warnings: string[];
 }
 export type ProjectCommand =
-  | { kind: 'create'; name: string; agents: Agent[] }
+  | { kind: 'create'; name: string; agents: Agent[]; teamId?: string }
   | { kind: 'update-agents'; projectId: string; agents: Agent[]; updateExisting: boolean }
   | { kind: 'rename'; projectId: string; name: string }
   | { kind: 'clone'; projectId: string; name: string }

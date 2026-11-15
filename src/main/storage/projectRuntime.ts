@@ -14,3 +14,7 @@ export function withAgentRuntime(
     ...(session === null ? { session: undefined } : session ? { session } : {}),
   };
 }
+
+export function withFork(agent: ProjectAgent): ProjectAgent {
+  return { ...agent, session: agent.session ? { ...agent.session, needsFork: true } : undefined };
+}

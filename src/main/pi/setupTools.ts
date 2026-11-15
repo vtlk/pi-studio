@@ -57,12 +57,19 @@ export const setupTools: SessionTool[] = [
     inputSchema: object({}),
   },
   {
+    name: 'configure_team',
+    description:
+      'Create a named ordinary agent team, or rename one by its existing stable ID. Does not change projects or launch agents. Read teams in list_configuration; pass the intended teamId when creating an agent.',
+    inputSchema: object({ id: string, name: string }, ['name']),
+  },
+  {
     name: 'configure_agent',
     description:
-      'Create an ordinary constructor agent only when requested (append after current ordinary profiles), or update named fields of an existing ordinary profile or the built-in setup assistant by stable ID. Only the setup assistant is a system agent; character and location generators are ordinary agents with optional Pi Studio Library access. Never create another system agent. Does not change existing project snapshots or launch work. Assign the built-in library MCP separately with assign_resource; the administrative MCP stays pinned to the assistant.',
+      'Create an ordinary constructor agent only when requested with explicit teamId (append inside that team), or update named fields of an existing ordinary profile or the built-in setup assistant by stable ID. Only the setup assistant is a system agent; character and location generators are ordinary agents with optional Pi Studio Library access. Never create another system agent. Does not change existing project snapshots or launch work. Assign the built-in library MCP separately with assign_resource; the administrative MCP stays pinned to the assistant.',
     inputSchema: object({
       id: string,
       name: string,
+      teamId: string,
       enabled: { type: 'boolean' },
       mainInstruction: string,
       instructions: {

@@ -18,6 +18,10 @@ import { createSystemAgents, type SystemAgent } from '../../shared/systemAgents.
 import type { Agent } from '../../shared/studio.ts';
 import { migrateLibraryAgents } from './migrateLibraryAgents.ts';
 import { ProjectAccounting } from '../accounting/ProjectAccounting.ts';
+import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
+import { teamAgents } from '../../shared/agentTeams.ts';
+import { reconcileTeams } from './agentCatalog.ts';
+import { snapshotAgent } from './validation.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
@@ -49,13 +53,25 @@ export class StudioStore {
         );
       await atomicJson(file, { schemaVersion: 1, sections: {} });
     }
-    store.warnings = await store.projects.initialize();
-    await store.accounting.reconcile(store.projects.list(), store.projects.trash());
     const migrated = migrateLibraryAgents(store.sections);
-    if (migrated) {
-      await atomicJson(file, { schemaVersion: 1, sections: migrated });
-      store.sections = migrated;
-    }
+    const initial = migrated ?? store.sections;
+    if (initial.agentTeams === undefined || migrated) {
+      const next = {
+        ...initial,
+        agentTeams: reconcileTeams(
+          (initial.agents ?? []) as Agent[],
+          (initial.agentTeams ?? []) as AgentTeam[],
+        ),
+      };
+      parseSection('agentCatalog', { agents: next.agents ?? [], teams: next.agentTeams });
+      await atomicJson(file, { schemaVersion: 1, sections: next });
+      store.sections = next;
+    } else parseSection('agentCatalog', store.agentCatalog());
+    store.warnings = await store.projects.initialize();
+    const legacyTeamId =
+      (store.sections.agentTeams as AgentTeam[])[0]?.id ?? 'legacy-unassigned-team';
+    await store.projects.migrateLegacyTeam(legacyTeamId);
+    await store.accounting.reconcile(store.projects.list(), store.projects.trash());
     for (const [key, value] of [
       ['agents', []],
       ['systemAgents', createSystemAgents(randomUUID)],
@@ -71,11 +87,20 @@ export class StudioStore {
   bootstrap(): StudioBootstrap {
     return {
       folder: this.folder,
-      sections: structuredClone(this.sections),
+      sections: structuredClone({ ...this.sections, agentCatalog: this.agentCatalog() }),
       projects: this.projects.list().map((project) => this.accounting.enrich(project)),
       trashProjects: this.projects.trash().map((project) => this.accounting.enrich(project)),
       warnings: this.warnings,
     };
+  }
+  agentCatalog(): AgentCatalog {
+    return {
+      agents: (this.sections.agents ?? []) as Agent[],
+      teams: (this.sections.agentTeams ?? []) as AgentTeam[],
+    };
+  }
+  teamProfiles(teamId: string) {
+    return teamAgents(this.agentCatalog(), teamId);
   }
   async saveSection(section: StorageSection, value: unknown) {
     const validated = parseSection(section, value);
@@ -101,7 +126,26 @@ export class StudioStore {
       (validated as Agent[]).some((agent) => systems.some((system) => system.id === agent.id))
     )
       throw new Error('Системные профили не являются шаблонами для проектов.');
-    const sections = { ...this.sections, [section]: validated };
+    const sections =
+      section === 'agentCatalog'
+        ? {
+            ...this.sections,
+            agents: (validated as AgentCatalog).agents,
+            agentTeams: (validated as AgentCatalog).teams,
+          }
+        : { ...this.sections, [section]: validated };
+    if (section === 'agents')
+      sections.agentTeams = reconcileTeams(validated as Agent[], this.agentCatalog().teams);
+    if (section === 'agentTeams')
+      parseSection('agentCatalog', { agents: sections.agents ?? [], teams: validated });
+    if (
+      section === 'agentCatalog' &&
+      systems &&
+      (validated as AgentCatalog).agents.some((agent) =>
+        systems.some((system) => system.id === agent.id),
+      )
+    )
+      throw new Error('Системный помощник не входит в команды.');
     await atomicJson(await safePath(this.folder, '.pistudio/studio.json'), {
       schemaVersion: 1,
       sections,
@@ -118,13 +162,39 @@ export class StudioStore {
       throw new Error('Папка студии изменилась. Правки не записаны в другую студию.');
     const local = parseSection(section, value);
     const base = parseSection(section, edit.base);
-    const current = this.sections[section] ?? base;
+    const current =
+      section === 'agentCatalog' ? this.agentCatalog() : (this.sections[section] ?? base);
     if (isDeepStrictEqual(local, current)) return { saved: true, value: structuredClone(current) };
     if (!isDeepStrictEqual(base, current)) return { saved: false, value: structuredClone(current) };
     await this.saveSection(section, local);
     return { saved: true, value: structuredClone(local) };
   }
   async command(command: ProjectCommand) {
+    if (command.kind === 'create' && command.teamId) {
+      const current = this.teamProfiles(command.teamId);
+      if (
+        !isDeepStrictEqual(
+          current.map((agent) => snapshotAgent(agent).profile),
+          command.agents.map((agent) => snapshotAgent(agent).profile),
+        )
+      )
+        throw new Error('Состав команды изменился. Перечитайте настройки перед созданием проекта.');
+      command = { ...command, agents: current };
+    }
+    if (command.kind === 'update-agents') {
+      const teamId = (await this.projects.read(command.projectId)).sourceTeamId;
+      if (teamId) {
+        const current = this.teamProfiles(teamId);
+        if (
+          !isDeepStrictEqual(
+            current.map((agent) => snapshotAgent(agent).profile),
+            command.agents.map((agent) => snapshotAgent(agent).profile),
+          )
+        )
+          throw new Error('Состав исходной команды изменился. Откройте сравнение заново.');
+        command = { ...command, agents: current };
+      }
+    }
     if (
       (command.kind === 'create' || command.kind === 'update-agents') &&
       command.agents.some((agent) =>

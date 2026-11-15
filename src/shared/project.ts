@@ -39,6 +39,7 @@ export interface ProjectAgent {
 }
 export type AgentRunStatus = 'idle' | 'running' | 'waiting' | 'ready' | 'error' | 'stopped';
 export interface WorkspaceProject {
+  sourceTeamId?: string;
   usage?: AgentUsage;
   id: string;
   name: string;

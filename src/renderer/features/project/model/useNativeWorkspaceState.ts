@@ -1,3 +1,4 @@
+import { teamAgents } from '../../../../shared/agentTeams';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AgentDataTarget, ProjectCommand } from '../../../../shared/storage';
@@ -9,7 +10,7 @@ import { useProjectUsage } from './useProjectUsage';
 
 export function useNativeWorkspaceState() {
   const { bootstrap, isDesktop, saveNow } = useStorage();
-  const { agents } = useAgentProfiles();
+  const { catalog } = useAgentProfiles();
   const { demo } = useNotice();
   const [projects, setProjects] = useState(bootstrap?.projects ?? []);
   const [trashProjects, setTrashProjects] = useState(bootstrap?.trashProjects ?? []);
@@ -160,11 +161,18 @@ export function useNativeWorkspaceState() {
     setProjectId,
     busy,
     deleteAgentData,
-    createProject: async (name: string) =>
-      (await saveNow()) ? command({ kind: 'create', name, agents }) : false,
+    createProject: async (name: string, teamId: string) =>
+      (await saveNow())
+        ? command({ kind: 'create', name, teamId, agents: teamAgents(catalog, teamId) })
+        : false,
     refreshAgents: async (updateExisting: boolean) =>
       (await saveNow())
-        ? command({ kind: 'update-agents', projectId, agents, updateExisting })
+        ? command({
+            kind: 'update-agents',
+            projectId,
+            agents: teamAgents(catalog, selectedProject?.sourceTeamId ?? ''),
+            updateExisting,
+          })
         : false,
     removeProjectAgent: (projectId: string, agentId: string) =>
       command({ kind: 'remove-agent', projectId, agentId }),

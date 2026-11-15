@@ -1,3 +1,9 @@
+import { useState } from 'react';
+import { Folder, Pencil } from 'lucide-react';
+import { Disclosure } from '@/shared/ui/Disclosure';
+import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
+import { IconButton } from '@/shared/ui';
+import { TeamNameDialog } from './TeamNameDialog';
 import {
   DndContext,
   closestCenter,
@@ -24,6 +30,11 @@ import { SetupAssistantAction } from './SetupAssistantAction';
 export function AgentList() {
   const {
     agents,
+    teams,
+    addTeam,
+    renameTeam,
+    removeTeam,
+    restoreTeam,
     systemAgents,
     selectedAgent,
     setAgentId,
@@ -33,6 +44,7 @@ export function AgentList() {
     restoreAgent,
   } = useAgentProfiles();
   const { demo } = useNotice();
+  const [naming, setNaming] = useState<{ id?: string; name?: string } | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -43,37 +55,88 @@ export function AgentList() {
   return (
     <nav className="section-menu" aria-label="Конструктор агентов">
       <h2 className="agent-list-group-heading">Мои агенты</h2>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={reorder}
-        accessibility={{
-          screenReaderInstructions: {
-            draggable:
-              'Нажмите пробел, чтобы взять агента. Стрелки вверх и вниз меняют порядок. Пробел завершает перенос, Escape отменяет.',
-          },
-        }}
-      >
-        <SortableContext items={agents} strategy={verticalListSortingStrategy}>
-          {agents.map((agent, index) => (
-            <AgentListItem
-              key={agent.id}
-              agent={agent}
-              position={index + 1}
-              selected={selectedAgent?.id === agent.id}
-              onSelect={() => setAgentId(agent.id)}
-              onDelete={() => {
-                removeAgent(agent.id);
-                demo(`Агент «${agent.name}» удалён из конструктора.`, {
-                  label: 'Вернуть',
-                  onClick: () => restoreAgent(agent, index),
-                });
-              }}
-            />
-          ))}
-        </SortableContext>
-      </DndContext>
-      <AddArea label="Добавить агента" onClick={addAgent} />
+      {teams.map((team, teamIndex) => {
+        const profiles = team.agentIds.flatMap(
+          (id) => agents.find((agent) => agent.id === id) ?? [],
+        );
+        return (
+          <div className="agent-team" key={team.id} data-team-id={team.id}>
+            <Disclosure
+              label={team.name}
+              icon={Folder}
+              defaultOpen
+              actions={
+                <>
+                  <IconButton
+                    title={`Переименовать команду «${team.name}»`}
+                    className="team-rename"
+                    onClick={() => setNaming({ id: team.id, name: team.name })}
+                  >
+                    <Pencil size={16} />
+                  </IconButton>
+                  <HoverDeleteButton
+                    label={`Удалить команду «${team.name}»`}
+                    description="Команда и её агенты будут удалены из конструктора. Проекты, результаты и диалоги сохранятся."
+                    onDelete={() => {
+                      removeTeam(team.id);
+                      demo(`Команда «${team.name}» удалена.`, {
+                        label: 'Вернуть',
+                        onClick: () => restoreTeam(team, profiles, teamIndex),
+                      });
+                    }}
+                  />
+                </>
+              }
+            >
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={reorder}
+                accessibility={{
+                  screenReaderInstructions: {
+                    draggable:
+                      'Пробел — взять агента. Стрелки меняют порядок в команде. Пробел завершает, Escape отменяет.',
+                  },
+                }}
+              >
+                <SortableContext items={profiles} strategy={verticalListSortingStrategy}>
+                  {profiles.map((agent, index) => (
+                    <AgentListItem
+                      key={agent.id}
+                      agent={agent}
+                      position={index + 1}
+                      selected={selectedAgent?.id === agent.id}
+                      onSelect={() => setAgentId(agent.id)}
+                      onDelete={() => {
+                        removeAgent(agent.id);
+                        demo(`Агент «${agent.name}» удалён из конструктора.`, {
+                          label: 'Вернуть',
+                          onClick: () => restoreAgent(agent, index, team.id),
+                        });
+                      }}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+              <AddArea
+                label={`Добавить агента в «${team.name}»`}
+                onClick={() => addAgent(team.id)}
+              />
+            </Disclosure>
+          </div>
+        );
+      })}
+      <AddArea label="Создать команду" onClick={() => setNaming({})} />
+      {naming && (
+        <TeamNameDialog
+          name={naming.name}
+          onClose={() => setNaming(null)}
+          onSave={(name) => {
+            if (naming.id) renameTeam(naming.id, name);
+            else addTeam(name);
+          }}
+        />
+      )}
       <h2 className="agent-list-group-heading">Системные</h2>
       {systemAgents.map((agent, index) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>

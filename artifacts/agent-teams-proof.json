@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-15T14:49:27.180Z",
+  "nativeMain": true,
+  "isolatedOffscreen": true,
+  "emptyNoFallback": true,
+  "twoIndependentTeams": true,
+  "collapseRenameAdd": true,
+  "projectExplicitSelection": true,
+  "projectScopedToSelectedTeam": true,
+  "confirmationCancel": true,
+  "teamDeletePreservesProjectAndOutput": true,
+  "undoPreservesLaterEdits": true,
+  "reloadPersistence": true,
+  "userStudioChanged": false
+}

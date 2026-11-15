@@ -247,3 +247,37 @@
   white-space: nowrap;
   font-size: 12px;
 }
+
+.agent-team .disclosure-content {
+  padding: 0;
+}
+.agent-team .ui-list-row {
+  min-height: 42px;
+  background: transparent;
+  border-radius: 0;
+}
+.agent-team .ui-list-row-actions {
+  position: relative;
+  gap: 2px;
+}
+.agent-team .ui-list-row-actions > .hover-delete {
+  position: static;
+  transform: none;
+}
+.agent-team .team-rename {
+  opacity: 0;
+  pointer-events: none;
+}
+.agent-team .ui-list-row:hover .team-rename,
+.agent-team .ui-list-row:focus-within .team-rename {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.agent-stages .agent-team > .disclosure > .ui-list-row .ui-list-row-main {
+  min-height: 42px;
+  padding-block: 8px;
+}
+.agent-team > .disclosure > .ui-list-row:hover {
+  background: #eeeef0;
+}

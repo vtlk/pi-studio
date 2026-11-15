@@ -24,7 +24,6 @@ import { Startup } from '../pi/Startup';
 import { createStudioRunHost } from '../pi/createStudioRunHost';
 import type { LaunchAgentRequest } from '../../shared/runtime';
 import { createSetupAssistant } from '../pi/createSetupAssistant';
-import type { Agent } from '../../shared/studio';
 import { readVideoProject } from '../video/readVideoProject';
 import { StudioResources } from '../pi/StudioResources';
 import type { SystemAgent } from '../../shared/systemAgents';
@@ -267,8 +266,15 @@ export function registerDesktopHandlers(): StudioService {
   );
   ipcMain.handle(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
     caller(event);
-    const templates = (store: StudioStore) => {
-      const current = store.bootstrap().sections.agents as Agent[];
+    const templates = async (store: StudioStore) => {
+      const teamId =
+        command.kind === 'create'
+          ? command.teamId
+          : command.kind === 'update-agents'
+            ? (await store.projects.read(command.projectId)).sourceTeamId
+            : undefined;
+      if (!teamId) throw new Error('Выберите команду агентов для проекта.');
+      const current = store.teamProfiles(teamId);
       if (
         command.kind === 'update-agents' &&
         JSON.stringify(current.map((agent) => snapshotAgent(agent).profile)) !==
@@ -287,7 +293,7 @@ export function registerDesktopHandlers(): StudioService {
     if (command.kind === 'update-agents') {
       const removed = await service.serialize(async () => {
         const store = await service.load();
-        const ids = new Set(templates(store).map((agent) => agent.id));
+        const ids = new Set((await templates(store)).map((agent) => agent.id));
         return (await store.projects.read(command.projectId)).agents
           .filter((agent) => !ids.has(agent.profile.id))
           .map((agent) => agent.profile.id);
@@ -299,7 +305,7 @@ export function registerDesktopHandlers(): StudioService {
         const store = await service.load();
         return store.command(
           command.kind === 'create' || command.kind === 'update-agents'
-            ? { ...command, agents: templates(store) }
+            ? { ...command, agents: await templates(store) }
             : command,
         );
       });

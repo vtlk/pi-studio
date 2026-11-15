@@ -4,6 +4,8 @@ import { Modal } from '../ui/Modal';
 
 const sectionNames: Record<StorageSection, string> = {
   agents: 'Агенты',
+  agentTeams: 'Команды агентов',
+  agentCatalog: 'Команды и агенты',
   systemAgents: 'Системные агенты',
   libraryAgents: 'Агенты библиотеки',
   resources: 'Ресурсы',

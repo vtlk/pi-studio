@@ -1,3 +1,5 @@
+import { ensureProjectAgents } from './ensureProjectAgents.ts';
+import { migrateProjectTeams } from './migrateProjectTeams.ts';
 import { cp, mkdir, readdir, rename, rm, lstat } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import type { RunFailure } from '../../shared/runFailure.ts';
@@ -23,11 +25,7 @@ import { agentDirectory } from '../../shared/agentPaths.ts';
 import { folderSlug } from '../../shared/folderSlug.ts';
 import type { Agent } from '../../shared/studio.ts';
 import { assertProjectSessionsClosed } from './sessionLease.ts';
-import { withAgentRuntime } from './projectRuntime.ts';
-
-function withFork(agent: WorkspaceProject['agents'][number]) {
-  return { ...agent, session: agent.session ? { ...agent.session, needsFork: true } : undefined };
-}
+import { withAgentRuntime, withFork } from './projectRuntime.ts';
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -67,6 +65,9 @@ export class ProjectStore {
   }
   list() {
     return [...this.projects.values()].sort((a, b) => b.createdAt - a.createdAt);
+  }
+  async migrateLegacyTeam(teamId: string) {
+    await migrateProjectTeams(this.root, this.projects, this.deleted, teamId);
   }
   trash() {
     return [...this.deleted.values()].sort((a, b) => b.createdAt - a.createdAt);
@@ -142,15 +143,6 @@ export class ProjectStore {
   private async save(project: WorkspaceProject, root: string) {
     await atomicJson(await safePath(root, 'project.json', true), projectDocument(project));
   }
-  private async ensureAgents(project: WorkspaceProject, root: string) {
-    await mkdir(await safePath(root, 'agents', true), { recursive: true });
-    for (const agent of project.agents) {
-      for (const sub of ['output', 'sessions'])
-        await mkdir(await safePath(root, `${agentDirectory(agent.outputPath)}/${sub}`, true), {
-          recursive: true,
-        });
-    }
-  }
   private async available(name: string) {
     const path = await safePath(this.root, `projects/${name}`, true);
     try {
@@ -220,6 +212,7 @@ export class ProjectStore {
           await mkdir(staging);
           project = {
             id: randomUUID(),
+            ...(command.teamId ? { sourceTeamId: stableId(command.teamId) } : {}),
             name,
             folderName,
             createdAt: Date.now(),
@@ -227,7 +220,7 @@ export class ProjectStore {
             agents: snapshotProjectAgents(parseAgents(command.agents)),
           };
         }
-        await this.ensureAgents(project, staging);
+        await ensureProjectAgents(project, staging);
         await this.save(project, staging);
         await rename(staging, destination);
         this.projects.set(project.id, project);
@@ -342,7 +335,7 @@ export class ProjectStore {
               : previous;
           }),
         );
-        await this.ensureAgents(next, root);
+        await ensureProjectAgents(next, root);
         await this.save(next, root);
         this.projects.set(project.id, next);
       } else throw new Error('Неизвестная операция проекта.');

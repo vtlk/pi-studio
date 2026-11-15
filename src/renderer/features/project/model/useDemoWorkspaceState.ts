@@ -1,3 +1,4 @@
+import { teamAgents } from '../../../../shared/agentTeams';
 import type { AgentDataTarget } from '../../../../shared/storage';
 import { folderSlug } from '../../../../shared/folderSlug';
 import { useState } from 'react';
@@ -15,10 +16,11 @@ import {
 } from '../../../../shared/projectAgents';
 
 export function useDemoWorkspaceState() {
-  const { agents } = useAgentProfiles();
+  const { agents, catalog } = useAgentProfiles();
   const [projects, setProjects] = useState<WorkspaceProject[]>(() => [
     {
       id: 'demo-project',
+      sourceTeamId: 'web-example-team',
       name: 'Посылка с характером',
       createdAt: 1,
       agents: snapshotAgents(initialAgents).map((agent) => ({
@@ -30,13 +32,14 @@ export function useDemoWorkspaceState() {
   ]);
   const [projectId, setProjectId] = useState('demo-project');
   const selectedProject = projects.find((item) => item.id === projectId);
-  const createProject = (name: string) => {
+  const createProject = (name: string, teamId: string) => {
     const project: WorkspaceProject = {
       id: crypto.randomUUID(),
       name: name.trim(),
       folderName: folderSlug(name),
       createdAt: Date.now(),
-      agents: snapshotAgents(agents),
+      sourceTeamId: teamId,
+      agents: snapshotAgents(teamAgents(catalog, teamId)),
     };
     setProjects((previous) => [project, ...previous]);
     setProjectId(project.id);
@@ -49,7 +52,7 @@ export function useDemoWorkspaceState() {
               project,
               refreshSnapshot(
                 project.agents,
-                agents,
+                teamAgents(catalog, project.sourceTeamId ?? ''),
                 updateExisting,
                 project.archivedAgents?.map((item) => item.agent),
               ),

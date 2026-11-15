@@ -74,7 +74,7 @@
     }
   },
   "latestNativeControl": {
-    "checkedAt": "2026-11-15T10:29:01.198Z",
+    "checkedAt": "2026-11-15T14:49:33.794Z",
     "result": {
       "passed": true,
       "pi": "1.5.2",
@@ -86,7 +86,7 @@
       "assignedHelperNestedSkillsOnly": true,
       "assignedPackageSkillsScoped": true,
       "hardFilesystemSandbox": false,
-      "packagedBridge": true,
+      "packagedBridge": false,
       "freshContextWithoutInstructionCopies": true,
       "previousOutputReadByNextAgent": true,
       "oneUserMessagePerStage": true,

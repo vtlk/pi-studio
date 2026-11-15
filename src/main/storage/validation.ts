@@ -4,6 +4,7 @@ import { storageSections, type StorageSection, type StudioSections } from '../..
 import { agentDirectory, agentFolderSlug } from '../../shared/agentPaths.ts';
 import { systemAgentRoles, type SystemAgent } from '../../shared/systemAgents.ts';
 import { modelEndpointUrl, parseModelEndpoint } from '../../shared/modelEndpoint.ts';
+import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
 
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -82,6 +83,38 @@ export function parseAgents(value: unknown): Agent[] {
     throw new Error('Повторяющиеся ID агентов.');
   return agents;
 }
+export function parseTeams(value: unknown): AgentTeam[] {
+  if (!Array.isArray(value) || value.length > 1000) throw new Error('Некорректный список команд.');
+  const teams = value.map((value) => {
+    const item = record(value);
+    if (typeof item.name !== 'string' || !item.name.trim() || item.name.length > 500)
+      throw new Error('Назовите команду агентов.');
+    if (!Array.isArray(item.agentIds) || item.agentIds.length > 10000)
+      throw new Error('Некорректный состав команды.');
+    return { id: stableId(item.id), name: item.name.trim(), agentIds: item.agentIds.map(stableId) };
+  });
+  if (new Set(teams.map((team) => team.id)).size !== teams.length)
+    throw new Error('Повторяющийся ID команды.');
+  return teams;
+}
+export function parseAgentCatalog(value: unknown): AgentCatalog {
+  const item = record(value);
+  const agents = parseAgents(item.agents);
+  const teams = parseTeams(item.teams);
+  const members = teams.flatMap((team) => team.agentIds);
+  if (
+    new Set(members).size !== members.length ||
+    members.length !== agents.length ||
+    members.some((id) => !agents.some((agent) => agent.id === id))
+  )
+    throw new Error('Каждый обычный агент должен принадлежать ровно одной команде.');
+  return {
+    agents: teams.flatMap((team) =>
+      team.agentIds.map((id) => agents.find((agent) => agent.id === id)!),
+    ),
+    teams,
+  };
+}
 export function parseSystemAgents(value: unknown): SystemAgent[] {
   const profiles = list(value).map((value) => {
     const item = record(value);
@@ -153,6 +186,7 @@ export function parseProject(value: unknown): WorkspaceProject {
   if (new Set(agents.map((agent) => agent.profile.id)).size !== agents.length)
     throw new Error('Повторяющиеся ID снимка.');
   const project: WorkspaceProject = {
+    ...(item.sourceTeamId === undefined ? {} : { sourceTeamId: stableId(item.sourceTeamId) }),
     id: stableId(item.id),
     name: text(item.name, 500),
     createdAt: timestamp(item.createdAt),
@@ -181,6 +215,7 @@ export function parseProject(value: unknown): WorkspaceProject {
 export function projectDocument(project: WorkspaceProject) {
   return {
     schemaVersion: 1,
+    sourceTeamId: project.sourceTeamId,
     id: project.id,
     name: project.name,
     createdAt: project.createdAt,
@@ -202,6 +237,8 @@ export function parseSection(section: unknown, value: unknown): unknown {
   if (!storageSections.includes(section as StorageSection))
     throw new Error('Неизвестный раздел настроек.');
   if (section === 'agents') return parseAgents(value);
+  if (section === 'agentTeams') return parseTeams(value);
+  if (section === 'agentCatalog') return parseAgentCatalog(value);
   if (section === 'systemAgents') return parseSystemAgents(value);
   if (section === 'libraryAgents') {
     const item = record(value);

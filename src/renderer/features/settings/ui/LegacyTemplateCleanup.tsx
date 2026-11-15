@@ -9,7 +9,7 @@ import { matchesLegacyTemplate } from '../model/legacyTemplates';
 
 export function LegacyTemplateCleanup() {
   const { isDesktop } = useStorage();
-  const { agents, removeAgent, restoreAgent } = useAgentProfiles();
+  const { agents, teams, removeAgent, restoreAgent } = useAgentProfiles();
   const { connections, removeConnection, saveConnection } = useConnections();
   const { resources, removeResource, saveResource } = useResources();
   const { confirm } = useConfirm();
@@ -31,7 +31,10 @@ export function LegacyTemplateCleanup() {
       if (disposed) return;
       reviewed.current = true;
       const oldAgents = agents
-        .map((agent, index) => ({ agent, index }))
+        .map((agent) => {
+          const team = teams.find((team) => team.agentIds.includes(agent.id));
+          return { agent, index: team?.agentIds.indexOf(agent.id) ?? 0, teamId: team?.id ?? '' };
+        })
         .filter((_, index) => agentMatches[index]);
       const oldConnections = connections.filter((_, index) => connectionMatches[index]);
       const oldResources = resources.filter(
@@ -53,7 +56,7 @@ export function LegacyTemplateCleanup() {
           demo('Шаблоны макета убраны из общих настроек.', {
             label: 'Вернуть',
             onClick: () => {
-              oldAgents.forEach(({ agent, index }) => restoreAgent(agent, index));
+              oldAgents.forEach(({ agent, index, teamId }) => restoreAgent(agent, index, teamId));
               oldConnections.forEach(saveConnection);
               oldResources.forEach(saveResource);
             },
@@ -73,6 +76,7 @@ export function LegacyTemplateCleanup() {
   }, [
     isDesktop,
     agents,
+    teams,
     connections,
     resources,
     confirm,
