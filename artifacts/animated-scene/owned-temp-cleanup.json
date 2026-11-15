@@ -1,0 +1,50 @@
+{
+  "matchedExactAgentCommandFiles": true,
+  "removed": [
+    {
+      "name": "200.png",
+      "size": 235354
+    },
+    {
+      "name": "48.png",
+      "size": 212536
+    },
+    {
+      "name": "99.png",
+      "size": 222759
+    },
+    {
+      "name": "37.png",
+      "size": 221972
+    },
+    {
+      "name": "18.png",
+      "size": 221758
+    },
+    {
+      "name": "30.png",
+      "size": 221941
+    },
+    {
+      "name": "54.png",
+      "size": 221604
+    },
+    {
+      "name": "44.png",
+      "size": 223050
+    },
+    {
+      "name": "3.png",
+      "size": 221374
+    },
+    {
+      "name": "150.png",
+      "size": 240119
+    },
+    {
+      "name": "render.out",
+      "size": 72
+    }
+  ],
+  "otherPathsRemoved": false
+}

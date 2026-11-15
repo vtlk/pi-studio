@@ -1,0 +1,9 @@
+{
+  "base": {
+    "kind": "characters",
+    "id": "30cadbc8-5318-47d7-982e-787c82a16d21",
+    "version": 3
+  },
+  "vector": "variants/ruby/character.svg",
+  "rig": "variants/ruby/rig.json"
+}

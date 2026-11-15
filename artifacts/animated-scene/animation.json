@@ -1,0 +1,14 @@
+{
+  "width":1080,"height":1920,"fps":30,"durationFrames":240,
+  "mouthBox":[625,690,115,105],"eyesBox":[585,590,220,115],"leftEyeBox":[590,590,105,105],"waveBox":[840,780,220,360],
+  "motionStartFrame":84,"cameraStartFrame":114,
+  "shots":[{"id":"terrace-speech","from":0,"duration":114,"camera":"locked portrait, actor fixed"},{"id":"terrace-parallax-finish","from":114,"duration":126,"camera":"gentle push-in and pan"}],
+  "cameraKeyframes":[{"frame":0,"x":-300,"y":0,"scale":1},{"frame":114,"x":-300,"y":0,"scale":1},{"frame":239,"x":-340,"y":-25,"scale":1.06}],
+  "layerTransforms":[
+    {"id":"sky-sun","source":"terrace location SVG sky and sun","sourceScale":2.4,"factor":0.2,"keyframes":[{"frame":0,"x":-1500,"y":0,"scale":1},{"frame":114,"x":-1500,"y":0,"scale":1},{"frame":239,"x":-1508,"y":-5,"scale":1.06}]},
+    {"id":"terrace-bench","source":"terrace location SVG foreground","sourceScale":2.4,"factor":1.0,"keyframes":[{"frame":0,"x":-300,"y":0,"scale":1},{"frame":114,"x":-300,"y":0,"scale":1},{"frame":239,"x":-340,"y":-25,"scale":1.06}]},
+    {"id":"actor","source":"project SVG character","sourceScale":3.6,"compositeScale":1.0,"keyframes":[{"frame":0,"x":250,"y":390,"scale":1},{"frame":114,"x":250,"y":390,"scale":1},{"frame":239,"x":210,"y":365,"scale":1}]}
+  ],
+  "lanternKeyframes":[{"frame":0,"x":898,"y":1027,"state":"in right hand","anchor":"bent-elbow endpoint (180,177), actor origin (250,390), SVG scale 3.6"},{"frame":84,"x":898,"y":1027,"state":"in waving right hand","anchor":"hand endpoint rotated by wave angle"},{"frame":99,"x":228,"y":1178,"state":"on bench","interpolation":"linear transfer from frame 84 to 99"},{"frame":239,"x":188,"y":1153,"state":"on bench","anchor":"foreground bench with late camera pan"}],
+  "parallaxLayers":[{"id":"sky-sun","factor":0.2,"source":"terrace location SVG sky and sun","sourceScale":2.4},{"id":"terrace-bench-actor","factor":1.0,"source":"terrace, railings, bench and actor","sourceScale":2.4,"actorCompositeScale":1.0}]
+}

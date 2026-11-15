@@ -1,0 +1,249 @@
+{
+  "checkedAt": "2026-11-15T05:00:43.263Z",
+  "version": "0.2.0-alpha.60",
+  "actualPi": "1.5.2",
+  "model": "gpt-5.6-luna",
+  "reasoning": "Средний",
+  "actualAgentBashRender": true,
+  "sha256": "97acf785a0136789d16d571b95294c54b525fe71304f2e682c197f7ecf8e291e",
+  "projectOnlyClothingAndPose": true,
+  "libraryUnchanged": true,
+  "voiceDurationSeconds": 1.9854583333333333,
+  "speechDrivenShotBoundary": 114,
+  "actualEnvelopeMatchesSamples": true,
+  "speechUnchangedAcrossCorrections": true,
+  "cameraMetadataMatchesActualForeground": true,
+  "mouthPixelCounts": {
+    "silent": 1626,
+    "voiced": 6770,
+    "peakFrame": 37
+  },
+  "eyeWhitePixelCounts": [
+    6451,
+    0,
+    6472
+  ],
+  "pupilCenters": [
+    {
+      "x": 10.064456721915285,
+      "y": 44.39594843462247,
+      "count": 543,
+      "minX": 0,
+      "maxX": 22
+    },
+    {
+      "x": 37.45751633986928,
+      "y": 44.46568627450981,
+      "count": 612,
+      "minX": 24,
+      "maxX": 51
+    }
+  ],
+  "lanternPositions": [
+    {
+      "x": 898.6806282722513,
+      "y": 1004.9120418848167,
+      "count": 955,
+      "minX": 0,
+      "maxX": 55
+    },
+    {
+      "x": 228.4391480730223,
+      "y": 1157.7322515212982,
+      "count": 986,
+      "minX": 19,
+      "maxX": 48
+    }
+  ],
+  "waveChangedRedPixels": 6488,
+  "landmarks": [
+    {
+      "badge": {
+        "x": 681.516393442623,
+        "y": 853.6366120218579,
+        "count": 1464,
+        "minX": 654,
+        "maxX": 709
+      },
+      "bench": {
+        "x": 577.1452800195647,
+        "y": 1286.2125580826607,
+        "count": 81780,
+        "minX": 228,
+        "maxX": 947
+      },
+      "sun": {
+        "x": 852.4190787607814,
+        "y": 311.50754908993844,
+        "count": 59941,
+        "minX": 714,
+        "maxX": 991
+      }
+    },
+    {
+      "badge": {
+        "x": 668.1269841269841,
+        "y": 845.5845410628019,
+        "count": 1449,
+        "minX": 640,
+        "maxX": 697
+      },
+      "bench": {
+        "x": 584.8586172030264,
+        "y": 1303.9271527027183,
+        "count": 86043,
+        "minX": 201,
+        "maxX": 958
+      },
+      "sun": {
+        "x": 895.2723789900681,
+        "y": 316.6303301514737,
+        "count": 62123,
+        "minX": 754,
+        "maxX": 1035
+      }
+    }
+  ],
+  "cameraFrames": [
+    115,
+    155
+  ],
+  "foregroundBounds": [
+    {
+      "x": 569.3944315545243,
+      "y": 9.498176997016904,
+      "count": 12068,
+      "minX": 228,
+      "maxX": 947
+    },
+    {
+      "x": 577.4046421035546,
+      "y": 9.502759292322676,
+      "count": 12322,
+      "minX": 226,
+      "maxX": 958
+    }
+  ],
+  "foregroundAffineFit": "Unobscured bench backrest edges; fully visible sun, exact RGB crop",
+  "foregroundAffineScale": 1.0180806675938805,
+  "parallaxResidualPixels": 33.56338642693595,
+  "qaScopePreflight": {
+    "ownedOutputWriteAllowed": true,
+    "outsideOutputWriteDenied": true,
+    "protectedReadDenied": true,
+    "canaryUnchanged": true,
+    "exactHookWrapperChecked": true,
+    "secretEnvNotInheritedByBash": true,
+    "bashNetworkDenied": true,
+    "fileToolPathGuardChecked": true
+  },
+  "qaScopeAppliedBashCalls": 6,
+  "outputBytes": 1120695,
+  "validatedVideoContract": true,
+  "completeFfmpegDecode": true,
+  "exactIdleResumeWithoutReplay": true,
+  "totalSessionUserMessages": 6,
+  "paidMediaApiCalls": 0,
+  "userStudioTouched": false,
+  "limits": "Concrete agent-authored scene, continuous local TTS with amplitude-driven mouth, not phoneme/word forced alignment. QA-only tool package is not bundled or applied to user agents. No generated code is loaded by Studio; native viewer/visual motion review checked separately before cleanup.",
+  "nativeViewerVerified": true,
+  "nativeAudioDecoded": true,
+  "fullscreenPreservesFrame": true,
+  "currentViewerCheck": {
+    "applicationVersion": "0.2.0-alpha.60",
+    "checkedAt": "2026-11-15T05:01:29.752Z",
+    "unchangedAgentMovieHash": true,
+    "fullFfmpegDecode": true,
+    "nativeMovingVideo": true,
+    "nativeDecodedNonSilentAudio": true,
+    "sameFramePixelsAfterStepBackAndForward": true,
+    "fullscreenEscapePreservesFrame": true,
+    "readOnlyWithoutApprovalExport": true,
+    "newModelRequests": 0,
+    "scope": "Previously real-agent-created movie in an isolated offscreen native main/preload/renderer. Startup skipped; document visibility simulated for polling. User studio untouched; no Terminal or generation.",
+    "sourceSha256": {
+      "scripts/smoke-film-viewer.cjs": "ae0e729f663c61ee81e9cfb56070dfd5295dace9b842e71c49c492e65361ccc3",
+      "src/renderer/features/editor/player/VideoComposition.tsx": "67158fa4fdaebfb8cc6582acc57dd4c2f7ba523804fb02339d3f9e4121d583fc",
+      "src/renderer/features/editor/player/StereoPan.tsx": "a7a9860905fe8c34782ff6411f2f17e12d9a75bc7b47b3cc0c7fb8444ab82d53",
+      "src/renderer/features/editor/ui/VideoViewer.tsx": "600395c35964c926be4aa177076f3d2855e142f956ad685f10c3f66a4cac9321",
+      "src/main/video/readVideoProject.ts": "dab37ea6c4f40fac17302d9440ef11bf6818ca69024152dd573eeaed9da2a3ad"
+    }
+  },
+  "validatedOutputs": [
+    {
+      "path": "voice.wav",
+      "size": 95380,
+      "sha256": "fe4f66b00ff53048079a5e796056df7aa03214f522356c447d906ecb911d78da"
+    },
+    {
+      "path": "speech.json",
+      "size": 2574,
+      "sha256": "9e05aa22e9e09ac55693fb6b8846ad47da7f4d4801560a529def9bae8462e4b0"
+    },
+    {
+      "path": "animation.json",
+      "size": 1998,
+      "sha256": "6fd0854cb338d28bfb911e55c54321ae8815dd1d5a66d66ed744ed279461585a"
+    },
+    {
+      "path": "variant.json",
+      "size": 190,
+      "sha256": "11d3d9c55980d5e2942bb255207a153edf086e6fe6df7fa249f06ed5512330f1"
+    },
+    {
+      "path": "variant-preview.png",
+      "size": 14313,
+      "sha256": "2182fc9eb624f8af3e88723ba836673705d26ec1854ea5ba0dad31348ae833b8"
+    },
+    {
+      "path": "render.py",
+      "size": 6723,
+      "sha256": "6c19bb15f3bbddd55cdf460842ad67ed0ed3485e7b766335cdb55440390a244a"
+    },
+    {
+      "path": "visual.mp4",
+      "size": 316178,
+      "sha256": "e8fd855c7aeb6df64f66f5a17e39a00f8eb1f89778441bb08c84ee3823f22175"
+    },
+    {
+      "path": "film.mp4",
+      "size": 350878,
+      "sha256": "97acf785a0136789d16d571b95294c54b525fe71304f2e682c197f7ecf8e291e"
+    },
+    {
+      "path": "film.pistudio.json",
+      "size": 175,
+      "sha256": "b202227215b365a334ce1cb6977c90a768f1cb2dea4dac0fdbfaf96edb6b2c1d"
+    },
+    {
+      "path": "timeline.json",
+      "size": 979,
+      "sha256": "20a26f0ca5d6b521de164fb5e3c83cae3d36e3cdeb14e5e5359f8697cbd393c0"
+    },
+    {
+      "path": "contact-sheet.png",
+      "size": 161656,
+      "sha256": "6e4583e45d2364eeadeb51d1e2d48bad68e60ccdb614a5eb30372927e781e271"
+    }
+  ],
+  "originalMeasuredSpeech": [
+    {
+      "path": "voice.wav",
+      "size": 95380,
+      "sha256": "fe4f66b00ff53048079a5e796056df7aa03214f522356c447d906ecb911d78da"
+    },
+    {
+      "path": "speech.json",
+      "size": 2574,
+      "sha256": "9e05aa22e9e09ac55693fb6b8846ad47da7f4d4801560a529def9bae8462e4b0"
+    }
+  ],
+  "visualReview": {
+    "trustedVariantPng": true,
+    "actualFilmContactSheet": true,
+    "nativeViewerScreenshot": true,
+    "mouthGazeBlinkArmLanternCameraSeen": true,
+    "limits": "A simple technical cartoon, not a promise of arbitrary animation quality."
+  },
+  "ownedQaCleanedAfterReview": true
+}

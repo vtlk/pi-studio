@@ -32,6 +32,12 @@ const root =
 assert.match(basename(root), /^pistudio-animated-scene-[A-Za-z0-9]+$/);
 assert.equal(await realpath(dirname(root)), await realpath(tmpdir()));
 const artifact = resolve('artifacts/animated-scene');
+const keepReviewArtifact = (path: string) =>
+  !path
+    .split('/')
+    .some((name) =>
+      ['.pistudio-library', '.library-staging', '.qa-tmp', '.qa-home', 'previews'].includes(name),
+    ) && !['temporary.aiff', 'qa-findings.json'].includes(basename(path));
 const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
 const store = await service.load();
 const ruby = JSON.parse(await readFile('artifacts/library-lifecycle/proof.json', 'utf8'));
@@ -164,12 +170,12 @@ E. Produce silent visual.mp4 without captions, and final film.mp4 with the exact
 const request = { projectId: project.id, agentId: profile.id, autoContinue: false };
 const ffmpeg = (args: string[]) =>
   execFileSync('/opt/homebrew/bin/ffmpeg', ['-v', 'error', ...args], { maxBuffer: 32 * 1024 ** 2 });
-const raw = (frame: number, box: number[]) =>
-  ffmpeg([
+const raw = (frame: number, box: number[]) => {
+  const bytes = ffmpeg([
     '-i',
     join(output, 'visual.mp4'),
     '-vf',
-    `select=eq(n\\,${frame}),crop=${box[2]}:${box[3]}:${box[0]}:${box[1]}`,
+    `select=eq(n\\,${frame}),format=rgb24,crop=${box[2]}:${box[3]}:${box[0]}:${box[1]}:exact=1`,
     '-frames:v',
     '1',
     '-pix_fmt',
@@ -178,6 +184,13 @@ const raw = (frame: number, box: number[]) =>
     'rawvideo',
     '-',
   ]);
+  assert.equal(
+    bytes.length,
+    box[2] * box[3] * 3,
+    'Crop must preserve exact RGB dimensions, including odd sizes',
+  );
+  return bytes;
+};
 const colorCount = (bytes: Buffer, color: number[], tolerance = 30) => {
   let count = 0;
   for (let i = 0; i < bytes.length; i += 3)
@@ -187,15 +200,19 @@ const colorCount = (bytes: Buffer, color: number[], tolerance = 30) => {
 function centroid(bytes: Buffer, width: number, color: number[], tolerance = 24) {
   let x = 0,
     y = 0,
-    n = 0;
+    n = 0,
+    minX = width,
+    maxX = -1;
   for (let i = 0; i < bytes.length; i += 3)
     if (color.every((v, c) => Math.abs(bytes[i + c] - v) < tolerance)) {
       x += (i / 3) % width;
       y += Math.floor(i / 3 / width);
+      minX = Math.min(minX, (i / 3) % width);
+      maxX = Math.max(maxX, (i / 3) % width);
       n++;
     }
   assert.ok(n > 20, 'Missing landmark ' + color);
-  return { x: x / n, y: y / n, count: n };
+  return { x: x / n, y: y / n, count: n, minX, maxX };
 }
 try {
   console.log(JSON.stringify({ phase: 'started', studio: root, verifyOnly }));
@@ -241,6 +258,22 @@ try {
     ),
     completion.outputs,
   );
+  const firstCompletion = JSON.parse(
+    messages
+      .find(
+        (message) =>
+          message.role === 'toolResult' &&
+          message.toolName === 'mcp__pi_studio__complete_stage' &&
+          !message.isError,
+      )
+      .content.find((part: any) => part.type === 'text').text,
+  );
+  for (const path of ['voice.wav', 'speech.json'])
+    assert.deepEqual(
+      completion.outputs.find((entry: any) => entry.path === path),
+      firstCompletion.outputs.find((entry: any) => entry.path === path),
+      'Corrections must preserve measured speech',
+    );
   assert.equal(
     messages.filter((message) => message.role === 'assistant').at(-1).stopReason,
     'stop',
@@ -379,9 +412,18 @@ try {
     centroid(raw(frame, animation.leftEyeBox), animation.leftEyeBox[2], [34, 34, 34], 22),
   );
   assert.ok(pupils[1].x > pupils[0].x + 3, 'Gaze must move the actual pupil');
-  const lanternPositions = [30, animation.cameraStartFrame - 1].map((frame) =>
-    centroid(raw(frame, [0, 0, 1080, 1500]), 1080, [211, 54, 68], 20),
-  );
+  const lanternPositions = [
+    [30, [870, 960, 65, 90]],
+    [animation.cameraStartFrame - 1, [195, 1110, 65, 85]],
+  ].map(([frame, box]) => {
+    const region = box as number[];
+    const found = centroid(raw(frame as number, region), region[2], [211, 54, 68], 20);
+    assert.ok(
+      found.count > 100,
+      'The isolated lantern must be present in both hand and bench regions',
+    );
+    return { ...found, x: found.x + region[0], y: found.y + region[1] };
+  });
   assert.ok(
     Math.hypot(
       lanternPositions[1].x - lanternPositions[0].x,
@@ -399,25 +441,40 @@ try {
     if (red(waveFrames[0]) !== red(waveFrames[1])) waveChangedRedPixels++;
   }
   assert.ok(waveChangedRedPixels > 100, 'The red arm itself must move, not just an unrelated prop');
-  const cameraFrames = [animation.cameraStartFrame + 1, 235];
+  // Use fully visible landmarks and an unobscured bench strip. A clipped sun
+  // or an actor occluding the bench centroid cannot define an affine camera.
+  const cameraFrames = [animation.cameraStartFrame + 1, animation.cameraStartFrame + 41];
   const landmarks = cameraFrames.map((frame) => {
     const bytes = raw(frame, [0, 0, 1080, 1500]);
     return {
       badge: centroid(bytes, 1080, [47, 128, 237], 20),
       bench: centroid(bytes, 1080, [112, 69, 45], 18),
       sun: centroid(bytes, 1080, [255, 241, 168], 14),
-      lantern: centroid(bytes, 1080, [211, 54, 68], 20),
     };
   });
+  assert.ok(
+    landmarks.every(({ sun }) => sun.minX > 0 && sun.maxX < 1079),
+    'Sun must be fully visible for the affine comparison',
+  );
+  const foregroundBounds = cameraFrames.map((frame) =>
+    centroid(raw(frame, [0, 1230, 1080, 20]), 1080, [112, 69, 45], 18),
+  );
   const [a, b] = landmarks,
-    scale = (b.bench.x - b.badge.x) / (a.bench.x - a.badge.x),
-    shift = b.badge.x - scale * a.badge.x;
+    [edgeA, edgeB] = foregroundBounds,
+    scale = (edgeB.maxX - edgeB.minX) / (edgeA.maxX - edgeA.minX),
+    shift = edgeB.minX - scale * edgeA.minX;
+  assert.ok(scale > 0.9 && scale < 1.2, 'Gentle camera fit must be plausible');
   const parallaxResidual = b.sun.x - (scale * a.sun.x + shift);
   assert.ok(
     Math.abs(parallaxResidual) > 5,
     'Far sky must move differently from foreground affine camera: ' + parallaxResidual,
   );
   assert.ok(animation.cameraKeyframes.length >= 2 && animation.lanternKeyframes.length >= 2);
+  assert.deepEqual(
+    animation.cameraKeyframes.map((key: any) => key.x),
+    [-300, -300, -340],
+    'Planning must describe the actual foreground camera',
+  );
   assert.ok(new Set(animation.parallaxLayers.map((layer: any) => layer.factor)).size >= 2);
   const document = await readVideoProject(
     directory,
@@ -459,10 +516,7 @@ try {
   assert.equal(await exits.at(-1), 0);
   assert.equal(await readFile(session, 'utf8'), transcript);
   assert.deepEqual(await fingerprint(output), files);
-  const filesToReview = Object.keys(files).filter(
-    (path) =>
-      !path.split('/').some((name) => ['.pistudio-library', '.qa-tmp', '.qa-home'].includes(name)),
-  );
+  const filesToReview = Object.keys(files).filter(keepReviewArtifact);
   const outputBytes = (
     await Promise.all(filesToReview.map((path) => stat(join(output, path))))
   ).reduce((sum, entry) => sum + entry.size, 0);
@@ -474,16 +528,21 @@ try {
     .split('\n')
     .filter(Boolean)
     .map(JSON.parse);
-  if (!verifyOnly)
+  if (
+    !verifyOnly &&
+    messages
+      .slice(messages.findLastIndex((message) => message.role === 'user'))
+      .some((message) => message.role === 'toolResult' && message.toolName === 'bash')
+  )
     assert.ok(
-      scopeAudit.some((entry) => entry.action === 'sandboxed-bash'),
+      scopeAudit.filter((entry) => entry.action === 'sandboxed-bash').length >
+        toolScope.previousBashCalls,
       'Native Pi must actually apply the assigned scope',
     );
   await mkdir(artifact, { recursive: true });
   await cp(output, artifact, {
     recursive: true,
-    filter: (path) =>
-      !path.split('/').some((name) => ['.pistudio-library', '.qa-tmp', '.qa-home'].includes(name)),
+    filter: keepReviewArtifact,
   });
   const proof = {
     checkedAt: new Date().toISOString(),
@@ -498,12 +557,17 @@ try {
     voiceDurationSeconds: voiceDuration,
     speechDrivenShotBoundary: animation.cameraStartFrame,
     actualEnvelopeMatchesSamples: true,
+    speechUnchangedAcrossCorrections: true,
+    cameraMetadataMatchesActualForeground: true,
     mouthPixelCounts: { silent: silentMouth, voiced: voicedMouth, peakFrame },
     eyeWhitePixelCounts: eyePixels,
     pupilCenters: pupils,
     lanternPositions,
     waveChangedRedPixels,
     landmarks,
+    cameraFrames,
+    foregroundBounds,
+    foregroundAffineFit: 'Unobscured bench backrest edges; fully visible sun, exact RGB crop',
     foregroundAffineScale: scale,
     parallaxResidualPixels: parallaxResidual,
     qaScopePreflight: toolScope.preflight,

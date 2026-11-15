@@ -1,0 +1,9 @@
+{
+  "type":"pi-studio.timeline","schemaVersion":1,"width":1080,"height":1920,"fps":30,"durationInFrames":240,"background":"#87CFEA",
+  "assets":[{"id":"silent-visual","type":"video","src":"./visual.mp4"},{"id":"voice","type":"audio","src":"./voice.wav"}],
+  "tracks":[
+    {"id":"visual-track","name":"Silent visual","type":"visual","items":[{"id":"visual-item","name":"Rendered portrait cartoon","from":0,"duration":240,"assetId":"silent-visual","width":1080,"height":1920,"fit":"cover"}]},
+    {"id":"voice-track","name":"Voice","type":"audio","items":[{"id":"voice-item","name":"Russian voice","from":12,"duration":60,"assetId":"voice","sourceFrom":0,"volume":1}]},
+    {"id":"subtitles-track","name":"Subtitles","type":"subtitles","items":[{"id":"subtitle-item","name":"Russian line","from":12,"duration":60,"text":"Этот фонарь поможет путникам","x":70,"y":1650,"width":940,"height":150,"fontSize":48,"color":"#FFFFFF","background":"#141E2A"}]}
+  ]
+}

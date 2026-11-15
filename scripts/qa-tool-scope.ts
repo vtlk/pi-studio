@@ -27,6 +27,10 @@ export async function qaToolScope(root: string, output: string) {
   for (const path of [source, temp, home]) await mkdir(path, { recursive: true });
   const profile = join(source, 'scope.sb'),
     audit = join(source, 'audit.jsonl');
+  const previousAudit = await readFile(audit, 'utf8').catch((error) => {
+    if (error.code !== 'ENOENT') throw error;
+    return '';
+  });
   await writeFile(
     profile,
     [
@@ -127,7 +131,8 @@ export async function qaToolScope(root: string, output: string) {
     await hook({ toolName: 'write', input: { path: join(temp, 'new-file.txt') } }, { cwd: output }),
     undefined,
   );
-  await writeFile(audit, '');
+  // Remove only synthetic preflight events; retain prior native evidence on verify-only.
+  await writeFile(audit, previousAudit);
   return {
     resource: {
       id: 'qa-tool-scope',
@@ -143,6 +148,11 @@ export async function qaToolScope(root: string, output: string) {
       createdAt: 1,
     } as Resource,
     audit,
+    previousBashCalls: previousAudit
+      .split('\n')
+      .filter(Boolean)
+      .map(JSON.parse)
+      .filter((event) => event.action === 'sandboxed-bash').length,
     preflight: {
       ownedOutputWriteAllowed: true,
       outsideOutputWriteDenied: true,
