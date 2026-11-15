@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-14T22:33:31.388Z",
+  "checkedAt": "2026-11-15T05:48:18.265Z",
   "scope": "Actual native renderer/preload/main persisted usage, then isolated incremental usage fixture; runtime producer verified separately",
   "persistedUsage": true,
   "projectAndAgentMetrics": true,
