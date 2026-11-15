@@ -4,6 +4,9 @@ import { promisify } from 'node:util';
 import type { ProviderStatus } from '../../shared/contracts.ts';
 import { checkPi } from './checkPi.ts';
 import { openTerminalCommand } from './terminalCommand.ts';
+import { piEnvironment, piNode } from './platform.ts';
+import { openWindowsPowerShellCommand } from './windowsTerminal.ts';
+import { powershellLiteral } from './windowsShell.ts';
 
 const execute = promisify(execFile);
 export function providerId(value: unknown): string {
@@ -18,12 +21,12 @@ export function shellQuote(value: string) {
 export async function getProviderStatus(path: string, provider: string): Promise<ProviderStatus> {
   const id = providerId(provider);
   const pi = await checkPi(path);
+  const node = await piNode(pi.path);
   const options = {
     timeout: 15_000,
     maxBuffer: 100_000,
     env: {
-      ...process.env,
-      PATH: `${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+      ...piEnvironment(dirname(node)),
       PI_OFFLINE: '1',
       PI_TELEMETRY: '0',
     },
@@ -31,7 +34,19 @@ export async function getProviderStatus(path: string, provider: string): Promise
   let output: string;
   try {
     output = (
-      await execute(pi.path, ['auth', 'check', '--provider', id, '--json', '--no-refresh'], options)
+      await execute(
+        process.platform === 'win32' ? node : pi.path,
+        [
+          ...(process.platform === 'win32' ? [pi.path] : []),
+          'auth',
+          'check',
+          '--provider',
+          id,
+          '--json',
+          '--no-refresh',
+        ],
+        options,
+      )
     ).stdout;
   } catch (error) {
     if (
@@ -58,6 +73,14 @@ export async function openProviderLogin(path: string, provider: string, cwd: str
   const pi = await checkPi(path);
   if (!pi.supported)
     throw new Error(`Pi ${pi.version} ещё не проверен со Studio. Поддерживается 1.5.2.`);
+  if (process.platform === 'win32') {
+    const node = await piNode(pi.path);
+    await openWindowsPowerShellCommand(
+      `Set-Location -LiteralPath ${powershellLiteral(cwd)}; $env:PATH = ${powershellLiteral(piEnvironment(dirname(node)).PATH)}; & ${powershellLiteral(node)} ${powershellLiteral(pi.path)} auth login ${powershellLiteral(id)}`,
+      'Pi · Авторизация',
+    );
+    return;
+  }
   const command = `cd ${shellQuote(cwd)} && PATH=${shellQuote(`${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`)} ${shellQuote(pi.path)} auth login ${shellQuote(id)}`;
   await openTerminalCommand(command);
 }

@@ -20,12 +20,13 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 app.setName('Pi Studio');
-if (process.platform !== 'darwin') {
-  console.error('Pi Studio supports macOS only.');
+if (!['darwin', 'win32'].includes(process.platform)) {
+  console.error('Pi Studio supports macOS and Windows.');
   app.quit();
 } else if (!app.requestSingleInstanceLock()) app.quit();
 else
   app.whenReady().then(() => {
+    if (process.platform === 'win32') app.setAppUserModelId('studio.pi.desktop');
     app.setAboutPanelOptions({
       applicationName: 'Pi Studio',
       applicationVersion: packageInfo.version,
@@ -77,4 +78,5 @@ app.on('second-instance', () => {
 });
 app.on('window-all-closed', () => {
   // macOS keeps the application alive after its last window closes.
+  if (process.platform !== 'darwin') app.quit();
 });

@@ -9,6 +9,7 @@ import { stableId } from '../storage/validation.ts';
 import { listImports, readImport } from './importState.ts';
 import type { ImportedTeamState } from './importTeam.ts';
 import { builtinResource } from '../../shared/builtinResources.ts';
+import { isLocalMcpPath } from './portableMcp.ts';
 
 type CheckModel = (agent: Agent, store: StudioStore) => Promise<void>;
 export class TeamImportTools {
@@ -90,8 +91,14 @@ export class TeamImportTools {
       const current = scope.resources.find((resource) => resource.id === id);
       if (!portable || !current)
         throw new Error('Ресурс не принадлежит этому импорту или уже удалён.');
-      if (current.kind!==portable.kind || portable.filesRoot && current.source!==join(scope.root,portable.filesRoot) || current.kind==='plugins' && !portable.filesRoot && current.source!==portable.source)
-        throw new Error('Настройки ресурса изменены после импорта. Сохранённый пакет не перезаписывает эти правки.');
+      if (
+        current.kind !== portable.kind ||
+        (portable.filesRoot && current.source !== join(scope.root, portable.filesRoot)) ||
+        (current.kind === 'plugins' && !portable.filesRoot && current.source !== portable.source)
+      )
+        throw new Error(
+          'Настройки ресурса изменены после импорта. Сохранённый пакет не перезаписывает эти правки.',
+        );
       if (current.kind === 'mcps') {
         const expected = `pi:studio_import_${id.replaceAll('-', '_')}`;
         if (current.source !== expected || !portable.mcp)
@@ -99,9 +106,9 @@ export class TeamImportTools {
             'Ресурс изменён; настройте его явно без перезаписи пользовательских правок.',
           );
         if (
-          (typeof portable.mcp.command === 'string' && portable.mcp.command.startsWith('/')) ||
+          (typeof portable.mcp.command === 'string' && isLocalMcpPath(portable.mcp.command)) ||
           (Array.isArray(portable.mcp.args) &&
-            portable.mcp.args.some((arg) => typeof arg === 'string' && arg.startsWith('/')))
+            portable.mcp.args.some((arg) => typeof arg === 'string' && isLocalMcpPath(arg)))
         )
           throw new Error(
             'Сначала явно сопоставьте локальные пути MCP из пакета через configure_mcp.',

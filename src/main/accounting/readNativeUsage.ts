@@ -1,6 +1,6 @@
+import { piNode } from '../pi/platform.ts';
 import { execFile } from 'node:child_process';
 import { realpath } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
 import { checkPi } from '../pi/checkPi.ts';
 import { resolvePiSdk } from '../pi/BrowserAuth.ts';
 import { parseUsageSample } from './usageState.ts';
@@ -17,13 +17,15 @@ export async function readNativeUsage(
   const pi = await checkPi(piPath);
   if (!pi.supported) throw new Error('Unsupported Pi usage format');
   const sdk = await resolvePiSdk(await realpath(pi.path));
+  const node = await piNode(pi.path);
   signal.throwIfAborted();
   return new Promise<UsageRecord[]>((resolve, reject) => {
     const child = execFile(
-      join(dirname(pi.path), 'node'),
+      node,
       [script, sdk],
       {
         signal,
+        windowsHide: true,
         timeout: 15000,
         maxBuffer: 16 * 1024 ** 2,
         env: { ...process.env, PI_OFFLINE: '1', PI_TELEMETRY: '0' },

@@ -102,7 +102,9 @@ export function SettingsView() {
                 <Select
                   label="Запуск агента"
                   options={[
-                    'Открыть macOS Terminal',
+                    navigator.platform.startsWith('Win')
+                      ? 'Открыть Windows Terminal'
+                      : 'Открыть macOS Terminal',
                     { value: 'rpc', label: 'Внутри приложения · RPC, позже', disabled: true },
                   ]}
                 />
@@ -144,7 +146,7 @@ export function SettingsView() {
               {coreTools.map((tool) => `${tool.name} — ${tool.status.toLowerCase()}`).join(', ')}.
             </p>
             <EmptyIntegration>
-              Только macOS. Авторизация провайдеров и секреты — отдельно от файлов проектов.
+              Авторизация провайдеров и секреты — отдельно от файлов проектов.
             </EmptyIntegration>
           </>
         ) : section === 'assistant' ? (

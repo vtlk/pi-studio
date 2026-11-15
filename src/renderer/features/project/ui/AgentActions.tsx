@@ -84,7 +84,9 @@ export function AgentActions({
       >
         <ProjectAgentDeleteButton agent={agent} className="project-agent-secondary-action" />
         <IconButton
-          title="Показать в Finder"
+          title={
+            navigator.platform.startsWith('Win') ? 'Показать в Проводнике' : 'Показать в Finder'
+          }
           className="project-agent-secondary-action"
           disabled={busy}
           onClick={async () => {
@@ -98,11 +100,7 @@ export function AgentActions({
                 agentId: agent.profile.id,
               });
             } catch (error) {
-              demo(
-                error instanceof Error
-                  ? error.message
-                  : 'Не удалось показать папку агента в Finder.',
-              );
+              demo(error instanceof Error ? error.message : 'Не удалось показать папку агента.');
             }
           }}
         >

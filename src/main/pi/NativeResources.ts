@@ -1,4 +1,5 @@
-import { spawn } from 'node:child_process';
+import { piEnvironment, piNode } from './platform.ts';
+import { execFile, spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { realpath } from 'node:fs/promises';
 import { checkPi } from './checkPi.ts';
@@ -34,14 +35,15 @@ export async function nativeResourceOperation(
   const pi = await checkPi(piPath);
   if (!pi.supported) throw new Error('Требуется поддерживаемый Pi 1.5.2.');
   const sdk = await resolvePiSdk(await realpath(pi.path));
+  const node = await piNode(pi.path);
   return new Promise((resolve, reject) => {
-    const child = spawn(join(dirname(pi.path), 'node'), [script, sdk], {
+    const child = spawn(node, [script, sdk], {
+      windowsHide: true,
       cwd: request.cwd,
       stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
       detached: true,
       env: {
-        ...process.env,
-        PATH: `${dirname(pi.path)}:/opt/homebrew/bin:/usr/local/bin:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        ...piEnvironment(dirname(node)),
         PI_TELEMETRY: '0',
       },
     });
@@ -49,10 +51,21 @@ export async function nativeResourceOperation(
       finished = false;
     let forceKill: ReturnType<typeof setTimeout> | undefined;
     function stop() {
+      if (process.platform === 'win32') {
+        if (child.pid && child.exitCode === null && child.signalCode === null)
+          execFile(
+            join(process.env.SystemRoot ?? 'C:\\Windows', 'System32/taskkill.exe'),
+            ['/PID', String(child.pid), '/T', '/F'],
+            { windowsHide: true, timeout: 5000 },
+            () => {},
+          );
+        return;
+      }
       child.kill('SIGTERM');
       forceKill = setTimeout(() => {
         try {
-          if (child.pid) process.kill(-child.pid, 'SIGKILL');
+          if (child.pid)
+            process.kill(process.platform === 'win32' ? child.pid : -child.pid, 'SIGKILL');
         } catch {
           /* Already closed. */
         }

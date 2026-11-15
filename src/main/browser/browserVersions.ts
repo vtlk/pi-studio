@@ -9,9 +9,26 @@ export const agentBrowserArchives = {
   x64: '3NKnKFOWLYDYTz4bJxo4jt+GwjM4VtcW5FDrQY35eUrytig65FEDdXmXKuRbZGq9jEEWxh6rmpS4R6xS53XCaw==',
 } as const;
 
-export function browserArchive(arch: string) {
+export const windowsAgentBrowserIntegrity =
+  'xhk8wnHk3aiBFSR0pd1Ye3ay2jKjgRardgBJLiB9nXJv0ZkbeP/wh3X7jMiKUfUGE1qqJrKdaM5szQ6iz8/8+w==';
+export const windowsChromeSha256 =
+  '2138c1583d25d6f3abec5269943b2f430207d87a539895aa9e90cc4697ec0e1f';
+export const browserExecutable = () =>
+  process.platform === 'win32' ? 'agent-browser.exe' : 'agent-browser';
+export const chromeExecutable = () =>
+  process.platform === 'win32' ? 'chrome-headless-shell.exe' : 'chrome-headless-shell';
+
+export function browserArchive(arch: string, platform = process.platform) {
   if (arch !== 'arm64' && arch !== 'x64')
     throw new Error('Архитектура браузера не поддерживается.');
+  if (platform === 'win32') {
+    if (arch !== 'x64') throw new Error('Поддерживается Windows x64.');
+    return {
+      arch,
+      url: `https://registry.npmjs.org/@agent-browser/cli-win32-x64-msvc/-/cli-win32-x64-msvc-${AGENT_BROWSER_VERSION}.tgz`,
+      integrity: windowsAgentBrowserIntegrity,
+    };
+  }
   return {
     arch,
     url: `https://registry.npmjs.org/@agent-browser/cli-darwin-${arch}/-/cli-darwin-${arch}-${AGENT_BROWSER_VERSION}.tgz`,
@@ -19,9 +36,18 @@ export function browserArchive(arch: string) {
   };
 }
 
-export function chromeArchive(arch: string) {
+export function chromeArchive(arch: string, platform = process.platform) {
   if (arch !== 'arm64' && arch !== 'x64')
     throw new Error('Архитектура браузера не поддерживается.');
+  if (platform === 'win32') {
+    if (arch !== 'x64') throw new Error('Поддерживается Windows x64.');
+    return {
+      arch,
+      folder: 'chrome-headless-shell-win64',
+      url: `https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/win64/chrome-headless-shell-win64.zip`,
+      integrity: windowsChromeSha256,
+    };
+  }
   return {
     arch,
     folder: `chrome-headless-shell-mac-${arch}`,

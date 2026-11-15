@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path';
 /** Secret values stay in native Pi/secure storage. MCP configuration accepts references, never chat secrets. */
 export function assertCredentialReferences(config: Record<string, unknown>) {
   const reference = (value: unknown) =>
@@ -49,7 +50,7 @@ export function packageSource(value: unknown) {
     /[\r\n]/.test(value)
   )
     throw new Error('Нужен источник пакета Pi.');
-  if (!(value.startsWith('/') || /^(npm:|git:|https:\/\/github\.com\/)/.test(value)))
+  if (!(isAbsolute(value) || /^(npm:|git:|https:\/\/github\.com\/)/.test(value)))
     throw new Error('Укажите локальный абсолютный путь либо источник native Pi npm:/git:.');
   const url = value.replace(/^git:/, '');
   if (/^https?:\/\//.test(url)) {

@@ -5,6 +5,18 @@ import { delimiter, join } from 'node:path';
 // No credentials are read here; the unmodified CLI owns authentication.
 export function claudeEnvironment(input = process.env) {
   const env = { ...input };
+  if (process.platform === 'win32') {
+    for (const key of Object.keys(env)) {
+      if (!/^(?:PATH|ANTHROPIC_.*|CLAUDE_.*|PI_CLAUDE_.*)$/i.test(key)) continue;
+      const canonical = key.toUpperCase();
+      if (key === canonical) continue;
+      if (env[canonical] !== undefined && env[canonical] !== env[key])
+        throw Error('Claude Code: противоречивые переменные окружения Windows.');
+      env[canonical] = env[key];
+      delete env[key];
+    }
+  }
+
   const conflicting = [
     'ANTHROPIC_AUTH_TOKEN',
     'ANTHROPIC_BASE_URL',
@@ -31,10 +43,7 @@ export function claudeEnvironment(input = process.env) {
       [
         ...(env.PATH ?? '').split(delimiter),
         join(homedir(), '.local/bin'),
-        '/opt/homebrew/bin',
-        '/usr/local/bin',
-        '/usr/bin',
-        '/bin',
+        ...(process.platform === 'win32' ? [] : ['/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin']),
       ].filter(Boolean),
     ),
   ].join(delimiter);

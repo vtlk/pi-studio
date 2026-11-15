@@ -4,6 +4,7 @@ import { shellQuote } from './provider.ts';
 import { openTerminalCommand, activateTerminalProcess } from './terminalCommand.ts';
 import { runTerminalTitle } from './terminalTitle.ts';
 import type { LiveRun } from './RunTypes.ts';
+import { openWindowsSession, focusWindowsSession } from './windowsTerminal.ts';
 
 export async function openSessionTerminal(
   node: string,
@@ -11,6 +12,7 @@ export async function openSessionTerminal(
   bootstrap: string,
   title?: string,
 ) {
+  if (process.platform === 'win32') return openWindowsSession(node, bridge, bootstrap, title);
   const path = `${dirname(node)}:${dirname(await realpath(node))}`;
   await openTerminalCommand(
     `export PATH=${shellQuote(path)}:"$PATH"; export PI_TELEMETRY=0; exec ${shellQuote(node)} ${shellQuote(bridge)} ${shellQuote(bootstrap)}`,
@@ -19,7 +21,9 @@ export async function openSessionTerminal(
   );
 }
 export const activateSessionTerminal = (pid: number, title?: string) =>
-  activateTerminalProcess(pid, undefined, title);
+  process.platform === 'win32'
+    ? focusWindowsSession(pid)
+    : activateTerminalProcess(pid, undefined, title);
 export async function focusRunningTerminal(run: LiveRun, activate = activateSessionTerminal) {
   if (!run.pid) throw new Error('Не удалось определить окно выбранного диалога Pi.');
   await activate(run.pid, runTerminalTitle(run.run));

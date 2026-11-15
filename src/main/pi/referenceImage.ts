@@ -11,7 +11,11 @@ import { promisify } from 'node:util';
 export async function referenceImage(path: string, type: string): Promise<Buffer> {
   if (type !== 'image/svg+xml') {
     let image = nativeImage.createFromPath(path);
-    if (image.isEmpty() && /^image\/(heic|heif|tiff?|bmp)$/.test(type)) {
+    if (
+      process.platform === 'darwin' &&
+      image.isEmpty() &&
+      /^image\/(heic|heif|tiff?|bmp)$/.test(type)
+    ) {
       const directory = await mkdtemp(join(tmpdir(), 'pistudio-reference-'));
       try {
         const target = join(directory, 'reference.png');

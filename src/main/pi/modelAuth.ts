@@ -1,7 +1,8 @@
+import { piEnvironment, piNode } from './platform.ts';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, realpath } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname } from 'node:path';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
 import { stableId } from '../storage/validation.ts';
@@ -77,12 +78,13 @@ export async function modelAuthOperation<T>(
   const pi = await checkPi(piPath);
   if (!pi.supported) throw new Error('Требуется поддерживаемый Pi 1.5.2.');
   const sdk = await resolvePiSdk(await realpath(pi.path));
+  const node = await piNode(pi.path);
   return new Promise((resolve, reject) => {
-    const child = spawn(join(dirname(pi.path), 'node'), [script, sdk], {
+    const child = spawn(node, [script, sdk], {
+      windowsHide: true,
       stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
       env: {
-        ...process.env,
-        PATH: `${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        ...piEnvironment(dirname(node)),
         PI_OFFLINE: '1',
         PI_TELEMETRY: '0',
       },

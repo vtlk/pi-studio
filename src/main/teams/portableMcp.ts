@@ -1,4 +1,7 @@
 import { assertCredentialReferences } from '../pi/resourceConfig.ts';
+import { posix, win32 } from 'node:path';
+export const isLocalMcpPath = (path: string) =>
+  posix.isAbsolute(path) || win32.isAbsolute(path) || /^[a-z]:/i.test(path);
 
 /** Only public configuration and unresolved credential requirements; no secret resolver is used. */
 export function portableMcp(raw: Record<string, unknown>) {
@@ -23,13 +26,13 @@ export function portableMcp(raw: Record<string, unknown>) {
     }
   }
   assertCredentialReferences(config);
-  if (typeof config.command === 'string' && config.command.startsWith('/'))
+  if (typeof config.command === 'string' && isLocalMcpPath(config.command))
     requirements.push(
-      'MCP использует локальную команду отправителя: установить её и явно сопоставить команду/пути на этом Mac.',
+      'MCP использует локальную команду отправителя: установить её и явно сопоставить команду/пути на этом компьютере.',
     );
   if (
     Array.isArray(config.args) &&
-    config.args.some((arg) => typeof arg === 'string' && arg.startsWith('/'))
+    config.args.some((arg) => typeof arg === 'string' && isLocalMcpPath(arg))
   )
     requirements.push(
       'Аргументы MCP содержат локальные пути: восстановить и явно сопоставить зависимости.',

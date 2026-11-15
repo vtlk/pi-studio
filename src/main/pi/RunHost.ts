@@ -1,4 +1,5 @@
-import { dirname, join } from 'node:path';
+import { piNode } from './platform.ts';
+import { join } from 'node:path';
 import { mkdir, realpath, rm } from 'node:fs/promises';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
 import { RunChannel } from './RunChannel.ts';
@@ -14,7 +15,6 @@ import { stopRunProcess, drainRunProcesses, closeRuns } from './stopRunProcess.t
 import { assertRunsIdle } from './assertRunsIdle.ts';
 import { runTerminalTitle } from './terminalTitle.ts';
 import { ContinuationCancelled, type Continuation } from './RunTypes.ts';
-
 export class RunHost {
   private readonly channel = new RunChannel();
   private readonly live = new Map<string, LiveRun>();
@@ -40,7 +40,8 @@ export class RunHost {
           } catch (error) {
             if (error instanceof ContinuationCancelled && live) {
               live.fail(error);
-              if (live.pid && processAlive(live.pid)) process.kill(live.pid, 'SIGTERM');
+              if (process.platform === 'win32') live.stop?.();
+              else if (live.pid && processAlive(live.pid)) process.kill(live.pid, 'SIGTERM');
             }
             throw error;
           }
@@ -184,6 +185,7 @@ export class RunHost {
       const pi = await checkPi(piPath);
       if (!pi.supported) throw new Error('Для запуска требуется поддерживаемый Pi 1.5.2.');
       const sdk = await resolvePiSdk(await realpath(pi.path));
+      const node = await piNode(pi.path);
       if (await hasLiveSessionLease(run.record.cwd))
         throw new Error('Этот диалог ещё открыт в другом процессе Pi. Закройте его и повторите.');
       let sessionPath: string | undefined;
@@ -227,6 +229,7 @@ export class RunHost {
         typeof tools === 'function' ? () => tools(run) : tools,
         this.dependencies.mcpGroups?.(run),
       );
+      live.stop = () => this.channel.stop(run.record.runId);
       await mkdir(this.dependencies.bootstraps, { recursive: true, mode: 0o700 });
       const bootstrap = join(this.dependencies.bootstraps, `${run.record.runId}.json`);
       const headless = this.dependencies.headless === true;
@@ -234,7 +237,7 @@ export class RunHost {
       continuation?.check();
       await beforeDispatch?.();
       await (this.dependencies.openTerminal ?? openSessionTerminal)(
-        join(dirname(pi.path), 'node'),
+        node,
         this.dependencies.bridge,
         bootstrap,
         terminalTitle,
@@ -258,7 +261,8 @@ export class RunHost {
       if (current) {
         this.dependencies.closed?.(current.run);
         if (error instanceof ContinuationCancelled) {
-          if (current.pid && processAlive(current.pid)) process.kill(current.pid, 'SIGTERM');
+          if (process.platform === 'win32') current.stop?.();
+          else if (current.pid && processAlive(current.pid)) process.kill(current.pid, 'SIGTERM');
           this.channel.remove(current.run.record.runId);
           if (this.live.get(key) === current) this.live.delete(key);
           current.fail(error);
@@ -303,13 +307,8 @@ export class RunHost {
     this.chains.clear();
   }
   assertIdle(projectId?: string) {
-    assertRunsIdle(
-      this.changing,
-      this.opening,
-      this.retiring.keys(),
-      this.live.values(),
-      projectId,
-    );
+    const { changing, opening, retiring, live } = this;
+    assertRunsIdle(changing, opening, retiring.keys(), live.values(), projectId);
   }
   outputsCleared(projectId: string, agentId: string) {
     this.chains.delete(projectId);

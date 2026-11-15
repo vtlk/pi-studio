@@ -1,12 +1,18 @@
+import { piNode } from '../pi/platform.ts';
 import { createHash } from 'node:crypto';
 import { mkdir, realpath, rm } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import type { ResourceCheck } from '../../shared/resources.ts';
 import { browserMcp } from '../../shared/builtinResources.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import { checkPi } from '../pi/checkPi.ts';
 import { atomicJson } from '../storage/files.ts';
-import { AGENT_BROWSER_VERSION, CHROME_VERSION } from './browserVersions.ts';
+import {
+  AGENT_BROWSER_VERSION,
+  CHROME_VERSION,
+  browserExecutable,
+  chromeExecutable,
+} from './browserVersions.ts';
 import { installAgentBrowser, readAgentBrowser } from './installAgentBrowser.ts';
 import { installChrome, readChrome } from './installChrome.ts';
 
@@ -54,6 +60,7 @@ export class BrowserSupport {
       .update(`${await realpath(studio)}\0${run.project.id}\0${run.agent.profile.id}`)
       .digest('hex');
     const pi = await checkPi(piPath);
+    const node = await piNode(pi.path);
     if (!pi.supported) throw new Error('Browser Use требует поддерживаемый Pi 1.5.2.');
     await mkdir(join(this.root, 'bindings'), { recursive: true, mode: 0o700 });
     const binding = this.binding(run);
@@ -61,8 +68,8 @@ export class BrowserSupport {
       scope,
       sessions: join(this.root, 'dialogues'),
       visual,
-      binary: join(this.backendRoot, 'agent-browser'),
-      chrome: join(this.chromeRoot, 'chrome-headless-shell'),
+      binary: join(this.backendRoot, browserExecutable()),
+      chrome: join(this.chromeRoot, chromeExecutable()),
       projectRoot: run.projectRoot,
       outputRoot: run.record.output,
     });
@@ -71,7 +78,7 @@ export class BrowserSupport {
       source: 'Pi Studio system Browser Use',
       scope: 'extension',
       config: {
-        command: join(dirname(pi.path), 'node'),
+        command: node,
         args: [this.script, binding],
         exposure: 'direct',
         timeout: 120,

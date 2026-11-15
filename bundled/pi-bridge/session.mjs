@@ -325,7 +325,8 @@ export async function runSession(bootstrapPath) {
     }
     heartbeat = setInterval(() => {
       void event({ type: 'heartbeat' }).then(
-        () => {
+        (result) => {
+          if (result.stop === true) { shutdown(); return; }
           failures = 0;
         },
         () => {

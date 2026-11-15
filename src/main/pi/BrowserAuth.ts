@@ -1,3 +1,4 @@
+import { piEnvironment, piNode } from './platform.ts';
 import { spawn, type ChildProcess } from 'node:child_process';
 import type { Readable } from 'node:stream';
 import { readFile, realpath } from 'node:fs/promises';
@@ -152,12 +153,13 @@ export class BrowserAuth {
     if (!pi.supported)
       throw new Error(`Для браузерного входа поддерживается Pi 1.5.2; найдена ${pi.version}.`);
     const cli = await realpath(pi.path);
+    const node = await piNode(pi.path);
     const sdk = await resolvePiSdk(cli);
     const id = randomUUID();
-    const child = spawn(join(dirname(pi.path), 'node'), [options.script, sdk], {
+    const child = spawn(node, [options.script, sdk], {
+      windowsHide: true,
       env: {
-        ...process.env,
-        PATH: `${dirname(pi.path)}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        ...piEnvironment(dirname(node)),
         PI_TELEMETRY: '0',
         PI_OFFLINE: '1',
       },

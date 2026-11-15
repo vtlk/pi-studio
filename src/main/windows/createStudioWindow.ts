@@ -13,9 +13,23 @@ export function createStudioWindow(): BrowserWindow {
     minWidth: 1080,
     minHeight: 720,
     title: 'Pi Studio',
+    ...(process.platform === 'win32'
+      ? {
+          icon: join(
+            __dirname,
+            process.env.ELECTRON_RENDERER_URL
+              ? '../../public/branding/pi-studio-icon.png'
+              : '../renderer/branding/pi-studio-icon.png',
+          ),
+        }
+      : {}),
     backgroundColor: '#08090b',
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 20, y: 20 },
+    ...(process.platform === 'darwin'
+      ? {
+          titleBarStyle: 'hiddenInset' as const,
+          trafficLightPosition: { x: 20, y: 20 },
+        }
+      : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       nodeIntegration: false,

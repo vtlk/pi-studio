@@ -2,6 +2,7 @@ import { constants } from 'node:fs';
 import { open, rename, mkdir, realpath, lstat, rm } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { windowsFileName } from '../../shared/windowsNames.ts';
 
 export async function atomicJson(file: string, value: unknown) {
   const content = `${JSON.stringify(value, null, 2)}\n`;
@@ -77,7 +78,15 @@ export async function safePath(root: string, path: string, allowMissing = false)
   )
     throw new Error('Недопустимый относительный путь.');
   const parts = path.split('/');
-  if (parts.some((part) => !part || part === '.' || part === '..'))
+  if (
+    parts.some(
+      (part) =>
+        !part ||
+        part === '.' ||
+        part === '..' ||
+        (process.platform === 'win32' && !windowsFileName(part)),
+    )
+  )
     throw new Error('Недопустимый относительный путь.');
   let current = await realpath(root);
   for (const part of parts) {

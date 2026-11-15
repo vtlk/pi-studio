@@ -108,7 +108,7 @@ export class BrowserSession {
           '--tools',
           'core,mobile,tabs,debug,state',
         ],
-        { env: this.env, cwd: this.root, timeout, maxBuffer: 16 * 1024 ** 2 },
+        { env: this.env, cwd: this.root, timeout, maxBuffer: 16 * 1024 ** 2, windowsHide: true },
         (error, stdout) => {
           this.children.delete(child);
           try {

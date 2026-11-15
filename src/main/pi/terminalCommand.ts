@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { openWindowsShellCommand } from './windowsTerminal.ts';
 
 const execute = promisify(execFile);
 type Execute = (
@@ -10,6 +11,8 @@ type Execute = (
 
 /** launch skips Terminal's startup window; do script creates only the requested session. */
 export async function openTerminalCommand(command: string, run: Execute = execute, title?: string) {
+  if (process.platform === 'win32' && run === execute)
+    return openWindowsShellCommand(command, title);
   const script = `on run argv
   tell application "Terminal"
     launch

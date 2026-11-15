@@ -43,6 +43,7 @@ export interface SessionMcpGroup {
   ) => Promise<SessionMcpResult>;
 }
 interface Lease {
+  stopping?: boolean;
   token: string;
   envelope: SessionEnvelope;
   event: (event: ChannelEvent) => Promise<void>;
@@ -213,13 +214,16 @@ export class RunChannel {
     this.leases.set(id, { token, envelope: scoped, event, tool, tools, groups, calls: new Map() });
     return { url, token };
   }
+  stop(id: string) {
+    const lease = this.leases.get(id);
+    if (lease) lease.stopping = true;
+  }
   remove(id: string) {
     for (const call of this.leases.get(id)?.calls.values() ?? []) call.abort();
     this.leases.delete(id);
   }
   close() {
     for (const id of this.leases.keys()) this.remove(id);
-    this.leases.clear();
     this.server.closeAllConnections();
     this.server.close();
   }
@@ -253,7 +257,7 @@ export class RunChannel {
       if (this.leases.get(match![1]) !== lease) return json(response, 403, { error: 'Forbidden' });
       if (match![2] === 'event') {
         await lease.event(data as unknown as ChannelEvent);
-        return json(response, 200, { ok: true });
+        return json(response, 200, { ok: true, ...(lease.stopping ? { stop: true } : {}) });
       }
       rpcId = data.id;
       if (!('id' in data)) {

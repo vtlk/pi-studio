@@ -33,7 +33,7 @@ import type { ComputerState } from './computer';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
-  platform: 'darwin';
+  platform: 'darwin' | 'win32';
   version: string;
   runtimeConnected: boolean;
 }

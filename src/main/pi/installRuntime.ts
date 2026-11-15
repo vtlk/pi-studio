@@ -4,7 +4,15 @@ import { mkdir, open, readFile, rename, rm, symlink, access, writeFile } from 'n
 import { dirname, join } from 'node:path';
 import type { StartupState } from '../../shared/startup.ts';
 import { checkPi } from './checkPi.ts';
-import { PI_PACKAGE, PI_VERSION, NODE_VERSION, nodeArchives } from './runtimeConfig.ts';
+import {
+  PI_PACKAGE,
+  PI_VERSION,
+  NODE_VERSION,
+  nodeArchives,
+  windowsNodeX64Sha256,
+} from './runtimeConfig.ts';
+import { managedPiPath, piEnvironment } from './platform.ts';
+import { powershellArguments, powershellLiteral, windowsPowershell } from './windowsShell.ts';
 
 type Progress = (state: StartupState) => void;
 export function validateRuntimeLock(manifest: unknown, lock: unknown) {
@@ -51,6 +59,7 @@ async function command(
   signal.throwIfAborted();
   return new Promise<void>((resolve, reject) => {
     const child = spawn(executable, args, {
+      windowsHide: true,
       cwd: options.cwd,
       env: options.env,
       stdio: 'ignore',
@@ -78,7 +87,7 @@ async function downloadNode(
   update: Progress,
 ) {
   const response = await fetch(
-    `https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-darwin-${arch}.tar.gz`,
+    `https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-${process.platform === 'win32' ? `win-${arch}.zip` : `darwin-${arch}.tar.gz`}`,
     { redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(120_000)]) },
   );
   if (!response.ok || !response.body)
@@ -109,7 +118,10 @@ async function downloadNode(
     reader.releaseLock();
     await handle.close();
   }
-  if (hash.digest('hex') !== nodeArchives[arch])
+  if (
+    hash.digest('hex') !==
+    (process.platform === 'win32' ? windowsNodeX64Sha256 : nodeArchives[arch])
+  )
     throw new Error('Не совпала контрольная сумма загрузки. Установка остановлена.');
 }
 /** A private, pinned installation. No sudo, global npm install, shell profile changes or model calls. */
@@ -120,8 +132,8 @@ export async function installPiRuntime(
   signal: AbortSignal,
   arch: string = process.arch,
 ) {
-  if (arch !== 'arm64' && arch !== 'x64')
-    throw new Error('Для этого Mac установка Pi не поддерживается.');
+  if ((arch !== 'arm64' && arch !== 'x64') || (process.platform === 'win32' && arch !== 'x64'))
+    throw new Error('Архитектура установки Pi не поддерживается.');
   const manifest = JSON.parse(await readFile(join(bundled, 'package.json'), 'utf8'));
   const lock = JSON.parse(await readFile(join(bundled, 'package-lock.json'), 'utf8'));
   validateRuntimeLock(manifest, lock);
@@ -138,16 +150,30 @@ export async function installPiRuntime(
   const stage = join(dirname(root), `.pi-install-${randomUUID()}`);
   await mkdir(stage, { mode: 0o700 });
   try {
-    const archive = join(stage, 'node.tar.gz');
+    const windows = process.platform === 'win32';
+    const archive = join(stage, windows ? 'node.zip' : 'node.tar.gz');
     update({ phase: 'downloading', message: 'Загружаем компоненты Pi…' });
     await downloadNode(archive, arch, signal, update);
-    await mkdir(join(stage, 'node'));
     update({ phase: 'installing', message: 'Подготавливаем компоненты Pi…' });
-    await command(
-      '/usr/bin/tar',
-      ['-xzf', archive, '-C', join(stage, 'node'), '--strip-components=1'],
-      signal,
-    );
+    if (windows) {
+      const unpacked = join(stage, 'unpacked');
+      await command(
+        windowsPowershell(),
+        powershellArguments(
+          `Expand-Archive -LiteralPath ${powershellLiteral(archive)} -DestinationPath ${powershellLiteral(unpacked)}`,
+        ),
+        signal,
+      );
+      await rename(join(unpacked, `node-v${NODE_VERSION}-win-${arch}`), join(stage, 'node'));
+      await rm(unpacked, { recursive: true });
+    } else {
+      await mkdir(join(stage, 'node'));
+      await command(
+        '/usr/bin/tar',
+        ['-xzf', archive, '-C', join(stage, 'node'), '--strip-components=1'],
+        signal,
+      );
+    }
     await rm(archive);
     const packages = join(stage, 'package');
     await mkdir(packages);
@@ -157,9 +183,14 @@ export async function installPiRuntime(
     await writeFile(join(stage, 'global.npmrc'), '', { mode: 0o600 });
     update({ phase: 'installing', message: `Устанавливаем Pi ${PI_VERSION}…` });
     await command(
-      join(stage, 'node/bin/node'),
+      join(stage, windows ? 'node/node.exe' : 'node/bin/node'),
       [
-        join(stage, 'node/lib/node_modules/npm/bin/npm-cli.js'),
+        join(
+          stage,
+          windows
+            ? 'node/node_modules/npm/bin/npm-cli.js'
+            : 'node/lib/node_modules/npm/bin/npm-cli.js',
+        ),
         'ci',
         '--ignore-scripts',
         '--omit=dev',
@@ -174,22 +205,35 @@ export async function installPiRuntime(
       signal,
       {
         cwd: packages,
-        env: { PATH: `${join(stage, 'node/bin')}:/usr/bin:/bin`, TMPDIR: process.env.TMPDIR },
+        env: piEnvironment(
+          join(stage, windows ? 'node' : 'node/bin'),
+          windows
+            ? {
+                SystemRoot: process.env.SystemRoot,
+                TEMP: process.env.TEMP,
+                TMP: process.env.TMP,
+                USERPROFILE: process.env.USERPROFILE,
+                PATH: join(process.env.SystemRoot ?? 'C:\\Windows', 'System32'),
+              }
+            : { PATH: '/usr/bin:/bin', TMPDIR: process.env.TMPDIR },
+        ),
       },
     );
-    await mkdir(join(stage, 'bin'));
-    await symlink('../node/bin/node', join(stage, 'bin/node'));
-    await symlink(
-      `../package/node_modules/${PI_PACKAGE}/dist/bundle/cli.js`,
-      join(stage, 'bin/pi'),
-    );
+    if (!windows) {
+      await mkdir(join(stage, 'bin'));
+      await symlink('../node/bin/node', join(stage, 'bin/node'));
+      await symlink(
+        `../package/node_modules/${PI_PACKAGE}/dist/bundle/cli.js`,
+        join(stage, 'bin/pi'),
+      );
+    }
     update({ phase: 'verifying', message: 'Проверяем установленный Pi…' });
-    const verified = await checkPi(join(stage, 'bin/pi'));
+    const verified = await checkPi(managedPiPath(stage));
     if (!verified.supported || !verified.nativeMcp || !verified.exactSessions)
       throw new Error('Установленный Pi не прошёл проверку.');
     signal.throwIfAborted();
     await rename(stage, root);
-    return { ...verified, path: join(root, 'bin/pi') };
+    return { ...verified, path: managedPiPath(root) };
   } finally {
     await rm(stage, { recursive: true, force: true });
   }

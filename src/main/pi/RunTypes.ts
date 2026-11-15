@@ -42,6 +42,7 @@ export interface LiveRun {
   run: PreparedRun;
   request: LaunchAgentRequest;
   pid?: number;
+  stop?: () => void;
   status: AgentRunStatus;
   failure?: RunFailure;
   sequence: number;

@@ -2,9 +2,10 @@ import { execFile } from 'node:child_process';
 import { access, readdir } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, isAbsolute, join } from 'node:path';
+import { delimiter, dirname, isAbsolute, join } from 'node:path';
 import { promisify } from 'node:util';
 import type { PiCheck } from '../../shared/contracts.ts';
+import { piEnvironment, piNode, windowsPiCli } from './platform.ts';
 
 const execute = promisify(execFile);
 export class PiNotFoundError extends Error {}
@@ -17,7 +18,7 @@ async function candidates(requested: string) {
     return [requested.trim()];
   }
   const paths = [
-    ...(process.env.PATH ?? '').split(':'),
+    ...(process.env.PATH ?? process.env.Path ?? '').split(delimiter),
     '/opt/homebrew/bin',
     '/usr/local/bin',
     join(homedir(), '.local/bin'),
@@ -39,29 +40,40 @@ async function candidates(requested: string) {
       /* Optional Node installations. */
     }
   }
-  return [...new Set(paths.filter(Boolean).map((path) => join(path, 'pi')))];
+  if (process.platform === 'win32' && process.env.APPDATA)
+    paths.push(join(process.env.APPDATA, 'npm'));
+  return [
+    ...new Set(
+      paths
+        .filter(Boolean)
+        .map((path) => join(path, process.platform === 'win32' ? 'pi.cmd' : 'pi')),
+    ),
+  ];
 }
 export async function checkPi(requested: string): Promise<PiCheck> {
   if (typeof requested !== 'string' || requested.length > 4096 || requested.includes('\0'))
     throw new Error('Некорректный путь Pi.');
-  for (const path of await candidates(requested)) {
+  for (const candidate of await candidates(requested)) {
+    let path: string;
     try {
-      await access(path, constants.X_OK);
+      path = process.platform === 'win32' ? await windowsPiCli(candidate) : candidate;
+      await access(path, process.platform === 'win32' ? constants.F_OK : constants.X_OK);
     } catch {
       continue;
     }
     const options = {
+      windowsHide: true,
       timeout: 10_000,
       maxBuffer: 100_000,
       env: {
-        ...process.env,
-        PATH: `${dirname(path)}:${process.env.PATH ?? '/usr/bin:/bin'}`,
+        ...piEnvironment(dirname(path)),
         PI_OFFLINE: '1',
-        PI_TELEMETRY: '0',
       },
     };
-    const version = (await execute(path, ['--version'], options)).stdout.trim();
-    const help = (await execute(path, ['--help'], options)).stdout;
+    const executable = process.platform === 'win32' ? await piNode(path) : path;
+    const prefix = process.platform === 'win32' ? [path] : [];
+    const version = (await execute(executable, [...prefix, '--version'], options)).stdout.trim();
+    const help = (await execute(executable, [...prefix, '--help'], options)).stdout;
     return {
       path,
       version,

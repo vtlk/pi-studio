@@ -1,4 +1,5 @@
 import { registerEndpoint } from './endpoint-runtime.mjs';
+import { isAbsolute } from 'node:path';
 import { nativeExtensionPaths } from './native-extensions.mjs';
 import { withClaudeExtension } from './claude-code/extensions.mjs';
 
@@ -56,7 +57,7 @@ async function createBaseRuntime(sdk, scope) {
   if (!scope) return sdk.ModelRuntime.create({ allowModelNetwork: false, refreshOnCreate: true });
   if (
     typeof scope.authPath !== 'string' ||
-    !scope.authPath.startsWith('/') ||
+    !isAbsolute(scope.authPath) ||
     typeof scope.provider !== 'string'
   )
     throw new Error('Invalid connection auth scope');

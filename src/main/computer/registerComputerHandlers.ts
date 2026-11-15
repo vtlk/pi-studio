@@ -14,12 +14,15 @@ export function registerComputerHandlers(
   ipcMain.handle(desktopChannels.requestComputerPermissions, async (event) => {
     caller(event);
     if (!app.isReady()) throw new Error('Дождитесь запуска Pi Studio.');
+    if (process.platform !== 'darwin') return computer.state();
     const sdk = await import('@trycua/cua-driver/electron');
     sdk.requestMacOSPermissions();
     return computer.state();
   });
   ipcMain.handle(desktopChannels.openComputerSettings, async (event, kind: unknown) => {
     caller(event);
+    if (process.platform !== 'darwin')
+      throw new Error('Системные настройки macOS доступны только на Mac.');
     if (kind === 'accessibility')
       await shell.openExternal(
         'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility',

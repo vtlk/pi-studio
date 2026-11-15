@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui';
 import type { ComputerState } from '../../../../shared/computer';
 
 export function ComputerResourceStatus() {
+  const mac = !navigator.platform.startsWith('Win');
   const [state, setState] = useState<ComputerState>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +44,7 @@ export function ComputerResourceStatus() {
       setRestart(true);
       await refresh();
     } catch {
-      setError('Не удалось открыть разрешения macOS.');
+      setError('Не удалось открыть разрешения системы.');
     } finally {
       setBusy(false);
     }
@@ -56,18 +57,20 @@ export function ComputerResourceStatus() {
           (!window.studio
             ? 'Разрешения доступны в приложении macOS.'
             : state?.phase === 'ready'
-              ? 'Разрешения macOS получены.'
+              ? 'Доступ к управлению компьютером подтверждён.'
               : state
-                ? 'Для управления компьютером разрешите доступ Pi Studio в macOS.'
+                ? mac
+                  ? 'Для управления компьютером разрешите доступ Pi Studio в macOS.'
+                  : 'Доступ Computer Use на Windows не подтверждён.'
                 : 'Проверяем разрешения…')}
       </p>
-      {state?.permissions && (
+      {mac && state?.permissions && (
         <p className="subtle">
           Универсальный доступ: {state.permissions.accessibility ? 'разрешён' : 'не разрешён'}.{' '}
           Запись экрана: {state.permissions.screenRecording ? 'разрешена' : 'не разрешена'}.
         </p>
       )}
-      {window.studio && state?.phase === 'permissions_required' && (
+      {mac && window.studio && state?.phase === 'permissions_required' && (
         <div className="action-row">
           <Button
             kind="primary"

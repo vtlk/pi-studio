@@ -4,7 +4,8 @@ import { mkdir, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { atomicJson, isMissing } from '../storage/files.ts';
-import { CHROME_VERSION, chromeArchive } from './browserVersions.ts';
+import { CHROME_VERSION, chromeArchive, chromeExecutable } from './browserVersions.ts';
+import { powershellArguments, powershellLiteral, windowsPowershell } from '../pi/windowsShell.ts';
 import {
   componentHash,
   componentState,
@@ -23,7 +24,7 @@ export async function readChrome(root: string) {
       !/^[a-f0-9]{64}$/.test(state.sha256)
     )
       throw new Error('Не совпала версия браузера.');
-    const binary = join(root, 'chrome-headless-shell');
+    const binary = join(root, chromeExecutable());
     if ((await componentHash(binary, binaryLimit)) !== state.sha256)
       throw new Error('Браузер изменён. Переустановите компонент через настройки.');
     return binary;
@@ -56,13 +57,21 @@ export async function installChrome(
       options.request,
     );
     await mkdir(unpacked);
-    await execute('/usr/bin/ditto', ['-xk', archive, unpacked], {
-      signal,
-      timeout: 60000,
-      maxBuffer: 100000,
-    });
+    await execute(
+      process.platform === 'win32' ? windowsPowershell() : '/usr/bin/ditto',
+      process.platform === 'win32'
+        ? powershellArguments(
+            `Expand-Archive -LiteralPath ${powershellLiteral(archive)} -DestinationPath ${powershellLiteral(unpacked)}`,
+          )
+        : ['-xk', archive, unpacked],
+      {
+        signal,
+        timeout: 60000,
+        maxBuffer: 100000,
+      },
+    );
     const content = join(unpacked, spec.folder),
-      binary = join(content, 'chrome-headless-shell');
+      binary = join(content, chromeExecutable());
     const version = await execute(binary, ['--version'], {
       signal,
       timeout: 10000,
@@ -76,8 +85,7 @@ export async function installChrome(
     });
     signal.throwIfAborted();
     return (
-      (await publishBrowserComponent(content, root, readChrome)) ??
-      join(root, 'chrome-headless-shell')
+      (await publishBrowserComponent(content, root, readChrome)) ?? join(root, chromeExecutable())
     );
   } finally {
     await rm(stage, { recursive: true, force: true });

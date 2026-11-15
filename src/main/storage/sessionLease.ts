@@ -3,6 +3,7 @@ import { agentDirectory } from '../../shared/agentPaths.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { isMissing, readJson, safePath } from './files.ts';
+import { powershellArguments, windowsPowershell } from '../pi/windowsShell.ts';
 
 /** A lease is a process hint, not evidence on its own. Never stop a foreign PID. */
 export async function hasLiveSessionLease(cwd: string) {
@@ -22,14 +23,19 @@ export async function hasLiveSessionLease(cwd: string) {
     return false;
   try {
     const { stdout } = await promisify(execFile)(
-      '/bin/ps',
-      ['-p', String(lease.pid), '-o', 'command='],
+      process.platform === 'win32' ? windowsPowershell() : '/bin/ps',
+      process.platform === 'win32'
+        ? powershellArguments(
+            `(Get-CimInstance Win32_Process -Filter 'ProcessId = ${lease.pid}').CommandLine`,
+          )
+        : ['-p', String(lease.pid), '-o', 'command='],
       {
         timeout: 2000,
         maxBuffer: 100_000,
+        windowsHide: true,
       },
     );
-    return stdout.includes('/session.mjs') && stdout.includes(lease.runId);
+    return /[\\/]session\.mjs/.test(stdout) && stdout.includes(lease.runId);
   } catch (error) {
     if (error && typeof error === 'object' && 'code' in error && error.code === 1) return false;
     throw new Error('Не удалось проверить, закрыт ли диалог Pi. Повторите операцию.', {

@@ -4,7 +4,8 @@ import { chmod, mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { atomicJson, isMissing } from '../storage/files.ts';
-import { AGENT_BROWSER_VERSION, browserArchive } from './browserVersions.ts';
+import { AGENT_BROWSER_VERSION, browserArchive, browserExecutable } from './browserVersions.ts';
+import { windowsTar } from '../pi/windowsShell.ts';
 import {
   componentHash,
   componentState,
@@ -25,7 +26,7 @@ export async function readAgentBrowser(root: string) {
       !/^[a-f0-9]{64}$/.test(state.sha256)
     )
       throw new Error('Не совпала версия компонента браузера.');
-    const binary = join(root, 'agent-browser');
+    const binary = join(root, browserExecutable());
     if ((await componentHash(binary, limit)) !== state.sha256)
       throw new Error('Компонент браузера изменён. Переустановите его через настройки.');
     return binary;
@@ -56,28 +57,31 @@ export async function installAgentBrowser(
       { algorithm: 'sha512', encoding: 'base64', hash: spec.integrity, maxBytes: limit },
       options.request,
     );
-    const { stdout: entries } = await execute('/usr/bin/tar', ['-tzf', archive], {
+    const tar = process.platform === 'win32' ? windowsTar() : '/usr/bin/tar';
+    const { stdout: entries } = await execute(tar, ['-tzf', archive], {
       signal,
       maxBuffer: 100000,
     });
     const files = entries.trim().split('\n');
     if (files.some((path) => !path.startsWith('package/') || path.split('/').includes('..')))
       throw new Error('Некорректный архив компонента браузера.');
-    const binaries = files.filter((path) => path.endsWith('/agent-browser'));
+    const binaries = files.filter((path) => path.endsWith('/' + browserExecutable()));
     if (binaries.length !== 1) throw new Error('В архиве отсутствует компонент браузера.');
-    const { stdout: binary } = await execute('/usr/bin/tar', ['-xOzf', archive, binaries[0]], {
+    const { stdout: binary } = await execute(tar, ['-xOzf', archive, binaries[0]], {
       signal,
       encoding: 'buffer',
       maxBuffer: limit,
     });
     if (
       binary.length < 4 ||
-      !['cffaedfe', 'feedfacf', 'cafebabe', 'bebafeca'].includes(
-        binary.subarray(0, 4).toString('hex'),
-      )
+      !(process.platform === 'win32'
+        ? binary.subarray(0, 2).toString() === 'MZ'
+        : ['cffaedfe', 'feedfacf', 'cafebabe', 'bebafeca'].includes(
+            binary.subarray(0, 4).toString('hex'),
+          ))
     )
-      throw new Error('Компонент браузера не является исполняемым файлом macOS.');
-    const target = join(stage, 'agent-browser');
+      throw new Error('Компонент браузера не соответствует платформе.');
+    const target = join(stage, browserExecutable());
     await writeFile(target, binary, { mode: 0o700 });
     await chmod(target, 0o700);
     const version = await execute(target, ['--version'], {
@@ -94,7 +98,8 @@ export async function installAgentBrowser(
     });
     signal.throwIfAborted();
     return (
-      (await publishBrowserComponent(stage, root, readAgentBrowser)) ?? join(root, 'agent-browser')
+      (await publishBrowserComponent(stage, root, readAgentBrowser)) ??
+      join(root, browserExecutable())
     );
   } finally {
     await rm(stage, { recursive: true, force: true });

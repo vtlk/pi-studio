@@ -1,7 +1,8 @@
+import { isAbsolute } from 'node:path';
 /** Built fresh in memory for every launch/resume; role/skill text is never archived by Studio. */
 export function sessionSystemPrompt(envelope, packageSkillPaths = []) {
   const { record } = envelope;
-  if (typeof record.projectRoot !== 'string' || !record.projectRoot.startsWith('/'))
+  if (typeof record.projectRoot !== 'string' || !isAbsolute(record.projectRoot))
     throw new Error('The current absolute project directory is required');
   const paths = `Project directory (absolute): ${JSON.stringify(record.projectRoot)}\nWorking directory (agent): ${JSON.stringify(record.cwd)}\nWrite all deliverables under: ${JSON.stringify(record.output)}\nEarlier agents' outputs: ${JSON.stringify(record.previousOutputs)}`;
   const skillPaths = [

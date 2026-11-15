@@ -9,7 +9,7 @@ export interface StringProtector {
   decryptStringAsync(value: Buffer): Promise<{ result: string; shouldReEncrypt: boolean }>;
 }
 
-/** App-local ciphertext. On macOS the injected Electron encryptor obtains its key from Keychain. */
+/** App-local ciphertext; Electron uses Keychain on macOS and DPAPI on Windows. */
 export class SecretVault {
   private directory: string;
   private protector: StringProtector;
@@ -63,12 +63,16 @@ export class SecretVault {
     )
       throw new Error('Введите ключ без переносов строки.');
     if (!(await this.available()))
-      throw new Error('Защищённое хранилище macOS недоступно. Ключ не сохранён.');
+      throw new Error(
+        `Защищённое хранилище ${process.platform === 'win32' ? 'Windows' : 'macOS'} недоступно. Ключ не сохранён.`,
+      );
     let encrypted: Buffer;
     try {
       encrypted = await this.protector.encryptStringAsync(value.trim());
     } catch {
-      throw new Error('Не удалось защитить ключ средствами macOS. Ключ не сохранён.');
+      throw new Error(
+        `Не удалось защитить ключ средствами ${process.platform === 'win32' ? 'Windows' : 'macOS'}. Ключ не сохранён.`,
+      );
     }
     await atomicJson(await this.path(folder, id), {
       version: 1,
@@ -78,7 +82,10 @@ export class SecretVault {
   async read(folder: string, id: string) {
     const encrypted = await this.encrypted(folder, id);
     if (!encrypted) throw new Error('Сначала сохраните API-ключ подключения изображений.');
-    if (!(await this.available())) throw new Error('Защищённое хранилище macOS недоступно.');
+    if (!(await this.available()))
+      throw new Error(
+        `Защищённое хранилище ${process.platform === 'win32' ? 'Windows' : 'macOS'} недоступно.`,
+      );
     try {
       const result = await this.protector.decryptStringAsync(encrypted);
       if (!result.result) throw new Error('Empty secret');
@@ -86,7 +93,9 @@ export class SecretVault {
       return result.result;
     } catch {
       throw new Error(
-        'Не удалось прочитать защищённый ключ. Разрешите доступ к Связке ключей или введите ключ заново.',
+        process.platform === 'win32'
+          ? 'Не удалось прочитать защищённый ключ Windows. Войдите в исходную учётную запись Windows или введите ключ заново.'
+          : 'Не удалось прочитать защищённый ключ. Разрешите доступ к Связке ключей или введите ключ заново.',
       );
     }
   }

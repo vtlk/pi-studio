@@ -1,9 +1,9 @@
 import { access } from 'node:fs/promises';
-import { join } from 'node:path';
 import type { PiCheck } from '../../shared/contracts.ts';
 import type { StartupState } from '../../shared/startup.ts';
 import { checkPi, PiNotFoundError } from './checkPi.ts';
 import { installPiRuntime } from './installRuntime.ts';
+import { managedPiPath } from './platform.ts';
 
 interface Options {
   root: string;
@@ -41,13 +41,13 @@ export class Startup {
       else {
         let managed = false;
         try {
-          await access(join(this.options.root, 'bin/pi'));
+          await access(managedPiPath(this.options.root));
           managed = true;
         } catch (error) {
           if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT'))
             throw error;
         }
-        if (managed) pi = await probe(join(this.options.root, 'bin/pi'));
+        if (managed) pi = await probe(managedPiPath(this.options.root));
         else {
           try {
             pi = await probe('');

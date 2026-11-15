@@ -136,7 +136,9 @@ export class CuaRuntime {
       const permissions = await this.permissions();
       if (!permissions.accessibility || !permissions.screenRecording)
         return error(
-          'Разрешите Pi Studio управление компьютером и запись экрана в настройках macOS. Изменение разрешений выполняется пользователем в Studio; затем перезапустите приложение.',
+          process.platform === 'win32'
+            ? 'Computer Use не подтвердил доступ к рабочему столу Windows. Проверьте сведения MCP и доступ текущей учётной записи. Действие не выполнено.'
+            : 'Разрешите Pi Studio управление компьютером и запись экрана в настройках macOS. Изменение разрешений выполняется пользователем в Studio; затем перезапустите приложение.',
         );
       const driver = await this.driver();
       // Native sessions expire while Pi waits for user input. Revive only our own private label.

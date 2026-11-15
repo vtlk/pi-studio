@@ -1,3 +1,4 @@
+import { windowsFileName } from './windowsNames.ts';
 const letters: Record<string, string> = {
   а: 'a',
   б: 'b',
@@ -34,7 +35,7 @@ const letters: Record<string, string> = {
   я: 'ya',
 };
 export function folderSlug(name: string, fallback = 'project') {
-  return (
+  const slug =
     [...name.toLowerCase()]
       .map((letter) => letters[letter] ?? letter)
       .join('')
@@ -43,6 +44,6 @@ export function folderSlug(name: string, fallback = 'project') {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 80)
-      .replace(/-$/, '') || fallback
-  );
+      .replace(/-$/, '') || fallback;
+  return windowsFileName(slug) ? slug : `_${slug}`;
 }

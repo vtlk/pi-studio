@@ -179,7 +179,7 @@ export function registerDesktopHandlers(): StudioService {
     desktopChannels.getInfo,
     () =>
       ({
-        platform: 'darwin',
+        platform: process.platform === 'win32' ? 'win32' : 'darwin',
         version: packageInfo.version,
         runtimeConnected: runs.connected,
       }) satisfies DesktopInfo,

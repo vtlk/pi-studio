@@ -13,7 +13,7 @@ export async function claudeStatus(signal) {
   } catch (error) {
     return { status: 'invalid', detail: error.message };
   }
-  const configured = env.PI_CLAUDE_CODE_COMMAND?.trim() || 'claude';
+  const configured = env.PI_CLAUDE_CODE_COMMAND?.trim() || (process.platform === 'win32' ? 'claude.exe' : 'claude');
   const candidates =
     isAbsolute(configured) || configured.includes('/')
       ? [resolve(configured)]

@@ -9,6 +9,7 @@ import { parseAgents, record, stableId } from '../storage/validation.ts';
 import { packageSource, assertCredentialReferences } from '../pi/resourceConfig.ts';
 import { assertPortableMcp } from './portableMcp.ts';
 import { parseModelEndpoint } from '../../shared/modelEndpoint.ts';
+import { windowsFileName } from '../../shared/windowsNames.ts';
 
 export const packageLimit = 64 * 1024 * 1024;
 export const fileDigest = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
@@ -17,7 +18,7 @@ export function packagePath(value: unknown): string {
     typeof value !== 'string' ||
     value.length > 1500 ||
     !/^resources\/resource-[0-9]+\/files\//.test(value) ||
-    value.split('/').some((part) => !part || part === '.' || part === '..') ||
+    value.split('/').some((part) => !windowsFileName(part) || part === '.' || part === '..') ||
     value.includes('\\') ||
     [...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
   )
