@@ -8,8 +8,16 @@ interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   alert?: boolean;
+  inert?: boolean;
 }
-export function Modal({ title, onClose, children, footer, alert = false }: ModalProps) {
+export function Modal({
+  title,
+  onClose,
+  children,
+  footer,
+  alert = false,
+  inert = false,
+}: ModalProps) {
   const ref = useRef<HTMLElement>(null);
   const returnFocus = useRef(document.activeElement);
   useEffect(() => {
@@ -48,6 +56,7 @@ export function Modal({ title, onClose, children, footer, alert = false }: Modal
   };
   return (
     <div
+      inert={inert || undefined}
       className={`modal-backdrop dialog-backdrop${alert ? ' confirmation-backdrop' : ''}`}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();

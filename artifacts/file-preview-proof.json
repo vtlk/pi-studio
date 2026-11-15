@@ -12,14 +12,17 @@
   "staleReadAndErrorIgnored": true,
   "missingReadErrorVisible": true,
   "brokenMediaErrorClearsOnSelection": true,
+  "svgInlineStylesRenderPixels": true,
+  "svgCssAndSmilAnimationChangesPixels": true,
+  "svgScriptsDoNotExecute": true,
   "nativeAudioAndVideoPlayback": true,
   "unsupportedFileMessage": true,
   "manifestValidation": true,
   "finderTargetsAgentOutputForEveryPreview": true,
   "newModelRequests": 0,
   "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
-  "version": "0.2.0-alpha.52",
-  "verifiedAt": "2026-11-14T17:45:42.015Z",
+  "version": "0.2.0-alpha.58",
+  "verifiedAt": "2026-11-14T23:57:25.599Z",
   "sourceSha256": {
     "src/renderer/features/project/model/markdownFiles.ts": "d02c7439d28e3fec9c66b41dd0c04c7e74f82222cb685f288bba0e17ee19f2da",
     "src/renderer/features/project/ui/MarkdownPreview.tsx": "e0f22f00e83c0eb15dfe5c37ec8d055a6240622fa0e6f752f476d5cfab6539ac",
@@ -30,7 +33,7 @@
     "src/main/storage/outputs.ts": "f58c885e869bdbe7ecd5981f6e6fd1684fc5af70cf0ba73edf30fc1eee6dc6f5",
     "src/shared/outputOrder.ts": "12792c1e99d6bd8b52c1ac497f866bb19d1b0670a72e1de9067be467f0e3db1a",
     "src/shared/outputPaths.ts": "b58932ad11b9730493cd366e08edb164ce9fc7f3ba06cd10b5d83e5329d9e09b",
-    "scripts/smoke-file-previews.cjs": "18612e5ab684c81ddb516182dbf3959585751ffb630eb9d0507a719a29bd909f",
-    "out/main/index.cjs": "4b6d4195e8985eeaef79c84bc09317e83bf755d681fe9cbac317dc1f242df839"
+    "scripts/smoke-file-previews.cjs": "01fc706d41078a53d2eb531115977ec5e6a1e900628a2e1a08f0479c1f88e308",
+    "out/main/index.cjs": "264e7a708d7b1bb928d0aad906d41d325d1a4ee09c75647cdfed6e973fc5538a"
   }
 }

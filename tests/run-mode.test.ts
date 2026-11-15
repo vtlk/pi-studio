@@ -63,7 +63,7 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
   const launches: { project: string; agent: string; message?: string }[] = [];
   const tasks: Promise<unknown>[] = [];
   const notices: (string | undefined)[] = [];
-  let activated = 0;
+  const activatedPids: number[] = [];
   const host: RunHost = new RunHost({
     bridge,
     bootstraps: join(root, 'boots'),
@@ -105,8 +105,8 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
       notices.push(failure);
     },
     beforeRequest: async (run) => hooks.request?.(run),
-    activateTerminal: async () => {
-      activated++;
+    activateTerminal: async (pid) => {
+      activatedPids.push(pid);
     },
     openTerminal: async (_node, script, path) => {
       const boot = JSON.parse(await readFile(path, 'utf8'));
@@ -199,7 +199,8 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
     notices,
     status,
     children,
-    activated: () => activated,
+    activated: () => activatedPids.length,
+    activatedPids,
   };
 }
 
@@ -266,6 +267,7 @@ test(
     const child = f.children[0];
     await f.launch(false);
     assert.equal(f.activated(), 1);
+    assert.equal(f.activatedPids[0], child.pid);
     assert.equal(f.children.length, 1);
     assert.equal(child.exitCode, null);
     await f.finish();
@@ -384,6 +386,7 @@ test(
     await f.launch(false, 'p', 'first');
     assert.equal(f.children.length, 2, 'Reopening an active agent activates its existing dialogue');
     assert.equal(f.activated(), 1);
+    assert.equal(f.activatedPids[0], f.children[0].pid);
     await f.finish('p', 'first');
     assert.equal(f.status.get('p/first'), 'ready');
     assert.equal(f.status.get('p/second'), 'running');

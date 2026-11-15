@@ -93,6 +93,22 @@ const deadline = setTimeout(() => {
     agent = project.agents[0];
   const output = join(studio.folder, 'projects', project.folderName, agent.outputPath);
   await writeVideoFixture(output);
+  await writeFile(
+    join(output, 'assets/styled.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><style>rect{fill:rgb(22,163,74)}</style><rect width="60" height="30"/></svg>',
+  );
+  await writeFile(
+    join(output, 'assets/css-animated.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><style>@keyframes color{0%,49%{fill:rgb(255,0,0)}50%,100%{fill:rgb(0,0,255)}}rect{animation:color .6s steps(1) infinite}</style><rect width="60" height="30"/></svg>',
+  );
+  await writeFile(
+    join(output, 'assets/smil-animated.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><rect width="60" height="30" fill="red"><animate attributeName="fill" values="#ff0000;#0000ff;#ff0000" dur=".8s" repeatCount="indefinite" calcMode="discrete"/></rect></svg>',
+  );
+  await writeFile(
+    join(output, 'assets/scripted.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><rect width="60" height="30" fill="red"/><script>document.querySelector("rect").setAttribute("fill","blue");</script></svg>',
+  );
   await mkdir(join(output, 'docs'));
   await mkdir(join(output, 'texts'));
   await writeFile(join(output, 'texts/details.txt'), 'Текст по локальной ссылке');
@@ -259,6 +275,51 @@ const deadline = setTimeout(() => {
   await file('square.svg');
   await until(`document.querySelector('.output-image img')?.naturalWidth===60`);
   assert.equal(await js(`!!document.querySelector('.output-image [role="alert"]')`), false);
+  await file('styled.svg');
+  await until(
+    `document.querySelector('.output-image img')?.complete && document.querySelector('.output-image img')?.naturalWidth===60`,
+  );
+  const imageBounds = await js(
+    `(()=>{const r=document.querySelector('.output-image img').getBoundingClientRect();return {x:Math.round(r.x),y:Math.round(r.y),width:Math.round(r.width),height:Math.round(r.height)}})()`,
+  );
+  const styledPixels = await window.webContents.capturePage(imageBounds),
+    styledSize = styledPixels.getSize(),
+    styledBitmap = styledPixels.toBitmap();
+  const center =
+    (Math.floor(styledSize.height / 2) * styledSize.width + Math.floor(styledSize.width / 2)) * 4;
+  assert.deepEqual(
+    [...styledBitmap.subarray(center, center + 4)],
+    [74, 163, 22, 255],
+    'SVG class styles must render through the actual media protocol, not default black.',
+  );
+  for (const name of ['css-animated.svg', 'smil-animated.svg']) {
+    await file(name);
+    await until(
+      `document.querySelector('.output-image img')?.alt===${JSON.stringify(name)} && document.querySelector('.output-image img')?.naturalWidth===60`,
+    );
+    const colors = new Set();
+    for (let frame = 0; frame < 24; frame++) {
+      const snapshot = await window.webContents.capturePage(imageBounds),
+        bitmap = snapshot.toBitmap();
+      colors.add([...bitmap.subarray(center, center + 3)].join(','));
+      if (colors.has('0,0,255') && colors.has('255,0,0')) break;
+      await new Promise((done) => setTimeout(done, 80));
+    }
+    assert.ok(
+      colors.has('0,0,255') && colors.has('255,0,0'),
+      `${name} must animate actual preview pixels, got ${[...colors].join(';')}`,
+    );
+  }
+  await file('scripted.svg');
+  await until(
+    `document.querySelector('.output-image img')?.alt==='scripted.svg' && document.querySelector('.output-image img')?.naturalWidth===60`,
+  );
+  const inertSvg = (await window.webContents.capturePage(imageBounds)).toBitmap();
+  assert.deepEqual(
+    [...inertSvg.subarray(center, center + 4)],
+    [0, 0, 255, 255],
+    'Embedded SVG script must not change its red rectangle to blue.',
+  );
   for (const [name, tag] of [
     ['tone.wav', 'audio'],
     ['clip.mp4', 'video'],
@@ -308,6 +369,9 @@ const deadline = setTimeout(() => {
     staleReadAndErrorIgnored: true,
     missingReadErrorVisible: true,
     brokenMediaErrorClearsOnSelection: true,
+    svgInlineStylesRenderPixels: true,
+    svgCssAndSmilAnimationChangesPixels: true,
+    svgScriptsDoNotExecute: true,
     nativeAudioAndVideoPlayback: true,
     unsupportedFileMessage: true,
     manifestValidation: true,

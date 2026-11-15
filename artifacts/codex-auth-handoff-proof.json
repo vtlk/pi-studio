@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-11-15T00:05:03.761Z",
+  "nativePi": "1.5.2",
+  "actualNativeProvider": "openai-codex",
+  "browserMethodSelected": true,
+  "officialHostValidated": true,
+  "nativePromptAndFdProtocol": true,
+  "cancelledBeforeCredentialSubmission": true,
+  "browserActuallyOpened": false,
+  "limits": "Actual native Pi OAuth flow reaches the intercepted official browser URL after selecting its public browser method. No new user consent, credential submission or token refresh acceptance is proven by this check."
+}

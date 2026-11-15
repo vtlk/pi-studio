@@ -440,6 +440,8 @@ async function child() {
         'Навык три',
         'QA mcps',
         'QA plugins',
+        'Pi Studio · Браузер (встроенный, закреплён)',
+        'Pi Studio · Компьютер (встроенный, закреплён)',
         'qa-model',
       ])
         assert.ok(prompt.includes(text), text);
@@ -473,6 +475,28 @@ async function child() {
         (await load()).sections.agents.map((a) => a.name),
         ['Второй агент', 'Первый агент'],
       );
+      for (const system of [false, true]) {
+        await js(
+          system
+            ? `document.querySelector('[data-system-role="assistant"] .agent-list-item').click()`
+            : `Array.from(document.querySelectorAll('.agent-list-entry:not([data-system-role]) .agent-list-item')).find(el=>el.textContent.includes('Первый агент')).click()`,
+        );
+        for (const tab of ['Инструкции', 'Skills', 'MCP', 'Плагины']) {
+          await click(tab);
+          if (system && tab === 'Инструкции')
+            await addInstruction('QA helper block', 'Only owned QA instructions.');
+          const label = tab === 'Инструкции' ? 'Добавить инструкцию' : `Добавить ${tab}`;
+          const selector = tab === 'Инструкции' ? '.instruction-sortable' : '.resource-binding';
+          assert.equal(
+            await js(
+              `(()=>{const root=document.querySelector('.agent-settings-body'),plus=root.querySelector('[aria-label="${label}"]');return !!plus&&Array.from(root.querySelectorAll('${selector}')).every(row=>!!(row.compareDocumentPosition(plus)&Node.DOCUMENT_POSITION_FOLLOWING))})()`,
+            ),
+            true,
+            `${system ? 'system' : 'ordinary'} ${tab} plus must follow all rows, including pinned MCP.`,
+          );
+        }
+      }
+      await saved();
       const final = await load();
       assert.deepEqual(
         final.projects[0].agents,
@@ -498,6 +522,7 @@ async function child() {
           snapshotOmitsInstructionText: true,
           agentConfirmationCancelUndo: true,
           snapshotPreserved: true,
+          allTabAddAreasBelowRowsForOrdinaryAndSystem: true,
           externalRequests: 0,
         }),
       );

@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-15T00:05:24.964Z",
+  "nativePi": "1.5.2",
+  "model": "openai-codex/gpt-5.6-luna",
+  "actualSubscriptionRequest": true,
+  "currentConstructorModelAppliedToOldEmptySnapshot": true,
+  "actualModelWroteValidatedContextOutput": true,
+  "projectRootInContextCorrect": true,
+  "otherProjectByteUnchanged": true,
+  "instructionTextNotInProject": true,
+  "exactIdleResumeWithoutReplay": true,
+  "currentEffortAppliedOnResume": true,
+  "missingEffortCreatesNoProcess": true,
+  "explicitUserMessages": 1,
+  "desktopActions": 0,
+  "imageGenerationRequests": 0,
+  "limits": "Production Studio run-host/bridge and the existing Codex subscription in a disposable studio. Does not repeat OAuth consent or test Keychain/Computer Use grants. User studio is never read or changed."
+}

@@ -7,7 +7,7 @@ import { useLaunch } from '../../model/Launch';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useProject } from '@/features/project/model/projectHooks';
 import { useStorage } from '@/shared/storage/Storage';
-import { libraryMcp } from '../../../../../shared/builtinResources';
+import { libraryMcp, browserMcp, computerMcp } from '../../../../../shared/builtinResources';
 function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {
   const coreTools = useCoreTools();
   const { setDialog } = useLaunch();
@@ -29,6 +29,9 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
       : undefined;
   const mcps = [
     ...(internalMcp ? [`${internalMcp} (встроенный, закреплён)`] : []),
+    ...(isDesktop
+      ? [browserMcp, computerMcp].map((resource) => `${resource.name} (встроенный, закреплён)`)
+      : []),
     ...names('mcps'),
   ];
   const text = [

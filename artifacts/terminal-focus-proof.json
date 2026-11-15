@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-15T00:36:32.576Z",
+  "sourceVersion": "0.2.0-alpha.58",
+  "targetedTests": 12,
+  "fullUnitFsTests": 205,
+  "selectedAgentPidRoutedWhileTwoAgentsRun": true,
+  "strictProcessTtyLookup": true,
+  "matchingTabOnly": true,
+  "missingTtyOrDeniedAutomationNeverSelectsAnotherDialogue": true,
+  "noWindowOrSessionCreationAndNoInputSent": true,
+  "compiledWithInstalledTerminalDictionary": true,
+  "actualTerminalUiControlled": false,
+  "sourceSha256": {
+    "src/main/pi/terminal.ts": "dd2355211a09b92ecd5a8565c6beee6db1a1f96119875f2c3b7c4f309083957a",
+    "src/main/pi/terminalCommand.ts": "e80caf083677b01f9e3073c346dd554d53351cba599496e53ba45b10296b3bd7",
+    "src/main/pi/RunHost.ts": "752fdf4b63077b16f3c111d417509302eb69fc2b675edd23075e22bc42562c68",
+    "src/main/pi/RunTypes.ts": "202e3edb484e2313c1bb5e6d280dd004eb8c1e38e57dfa70892f4f8349996541",
+    "tests/terminal.test.ts": "ab1e9798be99c3f9ff930e80f729bfcf9605170cfbd6e0d10c84e334c0d8fe0d",
+    "tests/run-mode.test.ts": "50190589a8838b9e5dd25db3c002895a434c3c39fd443b5f2160413fc99619ed"
+  },
+  "limits": "Dispatch is injected in unit/RunHost tests; osacompile compiles only. Real macOS Terminal focus, minimized restoration and Automation permission must still be accepted separately."
+}

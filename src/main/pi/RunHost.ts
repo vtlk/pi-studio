@@ -157,7 +157,7 @@ export class RunHost {
           active.chain = chain;
           active.continueAfterSequence = active.sequence + 1;
           active.automaticCheck = undefined;
-          await (this.dependencies.activateTerminal ?? activateSessionTerminal)();
+          await (this.dependencies.activateTerminal ?? activateSessionTerminal)(active.pid);
           return {
             runId: active.run.record.runId,
             project: await this.dependencies.read(active.run),

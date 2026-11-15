@@ -42,6 +42,8 @@ const server = createServer(async (req, res) => {
       JSON.stringify(body.messages),
       /UNASSIGNED_SKILL_TEXT|UNASSIGNED_PROMPT_TEXT|UNASSIGNED_SYSTEM_PROMPT_TEXT/,
     );
+    assert.match(JSON.stringify(body.messages), /Declarative CSS and SMIL animation can play/);
+    assert.match(JSON.stringify(body.messages), /embedded JavaScript is not executed/);
     const names = body.tools.map((tool) => tool.function.name);
     assert.ok(names.includes('native_extension_probe'));
     assert.ok(names.includes('native_package_probe'));

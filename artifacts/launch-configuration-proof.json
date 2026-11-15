@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-14T23:57:18.977Z",
+  "version": "0.2.0-alpha.58",
+  "snapshotStates": 11,
+  "currentProfileAndAccountValidation": true,
+  "statusInAccessibleNameNotVisibleSubtitle": true,
+  "launchHiddenWithoutModel": true,
+  "firstMessageAndMenuCancelCreateNothing": true,
+  "lateModelRemovalDoesNotReachLaunch": true,
+  "configurationModalMakesRetainedDraftInert": true,
+  "configurationCancelKeepsMessage": true,
+  "goToExactAgentModelTab": true,
+  "projectAndCanonicalTranscriptUnchanged": true,
+  "noContextCreated": true,
+  "modelRequests": 0,
+  "beforeFix": "Clearing effort after opening the first-message modal reached launch IPC and showed a generic error instead of configuration guidance.",
+  "limits": "Actual compiled main/preload/renderer in an isolated offscreen studio. Startup, account readiness and launch dispatch are explicit IPC fixtures; no Terminal or user studio access."
+}

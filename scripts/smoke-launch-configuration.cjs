@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
-const { rm, readFile, access } = require('node:fs/promises');
+const { rm, readFile, access, writeFile } = require('node:fs/promises');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
@@ -138,10 +138,17 @@ const deadline = setTimeout(() => {
   for (const agent of snapshots) {
     const configured = ['valid', 'current-valid'].includes(agent.profile.id),
       expr = row(agent.profile.id);
-    assert.equal(
-      await js(`${expr}.querySelector('.section-menu-description').textContent`),
-      configured ? 'Не запускался' : 'Не подключена модель',
+    assert.ok(
+      (await js(`${expr}.querySelector('.section-menu-item').getAttribute('aria-label')`)).includes(
+        configured ? '. Не запускался.' : '. Не подключена модель.',
+      ),
       agent.profile.id,
+    );
+    assert.equal(
+      await js(
+        `/Не запускался|Не подключена модель/.test(${expr}.querySelector('.section-menu-description').textContent)`,
+      ),
+      false,
     );
     assert.equal(
       await js(`!!${expr}.querySelector('button[aria-label="Запустить"]')`),
@@ -212,16 +219,73 @@ const deadline = setTimeout(() => {
   await until(
     `!!${row('empty')}.querySelector('button[aria-label="Запустить"]')&&!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')&&!${row('valid')}.querySelector('button[aria-label="Запустить"]')`,
   );
-  assert.equal(
-    await js(`${row('bound')}.querySelector('.section-menu-description').textContent`),
-    'Диалог сохранён',
+  assert.ok(
+    (
+      await js(`${row('bound')}.querySelector('.section-menu-item').getAttribute('aria-label')`)
+    ).includes('. Диалог сохранён.'),
   );
   await save('connections', []);
   await until(
-    `document.querySelectorAll('.project-agent-actions .split-button').length===0 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-description')).every(el=>el.textContent==='Не подключена модель')`,
+    `document.querySelectorAll('.project-agent-actions .split-button').length===0 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-item')).every(el=>el.getAttribute('aria-label').includes('. Не подключена модель.'))`,
   );
   await save('connections', [account]);
   await until(`!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')`);
+  await js(`${row('empty')}.querySelector('button[aria-label="Запустить"]').click()`);
+  await until(`!!document.querySelector('.agent-first-message')`);
+  await js(
+    `(()=>{const field=document.querySelector('.agent-first-message');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(field,'Не потерять первое сообщение');field.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  const currentAgents = (await js('window.studio.loadStudio()')).sections.agents;
+  await save(
+    'agents',
+    currentAgents.map((agent) =>
+      agent.id === 'empty' ? { ...agent, model: { ...agent.model, reasoning: '' } } : agent,
+    ),
+  );
+  await until(`!${row('empty')}.querySelector('button[aria-label="Запустить"]')`);
+  const submitMessage = () =>
+    js(
+      `Array.from(document.querySelectorAll('[role="dialog"] button')).find(el=>el.textContent.trim()==='Запустить').click()`,
+    );
+  const configurationShown = `Array.from(document.querySelectorAll('[role="dialog"]')).some(el=>el.textContent.includes('Сначала настройте подключение Агента в настройках агента'))`;
+  await submitMessage();
+  await until(configurationShown);
+  assert.equal(
+    await js(`document.querySelector('.agent-first-message').closest('.modal-backdrop').inert`),
+    true,
+  );
+  assert.equal(
+    await js(
+      `(()=>{const input=document.querySelector('.agent-first-message');input.focus();return document.activeElement===input})()`,
+    ),
+    false,
+    'The retained draft must be inaccessible behind the configuration modal.',
+  );
+  assert.equal(
+    launches,
+    0,
+    'A model cleared after the first-message modal opened must not reach launch IPC.',
+  );
+  await js(
+    `Array.from(document.querySelectorAll('[role="dialog"]')).at(-1).querySelector('footer button').click()`,
+  );
+  await until(`!(${configurationShown})`);
+  assert.equal(
+    await js(`document.querySelector('.agent-first-message').value`),
+    'Не потерять первое сообщение',
+  );
+  await submitMessage();
+  await until(configurationShown);
+  await js(
+    `Array.from(document.querySelectorAll('[role="dialog"]')).at(-1).querySelector('footer .primary').click()`,
+  );
+  await until(
+    `document.querySelector('[aria-label="Название агента"]')?.value==='empty' && document.querySelector('[aria-label="Настройки агента"] [aria-current="true"]')?.textContent.trim()==='Модель'`,
+  );
+  await click('Проекты');
+  if (await js(`!!document.querySelector('[aria-label="Открыть проект «Launch states»"]')`))
+    await js(`document.querySelector('[aria-label="Открыть проект «Launch states»"]').click()`);
+  await until(`!!${row('bound')}`);
   const notice = {
     projectRoot: (await js('window.studio.loadStudio()')).folder + '/projects/launch-states',
     projectId: 'qa-project',
@@ -251,6 +315,33 @@ const deadline = setTimeout(() => {
   assert.equal(await readFile(join(projectDir, bound.session.path), 'utf8'), transcript);
   await assert.rejects(access(join(projectDir, '.pistudio/context')));
   assert.equal(launches, 0);
+  await writeFile(
+    'artifacts/launch-configuration-proof.json',
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        version: require('../package.json').version,
+        snapshotStates: snapshots.length,
+        currentProfileAndAccountValidation: true,
+        statusInAccessibleNameNotVisibleSubtitle: true,
+        launchHiddenWithoutModel: true,
+        firstMessageAndMenuCancelCreateNothing: true,
+        lateModelRemovalDoesNotReachLaunch: true,
+        configurationModalMakesRetainedDraftInert: true,
+        configurationCancelKeepsMessage: true,
+        goToExactAgentModelTab: true,
+        projectAndCanonicalTranscriptUnchanged: true,
+        noContextCreated: true,
+        modelRequests: 0,
+        beforeFix:
+          'Clearing effort after opening the first-message modal reached launch IPC and showed a generic error instead of configuration guidance.',
+        limits:
+          'Actual compiled main/preload/renderer in an isolated offscreen studio. Startup, account readiness and launch dispatch are explicit IPC fixtures; no Terminal or user studio access.',
+      },
+      null,
+      2,
+    ) + '\n',
+  );
   clearTimeout(deadline);
   console.log(
     'Launch row configuration passed: missing connection/model/effort/profile, stale snapshots, existing dialogue, live constructor/account changes without refresh; SplitButton/menu/first-message cancel and Escape create nothing; safe scoped continuation notice through preload; no session/context/model requests.',

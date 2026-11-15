@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
@@ -55,6 +55,7 @@ assert.equal(
   'Editing a constructor model does not mutate projects or start work.',
 );
 const children: Promise<number | null>[] = [];
+const processes: ReturnType<typeof spawn>[] = [];
 const host = createStudioRunHost(service, {
   bootstraps: join(root, 'boots'),
   bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
@@ -66,6 +67,7 @@ const host = createStudioRunHost(service, {
       stdio: 'ignore',
       env: { ...process.env, PI_OFFLINE: '1', PI_TELEMETRY: '0' },
     });
+    processes.push(child);
     children.push(
       new Promise((resolve, reject) => {
         child.once('error', reject);
@@ -74,6 +76,10 @@ const host = createStudioRunHost(service, {
     );
   },
 });
+const deadline = setTimeout(() => {
+  host.close();
+  for (const child of processes) if (child.exitCode === null) child.kill('SIGTERM');
+}, 180000);
 try {
   const request = { projectId: first.id, agentId: initial.id, autoContinue: false };
   const launched = await host.launch({
@@ -93,6 +99,32 @@ try {
   assert.equal(proof.model.connectionId, 'qa');
   assert.equal(proof.projectRoot, directory);
   assert.equal(await readFile(secondFile, 'utf8'), otherBytes);
+  await writeFile(
+    'artifacts/current-model-proof.json',
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        nativePi: pi.version,
+        model: 'openai-codex/gpt-5.6-luna',
+        actualSubscriptionRequest: true,
+        currentConstructorModelAppliedToOldEmptySnapshot: true,
+        actualModelWroteValidatedContextOutput: true,
+        projectRootInContextCorrect: true,
+        otherProjectByteUnchanged: true,
+        instructionTextNotInProject: true,
+        exactIdleResumeWithoutReplay: true,
+        currentEffortAppliedOnResume: true,
+        missingEffortCreatesNoProcess: true,
+        explicitUserMessages: 1,
+        desktopActions: 0,
+        imageGenerationRequests: 0,
+        limits:
+          'Production Studio run-host/bridge and the existing Codex subscription in a disposable studio. Does not repeat OAuth consent or test Keychain/Computer Use grants. User studio is never read or changed.',
+      },
+      null,
+      2,
+    ) + '\n',
+  );
   assert.equal(
     (await readFile(firstFile, 'utf8')).includes('CURRENT_MODEL_TEST_INSTRUCTION'),
     false,
@@ -148,7 +180,9 @@ try {
     'Real current-model launch passed: an old empty project snapshot uses the newly configured GPT-5.6 Luna/connection/effort, actual model writes validated output, only the selected project updates; exact idle resume applies current effort without replay, missing effort opens no Pi.',
   );
 } finally {
+  clearTimeout(deadline);
   host.close();
+  for (const child of processes) if (child.exitCode === null) child.kill('SIGTERM');
   await Promise.allSettled(children);
   await rm(root, { recursive: true, force: true });
 }
