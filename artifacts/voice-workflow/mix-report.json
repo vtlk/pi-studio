@@ -1,12 +1,17 @@
 {
-  "sampleRate": 24000,
-  "duration": 8,
-  "channels": 2,
-  "stems": [
-    "speech",
-    "ambience",
-    "effects",
-    "music"
+  "version": 1,
+  "inputs": [
+    "stems/speech.wav",
+    "stems/ambience.wav",
+    "stems/effects.wav",
+    "stems/music.wav"
   ],
-  "peakPolicy": "all stems below full scale; final AAC mix encoded without clipping"
+  "normalization": "none",
+  "gains": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "output": "film.mp4"
 }

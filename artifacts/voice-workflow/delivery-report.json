@@ -1,0 +1,9 @@
+{
+  "status": "polished",
+  "visual": {"lowerPanel": {"x": 0, "y": 1500, "width": 1080, "height": 420, "opacity": 1.0}, "audio": "silent", "burnedText": false},
+  "captions": {"burnedOnce": true, "texts": ["СМОТРИ!", "РАСТИ, ЦВЕТОК!", "СПАСИБО!"], "rangesSeconds": [[0,2.5],[2.5,5.8],[5.8,8]], "pngs": ["captions/caption_1.png","captions/caption_2.png","captions/caption_3.png"]},
+  "ambience": {"format": "PCM s16le", "sampleRate": 24000, "channels": 2, "durationSeconds": 8, "rms": 0.0061, "clipping": false, "band": "audible deterministic rustle, high-passed/no sub-bass"},
+  "mix": {"stems": ["speech","ambience","effects","music"], "gains": [1,1,1,1], "normalization": false},
+  "movies": {"film": {"width":1080,"height":1920,"fps":30,"frames":240,"durationSeconds":8,"video":"h264 yuv420p","audio":"AAC stereo 24000Hz"}, "visual": {"width":1080,"height":1920,"fps":30,"frames":240,"durationSeconds":8,"video":"h264 yuv420p","audio":"none"}, "animatic": {"width":1080,"height":1920,"fps":30,"frames":240,"durationSeconds":8,"audio":"AAC stereo 24000Hz"}},
+  "preservedByteForByte": ["production.json","takes.json","stems/speech.wav","stems/effects.wav","stems/music.wav","words/*.wav","d1.wav","d2.wav","d2_take2.wav","d3.wav","revision_d2.wav"]
+}

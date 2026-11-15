@@ -1,41 +1,18 @@
 {
+  "version": 1,
+  "sampleRate": 24000,
+  "channels": 2,
+  "durationSeconds": 8,
   "sounds": [
-    {
-      "id": "speech",
-      "layer": "speech",
-      "file": "stems/speech.wav",
-      "start": 0,
-      "duration": 8,
-      "volume": 1,
-      "pan": 0
-    },
-    {
-      "id": "amb",
-      "layer": "ambience",
-      "file": "stems/ambience.wav",
-      "start": 0,
-      "duration": 8,
-      "volume": 1,
-      "pan": 0
-    },
-    {
-      "id": "water",
-      "layer": "effects",
-      "file": "stems/effects.wav",
-      "start": 0,
-      "duration": 8,
-      "volume": 1,
-      "pan": 0,
-      "actionId": "a_water"
-    },
-    {
-      "id": "music",
-      "layer": "music",
-      "file": "stems/music.wav",
-      "start": 0,
-      "duration": 8,
-      "volume": 1,
-      "pan": 0
-    }
-  ]
+    {"id":"speech","layer":"speech","file":"stems/speech.wav","start":0,"duration":8,"volume":1,"pan":0},
+    {"id":"ambience","layer":"ambience","file":"stems/ambience.wav","start":0,"duration":8,"volume":1,"pan":0},
+    {"id":"effects","layer":"effects","file":"stems/effects.wav","start":0,"duration":8,"volume":1,"pan":0,"actionId":"a_water"},
+    {"id":"music","layer":"music","file":"stems/music.wav","start":0,"duration":8,"volume":1,"pan":0}
+  ],
+  "stems": {
+    "speech": "preserved",
+    "ambience": "deterministic band-limited garden rustle",
+    "effects": "preserved",
+    "music": "preserved"
+  }
 }
