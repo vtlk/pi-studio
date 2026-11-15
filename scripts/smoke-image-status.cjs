@@ -97,7 +97,7 @@ process.on('unhandledRejection', fail);
       window.webContents.once('did-finish-load', () => r(window));
     }),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   win = await loaded;
   win.webContents.removeAllListeners('will-prevent-unload');
   win.webContents.on('will-prevent-unload', () => void fail(Error('Unsaved QA reload')));
@@ -167,6 +167,7 @@ process.on('unhandledRejection', fail);
   ];
   const proof = {
     sourceVersion: require('../package.json').version,
+    packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
     passed: {
       nativeCatalogAndEditorWithoutCryptoInitialization: true,
       noSecretReturnedToRenderer: true,

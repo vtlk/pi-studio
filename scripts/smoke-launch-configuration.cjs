@@ -115,7 +115,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window));
     }),
   );
-  require('./offscreen-main.cjs').loadOffscreenMain();
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded,
     js = (code) => window.webContents.executeJavaScript(code, true);
   const until = async (code) => {
@@ -322,6 +322,7 @@ const deadline = setTimeout(() => {
         checkedAt: new Date().toISOString(),
         version: require('../package.json').version,
         snapshotStates: snapshots.length,
+        packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
         currentProfileAndAccountValidation: true,
         statusInAccessibleNameNotVisibleSubtitle: true,
         launchHiddenWithoutModel: true,

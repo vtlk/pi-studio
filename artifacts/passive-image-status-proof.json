@@ -1,5 +1,6 @@
 {
   "sourceVersion": "0.2.0-alpha.58",
+  "packagedEntry": true,
   "passed": {
     "nativeCatalogAndEditorWithoutCryptoInitialization": true,
     "noSecretReturnedToRenderer": true,
@@ -19,8 +20,8 @@
     "src/renderer/features/connections/ui/ImageKeyFields.tsx": "dd9d887c09cdd28c06435e5ef8a35f7911b68dd8b73e38e10e0c36d159479e23",
     "src/renderer/features/connections/model/useCoreTools.ts": "4eed23fb1c2708d28d5e28c8911bd6a912a519df30a86e04873fd150b9ba4d70",
     "src/renderer/features/settings/ui/SettingsView.tsx": "a040ab0a57d6319b30e8a69ec31153bf462d81f0c8bbfdd13bc0f988f4ecae3f",
-    "src/renderer/features/launch/ui/dialogs/PromptDialog.tsx": "18e9c836f5625343960c376297a668709febff385933a387b11aab4789464aaa",
+    "src/renderer/features/launch/ui/dialogs/PromptDialog.tsx": "6ed1e822c95b10df4b9e29e93cd26be5cd1db66cc0a9bfcf51facf06b6731dfe",
     "tests/images.test.ts": "c8d66e6daec3eb0431c7748007540a711aa3f27f9e8c548aa25068060575c285",
-    "scripts/smoke-image-status.cjs": "9b3c6e9743dee66cd4aab62a2dc9d0669a899a2d92e75a03b5585069529d12bb"
+    "scripts/smoke-image-status.cjs": "fd1df72afed6a2419e37a4e6581e359c988f650dc5bea6a5ae1dfef0d6661eef"
   }
 }

@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-15T00:51:49.148Z",
+  "version": "0.2.0-alpha.58",
+  "realProcessExit": true,
+  "windowsNotPredestroyed": true,
+  "isolatedUserData": true,
+  "permissionRequests": false,
+  "packagedEntry": false,
+  "cases": [
+    {
+      "mode": "idle",
+      "visible": false,
+      "windowClosed": true,
+      "quit": true
+    },
+    {
+      "mode": "computer-status",
+      "visible": false,
+      "computerPhase": "ready",
+      "windowClosed": true,
+      "quit": true
+    }
+  ]
+}

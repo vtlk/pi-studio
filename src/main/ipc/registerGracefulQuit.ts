@@ -22,7 +22,9 @@ export function registerGracefulQuit(
         }
       }
       finished = true;
-      app.quit();
+      // Electron is still unwinding the cancelled native quit inside this microtask.
+      // A reentrant quit is ignored; resume on the next event-loop turn instead.
+      setImmediate(() => app.quit());
     });
   });
 }
