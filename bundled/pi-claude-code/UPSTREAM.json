@@ -1,0 +1,25 @@
+{
+  "repository": "https://github.com/earendil-works/pi-claude-code",
+  "commit": "d5b5e04c314d3452d357174d16d10dda34daa2d2",
+  "version": "0.1.0",
+  "license": "MIT",
+  "runtimePeers": {
+    "@earendil-works/pi-ai": "1.5.2",
+    "@earendil-works/pi-coding-agent": "1.5.2"
+  },
+  "files": {
+    "LICENSE": "d223c027834e770f316f168b6da8679f960327e31ec78477544a8519b36f9f2c",
+    "package.json": "a975a73806ca3f51c565f2d992f35a2eedefd73e533b50d98ffdad6d28ea06cf",
+    "src/billing.ts": "616e360a8a09c7014e44ade969dc86cef26c9c9c45b6d294e10d76bfd05db368",
+    "src/claude-cli.ts": "5979d8194ebeb27825db333257a350b82816562c4c55d08cf828c10ad9551140",
+    "src/env.ts": "66facbe318f8273f24311ef7b67e9e5917362cbe7a78fba2335789775300a991",
+    "src/index.ts": "51bd4f1eeb9484bb8608b53120bdf800ccb91beb17a16ae03c95e65a237c0217",
+    "src/inert-mcp.mjs": "7e376de568506e07bad1d3ed4ff8d383c4868f7e077fcbdcd555a7d65605123e",
+    "src/model-catalog.ts": "8239131e7417fa332416a3f3083beae235aa57bc0b01f1e01740ca4778132378",
+    "src/native-types.ts": "d31448514220510b5dbed7eb4f8fc59c87b8db6435bf965d237126ccb0145e86",
+    "src/provider.ts": "dd09c3f6920a7b90ce15ba5d48d42bb5364dabf170cd8babaaf2e79c02cb709c",
+    "src/stream.ts": "fb62a040687318035382f046b8751ea88f98399ee1b9e7681403e78caa8386d7",
+    "src/transcript.ts": "8fcd8a82086ee6c4685009774dabb4ddc4740fcb8a302bb67668886d224eb46d",
+    "src/turn-relay.ts": "eb54ddfd9d443d7bcbaeb28fa2c56aca636ba8fa65e7be9037ee16c9740c8d2a"
+  }
+}
