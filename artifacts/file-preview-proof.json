@@ -19,7 +19,7 @@
   "copyAfterStaleSelectionTargetsCurrentText": true,
   "invalidAndStaleCopyRejected": true,
   "realUserClipboardUntouched": true,
-  "packagedEntry": false,
+  "packagedEntry": true,
   "foldersFirstInMainAndRenderer": true,
   "nestedFoldersBeforeOlderFiles": true,
   "markdownLocalImage": true,
@@ -42,10 +42,11 @@
   "newModelRequests": 0,
   "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
   "version": "0.2.0-alpha.71",
-  "verifiedAt": "2026-11-15T16:58:19.065Z",
+  "verifiedAt": "2026-11-15T17:00:09.318Z",
   "sourceSha256": {
     "src/renderer/features/project/ui/SearchablePreview.tsx": "a37d74e5bc6da4bd11f652992e7aed55f44a6e7540faa63813ee52753dd765e9",
     "src/renderer/features/project/model/previewSearch.ts": "6d831ef0edba86c6a8dbd0dc0f917477c46fbd568319f07091f8054c27636e71",
+    "scripts/preview-find-checks.cjs": "27a5678cfcae574cd34fa921ac88f8f5fb71de1b3ffecf9f039bfa1d4e59dbb4",
     "src/renderer/shared/ui/FindBar.tsx": "8bb207285e14fa7a34f14eeb732a02d7380c05e7b521b3e1fbd7ab37db93e322",
     "src/renderer/shared/ui/literalSearch.ts": "6873c4dfc522881ffe91619d6215c42068c32095efbfdb61ea5d63ec78d3552b",
     "src/renderer/features/project/model/markdownFiles.ts": "d02c7439d28e3fec9c66b41dd0c04c7e74f82222cb685f288bba0e17ee19f2da",
@@ -57,7 +58,7 @@
     "src/main/storage/outputs.ts": "f58c885e869bdbe7ecd5981f6e6fd1684fc5af70cf0ba73edf30fc1eee6dc6f5",
     "src/shared/outputOrder.ts": "12792c1e99d6bd8b52c1ac497f866bb19d1b0670a72e1de9067be467f0e3db1a",
     "src/shared/outputPaths.ts": "b58932ad11b9730493cd366e08edb164ce9fc7f3ba06cd10b5d83e5329d9e09b",
-    "scripts/smoke-file-previews.cjs": "6a9a89aef891fd21ea61cae8d6172bb05ed44351fa7448b5f5c788c78af32ad2",
+    "scripts/smoke-file-previews.cjs": "2aba90621f6d3268c6ecffddbca60184328110d7e22ea62bde219626d360e1df",
     "out/main/index.cjs": "9fab8d3e4c347adf37c2520e48308f009f39562ffc73368c689c9745d8c0cb7f"
   }
 }

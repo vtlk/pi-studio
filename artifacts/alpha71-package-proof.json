@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-15T16:59:57.348Z",
+  "source": "3f7be92a2fa0d3c2c1c09a5a86f37c13f8d09822",
+  "version": "0.2.0-alpha.71",
+  "architecture": "arm64",
+  "minimumOS": "13.0",
+  "archiveBytes": 142648233,
+  "archiveSha256": "4a28977b48bdeeef733861694a073cbb4457e31dfa8a24aefc23ababb433a267",
+  "compiledOutputMatches": true,
+  "bridgeMatches": true,
+  "sdkAndJsRuntimeMatch": true,
+  "nativeSdkVersion": "0.49.11",
+  "nativeBinariesSeparatelySignedAndVerified": true,
+  "deepStrictSignature": true,
+  "designatedRequirementMatchesInstalled": true,
+  "licenseAndExactSourceNoticesMatch": true,
+  "limits": "Local signed package, not notarized or installed. Offscreen packaged-main tests are separate. Actual Pi Studio TCC, desktop capture/input and model visual loop still need acceptance."
+}
