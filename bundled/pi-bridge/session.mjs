@@ -9,6 +9,7 @@ import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
 import { loadThinkingApi } from './thinking.mjs';
 import { RuntimeAccounting } from './accounting/RuntimeAccounting.mjs';
+import { studioSessionTerminal } from './terminal-title.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -343,6 +344,9 @@ export async function runSession(bootstrapPath) {
       if (initialMessage) await runtime.session.prompt(initialMessage, { images: initialImages });
     } else {
       const mode = new InteractiveMode(runtime, {
+        ...(envelope.terminalTitle === undefined
+          ? {}
+          : { terminal: await studioSessionTerminal(bootstrap.sdk, envelope.terminalTitle) }),
         initialMessage,
         initialImages,
         verbose: false,

@@ -60,10 +60,12 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
   const transports = new Map<string, { url: string; token: string }>();
   const children: ChildProcess[] = [],
     exits: Promise<unknown>[] = [];
-  const launches: { project: string; agent: string; message?: string }[] = [];
+  const launches: { project: string; agent: string; message?: string; title?: string }[] = [];
+  const names = { agent: 'Сценарист «А»', project: 'Проект "Б" $()' };
   const tasks: Promise<unknown>[] = [];
   const notices: (string | undefined)[] = [];
   const activatedPids: number[] = [];
+  const activatedTitles: (string | undefined)[] = [];
   const host: RunHost = new RunHost({
     bridge,
     bootstraps: join(root, 'boots'),
@@ -73,12 +75,16 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
         cwd = join(projectRoot, request.agentId);
       await mkdir(join(cwd, 'sessions'), { recursive: true });
       await mkdir(join(cwd, 'output'), { recursive: true });
-      const project = { id: request.projectId, agents: [] } as unknown as WorkspaceProject;
+      const project = {
+        id: request.projectId,
+        name: names.project,
+        agents: [],
+      } as unknown as WorkspaceProject;
       const run = {
         projectRoot,
         project,
         agent: {
-          profile: { id: request.agentId },
+          profile: { id: request.agentId, name: names.agent },
           session: bindings.get(`${request.projectId}/${request.agentId}`),
         },
         record: {
@@ -105,19 +111,22 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
       notices.push(failure);
     },
     beforeRequest: async (run) => hooks.request?.(run),
-    activateTerminal: async (pid) => {
+    activateTerminal: async (pid, title) => {
       activatedPids.push(pid);
+      activatedTitles.push(title);
     },
-    openTerminal: async (_node, script, path) => {
+    openTerminal: async (_node, script, path, title) => {
       const boot = JSON.parse(await readFile(path, 'utf8'));
       const envelope = await (
         await fetch(boot.url + '/context', { headers: { Authorization: 'Bearer ' + boot.token } })
       ).json();
+      assert.equal(title, envelope.terminalTitle, 'OS tab and Pi use the same title');
       transports.set(`${envelope.record.projectId}/${envelope.record.agentId}`, boot);
       launches.push({
         project: envelope.record.projectId,
         agent: envelope.record.agentId,
         message: envelope.firstMessage,
+        title,
       });
       const child = spawn(process.execPath, [script, path], { stdio: 'ignore' });
       children.push(child);
@@ -201,8 +210,37 @@ process.on('SIGTERM',()=>void event({type:'stopped'}).finally(()=>process.exit(0
     children,
     activated: () => activatedPids.length,
     activatedPids,
+    activatedTitles,
+    names,
   };
 }
+
+test(
+  'launch, running activation and exact idle resume retain titles without replaying input',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    await f.launch(false);
+    assert.equal(f.launches[0].title, 'Сценарист «А» · Проект "Б" $()');
+    await f.request();
+    const child = f.children[0];
+    await f.launch(false);
+    assert.deepEqual(f.activatedPids, [child.pid]);
+    assert.deepEqual(f.activatedTitles, [f.launches[0].title]);
+    assert.equal(f.launches.length, 1);
+    await f.finish();
+    f.names.agent = 'Сцены';
+    f.names.project = 'После переименования';
+    await f.launch(false);
+    assert.equal(f.launches[1].title, 'Сцены · После переименования');
+    assert.equal(f.launches[1].message, undefined);
+    f.names.agent = 'Монтаж';
+    f.names.project = 'Второй проект';
+    await f.launch(false, 'other', 'second');
+    assert.equal(f.launches[2].title, 'Монтаж · Второй проект');
+    assert.equal(f.children[1].exitCode, null, 'The other dialogue stays open');
+  },
+);
 
 test(
   'a next-stage preparation refusal reports the paused chain without losing prior readiness',

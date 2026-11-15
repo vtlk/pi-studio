@@ -9,9 +9,10 @@ import { hasLiveSessionLease } from '../storage/sessionLease.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { RunLifecycle } from './RunLifecycle.ts';
-import { activateSessionTerminal, openSessionTerminal, processAlive } from './terminal.ts';
+import { focusRunningTerminal, openSessionTerminal, processAlive } from './terminal.ts';
 import { stopRunProcess, drainRunProcesses, closeRuns } from './stopRunProcess.ts';
 import { assertRunsIdle } from './assertRunsIdle.ts';
+import { runTerminalTitle } from './terminalTitle.ts';
 
 class ContinuationCancelled extends Error {}
 interface Continuation {
@@ -157,7 +158,7 @@ export class RunHost {
           active.chain = chain;
           active.continueAfterSequence = active.sequence + 1;
           active.automaticCheck = undefined;
-          await (this.dependencies.activateTerminal ?? activateSessionTerminal)(active.pid);
+          await focusRunningTerminal(active, this.dependencies.activateTerminal);
           return {
             runId: active.run.record.runId,
             project: await this.dependencies.read(active.run),
@@ -165,9 +166,8 @@ export class RunHost {
         }
         await stopRunProcess(active, this.dependencies.closed);
         await this.retiring.get(key);
-        this.channel.remove(active.run.record.runId);
-        this.live.delete(key);
-      } else if (active) {
+      }
+      if (active) {
         this.channel.remove(active.run.record.runId);
         this.live.delete(key);
       }
@@ -208,11 +208,13 @@ export class RunHost {
       });
       void pending.catch(() => {});
       const live = current!;
+      const terminalTitle = runTerminalTitle(run);
       this.live.set(key, live);
       const tools = this.dependencies.tools;
       const transport = await this.channel.add(
         run.record.runId,
         {
+          terminalTitle,
           record: run.record,
           modelAuth: run.modelAuth,
           instructions: run.instructions,
@@ -229,16 +231,14 @@ export class RunHost {
       );
       await mkdir(this.dependencies.bootstraps, { recursive: true, mode: 0o700 });
       const bootstrap = join(this.dependencies.bootstraps, `${run.record.runId}.json`);
-      await atomicJson(bootstrap, {
-        ...transport,
-        sdk,
-        headless: this.dependencies.headless === true,
-      });
+      const headless = this.dependencies.headless === true;
+      await atomicJson(bootstrap, { ...transport, sdk, headless });
       continuation?.check();
       await (this.dependencies.openTerminal ?? openSessionTerminal)(
         join(dirname(pi.path), 'node'),
         this.dependencies.bridge,
         bootstrap,
+        terminalTitle,
       );
       const timer = setTimeout(
         () =>

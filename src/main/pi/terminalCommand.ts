@@ -9,20 +9,28 @@ type Execute = (
 ) => Promise<unknown>;
 
 /** launch skips Terminal's startup window; do script creates only the requested session. */
-export async function openTerminalCommand(command: string, run: Execute = execute) {
+export async function openTerminalCommand(command: string, run: Execute = execute, title?: string) {
   const script = `on run argv
   tell application "Terminal"
     launch
-    do script (item 1 of argv)
+    set dialogueTab to do script (item 1 of argv)
+    if (count of argv) > 1 then
+      set custom title of dialogueTab to item 2 of argv
+      set title displays custom title of dialogueTab to true
+    end if
     activate
   end tell
 end run`;
   try {
     // Pass the command as data, never interpolate paths into AppleScript source.
-    await run('/usr/bin/osascript', ['-e', script, command], {
-      timeout: 15_000,
-      maxBuffer: 10_000,
-    });
+    await run(
+      '/usr/bin/osascript',
+      ['-e', script, command, ...(title === undefined ? [] : [title])],
+      {
+        timeout: 15_000,
+        maxBuffer: 10_000,
+      },
+    );
   } catch (error) {
     if (
       error &&
@@ -39,7 +47,7 @@ end run`;
 }
 
 /** Focus only the Terminal tab which owns this live bridge's TTY; never launch or send input. */
-export async function activateTerminalProcess(pid: number, run: Execute = execute) {
+export async function activateTerminalProcess(pid: number, run: Execute = execute, title?: string) {
   if (!Number.isSafeInteger(pid) || pid < 2)
     throw new Error('Не удалось определить окно выбранного диалога Pi.');
   let tty: string;
@@ -67,6 +75,10 @@ export async function activateTerminalProcess(pid: number, run: Execute = execut
     repeat with terminalWindow in windows
       repeat with terminalTab in tabs of terminalWindow
         if tty of terminalTab is targetTTY then
+          if (count of argv) > 1 then
+            set custom title of terminalTab to item 2 of argv
+            set title displays custom title of terminalTab to true
+          end if
           set selected tab of terminalWindow to terminalTab
           set miniaturized of terminalWindow to false
           set index of terminalWindow to 1
@@ -79,10 +91,14 @@ export async function activateTerminalProcess(pid: number, run: Execute = execut
   error "Pi Studio dialogue terminal not found" number -1728
 end run`;
   try {
-    await run('/usr/bin/osascript', ['-e', script, `/dev/${tty}`], {
-      timeout: 10000,
-      maxBuffer: 10000,
-    });
+    await run(
+      '/usr/bin/osascript',
+      ['-e', script, `/dev/${tty}`, ...(title === undefined ? [] : [title])],
+      {
+        timeout: 10000,
+        maxBuffer: 10000,
+      },
+    );
   } catch (error) {
     if (
       error &&

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-15T11:03:36.244Z",
+  "pi": "1.5.2",
+  "interactiveModeWithNativeProcessTerminal": true,
+  "simultaneousOwnedPseudoTerminals": true,
+  "initialAndOngoingTitlesPreserved": true,
+  "nativeExtensionTitleChangesIntercepted": true,
+  "exactIdleResumeNoInput": true,
+  "projectRenameNextOpen": true,
+  "cyrillicQuotesAndShellCharacters": true,
+  "localModelRequests": 2,
+  "externalModelRequests": 0,
+  "packagedBridge": false,
+  "terminalAppGuiAcceptance": false,
+  "scope": "Real Pi InteractiveMode and native ProcessTerminal in owned captured PTYs. No Terminal.app automation or user data access. GUI title/profile settings remain manual acceptance."
+}

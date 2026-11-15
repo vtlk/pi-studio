@@ -18,7 +18,7 @@ export interface RunDependencies {
   ) => Promise<WorkspaceProject>;
   read: (run: PreparedRun) => Promise<WorkspaceProject>;
   openTerminal?: typeof openSessionTerminal;
-  activateTerminal?: (pid: number) => Promise<void>;
+  activateTerminal?: (pid: number, title?: string) => Promise<void>;
   headless?: boolean;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
   tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
