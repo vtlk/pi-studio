@@ -48,6 +48,8 @@
     "test:pi-image-references": "node --experimental-strip-types scripts/smoke-pi-images.ts --references",
     "test:pi-film": "node --experimental-strip-types scripts/smoke-pi-film.ts",
     "test:pi-film-revision": "node --experimental-strip-types scripts/smoke-pi-film.ts --revision",
+    "test:pi-voice-workflow": "node --experimental-strip-types scripts/smoke-pi-voice-workflow.ts",
+    "test:voice-workflow-viewer": "PI_STUDIO_QA_FILM_ARTIFACT=artifacts/voice-workflow electron scripts/smoke-film-viewer.cjs",
     "test:film-viewer": "npm run build && electron scripts/smoke-film-viewer.cjs",
     "test:mcp-oauth": "node --experimental-strip-types scripts/smoke-mcp-oauth.ts",
     "test:mcp-oauth-ui": "npm run build && electron scripts/smoke-mcp-oauth-ui.cjs",

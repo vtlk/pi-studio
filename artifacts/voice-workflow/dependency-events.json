@@ -1,0 +1,38 @@
+{
+  "events": [
+    {
+      "stage": "before-regeneration",
+      "old": {
+        "d2.wav": "bb2bb253bdcc981d754c62fab17b26095dfcc05f81e0ca85e32a1b346ba43546",
+        "d2_take2.wav": "63fd32ae944c74331c5ac41143b8b1a68e4243cf75d6ec804817b240e90b28cf",
+        "speech": "02dff8d7293a5043f2bb7691ffe86bc303caef682519c4efb75cf99b5d424872"
+      },
+      "new": null,
+      "affectedDependencies": [
+        "d2",
+        "speech",
+        "film",
+        "animatic"
+      ]
+    },
+    {
+      "stage": "after-regeneration",
+      "old": {
+        "d2.wav": "bb2bb253bdcc981d754c62fab17b26095dfcc05f81e0ca85e32a1b346ba43546",
+        "d2_take2.wav": "63fd32ae944c74331c5ac41143b8b1a68e4243cf75d6ec804817b240e90b28cf",
+        "speech": "02dff8d7293a5043f2bb7691ffe86bc303caef682519c4efb75cf99b5d424872"
+      },
+      "new": {
+        "revision_d2.wav": "7aa6d10a96d4165531c099a17eb714e6cce25929ee6b7d4f46f4b25f50dfb37e",
+        "speech": "6f08127f598f8f35530d4f7e93428fae3e442aad19623fbf4ea31a21576aef74"
+      },
+      "affectedDependencies": [
+        "d2",
+        "speech",
+        "film",
+        "animatic"
+      ],
+      "ready": true
+    }
+  ]
+}

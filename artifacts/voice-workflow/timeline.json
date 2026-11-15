@@ -1,0 +1,153 @@
+{
+  "type": "pi-studio.timeline",
+  "schemaVersion": 1,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "durationInFrames": 240,
+  "background": "#000000",
+  "assets": [
+    {
+      "id": "visual",
+      "type": "video",
+      "src": "visual.mp4"
+    },
+    {
+      "id": "speech",
+      "type": "audio",
+      "src": "stems/speech.wav"
+    },
+    {
+      "id": "ambience",
+      "type": "audio",
+      "src": "stems/ambience.wav"
+    },
+    {
+      "id": "effects",
+      "type": "audio",
+      "src": "stems/effects.wav"
+    },
+    {
+      "id": "music",
+      "type": "audio",
+      "src": "stems/music.wav"
+    }
+  ],
+  "tracks": [
+    {
+      "id": "visualtrack",
+      "name": "Visual",
+      "type": "visual",
+      "items": [
+        {
+          "id": "visualitem",
+          "name": "Visual",
+          "from": 0,
+          "duration": 240,
+          "assetId": "visual"
+        }
+      ]
+    },
+    {
+      "id": "speechtrack",
+      "name": "Speech",
+      "type": "audio",
+      "items": [
+        {
+          "id": "speechitem",
+          "name": "Speech",
+          "from": 0,
+          "duration": 240,
+          "assetId": "speech",
+          "volume": 1,
+          "pan": 0
+        }
+      ]
+    },
+    {
+      "id": "ambtrack",
+      "name": "Ambience",
+      "type": "audio",
+      "items": [
+        {
+          "id": "ambitem",
+          "name": "Ambience",
+          "from": 0,
+          "duration": 240,
+          "assetId": "ambience",
+          "volume": 1,
+          "pan": 0
+        }
+      ]
+    },
+    {
+      "id": "efftrack",
+      "name": "Effects",
+      "type": "audio",
+      "items": [
+        {
+          "id": "effitem",
+          "name": "Effects",
+          "from": 0,
+          "duration": 240,
+          "assetId": "effects",
+          "volume": 1,
+          "pan": 0
+        }
+      ]
+    },
+    {
+      "id": "musictrack",
+      "name": "Music",
+      "type": "audio",
+      "items": [
+        {
+          "id": "musicitem",
+          "name": "Music",
+          "from": 0,
+          "duration": 240,
+          "assetId": "music",
+          "volume": 1,
+          "pan": 0
+        }
+      ]
+    },
+    {
+      "id": "subtrack",
+      "name": "Subtitles",
+      "type": "subtitles",
+      "items": [
+        {
+          "id": "s1",
+          "name": "Narrator",
+          "from": 0,
+          "duration": 75,
+          "text": "СМОТРИ!",
+          "y": 1650,
+          "height": 180,
+          "fontSize": 54
+        },
+        {
+          "id": "s2",
+          "name": "Girl",
+          "from": 75,
+          "duration": 99,
+          "text": "РАСТИ, ЦВЕТОК!",
+          "y": 1650,
+          "height": 180,
+          "fontSize": 54
+        },
+        {
+          "id": "s3",
+          "name": "Flower",
+          "from": 174,
+          "duration": 66,
+          "text": "СПАСИБО!",
+          "y": 1650,
+          "height": 180,
+          "fontSize": 54
+        }
+      ]
+    }
+  ]
+}

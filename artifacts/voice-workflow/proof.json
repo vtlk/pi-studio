@@ -1,0 +1,79 @@
+{
+  "checkedAt": "2026-11-15T03:08:51.503Z",
+  "version": "0.2.0-alpha.60",
+  "actualPi": "1.5.2",
+  "model": "gpt-5.6-luna",
+  "actualAgentBashRender": true,
+  "sha256": "d8dc435afea9a8f95be64bd1c77d0b960165ee053df83afcf17abc9907fa69ba",
+  "paidMediaApiCalls": 0,
+  "desktopAudioPlayback": false,
+  "threeAssignedSpeakers": true,
+  "actualSegmentedWordSampleAlignment": true,
+  "fourDistinctFullLengthStems": [
+    {
+      "name": "speech",
+      "peak": 0.421295166015625,
+      "rms": 0.04714661109372094,
+      "sha256": "c85e57ce839d0f2bff64e833afdbbd6d2069365176591f9d8927333ff0e4fe68"
+    },
+    {
+      "name": "ambience",
+      "peak": 0.02069091796875,
+      "rms": 0.012209558772242852,
+      "sha256": "172c1198d0f6c950cecfc15ed90ff3238d5199bf77b8f2783d594d34fb88bdc5"
+    },
+    {
+      "name": "effects",
+      "peak": 0.02130126953125,
+      "rms": 0.004403125056225532,
+      "sha256": "ce3730b9b6732bdf646fefbf6bce83b6923b638ac533b019c39e5fdb41a96338"
+    },
+    {
+      "name": "music",
+      "peak": 0.041168212890625,
+      "rms": 0.02170024263331649,
+      "sha256": "5be522f9a324017bde6b45f99f371569a543154007c5cbfe21a15ca02e48aeee"
+    }
+  ],
+  "completeFfmpegDecode": true,
+  "twoDistinctStaticAnimaticShotsWithAudio": true,
+  "animaticOnlyRepairInExactDialogue": true,
+  "allOtherOutputsByteIdenticalAcrossFinalRepair": true,
+  "oneAdditionalUserMessageForFinalRepair": true,
+  "exactIdleResumeWithoutReplay": true,
+  "validatedViewerWithFourAudioAndCaptionTracks": true,
+  "priorRunEvidence": {
+    "log": "preceding-run.log",
+    "source": "scripts/smoke-pi-voice-workflow.ts",
+    "reached": "missing animatic audio assertion after sample/take/unchanged-output/split-merge/dependency/stem checks passed"
+  },
+  "limits": "Actual macOS segmented word synthesis, not continuous-speech forced alignment. Earlier full-run comparisons and this targeted repair/check are distinct evidence. Agent-owned domain logs are not automatic Studio production screens. Input art is prior QA output; no user studio or OS permissions changed.",
+  "nativeViewerVerified": true,
+  "nativeAudioDecoded": true,
+  "fullscreenPreservesFrame": true,
+  "currentViewerCheck": {
+    "applicationVersion": "0.2.0-alpha.60",
+    "checkedAt": "2026-11-15T03:09:32.079Z",
+    "unchangedAgentMovieHash": true,
+    "fullFfmpegDecode": true,
+    "nativeMovingVideo": true,
+    "nativeDecodedNonSilentAudio": true,
+    "sameFramePixelsAfterStepBackAndForward": true,
+    "fullscreenEscapePreservesFrame": true,
+    "readOnlyWithoutApprovalExport": true,
+    "newModelRequests": 0,
+    "scope": "Previously real-agent-created movie in an isolated offscreen native main/preload/renderer. Startup skipped; document visibility simulated for polling. User studio untouched; no Terminal or generation.",
+    "sourceSha256": {
+      "scripts/smoke-film-viewer.cjs": "ae0e729f663c61ee81e9cfb56070dfd5295dace9b842e71c49c492e65361ccc3",
+      "src/renderer/features/editor/player/VideoComposition.tsx": "67158fa4fdaebfb8cc6582acc57dd4c2f7ba523804fb02339d3f9e4121d583fc",
+      "src/renderer/features/editor/player/StereoPan.tsx": "a7a9860905fe8c34782ff6411f2f17e12d9a75bc7b47b3cc0c7fb8444ab82d53",
+      "src/renderer/features/editor/ui/VideoViewer.tsx": "600395c35964c926be4aa177076f3d2855e142f956ad685f10c3f66a4cac9321",
+      "src/main/video/readVideoProject.ts": "dab37ea6c4f40fac17302d9440ef11bf6818ca69024152dd573eeaed9da2a3ad"
+    }
+  },
+  "audibleBandAmbienceRmsAbove80Hz": 5.304121210140937e-7,
+  "remainingCreativeIssues": [
+    "Native screenshot still shows old source captions through the 78%-opaque bottom panel; generated final export source creates captions but does not apply them to film.mp4. Viewer captions are present.",
+    "Ambience source consists of 0.17/0.31 Hz tones. Full-band RMS alone does not prove audible atmosphere; actual above-80Hz RMS is recorded. Polish through the agent, preserving voice/take evidence."
+  ]
+}

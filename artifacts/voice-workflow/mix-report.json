@@ -1,0 +1,12 @@
+{
+  "sampleRate": 24000,
+  "duration": 8,
+  "channels": 2,
+  "stems": [
+    "speech",
+    "ambience",
+    "effects",
+    "music"
+  ],
+  "peakPolicy": "all stems below full scale; final AAC mix encoded without clipping"
+}

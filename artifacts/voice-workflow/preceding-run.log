@@ -1,0 +1,21 @@
+{"phase":"started","studio":"/var/folders/4g/63wgn7f12gggh89x4g5f4yrw0000gn/T/pistudio-voice-workflow-YBIiIN","model":"gpt-5.6-luna"}
+{"phase":"initial-valid","lines":3,"wordSampleAlignment":true}
+Disposable failed QA retained for inspection: /var/folders/4g/63wgn7f12gggh89x4g5f4yrw0000gn/T/pistudio-voice-workflow-YBIiIN
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(probe.streams.some((stream     ) => stream.codec_type === 'audio'))
+
+    at file:///Users/user1/Documents/cursor/pivideo/scripts/smoke-pi-voice-workflow.ts:221:12 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

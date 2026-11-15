@@ -1,0 +1,154 @@
+{
+  "characters": [
+    {
+      "id": "narrator",
+      "name": "Рассказчик",
+      "voice": {
+        "engine": "say",
+        "name": "Milena",
+        "rate": 165
+      }
+    },
+    {
+      "id": "girl",
+      "name": "Девочка",
+      "voice": {
+        "engine": "say",
+        "name": "Milena",
+        "rate": 175
+      }
+    },
+    {
+      "id": "flower",
+      "name": "Цветок",
+      "voice": {
+        "engine": "say",
+        "name": "Milena",
+        "rate": 155
+      }
+    }
+  ],
+  "locations": [
+    {
+      "id": "garden",
+      "name": "Сад"
+    }
+  ],
+  "props": [
+    {
+      "id": "watering_can",
+      "name": "Лейка"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s1",
+      "locationId": "garden",
+      "characterIds": [
+        "narrator",
+        "girl",
+        "flower"
+      ],
+      "propIds": [],
+      "dialogueIds": [
+        "d1",
+        "d2",
+        "d3"
+      ],
+      "description": "Девочка поливает цветок; цветок распускается.",
+      "shots": [
+        {
+          "id": "sh1",
+          "from": 0,
+          "duration": 120,
+          "camera": "medium portrait",
+          "actionIds": [
+            "a_water"
+          ]
+        },
+        {
+          "id": "sh2",
+          "from": 120,
+          "duration": 120,
+          "camera": "close bloom",
+          "actionIds": [
+            "a_bloom"
+          ]
+        }
+      ]
+    }
+  ],
+  "counters": {
+    "characters": 3,
+    "locations": 1,
+    "props": 1,
+    "scenes": 1,
+    "shots": 2,
+    "dialogues": 3
+  },
+  "dialogues": [
+    {
+      "id": "d1",
+      "speakerId": "narrator",
+      "text": "Смотри!",
+      "file": "d1.wav",
+      "duration": 0.7625416666666667,
+      "timelineStart": 0,
+      "words": [
+        {
+          "text": "Смотри",
+          "file": "words/d1_0_165.wav",
+          "start": 0.0,
+          "end": 0.7625416666666667
+        }
+      ]
+    },
+    {
+      "id": "d2",
+      "speakerId": "girl",
+      "text": "Расти, цветок!",
+      "file": "revision_d2.wav",
+      "duration": 1.847375,
+      "timelineStart": 2.5,
+      "words": [
+        {
+          "text": "Расти",
+          "file": "words/revision_d2_0_175.wav",
+          "start": 0.0,
+          "end": 0.705625
+        },
+        {
+          "text": "цветок",
+          "file": "words/revision_d2_1_175.wav",
+          "start": 1.005625,
+          "end": 1.847375
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "speakerId": "flower",
+      "text": "Спасибо!",
+      "file": "d3.wav",
+      "duration": 0.8788333333333334,
+      "timelineStart": 5.8,
+      "words": [
+        {
+          "text": "Спасибо",
+          "file": "words/d3_0_155.wav",
+          "start": 0.0,
+          "end": 0.8788333333333334
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "source",
+      "inputs": [
+        "input/source.mp4"
+      ],
+      "stale": false
+    }
+  ]
+}

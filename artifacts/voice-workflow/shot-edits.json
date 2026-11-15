@@ -1,0 +1,49 @@
+{
+  "originalSecondShotId": "sh2",
+  "split": [
+    {
+      "id": "sh2_split_a",
+      "from": 120,
+      "duration": 60
+    },
+    {
+      "id": "sh2_split_b",
+      "from": 180,
+      "duration": 60
+    }
+  ],
+  "merge": {
+    "to": "sh2",
+    "from": [
+      "sh2_split_a",
+      "sh2_split_b"
+    ]
+  },
+  "aliases": [
+    "sh2_split_a",
+    "sh2_split_b"
+  ],
+  "events": [
+    {
+      "type": "split",
+      "source": "sh2",
+      "ids": [
+        "sh2_split_a",
+        "sh2_split_b"
+      ]
+    },
+    {
+      "type": "merge",
+      "target": "sh2",
+      "inputs": [
+        "sh2_split_a",
+        "sh2_split_b"
+      ]
+    },
+    {
+      "type": "remove-prop",
+      "id": "watering_can"
+    }
+  ],
+  "removedPropId": "watering_can"
+}

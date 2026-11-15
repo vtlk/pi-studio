@@ -31,4 +31,3 @@
   "notarized": false,
   "limits": "Targeted alpha update and preserved user data, not completion of the entire MVP. Computer GUI permissions/capture/input, real repeated Keychain access, external consent and remaining workflow audit are open."
 }
-

@@ -1,0 +1,8 @@
+{
+  "type": "pi-studio.video-project",
+  "schemaVersion": 1,
+  "editor": "remotion-player",
+  "name": "Голоса и кадры",
+  "scope": "film",
+  "state": "./timeline.json"
+}

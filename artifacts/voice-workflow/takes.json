@@ -1,0 +1,18 @@
+{
+  "dialogueId": "d2",
+  "takes": [
+    {
+      "file": "d2.wav",
+      "rate": 175
+    },
+    {
+      "file": "d2_take2.wav",
+      "rate": 135
+    },
+    {
+      "file": "revision_d2.wav",
+      "rate": 175
+    }
+  ],
+  "selected": "revision_d2.wav"
+}
