@@ -22,7 +22,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window)),
     ),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded,
     js = (code) =>
       window.webContents.executeJavaScript(code, true).catch((error) => {

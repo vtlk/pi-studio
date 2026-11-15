@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-15T02:43:17.814Z",
+  "version": "0.2.0-alpha.60",
+  "nonTemporaryUserDataRejectedBeforeMutation": true,
+  "separateQaApplicationName": true,
+  "temporarySessionData": true,
+  "chromiumMockKeychain": true,
+  "nativeAsyncCryptoRoundTrip": true,
+  "offscreenNoVisibleWindow": true,
+  "qaLoaderAbsentFromInstalledApp": true,
+  "realKeychainAccessTested": false,
+  "userKeychainPermissionsChanged": false,
+  "scope": "Synthetic credentials and Chromium official mock provider. Actual signed Pi Studio Always Allow/restarts remain unverified."
+}

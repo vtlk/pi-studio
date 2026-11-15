@@ -6,6 +6,7 @@ const { join } = require('node:path');
 const assert = require('node:assert/strict');
 const root = mkdtempSync(join(tmpdir(), 'pistudio-web-bundle-'));
 app.setPath('userData', root);
+require('./offscreen-main.cjs').configureQaRuntime();
 const deadline = setTimeout(() => {
   console.error('Web bundle smoke timed out');
   app.exit(1);

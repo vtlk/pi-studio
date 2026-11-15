@@ -35,9 +35,15 @@ global.fetch = async (url, init) => {
       window.webContents.once('did-finish-load', () => resolve(window)),
     ),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded;
-  const js = (code) => window.webContents.executeJavaScript(code, true);
+  const js = async (code) => {
+    try {
+      return await window.webContents.executeJavaScript(code, true);
+    } catch (error) {
+      throw new Error('Renderer action failed: ' + code.slice(0, 220), { cause: error });
+    }
+  };
   const until = async (code) => {
     for (let i = 0; i < 150; i++) {
       if (await js(code)) return;
@@ -68,7 +74,7 @@ global.fetch = async (url, init) => {
   await js(`document.querySelector('[aria-label="Добавить подключение"]').click()`);
   await input('[role="dialog"] .field-label input', 'QA Images');
   await select('Назначение подключения', 'Совместимый endpoint');
-  await input('[placeholder="http://localhost:…"]', 'http://localhost:12345');
+  await input('[aria-label="Адрес API модели"]', 'http://localhost:12345');
   await select('Назначение подключения', 'OpenAI Images API');
   await until(`!!document.querySelector('[aria-label="API-ключ изображений"]')`);
   assert.equal(
@@ -184,7 +190,7 @@ global.fetch = async (url, init) => {
   assert.equal(state.sections.imageTool.connectionId, connection.id);
   assert.equal(JSON.stringify(state).includes(REPLACEMENT), false);
   console.log(
-    'Image settings Electron passed: actual macOS safeStorage encryption/decryption, blank masked re-entry, fixed-endpoint read-only API check, explicit model selection, key replacement and confirmed/cancelled deletion, no key getter or project secrets and zero image generation requests.',
+    'Image settings Electron passed: native safeStorage encryption/decryption with Chromium mock Keychain (no real OS credential access), blank masked re-entry, fixed-endpoint read-only API check, explicit model selection, key replacement and confirmed/cancelled deletion, no key getter or project secrets and zero image generation requests.',
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

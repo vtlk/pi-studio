@@ -116,7 +116,7 @@ for await(const line of createInterface({input:process.stdin})){const data=JSON.
       window.webContents.once('did-finish-load', () => resolve(window)),
     ),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded,
     js = (code) => window.webContents.executeJavaScript(code, true);
   window.webContents.setBackgroundThrottling(false);
@@ -229,7 +229,7 @@ for await(const line of createInterface({input:process.stdin})){const data=JSON.
   await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await writeFile(resolve('artifacts/mcp-secrets-smoke.png'), (await window.capturePage()).toPNG());
   console.log(
-    'MCP secrets Electron passed: real macOS encryption, empty password reopen, no getter/plaintext/global env, native HTTP and stdio authenticate with exact literal keys including $/!, confirmation/cancel/delete and no fallback.',
+    'MCP secrets Electron passed: native encryption with Chromium mock Keychain, empty password reopen, no getter/plaintext/global env, native HTTP and stdio authenticate with exact literal keys including $/!, confirmation/cancel/delete and no fallback. No real OS credential access.',
   );
   clearTimeout(deadline);
   for (const window of BrowserWindow.getAllWindows()) window.destroy();

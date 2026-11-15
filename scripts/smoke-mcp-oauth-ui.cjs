@@ -31,7 +31,7 @@ const deadline = setTimeout(() => {
       window.webContents.once('did-finish-load', () => resolve(window)),
     ),
   );
-  require('../out/main/index.cjs');
+  require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
   const window = await loaded;
   window.webContents.setBackgroundThrottling(false);
   const js = (code) => window.webContents.executeJavaScript(code, true);
@@ -121,7 +121,7 @@ const deadline = setTimeout(() => {
   await writeFile(resolve('artifacts/mcp-oauth.png'), (await window.capturePage()).toPNG());
   await click('Закрыть');
   console.log(
-    'Native MCP OAuth Electron passed: actual safeStorage clientSecret, native PKCE/browser callback, masked redirect field, cancel without token, actual availability verification and no credentials in renderer/studio/native config. No external account or model request.',
+    'Native MCP OAuth Electron passed: native safeStorage clientSecret with Chromium mock Keychain, native PKCE/browser callback, masked redirect field, cancel without token, actual availability verification and no credentials in renderer/studio/native config. No external account or model request.',
   );
   clearTimeout(deadline);
   await fixture.close();
