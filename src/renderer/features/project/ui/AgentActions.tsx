@@ -108,18 +108,17 @@ export function AgentActions({
         >
           <FolderOpen size={18} />
         </IconButton>
-        {modelConfigured && (
-          <SplitButton
-            iconOnly
-            kind="secondary"
-            menuLabel="Другие варианты запуска"
-            label={hasSession ? 'Продолжить диалог' : 'Запустить'}
-            icon={hasSession ? <MessageSquare size={18} /> : <Play size={18} />}
-            disabled={busy || !agent.profile.enabled}
-            onClick={() => void launch(false)}
-            actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
-          />
-        )}
+        <SplitButton
+          iconOnly
+          kind="secondary"
+          menuLabel="Другие варианты запуска"
+          label={hasSession ? 'Продолжить диалог' : 'Запустить'}
+          tooltipLabel={modelConfigured ? undefined : 'Подключение не настроено'}
+          icon={hasSession ? <MessageSquare size={18} /> : <Play size={18} />}
+          disabled={busy || !agent.profile.enabled}
+          onClick={() => void launch(false)}
+          actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
+        />
       </div>
       {startOpen && (
         <StartAgentDialog

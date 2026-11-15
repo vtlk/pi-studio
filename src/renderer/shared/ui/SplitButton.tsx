@@ -6,6 +6,7 @@ import { Tooltip } from './Tooltip';
 
 interface SplitButtonProps {
   label: string;
+  tooltipLabel?: string;
   icon?: ReactNode;
   iconOnly?: boolean;
   kind?: 'primary' | 'secondary';
@@ -17,6 +18,7 @@ interface SplitButtonProps {
 
 export function SplitButton({
   label,
+  tooltipLabel = label,
   icon,
   iconOnly = false,
   kind = 'primary',
@@ -35,7 +37,7 @@ export function SplitButton({
         aria-label={label}
       >
         {iconOnly ? (
-          <Tooltip label={label}>
+          <Tooltip label={tooltipLabel}>
             <button
               type="button"
               className={`button ${kind} split-button-main`}

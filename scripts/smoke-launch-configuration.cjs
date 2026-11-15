@@ -123,7 +123,16 @@ const deadline = setTimeout(() => {
       if (await js(code)) return;
       await new Promise((r) => setTimeout(r, 50));
     }
-    throw Error('Timed out: ' + code);
+    throw Error(
+      'Timed out: ' +
+        code +
+        '\n' +
+        JSON.stringify(
+          await js(
+            `({tooltips:Array.from(document.querySelectorAll('[role="tooltip"]')).map(e=>e.textContent),active:document.activeElement?.outerHTML.slice(0,900),buttons:Array.from(document.querySelectorAll('.split-button-main')).map(e=>({label:e.getAttribute('aria-label'),disabled:e.disabled}))})`,
+          ),
+        ),
+    );
   };
   const row = (id) =>
     `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label')?.textContent.endsWith(${JSON.stringify('. ' + id)}))`;
@@ -152,16 +161,16 @@ const deadline = setTimeout(() => {
     );
     assert.equal(
       await js(`!!${expr}.querySelector('button[aria-label="Запустить"]')`),
-      configured,
+      agent.profile.id !== 'bound',
       agent.profile.id,
     );
     assert.equal(
       await js(`!!${expr}.querySelector('button[aria-label="Продолжить диалог"]')`),
-      false,
+      agent.profile.id === 'bound',
     );
     assert.equal(
       await js(`!!${expr}.querySelector('button[aria-label="Другие варианты запуска"]')`),
-      configured,
+      true,
     );
     assert.equal(await js(`!!${expr}.querySelector('[aria-label="Показать в Finder"]')`), true);
     assert.equal(
@@ -169,6 +178,43 @@ const deadline = setTimeout(() => {
       true,
     );
   }
+  const configurationDialog = `Array.from(document.querySelectorAll('[role="dialog"]')).some(el=>el.textContent.includes('Сначала настройте подключение Агента в настройках агента'))`;
+  for (const id of [
+    'empty',
+    'connection',
+    'model',
+    'reasoning',
+    'deleted-account',
+    'wrong-provider',
+    'current-missing',
+    'bound',
+  ]) {
+    await until(`!${row(id)}.querySelector('.split-button-main').disabled`);
+    await js(
+      `(()=>{const el=${row(id)}.querySelector('.split-button-main');el.focus();const rect=el.getBoundingClientRect();el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:rect.x+rect.width/2,clientY:rect.y+rect.height/2}));})()`,
+    );
+    await until(
+      `document.querySelector('[role="tooltip"]')?.textContent.includes('Подключение не настроено')`,
+    );
+    await js(
+      `${row(id)}.querySelector('button[aria-label="${id === 'bound' ? 'Продолжить диалог' : 'Запустить'}"]').click()`,
+    );
+    await until(configurationDialog);
+    assert.equal(await js(`!!document.querySelector('.agent-first-message')`), false);
+    await js(`document.querySelector('[role="dialog"] footer button').click()`);
+    await until(`!(${configurationDialog})`);
+  }
+  await js(
+    `${row('empty')}.querySelector('button[aria-label="Другие варианты запуска"]').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
+  await until(`!!document.querySelector('[role="menuitem"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(el=>el.textContent==='Запустить и продолжить').click()`,
+  );
+  await until(configurationDialog);
+  assert.equal(await js(`!!document.querySelector('.agent-first-message')`), false);
+  await js(`document.querySelector('[role="dialog"] footer button').click()`);
+  await until(`!(${configurationDialog})`);
   await js(`${row('valid')}.querySelector('button[aria-label="Запустить"]').click()`);
   await until(`!!document.querySelector('.agent-first-message')`);
   await click('Отмена');
@@ -217,7 +263,7 @@ const deadline = setTimeout(() => {
     ),
   );
   await until(
-    `!!${row('empty')}.querySelector('button[aria-label="Запустить"]')&&!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')&&!${row('valid')}.querySelector('button[aria-label="Запустить"]')`,
+    `!!${row('empty')}.querySelector('button[aria-label="Запустить"]')&&!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')&&${row('valid')}.querySelector('.section-menu-item').getAttribute('aria-label').includes('. Не подключена модель.')`,
   );
   assert.ok(
     (
@@ -226,10 +272,12 @@ const deadline = setTimeout(() => {
   );
   await save('connections', []);
   await until(
-    `document.querySelectorAll('.project-agent-actions .split-button').length===0 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-item')).every(el=>el.getAttribute('aria-label').includes('. Не подключена модель.'))`,
+    `document.querySelectorAll('.project-agent-actions .split-button').length===11 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-item')).every(el=>el.getAttribute('aria-label').includes('. Не подключена модель.'))`,
   );
   await save('connections', [account]);
-  await until(`!!${row('bound')}.querySelector('button[aria-label="Продолжить диалог"]')`);
+  await until(
+    `${row('empty')}.querySelector('.section-menu-item').getAttribute('aria-label').includes('. Не запускался.') && ${row('bound')}.querySelector('.section-menu-item').getAttribute('aria-label').includes('. Диалог сохранён.')`,
+  );
   await js(`${row('empty')}.querySelector('button[aria-label="Запустить"]').click()`);
   await until(`!!document.querySelector('.agent-first-message')`);
   await js(
@@ -242,7 +290,9 @@ const deadline = setTimeout(() => {
       agent.id === 'empty' ? { ...agent, model: { ...agent.model, reasoning: '' } } : agent,
     ),
   );
-  await until(`!${row('empty')}.querySelector('button[aria-label="Запустить"]')`);
+  await until(
+    `${row('empty')}.querySelector('.section-menu-item').getAttribute('aria-label').includes('. Не подключена модель.')`,
+  );
   const submitMessage = () =>
     js(
       `Array.from(document.querySelectorAll('[role="dialog"] button')).find(el=>el.textContent.trim()==='Запустить').click()`,
@@ -315,6 +365,37 @@ const deadline = setTimeout(() => {
   assert.equal(await readFile(join(projectDir, bound.session.path), 'utf8'), transcript);
   await assert.rejects(access(join(projectDir, '.pistudio/context')));
   assert.equal(launches, 0);
+  const profilesBeforeRefresh = (await js('window.studio.loadStudio()')).sections.agents;
+  await save('agents', [
+    ...profilesBeforeRefresh,
+    {
+      id: 'refresh-added',
+      name: 'refresh-added',
+      enabled: true,
+      instructions: [],
+      skills: [],
+      mcps: [],
+      plugins: [],
+    },
+  ]);
+  assert.equal(await js(`!!(${row('refresh-added')})`), false);
+  await click('Перечитать агентов');
+  await click('Перечитать');
+  await until(`document.querySelector('[role="dialog"]')?.textContent.includes('refresh-added')`);
+  await js(`document.querySelector('[role="dialog"] footer .primary').click()`);
+  await until(`!!(${row('refresh-added')})?.querySelector('button[aria-label="Запустить"]')`);
+  await js(`${row('refresh-added')}.querySelector('button[aria-label="Запустить"]').click()`);
+  await until(configurationDialog);
+  assert.equal(await js(`!!document.querySelector('.agent-first-message')`), false);
+  await js(`document.querySelector('[role="dialog"] footer .primary').click()`);
+  await until(
+    `document.querySelector('[aria-label="Название агента"]')?.value==='refresh-added' && document.querySelector('[aria-label="Настройки агента"] [aria-current="true"]')?.textContent.trim()==='Модель'`,
+  );
+  const refreshed = (await js('window.studio.loadStudio()')).projects[0];
+  assert.ok(refreshed.agents.some((a) => a.profile.id === 'refresh-added' && !a.session));
+  assert.equal(await readFile(join(projectDir, bound.session.path), 'utf8'), transcript);
+  await assert.rejects(access(join(projectDir, '.pistudio/context')));
+  assert.equal(launches, 0);
   await writeFile(
     'artifacts/launch-configuration-proof.json',
     JSON.stringify(
@@ -325,13 +406,18 @@ const deadline = setTimeout(() => {
         packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
         currentProfileAndAccountValidation: true,
         statusInAccessibleNameNotVisibleSubtitle: true,
-        launchHiddenWithoutModel: true,
+        launchAndResumeAlwaysVisible: true,
+        missingConfigurationOpensGuidanceBeforeSessionOrMessage: true,
+        missingConfigurationTooltip: 'Подключение не настроено',
+        refreshAddedAgentWithoutModelHasLaunchButton: true,
+        refreshAddedAgentGoToExactModelTab: true,
         firstMessageAndMenuCancelCreateNothing: true,
         lateModelRemovalDoesNotReachLaunch: true,
         configurationModalMakesRetainedDraftInert: true,
         configurationCancelKeepsMessage: true,
         goToExactAgentModelTab: true,
-        projectAndCanonicalTranscriptUnchanged: true,
+        launchPreflightDoesNotMutateProject: true,
+        canonicalTranscriptUnchanged: true,
         noContextCreated: true,
         modelRequests: 0,
         beforeFix:
