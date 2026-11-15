@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 520" role="img" aria-labelledby="title desc">
+  <title id="title">Pi Studio — от идеи к результату</title>
+  <desc id="desc">Графитовая типографика, жёлтый акцент и абстрактные листы результатов. Локальная студия для команд агентов Pi.</desc>
+  <defs><clipPath id="bounds"><rect width="1440" height="520" rx="16"/></clipPath></defs>
+  <g clip-path="url(#bounds)" font-family="Arial, Helvetica, sans-serif">
+    <rect width="1440" height="520" fill="#f6f6f4"/>
+    <path d="M1048 -80H1515V625H912Z" fill="#ffe23b"/>
+    <g fill="none" stroke="#171719" stroke-width="3">
+      <path d="M1040 -20v90M1160 -20v90M1280 -20v90M1400 -20v90"/>
+    </g>
+    <g transform="translate(1068 115) rotate(12)">
+      <rect x="36" y="5" width="220" height="278" rx="6" fill="#171719"/>
+      <rect x="-28" y="37" width="220" height="278" rx="6" fill="#fff"/>
+      <rect x="-86" y="74" width="220" height="278" rx="6" fill="#ffe23b" stroke="#171719" stroke-width="3"/>
+      <text x="-60" y="135" fill="#171719" font-size="24" font-weight="700">03</text>
+      <path d="M-60 160H107M-60 180H107M-60 200H49" stroke="#171719" stroke-width="3"/>
+      <circle cx="43" cy="279" r="45" fill="#171719"/>
+      <text x="43" y="296" text-anchor="middle" fill="#ffe23b" font-size="57" font-weight="700">π</text>
+    </g>
+    <text x="72" y="77" font-size="17" font-weight="700" letter-spacing="2.8" fill="#71717a">СОБЕРИТЕ СВОЮ КОМАНДУ</text>
+    <text x="66" y="205" font-size="112" font-weight="800" letter-spacing="-5" fill="#171719">PI STUDIO</text>
+    <text x="72" y="278" font-size="43" font-weight="600" letter-spacing="-1" fill="#171719">От идеи к результату.</text>
+    <text x="72" y="325" font-size="27" fill="#71717a">Промпты, инструменты и файлы — в одном месте.</text>
+    <path d="M72 391H865" stroke="#cfcfce"/>
+    <text x="72" y="430" font-size="18" fill="#171719">Выбираете модель. Запускаете агента. Смотрите результат.</text>
+    <text x="72" y="478" font-size="18" font-weight="700" letter-spacing="1.2" fill="#71717a">macOS · ALPHA</text>
+    <text x="439" y="478" font-size="18" font-weight="700" letter-spacing="1.2" fill="#71717a">ФАЙЛЫ НА ВАШЕМ ДИСКЕ</text>
+  </g>
+</svg>
