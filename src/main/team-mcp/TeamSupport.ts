@@ -38,6 +38,10 @@ export class TeamSupport {
   attach(host: TeamHost) {
     this.host = host;
   }
+  assertUpdateIdle() {
+    if (this.armed.size || this.pumping.size)
+      throw new Error('Дождитесь выполнения или отмените ожидающие поручения команды.');
+  }
   drain() {
     this.close();
     return Promise.resolve();

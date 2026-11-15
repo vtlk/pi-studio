@@ -1,4 +1,5 @@
-import { app, ipcMain, safeStorage, type IpcMainInvokeEvent } from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { app, safeStorage, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels } from '../../shared/contracts';
 import type { ImageConnectionRequest } from '../../shared/connections';
@@ -26,23 +27,29 @@ export function registerImageHandlers(
   connections: ImageConnections,
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
-  ipcMain.handle(desktopChannels.readImageConnection, (event, request: ImageConnectionRequest) => {
-    caller(event);
-    return connections.status(request);
-  });
-  ipcMain.handle(
+  handleDesktopInvoke(
+    desktopChannels.readImageConnection,
+    (event, request: ImageConnectionRequest) => {
+      caller(event);
+      return connections.status(request);
+    },
+  );
+  handleDesktopInvoke(
     desktopChannels.saveImageKey,
     (event, request: ImageConnectionRequest & { key: string }) => {
       caller(event);
       return connections.save(request);
     },
   );
-  ipcMain.handle(desktopChannels.removeImageKey, (event, request: ImageConnectionRequest) => {
+  handleDesktopInvoke(desktopChannels.removeImageKey, (event, request: ImageConnectionRequest) => {
     caller(event);
     return connections.remove(request);
   });
-  ipcMain.handle(desktopChannels.checkImageConnection, (event, request: ImageConnectionRequest) => {
-    caller(event);
-    return connections.check(request);
-  });
+  handleDesktopInvoke(
+    desktopChannels.checkImageConnection,
+    (event, request: ImageConnectionRequest) => {
+      caller(event);
+      return connections.check(request);
+    },
+  );
 }

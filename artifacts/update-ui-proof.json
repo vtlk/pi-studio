@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-15T23:34:05.781Z",
+  "scope": "Actual feature provider/shared UI and production preload in an isolated offscreen Electron window; controlled update state only, not a native installer or app lifecycle integration.",
+  "noOfferNoIcon": true,
+  "keyboardOpen": true,
+  "laterDoesNotDownload": true,
+  "explicitRequestOnce": true,
+  "progressAndError": true,
+  "transientDialogBlocksReady": true,
+  "tokenFlushAcknowledged": true,
+  "applicationInertDuringLease": true,
+  "freezingDialogCannotDismiss": true,
+  "clipboardOrAudioOrModelAccess": false,
+  "userStudioAccess": false
+}

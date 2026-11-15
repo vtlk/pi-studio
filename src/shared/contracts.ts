@@ -39,6 +39,10 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getUpdateState(): Promise<import('./updates').UpdateState>;
+  checkForUpdates(): Promise<import('./updates').UpdateState>;
+  requestUpdate(): Promise<void>;
+  reportUpdateReadiness(ready: import('./updates').UpdateReadiness): Promise<void>;
   listTeamMessages(projectId: string): Promise<import('./teamMessages').TeamMessageInfo[]>;
   manageTeamMessage(request: import('./teamMessages').TeamMessageAction): Promise<void>;
   exportAgentTeam(
@@ -138,6 +142,10 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getUpdateState: 'studio:update-state',
+  checkForUpdates: 'studio:update-check',
+  requestUpdate: 'studio:update-request',
+  reportUpdateReadiness: 'studio:update-readiness',
   listTeamMessages: 'studio:list-team-messages',
   manageTeamMessage: 'studio:manage-team-message',
   exportAgentTeam: 'studio:export-agent-team',

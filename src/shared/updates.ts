@@ -16,6 +16,15 @@ export interface UpdateOffer {
   releaseUrl: string;
   bytes: number;
 }
+export interface UpdateView {
+  page: 'projects' | 'project' | 'agents' | 'settings' | 'library';
+  projectId?: string;
+}
+export interface UpdateReadiness {
+  saved: boolean;
+  token?: string;
+  view?: UpdateView;
+}
 export interface UpdateState {
   phase:
     | 'idle'
@@ -31,4 +40,5 @@ export interface UpdateState {
   downloaded?: number;
   message?: string;
   checkedAt?: number;
+  prepareToken?: string;
 }

@@ -1,4 +1,5 @@
-import { clipboard, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { clipboard, shell, type IpcMainInvokeEvent } from 'electron';
 import { lstat } from 'node:fs/promises';
 import { desktopChannels } from '../../shared/contracts';
 import type { FileRequest, CopyOutputRequest, DeleteAgentDataRequest } from '../../shared/storage';
@@ -17,7 +18,7 @@ export function registerProjectActions(
     cleared: (projectId: string, agentId: string) => void;
   },
 ) {
-  ipcMain.handle(desktopChannels.copyOutput, (event, request: CopyOutputRequest) => {
+  handleDesktopInvoke(desktopChannels.copyOutput, (event, request: CopyOutputRequest) => {
     caller(event);
     stableId(request?.projectId);
     return service.serialize(async () => {
@@ -30,7 +31,7 @@ export function registerProjectActions(
       clipboard.writeText(file.content);
     });
   });
-  ipcMain.handle(
+  handleDesktopInvoke(
     desktopChannels.deleteAgentData,
     async (event, request: DeleteAgentDataRequest) => {
       caller(event);
@@ -53,7 +54,7 @@ export function registerProjectActions(
       });
     },
   );
-  ipcMain.handle(desktopChannels.revealOutput, (event, request: FileRequest) => {
+  handleDesktopInvoke(desktopChannels.revealOutput, (event, request: FileRequest) => {
     caller(event);
     return service.serialize(async () => {
       const root = await (await service.load()).projects.directory(request.projectId);
@@ -61,7 +62,7 @@ export function registerProjectActions(
       shell.showItemInFolder(await safePath(root, request.path));
     });
   });
-  ipcMain.handle(
+  handleDesktopInvoke(
     desktopChannels.revealAgentOutput,
     (event, request: { projectId: string; agentId: string }) => {
       caller(event);

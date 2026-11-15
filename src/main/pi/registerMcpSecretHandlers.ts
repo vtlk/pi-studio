@@ -1,4 +1,5 @@
-import { app, ipcMain, safeStorage, type IpcMainInvokeEvent } from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { app, safeStorage, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels } from '../../shared/contracts';
 import type { McpSecretEdit, McpSecretRequest } from '../../shared/mcpSecrets';
@@ -16,18 +17,18 @@ export function registerMcpSecretHandlers(
     new SecretVault(join(app.getPath('userData'), 'mcp-secrets'), safeStorage),
     piPath,
   );
-  ipcMain.handle(desktopChannels.readMcpSecretStatus, (event, request: McpSecretRequest) => {
+  handleDesktopInvoke(desktopChannels.readMcpSecretStatus, (event, request: McpSecretRequest) => {
     caller(event);
     return secrets.status(request);
   });
-  ipcMain.handle(
+  handleDesktopInvoke(
     desktopChannels.saveMcpSecrets,
     (event, request: McpSecretEdit & { values: Record<string, string> }) => {
       caller(event);
       return secrets.save(request);
     },
   );
-  ipcMain.handle(desktopChannels.removeMcpSecrets, (event, request: McpSecretEdit) => {
+  handleDesktopInvoke(desktopChannels.removeMcpSecrets, (event, request: McpSecretEdit) => {
     caller(event);
     return secrets.remove(request);
   });

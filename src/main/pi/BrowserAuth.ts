@@ -73,6 +73,14 @@ export class BrowserAuth {
   }
   private readonly script: string;
   private readonly openUrl: (url: string) => Promise<unknown>;
+  assertUpdateIdle() {
+    if (
+      [...this.logins.values()].some((login) =>
+        ['opening', 'waiting', 'verifying'].includes(login.state.phase),
+      )
+    )
+      throw new Error('Завершите или отмените вход перед обновлением Studio.');
+  }
   async start(path: string): Promise<AuthLoginState> {
     return this.begin(path, {
       key: 'codex',

@@ -3,6 +3,11 @@ import { desktopChannels, type DesktopApi } from '../shared/contracts';
 import { runFailure } from '../shared/runFailure';
 
 const desktopApi: DesktopApi = {
+  getUpdateState: () => ipcRenderer.invoke(desktopChannels.getUpdateState),
+  checkForUpdates: () => ipcRenderer.invoke(desktopChannels.checkForUpdates),
+  requestUpdate: () => ipcRenderer.invoke(desktopChannels.requestUpdate),
+  reportUpdateReadiness: (ready) =>
+    ipcRenderer.invoke(desktopChannels.reportUpdateReadiness, ready),
   exportAgentTeam: (request) => ipcRenderer.invoke(desktopChannels.exportAgentTeam, request),
   importAgentTeam: (folder) => ipcRenderer.invoke(desktopChannels.importAgentTeam, folder),
   listTeamMessages: (projectId) => ipcRenderer.invoke(desktopChannels.listTeamMessages, projectId),

@@ -9,6 +9,7 @@ interface ModalProps {
   footer?: ReactNode;
   alert?: boolean;
   inert?: boolean;
+  dismissible?: boolean;
 }
 export function Modal({
   title,
@@ -17,6 +18,7 @@ export function Modal({
   footer,
   alert = false,
   inert = false,
+  dismissible = true,
 }: ModalProps) {
   const ref = useRef<HTMLElement>(null);
   const returnFocus = useRef(document.activeElement);
@@ -35,7 +37,7 @@ export function Modal({
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape') {
       event.stopPropagation();
-      onClose();
+      if (dismissible) onClose();
       return;
     }
     if (event.key !== 'Tab') return;
@@ -59,7 +61,7 @@ export function Modal({
       inert={inert || undefined}
       className={`modal-backdrop dialog-backdrop${alert ? ' confirmation-backdrop' : ''}`}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (dismissible && event.target === event.currentTarget) onClose();
       }}
     >
       <section
@@ -72,9 +74,11 @@ export function Modal({
       >
         <header className="dialog-header">
           <h2>{title}</h2>
-          <IconButton title="Закрыть окно" onClick={onClose}>
-            <X size={20} />
-          </IconButton>
+          {dismissible && (
+            <IconButton title="Закрыть окно" onClick={onClose}>
+              <X size={20} />
+            </IconButton>
+          )}
         </header>
         <div className="dialog-body">{children}</div>
         {footer && <footer className="dialog-footer">{footer}</footer>}

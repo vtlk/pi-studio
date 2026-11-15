@@ -1,10 +1,5 @@
-import {
-  ipcMain,
-  dialog,
-  nativeImage,
-  type BrowserWindow,
-  type IpcMainInvokeEvent,
-} from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { dialog, nativeImage, type BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
 import type { LibraryKind } from '../../shared/library';
 import type { StudioService } from '../storage/StudioStore';
@@ -19,13 +14,13 @@ export function registerLibraryHandlers(
   generators: ReturnType<typeof createLibraryRunHost>,
   caller: (event: IpcMainInvokeEvent) => BrowserWindow,
 ) {
-  ipcMain.handle(desktopChannels.listLibrary, (event) => {
+  handleDesktopInvoke(desktopChannels.listLibrary, (event) => {
     caller(event);
     return service.serialize(() =>
       withReadDeadline(async () => (await service.load()).library.list()),
     );
   });
-  ipcMain.handle(
+  handleDesktopInvoke(
     desktopChannels.readLibraryCharacter,
     (event, id: string, version: number, revision: string) => {
       caller(event);
@@ -34,7 +29,7 @@ export function registerLibraryHandlers(
       );
     },
   );
-  ipcMain.handle(
+  handleDesktopInvoke(
     desktopChannels.createLibraryAsset,
     async (
       event,
@@ -44,11 +39,11 @@ export function registerLibraryHandlers(
       await generators.create(request);
     },
   );
-  ipcMain.handle(desktopChannels.releaseReferenceFiles, (event, ids: unknown) => {
+  handleDesktopInvoke(desktopChannels.releaseReferenceFiles, (event, ids: unknown) => {
     caller(event);
     references.release(ids);
   });
-  ipcMain.handle(desktopChannels.chooseReferenceFiles, async (event) => {
+  handleDesktopInvoke(desktopChannels.chooseReferenceFiles, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Файлы референса',
       properties: ['openFile', 'multiSelections'],

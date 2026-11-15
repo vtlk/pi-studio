@@ -476,3 +476,66 @@ test(
     }
   },
 );
+
+test(
+  'update lease rejects active work/chains and new transport requests; idle cleanup preserves exact resume',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    await f.launch(true);
+    assert.throws(() => f.host.updates.hold(), /цепочки/);
+    await f.launch(false);
+    await f.request();
+    assert.throws(() => f.host.updates.hold(), /Дождитесь/);
+    await f.finish();
+    const before = f.launches.length;
+    const lease = f.host.updates.hold();
+    await assert.rejects(f.launch(false, 'p', 'other'), /обновление/);
+    const denied = await f.event('p', 'first', {
+      type: 'request',
+      message: 'must not be admitted',
+    });
+    assert.equal(denied.ok, false);
+    assert.equal(f.status.get('p/first'), 'ready');
+    assert.equal(f.launches.length, before);
+    lease.verify();
+    await lease.drainIdle();
+    lease.release();
+    await assert.rejects(lease.drainIdle(), /завершено/);
+    await f.launch(false);
+    assert.equal(
+      f.launches.at(-1).message,
+      undefined,
+      'Resume sends no new input after a cancelled update',
+    );
+    const current = f.host.updates.hold();
+    lease.release();
+    await assert.rejects(f.launch(false, 'p', 'other'), /обновление/);
+    current.release();
+  },
+);
+
+test(
+  'a closed automatic Pi leaves no active update blocker or reusable continuation permission',
+  { timeout: 15000 },
+  async (t) => {
+    const f = await fixture(t);
+    await f.launch(true);
+    const child = f.children.at(-1)!;
+    const exited = new Promise<void>((resolve) => child.once('exit', () => resolve()));
+    child.kill('SIGTERM');
+    await exited;
+    await until(() => {
+      try {
+        f.host.updates.assertIdle();
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    const lease = f.host.updates.hold();
+    lease.verify();
+    lease.release();
+    assert.equal(f.launches.length, 1);
+  },
+);

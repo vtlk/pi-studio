@@ -1,8 +1,9 @@
+import { handleDesktopInvoke } from './desktopInvoke.ts';
 import { registerTeamMessageHandlers } from '../team-mcp/registerTeamMessageHandlers';
 import { TeamSupport } from '../team-mcp/TeamSupport';
 import { rasterizePreview } from '../library/rasterizePreview';
 import { outputMediaUrl } from '../../shared/outputPaths';
-import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
+import { app, BrowserWindow, dialog, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
 import { desktopChannels, type DesktopInfo } from '../../shared/contracts';
 import type { FileRequest, StorageSection, SectionEdit } from '../../shared/storage';
@@ -159,18 +160,18 @@ export function registerDesktopHandlers(): StudioService {
     channel: string,
     action: (event: IpcMainInvokeEvent, ...args: never[]) => unknown,
   ) {
-    ipcMain.handle(channel, (event, ...args) => {
+    handleDesktopInvoke(channel, (event, ...args) => {
       caller(event);
       return service.serialize(() => Promise.resolve(action(event, ...(args as never[]))));
     });
   }
   registerLibraryHandlers(service, references, generators, caller);
   registerImageHandlers(imageConnections, caller);
-  ipcMain.handle(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
+  handleDesktopInvoke(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);
     return runs.launch(request);
   });
-  ipcMain.handle(desktopChannels.openSetupAssistant, async (event) => {
+  handleDesktopInvoke(desktopChannels.openSetupAssistant, async (event) => {
     caller(event);
     const id = await service.serialize(
       async () =>
@@ -192,19 +193,19 @@ export function registerDesktopHandlers(): StudioService {
         runtimeConnected: runs.connected,
       }) satisfies DesktopInfo,
   );
-  ipcMain.handle(desktopChannels.getStartup, (event) => {
+  handleDesktopInvoke(desktopChannels.getStartup, (event) => {
     caller(event);
     return startup.read();
   });
-  ipcMain.handle(desktopChannels.retryStartup, (event) => {
+  handleDesktopInvoke(desktopChannels.retryStartup, (event) => {
     caller(event);
     return startup.retry();
   });
-  ipcMain.handle(desktopChannels.skipStartup, (event) => {
+  handleDesktopInvoke(desktopChannels.skipStartup, (event) => {
     caller(event);
     return startup.skip();
   });
-  ipcMain.handle(desktopChannels.chooseStartupPi, async (event) => {
+  handleDesktopInvoke(desktopChannels.chooseStartupPi, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: 'Выберите установленный Pi',
       properties: ['openFile'],

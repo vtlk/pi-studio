@@ -1,4 +1,6 @@
 import { checkRunLiveness } from './runLiveness.ts';
+import { RunUpdateGuard } from './RunUpdateGuard.ts';
+import { withRunProjectChange } from './runProjectChange.ts';
 import { closeSuccessfulRun } from './automaticClose.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
 import { runTeamAccess } from './runTeamAccess.ts';
@@ -29,6 +31,7 @@ export class RunHost {
   private readonly retiring = new Map<string, Promise<void>>();
   private readonly changing = new Set<string>();
   private readonly chains = new Map<string, symbol>();
+  readonly updates = new RunUpdateGuard(this, this.live, this.chains, () => this.stopping);
   private readonly dependencies: RunDependencies;
   private readonly lifecycle: RunLifecycle;
   private monitor = setInterval(() => void this.checkLiveness(), 3000);
@@ -315,23 +318,20 @@ export class RunHost {
     if (live) this.lifecycle.outputsCleared(live);
   }
   private assertUnchanged(projectId: string) {
+    this.updates.assertOpen();
     if (this.stopping) throw new Error('Studio закрывается. Новые запросы не отправляются.');
     if (this.changing.has(projectId))
       throw new Error('Файлы проекта переносятся или копируются. Повторите позже.');
   }
   async withProjectChange<T>(projectId: string, stopSessions: boolean, action: () => Promise<T>) {
-    this.assertIdle(projectId);
-    this.changing.add(projectId);
-    if (stopSessions) this.chains.delete(projectId);
-    try {
-      if (stopSessions)
-        for (const live of [...this.live.values()])
-          if (live.run.project.id === projectId)
-            await this.stopAgent(projectId, live.run.agent.profile.id);
-      return await action();
-    } finally {
-      this.changing.delete(projectId);
-    }
+    return withRunProjectChange(
+      { changing: this.changing, chains: this.chains, live: this.live },
+      projectId,
+      stopSessions,
+      () => this.assertIdle(projectId),
+      (agentId) => this.stopAgent(projectId, agentId),
+      action,
+    );
   }
   async stopAgent(projectId: string, agentId: string) {
     this.chains.delete(projectId);

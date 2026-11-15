@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-15T23:37:09.391Z",
+  "baseHead": "7c717f0d1c7c05f2a4ccc8ca35975d16d018a158",
+  "unitFsTests": 276,
+  "failed": 0,
+  "coordinatorTests": 6,
+  "build": true,
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 393,
+  "nativeConstructorCrud": true,
+  "separateProcessPersistence": true,
+  "nativeQuit": true,
+  "updateUiProof": "update-ui-proof.json",
+  "runHostLeaseGuardWithActualFixtureHttpAndChildProcesses": true,
+  "realPiModelRequestsInThisControl": 0,
+  "actualInstallerImplemented": false,
+  "appLifecycleAndTopbarIntegrated": false,
+  "githubToInstalledAppCycle": false,
+  "userStudioAccess": false,
+  "installedApplicationChanged": false
+}

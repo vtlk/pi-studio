@@ -1,4 +1,5 @@
-import { ipcMain, type IpcMainInvokeEvent } from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { type IpcMainInvokeEvent } from 'electron';
 import type { ProjectCommand } from '../../shared/storage';
 import type { StudioService, StudioStore } from './StudioStore';
 import type { RunHost } from '../pi/RunHost';
@@ -11,7 +12,7 @@ export function registerProjectCommands(
   images: { assertIdle: (projectId?: string) => void },
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
-  ipcMain.handle(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
+  handleDesktopInvoke(desktopChannels.projectCommand, async (event, command: ProjectCommand) => {
     caller(event);
     const templates = async (store: StudioStore) => {
       const teamId =

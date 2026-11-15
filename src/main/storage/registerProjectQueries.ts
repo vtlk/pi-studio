@@ -1,4 +1,5 @@
-import { ipcMain, type IpcMainInvokeEvent } from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
 import type { StudioService, StudioStore } from './StudioStore';
 import type { ProjectActivity } from '../pi/ProjectActivity';
@@ -10,11 +11,11 @@ export function registerProjectQueries(
   caller: (event: IpcMainInvokeEvent) => unknown,
   recover?: (store: StudioStore) => void,
 ) {
-  ipcMain.handle(desktopChannels.listProjectActivity, (event) => {
+  handleDesktopInvoke(desktopChannels.listProjectActivity, (event) => {
     caller(event);
     return activity.list();
   });
-  ipcMain.handle(desktopChannels.listProjectUsage, (event) => {
+  handleDesktopInvoke(desktopChannels.listProjectUsage, (event) => {
     caller(event);
     return service.serialize(async () => {
       const store = await service.load();
@@ -22,7 +23,7 @@ export function registerProjectQueries(
       return store.accounting.list(store.projects.list());
     });
   });
-  ipcMain.handle(desktopChannels.readProject, (event, id: string) => {
+  handleDesktopInvoke(desktopChannels.readProject, (event, id: string) => {
     caller(event);
     return service.serialize(() =>
       withReadDeadline(async () => {

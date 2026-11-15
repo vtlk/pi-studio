@@ -110,6 +110,13 @@ export class Startup {
   get path() {
     return this.state.phase === 'ready' ? (this.state.pi?.path ?? '') : '';
   }
+  assertUpdateIdle() {
+    if (
+      this.started &&
+      ['checking', 'downloading', 'installing', 'verifying'].includes(this.state.phase)
+    )
+      throw new Error('Дождитесь окончания установки Pi.');
+  }
   close() {
     this.generation++;
     this.controller.abort();

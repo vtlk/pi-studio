@@ -1,4 +1,5 @@
-import { app, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
+import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
+import { app, shell, type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
 import type { ComputerSupport } from './ComputerSupport';
 
@@ -7,11 +8,11 @@ export function registerComputerHandlers(
   computer: ComputerSupport,
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
-  ipcMain.handle(desktopChannels.getComputerState, (event) => {
+  handleDesktopInvoke(desktopChannels.getComputerState, (event) => {
     caller(event);
     return computer.state();
   });
-  ipcMain.handle(desktopChannels.requestComputerPermissions, async (event) => {
+  handleDesktopInvoke(desktopChannels.requestComputerPermissions, async (event) => {
     caller(event);
     if (!app.isReady()) throw new Error('Дождитесь запуска Pi Studio.');
     if (process.platform !== 'darwin') return computer.state();
@@ -19,7 +20,7 @@ export function registerComputerHandlers(
     sdk.requestMacOSPermissions();
     return computer.state();
   });
-  ipcMain.handle(desktopChannels.openComputerSettings, async (event, kind: unknown) => {
+  handleDesktopInvoke(desktopChannels.openComputerSettings, async (event, kind: unknown) => {
     caller(event);
     if (process.platform !== 'darwin')
       throw new Error('Системные настройки macOS доступны только на Mac.');
