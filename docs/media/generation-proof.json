@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-15T22:27:34.754804+00:00",
+  "tool": "built-in image_gen",
+  "generatedAssets": [
+    {
+      "file": "docs/media/cover.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 1704467,
+      "sha256": "a76f630388b8e557c5ce986d79149c9f6c2a0b9a6cb886e700815382ff30b6f2",
+      "metadataKeys": []
+    },
+    {
+      "file": "docs/media/workflow.png",
+      "width": 1983,
+      "height": 793,
+      "bytes": 1762124,
+      "sha256": "7127b66b3f777a9e13635cb3b081b49dbc110b3ce7d89e83955a6e2b79b7c21a",
+      "metadataKeys": []
+    }
+  ],
+  "visuallyReviewedAllOutputs": true,
+  "generatedScreenshots": false,
+  "realUiScreenshotsPreserved": true,
+  "prompts": "docs/media/generation-prompts.md"
+}
