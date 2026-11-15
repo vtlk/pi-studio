@@ -25,6 +25,7 @@ export interface RunDependencies {
   mcpGroups?: (run: PreparedRun) => readonly SessionMcpGroup[];
   closed?: (run: PreparedRun) => void;
   capabilities?: (run: PreparedRun, executableExtensions: boolean) => void;
+  runtimeCapabilities?: (run: PreparedRun) => Record<string, unknown>;
   activityChanged?: (run: PreparedRun, working: boolean) => void;
   accounting?: (run: PreparedRun, sample: unknown) => Promise<void>;
   accountingLost?: (run: PreparedRun) => Promise<void>;

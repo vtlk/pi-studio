@@ -1,11 +1,12 @@
 {
-  "checkedAt": "2026-11-14T19:28:36.460Z",
-  "applicationVersion": "0.2.0-alpha.54",
+  "checkedAt": "2026-11-15T05:12:53.475Z",
+  "applicationVersion": "0.2.0-alpha.61",
   "piVersion": "1.5.2",
   "selectedModel": "gpt-5.6-luna",
   "referenceMode": true,
   "passed": {
     "currentNativeMcpSchemaAndCall": true,
+    "actualRuntimeImageAvailability": true,
     "actualOrderedReferenceBytesInMultipart": true,
     "outputBoundToAgentAndValidated": true,
     "operationMetadataOmitsKeysAndPrompts": true,
@@ -17,11 +18,11 @@
   "paidImagesApiRequests": 0,
   "limits": "Actual configured Codex subscription request and native Pi SDK/production bridge; Images HTTP is an injected fixture, no real image generation. Secret protection uses test AES, not macOS Keychain. Own temporary studio only; no Terminal UI or user studio changes.",
   "sourceSha256": {
-    "scripts/smoke-pi-images.ts": "f2c03b9ef7941ad7dbd83ffc8dce4da629c4fabb9bed02f3b6fe30dd7363d202",
-    "src/main/images/ImageGeneration.ts": "20881cb9ab61da1c0f67e9cbe29974b211551c609a317cd87f5e5856aad106d3",
+    "scripts/smoke-pi-images.ts": "a4b2c202836c75b07dc26b3bf28ad19c13a2f24931b3c8756cbbd9d0af761053",
+    "src/main/images/ImageGeneration.ts": "7583f0f6d2f6426ded090a75391df3a63020264e3cc57b0958ad30465d05b6d6",
     "src/main/images/ImagesApi.ts": "6f4088d7c2f23a84c9bfce824592d4fd2b2b0b698fcc562d08e15f5d7907609c",
     "src/main/images/imageReferences.ts": "e17a2348b8628a103795e34d84abc28cafa121aea3b38a5ed2e26dbc63b05d64",
     "src/main/images/tools.ts": "691652836532040e580bb300690ad3df3d33fcdeb9e164ec699a67049f403c75",
-    "bundled/pi-bridge/session.mjs": "bcfc9468f68807f5966a42d8f0840ea9b61f8a4fc7e837e81e526d82e73bcacb"
+    "bundled/pi-bridge/session.mjs": "62d9848500773ea17d1989cebb7cf0a7231997038dcd649b1c6f75a3ce84e190"
   }
 }

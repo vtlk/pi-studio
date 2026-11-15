@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-11-15T05:13:56.775Z",
+  "applicationVersion": "0.2.0-alpha.60",
+  "actualPi": "1.5.2",
+  "model": "gpt-5.6-luna",
+  "seed": {
+    "path": "artifacts/animated-scene/animation.json",
+    "sha256": "6fd0854cb338d28bfb911e55c54321ae8815dd1d5a66d66ed744ed279461585a"
+  },
+  "actualSplitReadBeforeMerge": true,
+  "artifactBytesMatchNativeCompletion": true,
+  "actualSplitCompletion": [
+    {
+      "path": "planning.json",
+      "size": 570,
+      "sha256": "c0396086110147c7fc7d216c616d50e6124ea096cae0c673cda6775c7ffc57ec"
+    }
+  ],
+  "actualMergeCompletion": [
+    {
+      "path": "planning.json",
+      "size": 465,
+      "sha256": "f390bb9de94e46c8fdbb75d87469e18b20527470dc09f300d6b18c95f5049c20"
+    }
+  ],
+  "intermediateSplitSha256": "c0396086110147c7fc7d216c616d50e6124ea096cae0c673cda6775c7ffc57ec",
+  "finalMergeSha256": "f390bb9de94e46c8fdbb75d87469e18b20527470dc09f300d6b18c95f5049c20",
+  "stableSceneAndUnaffectedShot": true,
+  "contiguousSemanticOrder": true,
+  "removedIdAlias": {
+    "terrace-speech-followup": "terrace-speech"
+  },
+  "sameCanonicalDialogue": true,
+  "idleResumeWithoutReplay": true,
+  "totalUserMessages": 2,
+  "paidMediaCalls": 0,
+  "userStudioTouched": false,
+  "limits": "Real Pi edits of generated project planning files; seed derived from the previously verified animation. No app-side scene editor or split/merge engine. No role/skill instruction snapshots retained.",
+  "ownedQaCleanedAfterReview": true,
+  "actualIntermediateArtifactsReviewed": true
+}

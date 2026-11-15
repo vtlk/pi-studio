@@ -170,7 +170,7 @@ try {
   const request = { projectId: project.id, agentId: agent.id, autoContinue: false };
   await host.launch({
     ...request,
-    firstMessage: `Isolated integration test. Call generate_image exactly once with prompt "QA image protocol check" and background "transparent".${referenceMode ? ' Pass references: ["references/input.png"], relative to the project root, as an image reference to the tool.' : ''} It uses a fixture API; do not call any other generator. Use get_run_context if needed. Read the returned PNG from your output to verify it exists. Then call complete_stage with that output-relative PNG filename. Do not ask questions. Do not expose credentials, use another model or generate any extra files.`,
+    firstMessage: `Isolated integration test. First call get_run_context and verify runtimeCapabilities.imageGeneration.available is true. Then call generate_image exactly once with prompt "QA image protocol check" and background "transparent".${referenceMode ? ' Pass references: ["references/input.png"], relative to the project root, as an image reference to the tool.' : ''} It uses a fixture API; do not call any other generator. Read the returned PNG from your output to verify it exists. Then call complete_stage with that output-relative PNG filename. Do not ask questions. Do not expose credentials, use another model or generate any extra files.`,
   });
   assert.equal(await children[0], 0);
   let current = await store.projects.read(project.id);
@@ -186,6 +186,22 @@ try {
   const session = current.agents[0].session!,
     transcript = await readFile(join(directory, session.path), 'utf8');
   assert.equal(transcript.includes(token), false);
+  const contextMessage = transcript
+    .split('\n')
+    .filter(Boolean)
+    .map(JSON.parse)
+    .map((entry) => entry.message)
+    .find(
+      (message) =>
+        message?.role === 'toolResult' &&
+        message.toolName === 'mcp__pi_studio__get_run_context' &&
+        !message.isError,
+    );
+  assert.ok(contextMessage, 'Actual native MCP must return current runtime capabilities');
+  const runtime = JSON.parse(contextMessage.content.find((part: any) => part.type === 'text').text)
+    .runtimeCapabilities.imageGeneration;
+  assert.equal(runtime.available, true);
+  assert.equal(runtime.reason, 'confirmed-chat-adapter');
   assert.equal((await readFile(join(directory, 'project.json'), 'utf8')).includes(token), false);
   const operationFiles = await readdir(join(root, 'operations'));
   const operationData = await readFile(join(root, 'operations', operationFiles[0]), 'utf8');
@@ -224,6 +240,7 @@ try {
     referenceMode,
     passed: {
       currentNativeMcpSchemaAndCall: true,
+      actualRuntimeImageAvailability: true,
       actualOrderedReferenceBytesInMultipart: referenceMode,
       outputBoundToAgentAndValidated: true,
       operationMetadataOmitsKeysAndPrompts: true,

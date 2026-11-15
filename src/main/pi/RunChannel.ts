@@ -64,7 +64,8 @@ export const productionTools: SessionTool[] = [
   },
   {
     name: 'get_run_context',
-    description: 'Read the current project-agent paths and input/output references.',
+    description:
+      'Read current project-agent paths, input/output references and runtime capabilities. If generate_image is absent, read runtimeCapabilities.imageGeneration for the actual reason before asking the user to configure Images API. Tool availability is separate from saved credentials.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {

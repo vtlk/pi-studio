@@ -58,6 +58,41 @@ export class ImageGeneration {
     const binding = this.bindings.get(run);
     return binding?.eligible && !binding.closed ? imageTools : [];
   }
+  availability(run: PreparedRun) {
+    const binding = this.bindings.get(run);
+    if (!binding)
+      return {
+        available: false,
+        reason: 'not-initialized',
+        explanation: 'The Images API runtime is not initialized for this session.',
+      };
+    if (binding.closed)
+      return {
+        available: false,
+        reason: 'session-closed',
+        explanation: 'This Pi session has closed.',
+      };
+    if (!binding.adapterConfirmed)
+      return {
+        available: false,
+        reason: 'unconfirmed-adapter',
+        explanation:
+          'Studio has not confirmed native image-generation capabilities of this chat adapter. This is not an Images API credential error.',
+      };
+    if (!binding.eligible)
+      return {
+        available: false,
+        reason: 'executable-extensions',
+        explanation:
+          'Executable Pi extensions may change image capabilities; Studio has not confirmed this runtime. Changing the Images API key does not resolve this restriction.',
+      };
+    return {
+      available: true,
+      reason: 'confirmed-chat-adapter',
+      explanation:
+        'The shared generate_image MCP tool is available. This does not check its saved connection, model or credentials and does not authorize an automatic paid fallback.',
+    };
+  }
   cancel(run: PreparedRun) {
     const binding = this.bindings.get(run);
     if (binding) binding.closed = true;

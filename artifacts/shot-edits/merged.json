@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "sceneId": "qa-terrace",
+  "durationInFrames": 240,
+  "shots": [
+    {
+      "id": "terrace-speech",
+      "from": 0,
+      "duration": 114,
+      "camera": "locked portrait, actor fixed",
+      "order": 1
+    },
+    {
+      "id": "terrace-parallax-finish",
+      "from": 114,
+      "duration": 126,
+      "camera": "gentle push-in and pan",
+      "order": 2
+    }
+  ],
+  "aliases": {
+    "terrace-speech-followup": "terrace-speech"
+  }
+}

@@ -54,6 +54,12 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       options.computer?.release(run);
     },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
+    runtimeCapabilities: (run) => ({
+      imageGeneration: options.images?.availability(run) ?? {
+        available: false,
+        reason: 'not-initialized',
+      },
+    }),
     activityChanged: (run, working) => options.activity?.set(run, working),
     accounting: (run, sample) =>
       service.serialize(async () => {

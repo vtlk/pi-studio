@@ -64,6 +64,12 @@ export function createLibraryRunHost(service: StudioService, options: Options) {
       options.computer?.release(run);
     },
     capabilities: (run, extensions) => options.images?.runtime(run, extensions),
+    runtimeCapabilities: (run) => ({
+      imageGeneration: options.images?.availability(run) ?? {
+        available: false,
+        reason: 'not-initialized',
+      },
+    }),
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)

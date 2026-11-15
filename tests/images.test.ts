@@ -23,6 +23,7 @@ import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { ImageConnections } from '../src/main/images/ImageConnections.ts';
 import { ImagesApi, ImagesApiError, imageParameters } from '../src/main/images/ImagesApi.ts';
 import { ImageGeneration } from '../src/main/images/ImageGeneration.ts';
+import { RunLifecycle } from '../src/main/pi/RunLifecycle.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import { libraryPng } from '../scripts/fixtures/library.mjs';
@@ -267,6 +268,56 @@ test('only a confirmed eligible runtime exposes image tools; unknown/native/exte
   f.run.requestSequence = 0;
   await assert.rejects(f.images.tool(f.run, 'generate_image', params), /нового пользовательского/);
   assert.equal(calls, 0);
+});
+
+test('run context explains current image-tool restrictions without checking credentials or persisting capabilities', async (t) => {
+  let calls = 0;
+  const f = await fixture(t, async () => {
+    calls++;
+    return imageResponse();
+  });
+  const record = structuredClone(f.run.record);
+  const images = new ImageGeneration(f.service, f.connections, join(f.root, 'caps-operations'));
+  let protectedStorage = 0;
+  f.crypto.isAsyncEncryptionAvailable = async () => {
+    protectedStorage++;
+    throw Error('No Keychain access expected');
+  };
+  f.crypto.decryptStringAsync = async () => {
+    protectedStorage++;
+    throw Error('No secret read expected');
+  };
+  const lifecycle = new RunLifecycle({
+    capabilities: (run, extensions) => images.runtime(run, extensions),
+    runtimeCapabilities: (run) => ({ imageGeneration: images.availability(run) }),
+  } as never);
+  const live = { run: f.run } as never;
+  const context = async () =>
+    (await lifecycle.tool(live, 'get_run_context', {})) as typeof record & {
+      runtimeCapabilities: {
+        imageGeneration: { available: boolean; reason: string; explanation: string };
+      };
+    };
+  assert.equal((await context()).runtimeCapabilities.imageGeneration.reason, 'not-initialized');
+  images.bind(f.run, f.store.folder, model);
+  assert.equal((await context()).runtimeCapabilities.imageGeneration.available, true);
+  await lifecycle.event(live, { type: 'capabilities', executableExtensions: true });
+  assert.equal(
+    (await context()).runtimeCapabilities.imageGeneration.reason,
+    'executable-extensions',
+  );
+  assert.deepEqual(images.tools(f.run), []);
+  await lifecycle.event(live, { type: 'capabilities', executableExtensions: false });
+  assert.equal((await context()).runtimeCapabilities.imageGeneration.available, true);
+  assert.equal(images.tools(f.run).length, 2);
+  images.cancel(f.run);
+  assert.equal((await context()).runtimeCapabilities.imageGeneration.reason, 'session-closed');
+  images.bind(f.run, f.store.folder, { ...model, api: 'unconfirmed-api' });
+  assert.equal((await context()).runtimeCapabilities.imageGeneration.reason, 'unconfirmed-adapter');
+  assert.deepEqual(images.tools(f.run), []);
+  assert.deepEqual(f.run.record, record);
+  assert.equal(calls, 0);
+  assert.equal(protectedStorage, 0);
 });
 
 test('generation writes one validated PNG to the bound output, keeps the agent model, and deduplicates retries within a user request', async (t) => {

@@ -188,7 +188,13 @@ export class RunLifecycle {
   }
   async tool(live: LiveRun, name: string, args: Record<string, unknown>) {
     if (name === 'web_search') return searchWeb(args.query);
-    if (name === 'get_run_context') return live.run.record;
+    if (name === 'get_run_context')
+      return {
+        ...live.run.record,
+        ...(this.dependencies.runtimeCapabilities
+          ? { runtimeCapabilities: this.dependencies.runtimeCapabilities(live.run) }
+          : {}),
+      };
     if (name === 'list_project_files') return listProjectFiles(live.run.projectRoot, args);
     if (name === 'read_project_file') return readProjectFile(live.run.projectRoot, args);
     if (name === 'get_video_contract') return videoContract;
