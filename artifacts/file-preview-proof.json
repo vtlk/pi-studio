@@ -19,7 +19,7 @@
   "copyAfterStaleSelectionTargetsCurrentText": true,
   "invalidAndStaleCopyRejected": true,
   "realUserClipboardUntouched": true,
-  "packagedEntry": false,
+  "packagedEntry": true,
   "foldersFirstInMainAndRenderer": true,
   "nestedFoldersBeforeOlderFiles": true,
   "markdownLocalImage": true,
@@ -43,7 +43,7 @@
   "newModelRequests": 0,
   "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
   "version": "0.2.0-alpha.85",
-  "verifiedAt": "2026-11-16T17:58:26.904Z",
+  "verifiedAt": "2026-11-16T18:03:29.289Z",
   "sourceSha256": {
     "src/renderer/features/project/ui/SearchablePreview.tsx": "5a7afa02d2adf29b806f5850b4d947b20e29358c36a8a9ba52a965ca1c224515",
     "src/renderer/features/project/model/previewSearch.ts": "6d831ef0edba86c6a8dbd0dc0f917477c46fbd568319f07091f8054c27636e71",

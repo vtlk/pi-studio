@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0-alpha.85",
+  "sourceCommit": "4de61713ebb23b5a8cfb5677c3825ea89ae4c6de",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.85",
+  "publishedAt": "2026-11-16T18:11:18Z",
+  "id": 447401488,
+  "assets": [
+    {
+      "id": 755882852,
+      "name": "Pi-Studio-0.2.0-alpha.85-darwin-arm64.update.json",
+      "bytes": 622,
+      "digest": "sha256:dba12b6a322743f35262da6b0931d60b5b1c69d3c2d0e43b0b890a658dbb22f2"
+    },
+    {
+      "id": 755882853,
+      "name": "Pi-Studio-0.2.0-alpha.85-mac-arm64.zip",
+      "bytes": 142877127,
+      "digest": "sha256:4e6da0213e6c16825d9dccd06a92a63a7cc6c38dc2a63f5dab148d86a580f1dc"
+    },
+    {
+      "id": 755882875,
+      "name": "Pi-Studio-0.2.0-alpha.85-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "digest": "sha256:6eeac7952fcf7a3a657b151462453d0c8c83bc9d026f0b93f9138301c11fc5bc"
+    }
+  ],
+  "remoteAssetsMatchedLocalDigestsAndSizes": true,
+  "downloadedProductionEd25519MetadataVerified": true,
+  "allCurrentSourceCommittedTogether": true,
+  "sourceCommitFiles": 148,
+  "sourceChecks": {
+    "build": true,
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 388,
+    "unitFsPassed": 352
+  },
+  "packagedNativeBuiltinAndPreviewsPassed": true,
+  "macSignedWithExistingIdentity": true,
+  "notarized": false,
+  "windowsBuilt": false,
+  "windowsDownloadRemains": "0.2.0-alpha.78",
+  "readmesUpdatedBothLanguages": true,
+  "githubActionsEnabled": false,
+  "repositoryPrivate": true,
+  "applicationInstalledYet": false
+}

@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-16T18:03:21.591Z",
+  "nativeMainPreloadRenderer": true,
+  "freshAssistantPinnedMcps": 5,
+  "freshOrdinaryOnlyProject": true,
+  "optionalBrowserHasSwitchAndNoLock": true,
+  "savedDisableVerified": true,
+  "missingModelModalFromBothEntryPoints": true,
+  "goOpensSettingsConnections": true,
+  "piLaunches": 0,
+  "externalBrowserLaunches": 0,
+  "installedAppOrUserDataChanged": false,
+  "packagedEntry": true,
+  "sourceCommit": "4de61713ebb23b5a8cfb5677c3825ea89ae4c6de"
+}
