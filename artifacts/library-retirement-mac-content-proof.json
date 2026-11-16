@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-11-16T07:45:37.931Z",
-  "version": "0.2.0-alpha.79",
+  "checkedAt": "2026-11-16T08:39:45.030Z",
+  "version": "0.2.0-alpha.80",
   "checkedFiles": 63,
-  "aggregateSha256": "2558e8beb540f99e4a6c9957bba67cbbe981a5510e07fb8f1e35285bea0afb2b",
+  "aggregateSha256": "8ded2d159b00b1f158301680e634874d4ffbed5e1244f92e5c53b2555e87c31a",
   "retiredSemanticMarkersAbsent": true,
   "exclusiveParserDependenciesAbsent": true,
   "scope": "Own compiled main/preload/renderer and shipped bridges/helper; generic OS and third-party library names are not a product feature.",
