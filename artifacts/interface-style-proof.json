@@ -1,6 +1,6 @@
 {
-  "version": "0.2.0-alpha.71",
-  "packagedEntry": true,
+  "version": "0.2.0-alpha.85",
+  "packagedEntry": false,
   "viewport": {
     "width": 1280,
     "height": 900
@@ -8,24 +8,24 @@
   "samples": {
     "name": {
       "display": "block",
-      "width": "571px",
-      "height": "42px",
+      "width": "785.469px",
+      "height": "28px",
       "min-height": "auto",
       "max-height": "none",
       "font-family": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
-      "font-size": "22px",
+      "font-size": "13px",
       "font-weight": "600",
-      "line-height": "normal",
+      "line-height": "20px",
       "color": "rgb(32, 32, 39)",
       "background-color": "rgba(0, 0, 0, 0)",
       "border-top-width": "0px",
-      "border-top-color": "rgb(32, 32, 39)",
+      "border-top-color": "rgb(148, 148, 154)",
       "border-top-style": "none",
-      "border-top-left-radius": "0px",
-      "border-bottom-right-radius": "0px",
-      "padding-top": "8px",
+      "border-top-left-radius": "6px",
+      "border-bottom-right-radius": "6px",
+      "padding-top": "4px",
       "padding-right": "0px",
-      "padding-bottom": "8px",
+      "padding-bottom": "4px",
       "padding-left": "0px",
       "margin-top": "0px",
       "margin-right": "0px",
@@ -37,9 +37,9 @@
     "prompt": {
       "display": "block",
       "width": "775px",
-      "height": "1320px",
+      "height": "700px",
       "min-height": "360px",
-      "max-height": "none",
+      "max-height": "700px",
       "font-family": "-apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
       "font-size": "15px",
       "font-weight": "400",
@@ -47,10 +47,10 @@
       "color": "rgb(32, 32, 39)",
       "background-color": "rgb(255, 255, 255)",
       "border-top-width": "1px",
-      "border-top-color": "rgb(212, 212, 216)",
+      "border-top-color": "rgb(148, 148, 154)",
       "border-top-style": "solid",
-      "border-top-left-radius": "0px",
-      "border-bottom-right-radius": "0px",
+      "border-top-left-radius": "6px",
+      "border-bottom-right-radius": "6px",
       "padding-top": "8px",
       "padding-right": "10px",
       "padding-bottom": "28px",
@@ -75,10 +75,10 @@
       "color": "rgb(36, 32, 39)",
       "background-color": "rgb(255, 255, 255)",
       "border-top-width": "1px",
-      "border-top-color": "rgb(212, 212, 216)",
+      "border-top-color": "rgb(148, 148, 154)",
       "border-top-style": "solid",
-      "border-top-left-radius": "0px",
-      "border-bottom-right-radius": "0px",
+      "border-top-left-radius": "6px",
+      "border-bottom-right-radius": "6px",
       "padding-top": "8px",
       "padding-right": "10px",
       "padding-bottom": "8px",
@@ -101,12 +101,12 @@
       "font-weight": "400",
       "line-height": "normal",
       "color": "rgb(98, 98, 107)",
-      "background-color": "rgb(241, 241, 241)",
+      "background-color": "rgb(237, 237, 237)",
       "border-top-width": "1px",
-      "border-top-color": "rgb(212, 212, 216)",
+      "border-top-color": "rgb(148, 148, 154)",
       "border-top-style": "solid",
-      "border-top-left-radius": "0px",
-      "border-bottom-right-radius": "0px",
+      "border-top-left-radius": "6px",
+      "border-bottom-right-radius": "6px",
       "padding-top": "8px",
       "padding-right": "10px",
       "padding-bottom": "8px",
@@ -129,12 +129,12 @@
       "font-weight": "400",
       "line-height": "normal",
       "color": "rgb(98, 98, 107)",
-      "background-color": "rgb(241, 241, 241)",
+      "background-color": "rgb(237, 237, 237)",
       "border-top-width": "1px",
-      "border-top-color": "rgb(212, 212, 216)",
+      "border-top-color": "rgb(148, 148, 154)",
       "border-top-style": "solid",
-      "border-top-left-radius": "0px",
-      "border-bottom-right-radius": "0px",
+      "border-top-left-radius": "6px",
+      "border-bottom-right-radius": "6px",
       "padding-top": "8px",
       "padding-right": "10px",
       "padding-bottom": "8px",
@@ -159,10 +159,10 @@
       "color": "rgb(32, 32, 39)",
       "background-color": "rgb(255, 255, 255)",
       "border-top-width": "1px",
-      "border-top-color": "rgb(212, 212, 216)",
+      "border-top-color": "rgb(148, 148, 154)",
       "border-top-style": "solid",
-      "border-top-left-radius": "0px",
-      "border-bottom-right-radius": "0px",
+      "border-top-left-radius": "6px",
+      "border-bottom-right-radius": "6px",
       "padding-top": "8px",
       "padding-right": "10px",
       "padding-bottom": "8px",
@@ -193,28 +193,28 @@
       "contrast": 10.148254062961305
     },
     "settingsButton": {
-      "background": "rgb(0, 0, 0)",
-      "foreground": "rgb(255, 255, 255)",
-      "radius": "4px",
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(32, 32, 39)",
+      "radius": "6px",
       "border": "0px",
       "transform": "none",
-      "contrast": 21
+      "contrast": 16.187258562840885
     },
     "primaryAction": {
-      "background": "rgb(238, 238, 238)",
+      "background": "rgb(237, 237, 237)",
       "foreground": "rgb(98, 98, 107)",
       "radius": "6px",
       "border": "1px",
       "transform": "none",
-      "contrast": 5.203029028411976
+      "contrast": 5.156348699934191
     },
     "primaryActionHover": {
-      "background": "rgb(238, 238, 238)",
+      "background": "rgb(237, 237, 237)",
       "foreground": "rgb(98, 98, 107)",
       "radius": "6px",
       "border": "1px",
       "transform": "none",
-      "contrast": 5.203029028411976
+      "contrast": 5.156348699934191
     },
     "selectedAgent": {
       "background": "rgb(255, 212, 71)",
@@ -242,16 +242,100 @@
     }
   },
   "prompt": {
-    "height": 1320,
+    "height": 700,
+    "bottom": 839,
+    "footerBottom": 880,
     "label": false,
     "padding": "0px",
     "margin": "0px"
   },
+  "promptViewports": [
+    {
+      "width": 1080,
+      "height": 280,
+      "notice": false,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 280,
+      "footerBottom": 460,
+      "viewport": 480
+    },
+    {
+      "width": 1080,
+      "height": 224,
+      "notice": true,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 224,
+      "footerBottom": 460,
+      "viewport": 480
+    },
+    {
+      "width": 1080,
+      "height": 440,
+      "notice": false,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 440,
+      "footerBottom": 620,
+      "viewport": 640
+    },
+    {
+      "width": 1080,
+      "height": 384,
+      "notice": true,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 384,
+      "footerBottom": 620,
+      "viewport": 640
+    },
+    {
+      "width": 1280,
+      "height": 540,
+      "notice": false,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 540,
+      "footerBottom": 720,
+      "viewport": 740
+    },
+    {
+      "width": 1280,
+      "height": 484,
+      "notice": true,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 484,
+      "footerBottom": 720,
+      "viewport": 740
+    },
+    {
+      "width": 1440,
+      "height": 800,
+      "notice": false,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 800,
+      "footerBottom": 980,
+      "viewport": 1000
+    },
+    {
+      "width": 1440,
+      "height": 744,
+      "notice": true,
+      "mainOverflow": 0,
+      "editorOverflow": 0,
+      "available": 744,
+      "footerBottom": 980,
+      "viewport": 1000
+    }
+  ],
   "textareaResize": {
     "initialHeight": 320,
     "width": 743,
     "x": 872.5,
-    "y": 566.5,
+    "y": 555.5,
     "viewportHeight": 900,
     "handleHeight": 20,
     "handleWidth": 741,
@@ -286,36 +370,36 @@
   "modelFields": [
     {
       "x": 485,
-      "y": -87,
+      "y": 139,
       "width": 212.28125
     },
     {
       "x": 713.28125,
-      "y": -87,
+      "y": 139,
       "width": 318.421875
     },
     {
       "x": 1047.703125,
-      "y": -87,
+      "y": 139,
       "width": 212.296875
     }
   ],
   "addBorders": [
     {
-      "width": "1px",
-      "style": "dashed"
+      "width": "0px",
+      "style": "none"
+    },
+    {
+      "width": "0px",
+      "style": "none"
     },
     {
       "width": "1px",
       "style": "dashed"
     },
     {
-      "width": "1px",
-      "style": "dashed"
-    },
-    {
-      "width": "1px",
-      "style": "dashed"
+      "width": "0px",
+      "style": "none"
     }
   ],
   "focusSamples": {

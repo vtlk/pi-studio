@@ -1,9 +1,14 @@
 .agents-workspace {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
-  min-height: calc(100vh - 66px);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 .agent-stages {
+  min-height: 0;
+  overflow: auto;
   padding: 0;
   border-right: 1px solid var(--line);
   background: var(--sidebar);
@@ -46,7 +51,32 @@
 }
 .agent-editor {
   min-width: 0;
+  min-height: 0;
+  overflow: auto;
   padding: 0;
+}
+.agents-workspace .agent-editor:has(.agent-prompt-panel) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.agents-workspace .agent-editor:has(.agent-prompt-panel) > .pane-toolbar {
+  flex-shrink: 0;
+}
+.agents-workspace .agent-editor:has(.agent-prompt-panel) > .agent-settings-layout {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+  grid-template-rows: minmax(0, 1fr);
+}
+.agents-workspace .agent-settings-body:has(> .agent-prompt-panel) {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+.agents-workspace .agent-prompt-panel {
+  container-type: size;
+  min-height: 0;
 }
 .agent-editor-empty {
   margin: 20px;
@@ -99,6 +129,11 @@
   margin: 0;
   --textarea-base-height: max(360px, calc(100dvh - 240px));
   --textarea-min-height: 360px;
+}
+.agents-workspace .agent-prompt-panel textarea {
+  --textarea-base-height: 50cqh;
+  --textarea-min-height: min(360px, 100cqh);
+  --textarea-max-height: 100cqh;
 }
 .skill-instructions-input {
   --textarea-base-height: 240px;

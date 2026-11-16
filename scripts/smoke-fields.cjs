@@ -1,5 +1,5 @@
 const { app, ipcMain } = require('electron');
-const { mkdtempSync, mkdirSync } = require('node:fs');
+const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
 const { rm, mkdir, readFile, writeFile } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
@@ -16,6 +16,11 @@ const deadline = setTimeout(() => {
     mkdirSync(p);
     app.setPath(key, p);
   }
+  writeFileSync(join(app.getPath('userData'), 'language.json'), JSON.stringify({ language: 'ru' }));
+  writeFileSync(
+    join(app.getPath('userData'), 'appearance.json'),
+    JSON.stringify({ theme: 'light' }),
+  );
   let loadFailure = false;
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (channel, action) =>
@@ -159,8 +164,8 @@ const deadline = setTimeout(() => {
   );
   await colors('mainNavigationHover', '.topbar nav button[aria-current="page"]', true);
   const settings = await colors('settingsButton', '.settings-button');
-  assert.equal(settings.background, 'rgb(0, 0, 0)');
-  assert.equal(settings.foreground, 'rgb(255, 255, 255)');
+  assert.equal(settings.border, '0px');
+  assert.equal(settings.radius, '6px');
   await js(`document.querySelector('[aria-label="Создать проект"]').click()`);
   await until(`!!document.querySelector('[role="dialog"] input')`);
   await js(
@@ -199,13 +204,54 @@ const deadline = setTimeout(() => {
   await sample('name', '[aria-label="Название агента"]');
   await sample('prompt', '[aria-label="Основной промпт агента"]');
   const prompt = await js(
-    `(()=>{const el=document.querySelector('[aria-label="Основной промпт агента"]'),s=getComputedStyle(el.parentElement);return {height:el.getBoundingClientRect().height,label:!!el.closest('label'),padding:s.padding,margin:s.margin};})()`,
+    `(()=>{const el=document.querySelector('[aria-label="Основной промпт агента"]'),s=getComputedStyle(el.parentElement);return {height:el.getBoundingClientRect().height,bottom:el.getBoundingClientRect().bottom,footerBottom:document.querySelector('.agent-editor-footer').getBoundingClientRect().bottom,label:!!el.closest('label'),padding:s.padding,margin:s.margin};})()`,
   );
   const viewportHeight = await js('window.innerHeight');
-  assert.equal(prompt.height, 2 * Math.max(360, viewportHeight - 240));
+  assert.ok(prompt.height >= 360);
+  assert.ok(prompt.bottom <= viewportHeight - 20, 'Prompt stays inside the visible pane');
+  assert.ok(prompt.footerBottom <= viewportHeight - 12, 'Footer retains a bottom margin');
   assert.equal(prompt.label, false);
   assert.equal(prompt.padding, '0px');
   assert.equal(prompt.margin, '0px');
+  const promptViewports = [];
+  await js(
+    `(()=>{const spacer=document.createElement('div');spacer.dataset.qaSidebarSpacer='true';spacer.style.height='2500px';document.querySelector('.agent-stages').append(spacer);})()`,
+  );
+  for (const [width, height] of [
+    [1080, 480],
+    [1080, 640],
+    [1280, 740],
+    [1440, 1000],
+  ]) {
+    await window.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride', {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    for (const notice of [false, true]) {
+      await js(
+        `(()=>{document.querySelector('[data-qa-notice]')?.remove();if(${notice}){const node=document.createElement('div');node.dataset.qaNotice='true';node.className='run-failure-notice';node.style.height='56px';document.querySelector('.main-shell').insertBefore(node,document.querySelector('.main-scroll'));}})()`,
+      );
+      await js(`new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))`);
+      const geometry = await js(
+        `(()=>{const main=document.querySelector('.main-scroll'),editor=document.querySelector('.agent-editor'),panel=document.querySelector('.agent-prompt-panel'),field=panel.querySelector('textarea'),footer=document.querySelector('.agent-editor-footer');return {mainOverflow:main.scrollHeight-main.clientHeight,editorOverflow:editor.scrollHeight-editor.clientHeight,height:field.getBoundingClientRect().height,available:panel.getBoundingClientRect().height,footerBottom:footer.getBoundingClientRect().bottom,viewport:innerHeight};})()`,
+      );
+      assert.ok(geometry.mainOverflow <= 1, 'Prompt must not scroll the page');
+      assert.ok(geometry.editorOverflow <= 1, 'Prompt editor must not overflow');
+      assert.ok(
+        Math.abs(geometry.height - geometry.available) <= 1,
+        'Prompt fills the available pane',
+      );
+      assert.ok(geometry.footerBottom <= geometry.viewport - 12, 'Footer stays visible');
+      promptViewports.push({ width, height, notice, ...geometry });
+    }
+  }
+  await js(
+    `document.querySelector('[data-qa-notice]')?.remove();document.querySelector('[data-qa-sidebar-spacer]')?.remove()`,
+  );
+  await window.webContents.debugger.sendCommand('Emulation.clearDeviceMetricsOverride');
+  await js(`new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))`);
   for (const selector of [
     '[aria-label="Название агента"]',
     '[aria-label="Основной промпт агента"]',
@@ -549,6 +595,7 @@ const deadline = setTimeout(() => {
         samples,
         appearance,
         prompt,
+        promptViewports,
         textareaResize,
         textareaFind,
         findGeometry,

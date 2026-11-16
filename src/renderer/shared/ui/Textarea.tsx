@@ -34,7 +34,7 @@ export function Textarea({
   const field = useRef<HTMLTextAreaElement>(null);
   const drag = useRef<{ pointerId: number; y: number; height: number } | null>(null);
   const [height, setHeight] = useState<number>();
-  const [size, setSize] = useState({ height: 0, minimum: 90 });
+  const [size, setSize] = useState({ height: 0, minimum: 90, maximum: 16384 });
   const [dragging, setDragging] = useState(false);
   const fieldId = id ?? generatedId;
   const find = useTextareaFind(field, props.value);
@@ -42,12 +42,18 @@ export function Textarea({
   useLayoutEffect(() => {
     const element = field.current!;
     const measure = () => {
+      const computed = getComputedStyle(element);
       const next = {
         height: Math.round(element.getBoundingClientRect().height),
-        minimum: parseFloat(getComputedStyle(element).minHeight) || 90,
+        minimum: parseFloat(computed.minHeight) || 90,
+        maximum: parseFloat(computed.maxHeight) || 16384,
       };
       setSize((current) =>
-        current.height === next.height && current.minimum === next.minimum ? current : next,
+        current.height === next.height &&
+        current.minimum === next.minimum &&
+        current.maximum === next.maximum
+          ? current
+          : next,
       );
     };
     measure();
@@ -55,7 +61,7 @@ export function Textarea({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const maximum = Math.max(16384, size.minimum, size.height);
+  const maximum = Math.max(size.maximum, size.minimum, size.height);
   const resize = (next: number) =>
     setHeight(Math.max(size.minimum, Math.min(maximum, Math.round(next))));
   const stop = () => {

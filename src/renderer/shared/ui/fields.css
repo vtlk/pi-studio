@@ -14,7 +14,7 @@
   display: block;
   height: calc(var(--textarea-height-scale, 2) * var(--textarea-base-height, 90px));
   min-height: var(--textarea-min-height, var(--textarea-base-height, 90px));
-  max-height: none;
+  max-height: var(--textarea-max-height, none);
   resize: vertical;
   overflow: auto;
   flex-shrink: 0;
