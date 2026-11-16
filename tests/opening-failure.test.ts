@@ -16,6 +16,9 @@ test('opening diagnostics report controlled stage/MCP names without forwarding u
   assert.deepEqual(openingFailure(issue), { kind: 'terminal' });
   assert.equal(bridgeText(issue), openingFailureText(issue));
   assert.equal(bridgeText(issue).includes('SECRET_PROVIDER_TOKEN'), false);
+  const unknownMcp = bridgeFailure(upstream, 'mcp');
+  assert.deepEqual(openingFailure(unknownMcp), { kind: 'resources' });
+  assert.equal(bridgeText(unknownMcp).includes('SECRET_PROVIDER_TOKEN'), false);
   for (const value of [
     { kind: 'anything', message: upstream.message },
     { kind: 'mcp', servers: ['unsafe secret/url'] },

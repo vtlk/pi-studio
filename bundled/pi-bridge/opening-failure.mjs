@@ -20,7 +20,9 @@ export class StudioOpeningError extends Error {
 }
 export function openingFailure(error, stage) {
   if (error instanceof StudioOpeningError) return error.issue;
-  return { kind: Object.hasOwn(messages, stage) ? stage : 'runtime' };
+  return {
+    kind: stage === 'mcp' ? 'resources' : Object.hasOwn(messages, stage) ? stage : 'runtime',
+  };
 }
 export function openingFailureText(issue) {
   return issue.kind === 'mcp'

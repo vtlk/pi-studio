@@ -400,6 +400,7 @@ export async function runSession(bootstrapPath) {
       await runtime.session.bindExtensions({});
       await waitForMcp(statuses, requiredServers);
       await event({ type: 'opened' });
+      openingStage = 'runtime';
       await bindWrittenSession();
       if (initialMessage) await runtime.session.prompt(initialMessage, { images: initialImages });
     } else {
@@ -416,6 +417,7 @@ export async function runSession(bootstrapPath) {
       openingStage = 'mcp';
       await waitForMcp(statuses, requiredServers);
       await event({ type: 'opened' });
+      openingStage = 'runtime';
       await bindWrittenSession();
       await mode.run();
     }
