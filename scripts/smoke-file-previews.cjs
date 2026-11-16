@@ -183,9 +183,10 @@ const deadline = setTimeout(() => {
   };
   await copy('Обзор.MARKDOWN', await readFile(join(output, 'docs/Обзор.MARKDOWN'), 'utf8'));
   const copyStyle = await js(
-    `(()=>{const button=document.querySelector('.copy-output-button'),s=getComputedStyle(button),r=button.getBoundingClientRect(),bar=button.closest('.project-file-toolbar').getBoundingClientRect();return {border:s.borderTopWidth,inside:r.right<=bar.right&&r.left>=bar.left};})()`,
+    `(()=>{const button=document.querySelector('.copy-output-button'),s=getComputedStyle(button),r=button.getBoundingClientRect(),bar=button.closest('.project-file-toolbar').getBoundingClientRect();return {border:s.borderTopWidth,color:s.borderTopColor,inside:r.right<=bar.right&&r.left>=bar.left};})()`,
   );
-  assert.equal(copyStyle.border, '0px');
+  assert.equal(copyStyle.border, '1px');
+  assert.equal(copyStyle.color, 'rgba(0, 0, 0, 0)');
   assert.equal(copyStyle.inside, true);
   window.webContents.debugger.attach('1.3');
   await window.webContents.debugger.sendCommand('DOM.enable');
@@ -202,7 +203,7 @@ const deadline = setTimeout(() => {
   const copyHover = await js(
     `(()=>{const s=getComputedStyle(document.querySelector('.copy-output-button'));return {border:s.borderTopWidth,background:s.backgroundColor};})()`,
   );
-  assert.deepEqual(copyHover, { border: '0px', background: 'rgb(237, 237, 240)' });
+  assert.deepEqual(copyHover, { border: '1px', background: 'rgb(237, 237, 240)' });
   await window.webContents.debugger.sendCommand('CSS.forcePseudoState', {
     nodeId: copyNode.nodeId,
     forcedPseudoClasses: [],
@@ -288,7 +289,14 @@ const deadline = setTimeout(() => {
   await file('source.html');
   await until(`document.querySelector('.output-text')?.textContent.includes('<script>')`);
   assert.equal(await js('window.PREVIEW_EXECUTED'), undefined);
-  const findProof = await require('./preview-find-checks.cjs')({ window, js, until, file, output, copy });
+  const findProof = await require('./preview-find-checks.cjs')({
+    window,
+    js,
+    until,
+    file,
+    output,
+    copy,
+  });
   hold = true;
   await file('slow.md');
   while (!pending) await new Promise((r) => setTimeout(r, 30));
@@ -305,7 +313,9 @@ const deadline = setTimeout(() => {
   pending = undefined;
   await js('new Promise(r=>setTimeout(r,100))');
   assert.equal(await js(`document.querySelector('.output-text')?.textContent`), 'Текст результата');
-  await until(`document.querySelector('.preview-findbar [role="status"]')?.textContent.trim()==='1 / 1'`);
+  await until(
+    `document.querySelector('.preview-findbar [role="status"]')?.textContent.trim()==='1 / 1'`,
+  );
   await copy('notes.txt', 'Текст результата');
   hold = true;
   await file('slow-error.md');

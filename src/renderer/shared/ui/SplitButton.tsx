@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import { Button } from './index';
@@ -27,12 +27,15 @@ export function SplitButton({
   menuLabel,
   actions,
 }: SplitButtonProps) {
+  const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const pendingAction = useRef<(() => void) | null>(null);
   return (
-    <DropdownMenu.Root modal={false}>
+    <DropdownMenu.Root modal={false} open={open} onOpenChange={setOpen}>
       <div
         className={`split-button${iconOnly ? ' split-button-icon-only' : ''}`}
+        data-menu-open={open || undefined}
+        data-disabled={disabled || undefined}
         role="group"
         aria-label={label}
       >

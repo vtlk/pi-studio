@@ -36,6 +36,7 @@
   padding: 0;
   background: #f7f7f8;
 }
+.column-heading,
 .project-column-heading {
   flex: 0 0 auto;
   min-height: 52px;
@@ -170,19 +171,9 @@
   min-height: 0;
   overflow: hidden;
 }
-.project-file-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  min-height: 52px;
-  flex-shrink: 0;
-  padding: 12px 20px 12px 12px;
-  border-bottom: 1px solid #c9c9d0;
-}
 .project-file-toolbar .copy-output-button {
   flex-shrink: 0;
-  border: 0;
+  border: 1px solid transparent;
   background: transparent;
 }
 .project-file-toolbar .copy-output-button:hover:not(:disabled) {
@@ -282,7 +273,7 @@
   height: 32px;
   min-height: 32px;
   padding: 0;
-  border: 1px solid #a1a1aa;
+  border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: #27272a;
@@ -538,4 +529,34 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* Local project actions keep their geometry; row hover does not draw a contour. */
+.app-shell :is(.project-workspace, .projects-table) :is(.icon-button, .hover-delete) {
+  border: 1px solid transparent;
+}
+.app-shell
+  :is(.project-workspace, .projects-table)
+  :is(.icon-button, .hover-delete):is(:hover, :focus-visible):not(:disabled) {
+  border-color: var(--control-border, #71717a);
+}
+.project-workspace .project-agent-actions .split-button {
+  position: relative;
+  border-radius: 6px;
+}
+.app-shell .project-agent-actions .split-button > .button {
+  border: 0;
+}
+.project-workspace .split-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid transparent;
+  border-radius: inherit;
+}
+.project-workspace
+  .split-button:not([data-disabled]):is(:hover, :has(:focus-visible), [data-menu-open])::after {
+  border-color: var(--control-border, #71717a);
 }

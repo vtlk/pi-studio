@@ -12,7 +12,7 @@ export function OutputToolbar({
   projectId?: string;
 }) {
   return (
-    <div className="project-file-toolbar">
+    <div className="project-file-toolbar pane-toolbar">
       {file && (
         <Tooltip label={filePath ?? file.name} onlyWhenTruncated>
           <code className="project-active-file">{filePath ?? file.name}</code>

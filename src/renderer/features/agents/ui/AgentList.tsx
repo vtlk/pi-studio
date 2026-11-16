@@ -55,7 +55,7 @@ export function AgentList() {
   };
   return (
     <nav className="section-menu" aria-label="Конструктор агентов">
-      <h2 className="agent-list-group-heading">Мои команды</h2>
+      <h2 className="agent-list-group-heading column-heading">Мои команды</h2>
       {teams.map((team, teamIndex) => {
         const profiles = team.agentIds.flatMap(
           (id) => agents.find((agent) => agent.id === id) ?? [],
@@ -144,7 +144,7 @@ export function AgentList() {
           }}
         />
       )}
-      <h2 className="agent-list-group-heading">Системные</h2>
+      <h2 className="agent-list-group-heading column-heading">Системные</h2>
       {systemAgents.map((agent, index) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
           <Tooltip

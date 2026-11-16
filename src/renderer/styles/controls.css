@@ -633,3 +633,15 @@
   display: inline-flex;
   flex: 0 0 auto;
 }
+
+/* Shared geometry for the file-path toolbar and agent profile header. */
+.pane-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 53px;
+  flex-shrink: 0;
+  padding: 12px 20px 12px 12px;
+  border-bottom: 1px solid var(--line);
+}

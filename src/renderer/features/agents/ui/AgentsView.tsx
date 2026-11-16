@@ -19,7 +19,7 @@ export function AgentsView() {
       <section className="agent-editor" aria-label="Профиль агента">
         {selectedAgent ? (
           <>
-            <div className="agent-editor-header">
+            <div className="agent-editor-header pane-toolbar">
               <label className="agent-name-editor">
                 <input
                   className="agent-name-input"
@@ -33,7 +33,6 @@ export function AgentsView() {
               <label className="agent-enabled-control">
                 <span>{selectedAgent.enabled ? 'Включён' : 'Выключен'}</span>
                 <Switch
-                  size="large"
                   label="Агент включён"
                   checked={selectedAgent.enabled}
                   onChange={(enabled) => updateAgent({ enabled })}
@@ -75,7 +74,7 @@ export function AgentsView() {
             </div>
           </>
         ) : (
-          <p>Добавьте агента.</p>
+          <p className="agent-editor-empty">Добавьте агента.</p>
         )}
       </section>
     </div>

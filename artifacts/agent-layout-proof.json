@@ -1,7 +1,20 @@
 {
-  "checkedAt": "2026-11-16T07:41:21.947Z",
-  "version": "0.2.0-alpha.79",
+  "checkedAt": "2026-11-16T08:34:01.720Z",
+  "version": "0.2.0-alpha.80",
   "realMainPreloadRendererAndDiskPersistence": true,
+  "agentPresentation": {
+    "headerHeight": 53,
+    "standardSwitch": [
+      42,
+      25
+    ],
+    "actionRightInset": 12,
+    "matchingProjectColumnHeading": true,
+    "ownHoverBordersOnly": true,
+    "splitSingleFrameAcrossPartsAndPortal": true,
+    "localCopyHoverContour": true,
+    "noLaunchOrClipboardRequests": true
+  },
   "controlledSaveDelayAndOneFailure": true,
   "initialAndBackgroundReadNoSuccess": true,
   "successOnlyAfterWrite": true,

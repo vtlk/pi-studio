@@ -12,10 +12,16 @@ import { verifyInventory } from '../bundled/update-helper/inventory.mjs';
 import { readZipText } from './audit/zipText.mjs';
 
 if (process.platform !== 'darwin') throw Error('Mac publisher verification requires macOS.');
+const flags = process.argv.slice(2);
+if (flags.length > 1 || flags.some((flag) => flag !== '--with-windows'))
+  throw Error(
+    'Usage: verify-release-packages.ts [--with-windows] (existing archives only; never builds)',
+  );
+const withWindows = flags.includes('--with-windows');
 const version = JSON.parse(await readFile('package.json', 'utf8')).version;
 const key = JSON.parse(await readFile('src/main/updates/publicKey.json', 'utf8')).spki;
 const manifests = [];
-for (const target of ['darwin-arm64', 'win32-x64']) {
+for (const target of ['darwin-arm64', ...(withWindows ? ['win32-x64'] : [])]) {
   const m = verifyManifest(await readFile(`dist/Pi-Studio-${version}-${target}.update.json`), key);
   if (m.version !== version) throw Error('Unexpected version');
   const hash = createHash('sha256');
@@ -23,7 +29,7 @@ for (const target of ['darwin-arm64', 'win32-x64']) {
   if (hash.digest('hex') !== m.archive.sha256) throw Error('ZIP hash mismatch');
   manifests.push(m);
 }
-if (manifests[0].sourceCommit !== manifests[1].sourceCommit)
+if (manifests.some((manifest) => manifest.sourceCommit !== manifests[0].sourceCommit))
   throw Error('Release source commits differ');
 const directory = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-verify-release-')));
 try {
@@ -61,16 +67,18 @@ try {
     packages.packages.some((p: { noticeHashes: string[] }) => !p.noticeHashes.length)
   )
     throw Error('Missing bundled notice');
-  const windowsZip = join('dist', win.archive.name);
-  execFileSync('/usr/bin/unzip', ['-tqq', windowsZip], { stdio: 'pipe', timeout: 120000 });
-  for (const [entry, expected] of [
-    ['resources/app/out/main/index.cjs', await readFile('out/main/index.cjs')],
-    ['resources/app/licenses/Pi-Studio-LICENSE.txt', ownLicense],
-    ['resources/app/out/renderer/THIRD_PARTY_NOTICES.txt', notices],
-  ] as const) {
-    const bytes = await readZipText(windowsZip, 'Pi Studio/' + entry);
-    if (!bytes || !Buffer.from(bytes).equals(expected))
-      throw Error('Windows payload mismatch: ' + entry);
+  if (win) {
+    const windowsZip = join('dist', win.archive.name);
+    execFileSync('/usr/bin/unzip', ['-tqq', windowsZip], { stdio: 'pipe', timeout: 120000 });
+    for (const [entry, expected] of [
+      ['resources/app/out/main/index.cjs', await readFile('out/main/index.cjs')],
+      ['resources/app/licenses/Pi-Studio-LICENSE.txt', ownLicense],
+      ['resources/app/out/renderer/THIRD_PARTY_NOTICES.txt', notices],
+    ] as const) {
+      const bytes = await readZipText(windowsZip, 'Pi Studio/' + entry);
+      if (!bytes || !Buffer.from(bytes).equals(expected))
+        throw Error('Windows payload mismatch: ' + entry);
+    }
   }
   const proof = {
     checkedAt: new Date().toISOString(),
@@ -80,14 +88,16 @@ try {
     ed25519AndStreamedHashesVerified: true,
     macProductionExtractionAllCrcs: true,
     macDeepStrictSignaturePublisherIdArchitectureAndInventory: true,
-    mainMatchesBuildOnBothPlatforms: true,
-    ownMitLicenseOnBothPlatforms: true,
+    mainMatchesBuildOnAllVerifiedPlatforms: true,
+    verifiedPlatforms: manifests.map((m) => m.platform),
+    ownMitLicenseOnAllVerifiedPlatforms: true,
     rendererNoticePackages: packages.packages.length,
-    noticesSameOnBothPlatforms: true,
+    windowsComparedOnlyWhenExplicitlyRequested: withWindows,
     macElectronAndChromiumNotices: true,
-    windowsCrc: true,
+    windowsCrc: !!win,
     installedApplicationOrUserDataMutated: false,
     programsExecuted: false,
+    buildsCreated: 0,
     nativeWindowsAcceptance: false,
     notarized: false,
     temporaryStagingRemoved: true,

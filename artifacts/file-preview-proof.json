@@ -42,7 +42,7 @@
   "newModelRequests": 0,
   "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
   "version": "0.2.0-alpha.79",
-  "verifiedAt": "2026-11-16T07:40:22.653Z",
+  "verifiedAt": "2026-11-16T08:28:57.788Z",
   "sourceSha256": {
     "src/renderer/features/project/ui/SearchablePreview.tsx": "a37d74e5bc6da4bd11f652992e7aed55f44a6e7540faa63813ee52753dd765e9",
     "src/renderer/features/project/model/previewSearch.ts": "6d831ef0edba86c6a8dbd0dc0f917477c46fbd568319f07091f8054c27636e71",
@@ -58,7 +58,7 @@
     "src/main/storage/outputs.ts": "f58c885e869bdbe7ecd5981f6e6fd1684fc5af70cf0ba73edf30fc1eee6dc6f5",
     "src/shared/outputOrder.ts": "12792c1e99d6bd8b52c1ac497f866bb19d1b0670a72e1de9067be467f0e3db1a",
     "src/shared/outputPaths.ts": "b58932ad11b9730493cd366e08edb164ce9fc7f3ba06cd10b5d83e5329d9e09b",
-    "scripts/smoke-file-previews.cjs": "7f85401dcde3302b096206874ef8a2decfed755478251fdd252fbed46e1f5c6f",
-    "out/main/index.cjs": "a7588df9fc73fdce5295f395def238cab26ec57aeef744015f767ccf02ca2377"
+    "scripts/smoke-file-previews.cjs": "7f8717dc4ddb4b2f411500c7a699ad510a73aacbcf33a5af8832d5ee0618d357",
+    "out/main/index.cjs": "af5c8e91dd3a4a6ace774c5dd7abd659613c80305962e9f8acbf7069f63bd88f"
   }
 }

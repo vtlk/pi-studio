@@ -50,9 +50,7 @@ export function CapabilitiesPanel() {
               <p className="subtle">
                 {selectedSystemRole === 'assistant'
                   ? 'Подключается при запуске помощника.'
-                  : selectedSystemRole
-                    ? 'Подключается при запуске библиотечного агента.'
-                    : 'Подключается при запуске проектного агента.'}
+                  : 'Подключается при запуске проектного агента.'}
               </p>
               {selectedSystemRole !== 'assistant' && (
                 <p className="subtle">

@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-16T08:28:02.774Z",
+  "sourceVersion": "0.2.0-alpha.79",
+  "releasePending": true,
+  "oldNativeReturn": "55tab/dev/ttys042",
+  "newWireFormat": "55|/dev/ttys042",
+  "nativeProductionReturnExpressionEvaluated": true,
+  "terminalDictionaryClassCollisionReproduced": true,
+  "windowActionsInRegression": false,
+  "targetedTestsPassed": 14,
+  "exactPidTtyWindowTitleProtectionPreserved": true,
+  "onlyExplicitPendingPolled": true,
+  "uncertainAppleEventsNeverRetried": true,
+  "typedSafeFailureDetails": true,
+  "realPiInteractivePtyChainPassed": true,
+  "localModelRequests": 11,
+  "externalModelRequests": 0,
+  "userStudioTouched": false,
+  "nativeTerminalWindowAcceptance": false
+}

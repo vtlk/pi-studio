@@ -307,6 +307,14 @@ async function child() {
       );
       await click('Готово');
     }
+    const agentPresentation = await require('./agent-presentation-checks.cjs')({
+      js,
+      click,
+      idle,
+      until,
+      w,
+      pause,
+    });
     await click('Настройки');
     await click('Выбрать папку');
     await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
@@ -319,6 +327,7 @@ async function child() {
         checkedAt: new Date().toISOString(),
         version: require('../package.json').version,
         realMainPreloadRendererAndDiskPersistence: true,
+        agentPresentation,
         controlledSaveDelayAndOneFailure: true,
         initialAndBackgroundReadNoSuccess: true,
         successOnlyAfterWrite: true,

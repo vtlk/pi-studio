@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T07:46:40.230Z",
+  "checkedAt": "2026-11-16T08:05:19.088Z",
   "version": "0.2.0-alpha.79",
   "sourceCommit": "bbbbcb4e3e1a1f469f8d9f41f06735087a2543d9",
   "assets": [
@@ -10,27 +10,23 @@
       "bytes": 142911791,
       "unpackedBytes": 324329791,
       "sha256": "c68040617dd490c92c77dfab79850263de1f0bbe305c29a9c98a4e7bb8d766c7"
-    },
-    {
-      "platform": "win32",
-      "arch": "x64",
-      "name": "Pi-Studio-0.2.0-alpha.79-win-x64.zip",
-      "bytes": 171477089,
-      "unpackedBytes": 411749330,
-      "sha256": "29f043de07cd8a86e8e20c0de31c6c5abc96406feed2b264ab7292dec0f9b1d4"
     }
   ],
   "ed25519AndStreamedHashesVerified": true,
   "macProductionExtractionAllCrcs": true,
   "macDeepStrictSignaturePublisherIdArchitectureAndInventory": true,
-  "mainMatchesBuildOnBothPlatforms": true,
-  "ownMitLicenseOnBothPlatforms": true,
+  "mainMatchesBuildOnAllVerifiedPlatforms": true,
+  "verifiedPlatforms": [
+    "darwin"
+  ],
+  "ownMitLicenseOnAllVerifiedPlatforms": true,
   "rendererNoticePackages": 128,
-  "noticesSameOnBothPlatforms": true,
+  "windowsComparedOnlyWhenExplicitlyRequested": false,
   "macElectronAndChromiumNotices": true,
-  "windowsCrc": true,
+  "windowsCrc": false,
   "installedApplicationOrUserDataMutated": false,
   "programsExecuted": false,
+  "buildsCreated": 0,
   "nativeWindowsAcceptance": false,
   "notarized": false,
   "temporaryStagingRemoved": true,
