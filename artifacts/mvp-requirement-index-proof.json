@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T18:58:56.676466+00:00",
+  "checkedAt": "2026-11-16T19:05:12.654416+00:00",
   "headAtAudit": "257924be59002e3e45e9e30fe9d559f7542feeae",
   "backlogUniqueIdCount": 216,
   "backlogIds": [
@@ -295,7 +295,8 @@
     "artifacts/ui-controls-proof.json": "e624619b294f4bab57ebff725649bb6547a6738b55e7c2f2268af0f0664cecdf",
     "artifacts/update-foundation-proof.json": "e4610fadf431d19477c2abe7bed16058266bb52b7a707424647aefdb775bf273",
     "artifacts/update-ui-proof.json": "e64fb65d265a7900b81db4288ac9e24e9384f2919d3fd3ba5c25578388588b64",
-    "docs/media/screenshots-proof.json": "8668d5ae8fe797a41c35614f1a0ce44ca656ec0d0e939eb7c83dce68035d383c"
+    "docs/media/screenshots-proof.json": "8668d5ae8fe797a41c35614f1a0ce44ca656ec0d0e939eb7c83dce68035d383c",
+    "artifacts/public-github-prepare-proof.json": "42e6774c7e13851e486a52918a7d64a9259c3f2c4fa2c94c9f31bd720b8a2251"
   },
   "latestScopeReplacements": [
     "library retired",
@@ -306,8 +307,8 @@
     "five required helper MCPs; ordinary Project only",
     "public repository retained by owner"
   ],
-  "backlogSha256": "45ab6dea8a42e92a8f128b5d30da5247d4343577008318583588b009c24c0098",
-  "auditSha256": "9a624f2dfa3a4fe9af71f057adc55e6bfa5253c66c8c7ac87d4f050d7189a78b",
+  "backlogSha256": "71cac8bbf1dc5cde3365f754135eb0846fc9e0dff9751734ea5493da69365965",
+  "auditSha256": "48e71e359e73c4343febf4a4d469fb884e8bbf98bc9eeb00d534b2e1d0f63033",
   "installedVersion": "0.2.0-alpha.85",
   "promptFitSourceOnlyCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
   "fullMvpAchieved": false,
