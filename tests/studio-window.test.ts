@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -34,7 +35,9 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
     }
   }
   const background = new FakeWindow({ show: false });
-  const filename = new URL('../src/main/windows/createStudioWindow.ts', import.meta.url).pathname;
+  const filename = fileURLToPath(
+    new URL('../src/main/windows/createStudioWindow.ts', import.meta.url),
+  );
   const compiled = ts.transpileModule(await readFile(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;

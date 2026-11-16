@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdtemp, readFile, writeFile, rm, cp } from 'node:fs/promises';
@@ -29,7 +30,7 @@ test('Claude route rejects backend/credential/paid override and removes inherite
 });
 
 test('Claude pinned source integrity and exactly one built-in native provider extension', async (t) => {
-  const source = new URL('../bundled/pi-claude-code', import.meta.url).pathname;
+  const source = fileURLToPath(new URL('../bundled/pi-claude-code', import.meta.url));
   assert.equal((await verifyClaudePackage(source)).runtimePeers['@earendil-works/pi-ai'], '1.5.2');
   const original = join(source, 'src/index.ts');
   assert.deepEqual(await withClaudeExtension([original, bundledClaudeExtension, original]), [

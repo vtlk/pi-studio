@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createServer } from 'node:http';
@@ -122,7 +123,7 @@ test(
       }),
     );
     const pi = await checkPi('');
-    const script = new URL('../bundled/pi-bridge/resources.mjs', import.meta.url).pathname;
+    const script = fileURLToPath(new URL('../bundled/pi-bridge/resources.mjs', import.meta.url));
     const call = (request: Parameters<typeof nativeResourceOperation>[2]) =>
       nativeResourceOperation(pi.path, script, request);
     await call({
