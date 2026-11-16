@@ -1,0 +1,202 @@
+{
+  "checkedAt": "2026-11-16T18:49:54.584Z",
+  "version": "0.2.0-alpha.85",
+  "nativeMainPreloadRenderer": true,
+  "theme": "dark",
+  "languages": [
+    "en",
+    "ru"
+  ],
+  "screenshots": [
+    {
+      "name": "projects",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/en/projects.png",
+      "sha256": "a16a60a0e9a113567da735ea1f26fac39b4f0eca092e0134a3bf88fcd16b5d13",
+      "width": 3072,
+      "height": 1992,
+      "format": "RGBA PNG",
+      "transparentBackground": true,
+      "translucentShadow": true
+    },
+    {
+      "name": "agents",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/en/agents.png",
+      "sha256": "1215d110af208acc3a7cf560a9421cb7e6e5552bd3eccd372dff3b8e39ea71ce",
+      "width": 3072,
+      "height": 1992,
+      "format": "RGBA PNG",
+      "transparentBackground": true,
+      "translucentShadow": true
+    },
+    {
+      "name": "project",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/en/project.png",
+      "sha256": "7797cb97f94767232c01b2649ea895d637588c8eaa714fcac9fe85f51c6b2964",
+      "width": 3072,
+      "height": 1992,
+      "format": "RGBA PNG",
+      "transparentBackground": true,
+      "translucentShadow": true
+    },
+    {
+      "name": "projects",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "ru",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/ru/projects.png",
+      "sha256": "4cbad146d6bd6f25d419030465a90ed348752e7a7badc94ff2cb0dca1238b689",
+      "width": 3072,
+      "height": 1992,
+      "format": "RGBA PNG",
+      "transparentBackground": true,
+      "translucentShadow": true
+    },
+    {
+      "name": "agents",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "ru",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/ru/agents.png",
+      "sha256": "8aecd7d4f2224bf88b87dab758354bea874c3d6901a0bad9c2d4c1906c4c36ff",
+      "width": 3072,
+      "height": 1992,
+      "format": "RGBA PNG",
+      "transparentBackground": true,
+      "translucentShadow": true
+    },
+    {
+      "name": "project",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "ru",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/ru/project.png",
+      "sha256": "11501d993ab2651511f2dc08c93dc90c55073cff6e1e77e1506175047b3fbc4b",
+      "width": 3072,
+      "height": 1992,
+      "format": "RGBA PNG",
+      "transparentBackground": true,
+      "translucentShadow": true
+    }
+  ],
+  "promptGeometry": [
+    {
+      "language": "en",
+      "sizes": [
+        {
+          "width": 1080,
+          "viewport": 720,
+          "height": 520,
+          "bottom": 659,
+          "footerBottom": 700,
+          "overflow": "auto"
+        },
+        {
+          "width": 1440,
+          "viewport": 900,
+          "height": 700,
+          "bottom": 839,
+          "footerBottom": 880,
+          "overflow": "auto"
+        }
+      ]
+    },
+    {
+      "language": "ru",
+      "sizes": [
+        {
+          "width": 1080,
+          "viewport": 720,
+          "height": 520,
+          "bottom": 659,
+          "footerBottom": 700,
+          "overflow": "auto"
+        },
+        {
+          "width": 1440,
+          "viewport": 900,
+          "height": 700,
+          "bottom": 839,
+          "footerBottom": 880,
+          "overflow": "auto"
+        }
+      ]
+    }
+  ],
+  "sameTeamAndStageOrder": true,
+  "promptKeyboardResizeAndFindChecked": true,
+  "sameProductType": "landing pages for Atlas, Forma and Flowdesk",
+  "sourceMainSha256": "bc36daee15f14a09a8781da4c495fbfa182abaa79df4fcbe317162fb9bc8db57",
+  "sourceRendererSha256": "8a45ec858258e5bcbca41b5d37313ef9d47a4f55ef207b042db4dbe7756166e2",
+  "dataOrigin": "Documentation-only landing-page team, project CRUD via real native IPC and hand-authored local Markdown. No model work is represented as completed.",
+  "presentation": "Unaltered app captures inside a transparent rounded macOS-style presentation frame; traffic lights occupy the app\u2019s reserved native-control area; shadow added by AppKit. See frame-readme.swift.",
+  "modelRequests": 0,
+  "terminalOpened": false,
+  "externalBrowserOpened": false,
+  "installedAppOrUserStudioChanged": false,
+  "osFocusChanged": false,
+  "browserCloneAudit": {
+    "newClones": [],
+    "noNewRetainedClonesObserved": true,
+    "browserOrProfileModified": false
+  },
+  "runtimeSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
+  "visuallyReviewedAllScreenshots": true,
+  "sourceOnlyPromptLayoutRefinement": true
+}

@@ -1,15 +1,42 @@
-# Материалы страницы Pi Studio
+# Pi Studio GitHub media
 
-- `cover.png` и `workflow.png` — новые растровые иллюстрации, созданные встроенным image_gen 16 ноября 2026 по прямому запросу пользователя. Проверены обе картинки целиком: подписи, композиция, читаемость и отсутствие выдуманного интерфейса. Обложка по последующей правке пользователя полностью переведена на английский: «PI STUDIO», «Agent Pipeline», «Prompts · Tools · Files»; workflow.png сохраняет русские подписи. Это оформление и схема работы, не скриншоты и не запись генерации агентами Studio. Фактические размеры и контрольные суммы — в `generation-proof.json`; промпты — в [generation-prompts.md](./generation-prompts.md). Прежняя векторная обложка и её уменьшенный preview заменены, копии не сохраняются в дереве проекта.
-- `projects.png`, `agents.png`, `project.png`, `team-transfer.png` — снимки настоящего native main/preload/renderer alpha.72. Данные явно созданы для документации через native IPC в отдельной временной студии. На старте отдельно проверены ноль команд и ноль ordinary agents.
-- Переснять: `npm run build`, затем `npx electron scripts/capture-readme.cjs`. Анимация: `python3 scripts/render-readme-gif.py` (Pillow). QA использует scripts/offscreen-main.cjs, accessory policy, отдельные userData/студию, mute audio и отказ вместо native unsaved-state dialog. Пользовательская студия и работающая установленная программа не изменяются; запросы модели и Terminal не запускаются.
-- Копии пользовательских персонажей, сцен и их runtime удалены из public по прямому запросу владельца; исходные материалы вне репозитория не изменяются.
+## Current screenshots
 
-- `viewer.png` — исторический снимок удалённого встроенного просмотрщика, больше не включается в новые walkthrough. Исходный настоящий снимок `artifacts/voice-workflow/studio-viewer.png` из изолированной проверки bundled Remotion Player от 15 ноября 2026. Источник содержимого — прежний QA-проект, не пользовательская рабочая студия. В текущем проходе не запускались генерация или звук.
-- `walkthrough.gif` — последовательность указанных снимков; сохраняется пропорция каждого кадра. Это обзор интерфейса на разных QA-данных, не непрерывная запись работы модели.
+Six screenshots from the current native main/preload/renderer, in dark mode. Each README uses screenshots captured in its own language, including project names, agent names, instructions and sample documents.
 
-## Переработка README, 16 ноября 2026
+| View | English | Русский |
+|:---|:---|:---|
+| Landing-page project and files | [Project](en/project.png) | [Проект](ru/project.png) |
+| Agent prompt editor | [Agents](en/agents.png) | [Агенты](ru/agents.png) |
+| Repeated projects for different companies | [Projects](en/projects.png) | [Проекты](ru/projects.png) |
 
-Изучены актуальные README [Ollama](https://github.com/ollama/ollama), [n8n](https://github.com/n8n-io/n8n), [Browser Use](https://github.com/browser-use/browser-use) и [Dify](https://github.com/langgenius/dify). Использован общий подход: короткое объяснение, заметная загрузка, настоящий интерфейс, примеры задач и быстрый старт. Чужие изображения, тексты и показатели популярности не копировались.
+All three demonstration projects are **landing pages for different companies**: Atlas, Forma and Flowdesk. Each uses the same team and ordered five-agent pipeline. The content is hand-authored documentation data in isolated temporary studios, created through actual native IPC. It is not preinstalled content or a claim of completed model work.
 
-Обложка и настоящие снимки сохранены; добавлены статические графитово-жёлтые бейджи MIT/alpha/платформ без счётчиков stars и CI. Каталог провайдеров и технические оговорки вынесены в [CONNECTIONS.md](../CONNECTIONS.md). HTML проверен через GitHub GFM API и скрытый Electron с scripts/offscreen-main.cjs: светлая/тёмная темы 1120 px, светлая 420 px, загружены все семь изображений, нет горизонтального переполнения страницы или неразобранного Markdown внутри карточек. Это preview GFM с github-markdown-css, не скриншот страницы самого GitHub. Пользовательская Studio не открывалась и её данные не использовались.
+The source UI, field geometry, file browser and Markdown previews are actual app captures. The prompt editor stays within the visible viewport, with its footer and a 20px bottom margin. This is checked at 1080×720 and 1440×900 in both languages; keyboard resizing and opening/closing field search are also checked.
+
+## macOS presentation
+
+The PNGs have a transparent background, rounded window corners and a translucent drop shadow. `scripts/frame-readme.swift` adds a **presentation frame** around the actual renderer capture. Its three traffic-light controls use the same `{x: 20, y: 20}` location as the app's `hiddenInset` macOS window. These controls are decoration for documentation, not a claim that an OS window frame was captured by `webContents`.
+
+The application content is not generated, retouched or translated inside an image. Language and theme are set through the app's isolated native preferences before loading it. No AI image generation is used for screenshots. The shared illustrated cover remains separate from screenshots.
+
+## Reproduce on macOS
+
+Requires Node dependencies and the Xcode command-line Swift compiler (AppKit).
+
+```sh
+npm run build
+node scripts/capture-readme.cjs
+```
+
+The runner uses `scripts/offscreen-main.cjs`, accessory activation policy, hidden Electron windows, temporary userData/studios and muted audio. It blocks agent/Terminal launches, external-browser opening, sign-in, installation and OS dialogs. It waits for saved state before reload/capture. Owned windows/processes and temporary staging are cleaned up; the installed app, user projects, dialogues, credentials, browser profiles and OS focus are preserved.
+
+A before/after read-only Chrome clone audit is recorded locally. New retained clones fail the capture and require review; the script never deletes or infers ownership of them.
+
+Dimensions, hashes, source main hash, language/theme and prompt geometry are recorded in [screenshots-proof.json](screenshots-proof.json).
+
+## Illustrations and older media
+
+`cover.png` and `workflow.png` were made with the built-in image_gen tool on 16 November 2026. The cover was subsequently localized to English: **PI STUDIO**, **Agent Pipeline**, **Prompts · Tools · Files**. The workflow illustration retains its Russian labels. These are illustrations, not screenshots. See [prompts](generation-prompts.md) and [generation metadata](generation-proof.json).
+
+Earlier root-level UI images and walkthrough media are historical and are not referenced by the current English or Russian README. User source materials outside this repository are not changed by this capture workflow.
