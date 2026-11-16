@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-16T11:32:09.569396+00:00",
+  "runtimeSourceCommit": "26c0eda42ebc861ed6a9905f8b1496665367adfa",
+  "isolatedSourceCheckout": true,
+  "uncommittedComputerOverlayExcluded": true,
+  "buildTypecheckLint": true,
+  "architectureModules": 383,
+  "unitTests": {
+    "passed": 317,
+    "failed": 0
+  },
+  "nativeThemeThreeProcessChecks": true,
+  "nativeFreshLegacyMissingPreloadGuard": true,
+  "nativeFileMarkdownJsonSearchSvgAnimationMediaRegression": true,
+  "userApplicationReinstalled": false,
+  "installedVersion": "0.2.0-alpha.81",
+  "windowsBuild": false,
+  "outMainSha256": "2b0f52caa7fd8b742a0cc9b16d659451212205f7d6a988df971bbcb9861d5611",
+  "remaining": [
+    "signed new release/package verification",
+    "actual OS theme switches on macOS and Windows",
+    "active external Pi/playback manual acceptance"
+  ]
+}

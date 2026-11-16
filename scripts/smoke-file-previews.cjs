@@ -203,7 +203,13 @@ const deadline = setTimeout(() => {
   const copyHover = await js(
     `(()=>{const s=getComputedStyle(document.querySelector('.copy-output-button'));return {border:s.borderTopWidth,background:s.backgroundColor};})()`,
   );
-  assert.deepEqual(copyHover, { border: '1px', background: 'rgb(237, 237, 240)' });
+  assert.deepEqual(copyHover, {
+    border: '1px',
+    background:
+      (await js('document.documentElement.dataset.theme')) === 'dark'
+        ? 'rgb(65, 65, 62)'
+        : 'rgb(237, 237, 240)',
+  });
   await window.webContents.debugger.sendCommand('CSS.forcePseudoState', {
     nodeId: copyNode.nodeId,
     forcedPseudoClasses: [],

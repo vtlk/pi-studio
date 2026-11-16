@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-16T11:21:34.698Z",
+  "checkedAt": "2026-11-16T11:28:51.570Z",
   "nativeMainPreloadRenderer": true,
-  "sourceWorkspace": true,
+  "sourceWorkspace": false,
   "shippedInAlpha81": false,
   "phases": [
     {
@@ -12,6 +12,56 @@
         "revision": 0
       },
       "firstFrames": [
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
+        [
+          23,
+          23,
+          23
+        ],
         [
           23,
           23,
@@ -787,11 +837,6 @@
           23
         ],
         [
-          23,
-          23,
-          23
-        ],
-        [
           34,
           34,
           33
@@ -829,21 +874,6 @@
           255,
           255,
           255
-        ],
-        [
-          255,
-          255,
-          255
-        ],
-        [
-          255,
-          255,
-          255
-        ],
-        [
-          255,
-          255,
-          255
         ]
       ],
       "sourceBeforeFirstFrame": true,
@@ -855,5 +885,11 @@
   "globalOsThemeChanged": false,
   "nativeWindowsAccepted": false,
   "userStudioOrAppMutated": false,
-  "allOwnedProcessesExited": true
+  "allOwnedProcessesExited": true,
+  "runtimeSourceCommit": "26c0eda42ebc861ed6a9905f8b1496665367adfa",
+  "isolatedExactRuntimeSource": true,
+  "qaHarnessCorrections": [
+    "preview hover expectation follows actual theme",
+    "authenticated update poll assertion waits eventual timer convergence"
+  ]
 }

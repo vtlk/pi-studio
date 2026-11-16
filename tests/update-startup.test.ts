@@ -41,7 +41,13 @@ test('new program startup stays frozen until explicit readiness and authenticate
   await startup.poll();
   assert.equal(startup.read().phase, 'starting');
   await atomicJson(f.p.result, { nonce: f.job.nonce, status: 'committed' });
-  await startup.poll();
+  // The timer may own the current poll; an overlapping manual poll deliberately returns early.
+  // Assert eventual convergence from the authenticated durable result, not timer scheduling.
+  for (let attempt = 0; attempt < 200 && startup.read().phase === 'starting'; attempt++) {
+    await startup.poll();
+    if (startup.read().phase === 'starting')
+      await new Promise((resolve) => setTimeout(resolve, 10));
+  }
   assert.equal(startup.read().phase, 'committed');
   assert.equal(quits, 0);
   assert.equal(
