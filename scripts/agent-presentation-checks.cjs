@@ -96,7 +96,7 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
   assert.equal(await frame(), 'rgba(0, 0, 0, 0)');
   for (const part of ['.split-button-main', '.split-button-trigger']) {
     await mouse(split + ' ' + part);
-    assert.notEqual(await frame(), 'rgba(0, 0, 0, 0)');
+    assert.equal(await frame(), 'rgba(0, 0, 0, 0)');
     assert.equal(
       await js(
         `getComputedStyle(document.querySelector(${JSON.stringify(split + ' ' + part)})).borderTopWidth`,
@@ -109,7 +109,7 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
   w.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
   await until(`!!document.querySelector('[role="menu"]')`);
   await mouse('.project-header', 10);
-  assert.notEqual(await frame(), 'rgba(0, 0, 0, 0)', 'Open portal keeps the single outer frame');
+  assert.equal(await frame(), 'rgba(0, 0, 0, 0)', 'Open portal keeps project controls borderless');
   w.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
   w.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
   await until(`!document.querySelector('[role="menu"]')`);
@@ -125,7 +125,7 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
     dimensions,
   );
   await mouse('.copy-output-button');
-  assert.notEqual(await border('.copy-output-button'), 'rgba(0, 0, 0, 0)');
+  assert.equal(await border('.copy-output-button'), 'rgba(0, 0, 0, 0)');
   await clearPointer();
   assert.equal(await border('.copy-output-button'), 'rgba(0, 0, 0, 0)');
   await click('Агенты');
@@ -136,8 +136,8 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
     actionRightInset: 12,
     matchingProjectColumnHeading: true,
     ownHoverBordersOnly: true,
-    splitSingleFrameAcrossPartsAndPortal: true,
-    localCopyHoverContour: true,
+    splitBorderlessAcrossPartsAndPortal: true,
+    localCopyBorderlessOnHover: true,
     noLaunchOrClipboardRequests: true,
   };
 };

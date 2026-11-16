@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-16T12:26:31.598285+00:00",
+  "baseSourceCommit": "112c92b",
+  "isolatedSourceAndNativeUi": true,
+  "typecheckBuildLint": true,
+  "architectureModules": 385,
+  "unitTestsPassed": 317,
+  "unitTestsFailed": 0,
+  "nativeControls": true,
+  "nativeFieldsResizeSearchReadonlyAndStartup": true,
+  "nativeProjectsCrudAndLayout": true,
+  "realPiExtensionAndOwnedClaudeCliCatalogUi": true,
+  "actualClaudeSubscriptionRequest": false,
+  "officialRemotionViewerFrameAndMediaPixelsPreserved": true,
+  "userApplicationUpdated": false,
+  "installedVersion": "0.2.0-alpha.82",
+  "windowsBuilt": false,
+  "sourceDeltaAfterBase": {
+    "src/renderer/shared/ui/SearchableSelect.tsx": "5f2fbe527ee3e07bbb0af9d122ca860ea79a1d2be97d1bdcab891065006150a5",
+    "src/renderer/shared/ui/fields.css": "162277f921dacf376533c44b6f453c6368036805c56b9da63b813af8ae7334f1",
+    "src/renderer/styles/palette.css": "8ddfb9bdb81076d479fe861b3810462d532ba6ffd767809767b40cba73f34e2e",
+    "src/renderer/styles/projectControls.css": "62a68f30f8fed07b3e5c2bdfd0381f55e97a1e32a7f1c226ee94202fe68ed1bb",
+    "src/renderer/styles/outputs.css": "88b5cc09d7112fb7a22e63422177ebaf6cf3cf835de3fc8d83c1c0b132db6a25"
+  },
+  "remaining": [
+    "signed release packaging",
+    "native Windows/manual platform acceptance"
+  ]
+}

@@ -1,7 +1,11 @@
 /* Shared field geometry, including dialogs and portaled searchable fields. */
 :is(.app-shell, .startup-screen, .dialog, .ui-searchable-select, .ui-select-content)
-  :is(input:not([type='range']), textarea, .ui-select-trigger) {
-  border-radius: var(--control-radius);
+  :is(
+    input:not([type='range']):not([type='checkbox']):not([type='radio']),
+    textarea,
+    .ui-select-trigger
+  ) {
+  border-radius: var(--control-radius) !important;
   border-color: var(--field-border);
   box-shadow: none;
 }
@@ -130,4 +134,9 @@
 
 .projects-search {
   border-radius: var(--control-radius);
+}
+
+/* Searchable combobox keyboard focus uses its existing field border, without an outline. */
+.ui-searchable-trigger:focus-visible {
+  border-color: var(--field-focus-border) !important;
 }

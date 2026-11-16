@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-16T12:15:07.206Z",
+  "scope": "Actual Electron main/preload/renderer, owned installed native provider extension, no catalog stubs",
+  "extensionProviderVisibleInConnectionEditor": true,
+  "nativeLoginAvailable": true,
+  "extensionModelSearchAndKeyboardSelection": true,
+  "selectionPersistsAfterReload": true,
+  "extensionStdoutNotInUi": true,
+  "modelOrCloudRequests": 0,
+  "offscreen": true,
+  "packagedEntry": false
+}

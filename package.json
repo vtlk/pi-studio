@@ -81,14 +81,14 @@
     "test:project-usage": "npm run build && electron scripts/smoke-project-usage.cjs",
     "test:pi-usage": "node --experimental-strip-types scripts/smoke-native-usage.ts",
     "test:pi-extensions": "node --experimental-strip-types scripts/smoke-pi-extensions.ts",
-    "test:extensions-ui": "npm run build && electron scripts/smoke-native-extensions-ui.cjs",
+    "test:extensions-ui": "npm run build && node scripts/run-provider-ui.cjs native-extensions",
     "test:cua-sdk": "electron scripts/smoke-cua-sdk.cjs",
     "test:computer-mcp": "node --experimental-strip-types scripts/smoke-computer-mcp.ts",
     "test:computer-ui": "npm run build && electron scripts/smoke-computer-ui.cjs",
     "test:agent-teams": "npm run build && node scripts/run-team-ui.cjs",
     "test:pi-team-import": "node --experimental-strip-types scripts/smoke-pi-team-import.ts",
     "test:claude-code": "node --experimental-strip-types scripts/smoke-claude-code.ts",
-    "test:claude-code-ui": "npm run build && electron scripts/smoke-claude-code-ui.cjs",
+    "test:claude-code-ui": "npm run build && node scripts/run-provider-ui.cjs claude-code",
     "test:claude-code-chain": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --claude-code",
     "package:win": "npm run build && node scripts/package-win.mjs",
     "audit:repository": "node scripts/audit-repository.mjs --fetch-refs",
@@ -102,7 +102,8 @@
     "test:update-lifecycle-ui": "npm run build && node scripts/smoke-update-lifecycle-ui.cjs",
     "test:update-quit": "node scripts/smoke-update-quit.cjs",
     "test:agent-layout": "npm run build && node scripts/smoke-agent-layout.cjs",
-    "test:themes": "npm run build && node scripts/smoke-themes.cjs"
+    "test:themes": "npm run build && node scripts/smoke-themes.cjs",
+    "test:ui-controls": "npm run build && node scripts/smoke-ui-controls.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

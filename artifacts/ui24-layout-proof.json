@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-11-16T12:18:33.021Z",
+  "version": "0.2.0-alpha.82",
+  "realMainPreloadRendererAndDiskPersistence": true,
+  "agentPresentation": {
+    "headerHeight": 53,
+    "standardSwitch": [
+      42,
+      25
+    ],
+    "actionRightInset": 12,
+    "matchingProjectColumnHeading": true,
+    "ownHoverBordersOnly": true,
+    "splitBorderlessAcrossPartsAndPortal": true,
+    "localCopyBorderlessOnHover": true,
+    "noLaunchOrClipboardRequests": true
+  },
+  "controlledSaveDelayAndOneFailure": true,
+  "initialAndBackgroundReadNoSuccess": true,
+  "successOnlyAfterWrite": true,
+  "successExpiresAfterThreeSeconds": true,
+  "oldTimerCannotHideNewSuccess": true,
+  "errorRemainsUntilSuccessfulRetry": true,
+  "conflictDiscardDoesNotConfirmSave": true,
+  "studioChangeClearsConfirmation": true,
+  "settingsTextWithoutTooltipOrTitle": true,
+  "settingsPositionStable": true,
+  "teamHeadingThreeLucideUsersAndArrow": true,
+  "addAgentRowGeometry": true,
+  "wideCatalogsAndNestedFormsAllKinds": true,
+  "systemAgentCatalogsWide": true,
+  "nativeMenuManualActionReachesRealController": true,
+  "developmentRuntimeDoesNotClaimUpToDate": true,
+  "narrowViewportMargins": true,
+  "modelAndTerminalRequests": 0,
+  "qaIsolation": "Separate temporary studio/userData, accessory offscreen, mock Keychain, no OS focus/audio/clipboard. Parent waits actual exit before cleanup."
+}

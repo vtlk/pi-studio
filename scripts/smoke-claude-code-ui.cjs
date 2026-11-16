@@ -5,72 +5,191 @@ const { execFileSync } = require('node:child_process');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
-let root;
+let root, ownedWindow;
 const deadline = setTimeout(() => fail(Error('Claude Code UI timed out')), 45000);
 async function cleanup() {
   clearTimeout(deadline);
-  for (const win of BrowserWindow.getAllWindows()) win.destroy();
-  if (root) await rm(root, { recursive: true, force: true });
+  if (ownedWindow && !ownedWindow.isDestroyed()) ownedWindow.destroy();
 }
-async function fail(error) { console.error(error); await cleanup(); app.exit(1); }
-process.on('uncaughtException', fail); process.on('unhandledRejection', fail);
+async function fail(error) {
+  console.error(error);
+  await cleanup();
+  app.exit(1);
+}
+process.on('uncaughtException', fail);
+process.on('unhandledRejection', fail);
 (async () => {
-  root = realpathSync(mkdtempSync(join(tmpdir(), 'pistudio-claude-ui-')));
-  const native = join(root, 'NativePi'), studio = join(root, 'Studio'), userData = join(root, 'UserData');
-  for (const path of [join(native, 'extensions'), join(studio, '.pistudio'), userData]) mkdirSync(path, { recursive: true });
+  root = process.env.PI_STUDIO_PROVIDER_UI_QA_ROOT;
+  assert.ok(root && root.startsWith(join(realpathSync(tmpdir()), 'pistudio-provider-ui-')));
+  const native = join(root, 'NativePi'),
+    studio = join(root, 'Studio'),
+    userData = join(root, 'UserData');
+  for (const path of [join(native, 'extensions'), join(studio, '.pistudio'), userData])
+    mkdirSync(path, { recursive: true });
   process.env.PI_CLAUDE_CODE_COMMAND = join(root, 'claude');
   process.env.PI_CLAUDE_CODE_CONFIG_DIR = join(root, 'ClaudeConfig');
   process.env.PI_STUDIO_QA_CLAUDE_STATE = join(root, 'claude-state.json');
   process.env.PI_STUDIO_QA_CLAUDE_LOG = join(root, 'claude-log.jsonl');
   writeFileSync(process.env.PI_STUDIO_QA_CLAUDE_STATE, '{}');
   copyFileSync(join(__dirname, 'fixtures/claude-cli.cjs'), process.env.PI_CLAUDE_CODE_COMMAND);
-  process.env.PI_CODING_AGENT_DIR = native; process.env.PI_OFFLINE = '1'; process.env.PI_TELEMETRY = '0';
-  const pi = process.env.PI_STUDIO_QA_PI || execFileSync('/usr/bin/which', ['pi'], { encoding: 'utf8' }).trim();
-  writeFileSync(join(native, 'extensions/provider.js'), `export default function(pi){console.log('NON_PROTOCOL_EXTENSION_LOG');pi.registerProvider('studio-ui-extension',{name:'UI extension provider',baseUrl:'http://127.0.0.1:1/v1',api:'openai-completions',apiKey:'$QA_UNUSED_KEY',models:[{id:'claude-sonnet-5',name:'QA Sonnet (Claude Code)',reasoning:false,input:['text'],cost:{input:0,output:0,cacheRead:0,cacheWrite:0},contextWindow:8192,maxTokens:1024}]});}`);
+  process.env.PI_CODING_AGENT_DIR = native;
+  process.env.PI_OFFLINE = '1';
+  process.env.PI_TELEMETRY = '0';
+  const pi =
+    process.env.PI_STUDIO_QA_PI ||
+    execFileSync('/usr/bin/which', ['pi'], { encoding: 'utf8' }).trim();
+  writeFileSync(
+    join(native, 'extensions/provider.js'),
+    `export default function(pi){console.log('NON_PROTOCOL_EXTENSION_LOG');pi.registerProvider('studio-ui-extension',{name:'UI extension provider',baseUrl:'http://127.0.0.1:1/v1',api:'openai-completions',apiKey:'$QA_UNUSED_KEY',models:[{id:'claude-sonnet-5',name:'QA Sonnet (Claude Code)',reasoning:false,input:['text'],cost:{input:0,output:0,cacheRead:0,cacheWrite:0},contextWindow:8192,maxTokens:1024}]});}`,
+  );
   writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
-  const connection = { id: 'extension-connection', name: 'QA Claude', purpose: 'pi', authScope: 'native', providerId: 'claude-code', endpoint: '', account: '', createdAt: 1 };
-  const agent = { id: 'extension-agent', name: 'Агент расширения', enabled: true, skills: [], mcps: [], plugins: [], instructions: [], model: { connectionId: connection.id, provider: connection.providerId, id: '', reasoning: 'По умолчанию', temperature: '' } };
-  writeFileSync(join(studio, '.pistudio/studio.json'), JSON.stringify({ schemaVersion: 1, sections: { piPath: pi, connections: [connection], agents: [agent] } }));
-  app.setPath('userData', userData); app.setPath('videos', root);
+  const connection = {
+    id: 'extension-connection',
+    name: 'QA Claude',
+    purpose: 'pi',
+    authScope: 'native',
+    providerId: 'claude-code',
+    endpoint: '',
+    account: '',
+    createdAt: 1,
+  };
+  const agent = {
+    id: 'extension-agent',
+    name: 'Агент расширения',
+    enabled: true,
+    skills: [],
+    mcps: [],
+    plugins: [],
+    instructions: [],
+    model: {
+      connectionId: connection.id,
+      provider: connection.providerId,
+      id: '',
+      reasoning: 'По умолчанию',
+      temperature: '',
+    },
+  };
+  writeFileSync(
+    join(studio, '.pistudio/studio.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      sections: { piPath: pi, connections: [connection], agents: [agent] },
+    }),
+  );
+  app.setPath('userData', userData);
+  app.setPath('videos', root);
   const handle = ipcMain.handle.bind(ipcMain);
-  ipcMain.handle = (name, action) => handle(name, name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action);
-  const loaded = new Promise(done => app.once('browser-window-created', (_, win) => { win.webContents.setBackgroundThrottling(false); win.webContents.once('did-finish-load', () => done(win)); }));
+  ipcMain.handle = (name, action) =>
+    handle(name, name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action);
+  const loaded = new Promise((done) =>
+    app.once('browser-window-created', (_, win) => {
+      ownedWindow = win;
+      win.webContents.setBackgroundThrottling(false);
+      win.webContents.once('did-finish-load', () => done(win));
+    }),
+  );
   require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
-  const win = await loaded, js = code => win.webContents.executeJavaScript(code, true);
+  const win = await loaded,
+    js = (code) => win.webContents.executeJavaScript(code, true);
   win.webContents.removeAllListeners('will-prevent-unload');
-  win.webContents.on('will-prevent-unload', () => { throw Error('QA must save before reload'); });
+  win.webContents.on('will-prevent-unload', () => {
+    throw Error('QA must save before reload');
+  });
   win.webContents.debugger.attach('1.3');
-  await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', { enabled: true });
-  const until = async code => { for (let i=0;i<200;i++){if(await js(code))return;await new Promise(done=>setTimeout(done,35));}console.error(await js(`JSON.stringify({body:document.body.innerText, options:Array.from(document.querySelectorAll('[role=option]')).map(x=>x.textContent)})`));throw Error('Timed out: '+code); };
-  const click = text => js(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)}).click()`);
+  await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+    enabled: true,
+  });
+  const until = async (code) => {
+    for (let i = 0; i < 200; i++) {
+      if (await js(code)) return;
+      await new Promise((done) => setTimeout(done, 35));
+    }
+    console.error(
+      await js(
+        `JSON.stringify({body:document.body.innerText, options:Array.from(document.querySelectorAll('[role=option]')).map(x=>x.textContent)})`,
+      ),
+    );
+    throw Error('Timed out: ' + code);
+  };
+  const click = (text) =>
+    js(
+      `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)}).click()`,
+    );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  await click('Агенты'); await click('Модель');
-  await until(`!!document.querySelector('[aria-label="Модель агента"]') && !document.querySelector('[aria-label="Модель агента"]').disabled`);
+  await click('Агенты');
+  await click('Модель');
+  await until(
+    `!!document.querySelector('[aria-label="Модель агента"]') && !document.querySelector('[aria-label="Модель агента"]').disabled`,
+  );
   await js(`document.querySelector('[aria-label="Модель агента"]').click()`);
-  await until(`Array.from(document.querySelectorAll('[role="option"]')).some(el=>el.textContent.includes('Sonnet'))`);
-  await js(`(()=>{const el=document.querySelector('input[role="combobox"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,'claude-sonnet-5');el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await until(
+    `Array.from(document.querySelectorAll('[role="option"]')).some(el=>el.textContent.includes('Sonnet'))`,
+  );
+  await js(
+    `(()=>{const el=document.querySelector('input[role="combobox"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,'claude-sonnet-5');el.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
   await until(`document.querySelectorAll('.ui-searchable-options [role="option"]').length===1`);
-  win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' }); win.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
-  await until(`document.querySelector('[aria-label="Модель агента"]').textContent.includes('Sonnet')`);
+  win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' });
+  win.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
+  await until(
+    `document.querySelector('[aria-label="Модель агента"]').textContent.includes('Sonnet')`,
+  );
   await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const saved = await js('window.studio.loadStudio()');
   assert.equal(saved.sections.agents[0].model.id, 'claude-sonnet-5');
   assert.equal(saved.sections.agents[0].model.provider, 'claude-code');
-  const reloaded = new Promise(done => win.webContents.once('did-finish-load', done)); win.webContents.reload(); await reloaded;
+  const reloaded = new Promise((done) => win.webContents.once('did-finish-load', done));
+  win.webContents.reload();
+  await reloaded;
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  await click('Агенты'); await click('Модель');
-  await until(`document.querySelector('[aria-label="Модель агента"]')?.textContent.includes('Sonnet')`);
-  await js(`document.querySelector('.settings-button').click()`); await click('Подключения');
-  await until(`document.body.textContent.includes('QA Claude')`); await click('Настроить');
-  await until(`!!document.querySelector('[aria-label="Провайдер Pi"]')`);
-  await until(`document.querySelector('[aria-label="Провайдер Pi"]').textContent.includes('Claude Code — подписка')`);
-  await until(`Array.from(document.querySelectorAll('[role="dialog"] button')).some(b=>b.textContent==='Войти через Claude Code' && !b.disabled)`);
+  await click('Агенты');
+  await click('Модель');
+  await until(
+    `document.querySelector('[aria-label="Модель агента"]')?.textContent.includes('Sonnet')`,
+  );
+  await js(`document.querySelector('.settings-button').click()`);
+  await click('Подключения');
+  await until(`document.body.textContent.includes('QA Claude')`);
+  await click('Настроить');
+  await until(`!!document.querySelector('[aria-label="ID провайдера"]')`);
+  await until(
+    `document.querySelector('[aria-label="ID провайдера"]').textContent.includes('Claude Code — подписка')`,
+  );
+  await until(
+    `Array.from(document.querySelectorAll('[role="dialog"] button')).some(b=>b.textContent==='Войти через Claude Code' && !b.disabled)`,
+  );
   await until(`document.body.textContent.includes('Подключено через Claude Code.')`);
-  assert.equal(await js(`document.querySelector('[aria-label="Область авторизации Pi"]').disabled`), true);
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Область авторизации Pi"]').disabled`),
+    true,
+  );
   assert.equal(await js(`document.body.textContent.includes('NON_PROTOCOL_EXTENSION_LOG')`), false);
-  assert.equal(win.isVisible(), false); assert.equal(win.webContents.isOffscreen(), true);
+  assert.equal(win.isVisible(), false);
+  assert.equal(win.webContents.isOffscreen(), true);
   await writeFile('artifacts/claude-code-ui.png', (await win.capturePage()).toPNG());
-  await writeFile(process.env.PI_STUDIO_QA_PROOF || 'artifacts/claude-code-ui-proof.json', JSON.stringify({ checkedAt: new Date().toISOString(), scope: 'Actual Electron main/preload/renderer, bundled Claude Code provider with owned CLI, no catalog stubs', extensionProviderVisibleInConnectionEditor: true, nativeLoginAvailable: true, extensionModelSearchAndKeyboardSelection: true, selectionPersistsAfterReload: true, extensionStdoutNotInUi: true, modelOrCloudRequests: 0, offscreen: true, packagedEntry: !!process.env.PI_STUDIO_QA_MAIN }, null, 2)+'\n');
-  console.log('Claude Code UI passed: bundled provider/CLI model catalog, keyboard selection, saved reload, shared CLI auth, no model/cloud requests.');
-  await cleanup(); app.exit(0);
+  await writeFile(
+    process.env.PI_STUDIO_QA_PROOF || 'artifacts/claude-code-ui-proof.json',
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        scope:
+          'Actual Electron main/preload/renderer, bundled Claude Code provider with owned CLI, no catalog stubs',
+        extensionProviderVisibleInConnectionEditor: true,
+        nativeLoginAvailable: true,
+        extensionModelSearchAndKeyboardSelection: true,
+        selectionPersistsAfterReload: true,
+        extensionStdoutNotInUi: true,
+        modelOrCloudRequests: 0,
+        offscreen: true,
+        packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
+      },
+      null,
+      2,
+    ) + '\n',
+  );
+  console.log(
+    'Claude Code UI passed: bundled provider/CLI model catalog, keyboard selection, saved reload, shared CLI auth, no model/cloud requests.',
+  );
+  await cleanup();
+  app.exit(0);
 })().catch(fail);

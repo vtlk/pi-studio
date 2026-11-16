@@ -16,6 +16,9 @@
 }
 [data-controls-scope='projects'] .split-button::after {
   content: none;
+  border-color: transparent !important;
+  outline: none;
+  box-shadow: none;
 }
 [data-controls-scope='projects'] .split-button > .button {
   border-radius: 0 !important;

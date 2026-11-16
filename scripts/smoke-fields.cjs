@@ -184,7 +184,11 @@ const deadline = setTimeout(() => {
   const addBorders = await js(
     `(()=>{const s=getComputedStyle(document.querySelector('[aria-label="Добавить агента в «Style QA»"]'));return ['Top','Right','Bottom','Left'].map(side=>({width:s['border'+side+'Width'],style:s['border'+side+'Style']}));})()`,
   );
-  assert.ok(addBorders.every((border) => border.width === '1px' && border.style === 'dashed'));
+  assert.deepEqual(
+    addBorders.map((border) => border.width),
+    ['0px', '0px', '1px', '0px'],
+  );
+  assert.equal(addBorders[2].style, 'dashed');
   const pill = await colors('selectedAgent', '.agent-list-item.active');
   const rgb = pill.background
     .match(/[\d.]+/g)
@@ -520,7 +524,7 @@ const deadline = setTimeout(() => {
         'Accepted field appearance changed',
       );
     for (const [name, style] of Object.entries(samples)) {
-      assert.equal(style['border-top-left-radius'], '0px', name);
+      assert.equal(style['border-top-left-radius'], '6px', name);
       assert.equal(style['box-shadow'], 'none', name);
     }
   }
@@ -532,7 +536,7 @@ const deadline = setTimeout(() => {
     const startup = await js(
       `(()=>{const s=getComputedStyle(document.querySelector('.startup-screen input'));return {radius:s.borderTopLeftRadius,shadow:s.boxShadow};})()`,
     );
-    assert.deepEqual(startup, { radius: '0px', shadow: 'none' });
+    assert.deepEqual(startup, { radius: '6px', shadow: 'none' });
   }
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(

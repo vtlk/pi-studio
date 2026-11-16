@@ -536,34 +536,12 @@
   text-overflow: ellipsis;
 }
 
-/* Local project actions keep their geometry; row hover does not draw a contour. */
+/* Preserve existing action hit areas; appearance belongs to shared projectControls.css. */
 .app-shell :is(.project-workspace, .projects-table) :is(.icon-button, .hover-delete) {
   border: 1px solid transparent;
 }
-.app-shell
-  :is(.project-workspace, .projects-table)
-  :is(.icon-button, .hover-delete):is(:hover, :focus-visible):not(:disabled) {
-  border-color: var(--control-border, var(--muted));
-}
-.project-workspace .project-agent-actions .split-button {
-  position: relative;
-  border-radius: 6px;
-}
 .app-shell .project-agent-actions .split-button > .button {
   border: 0;
-}
-.project-workspace .split-button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  border: 1px solid transparent;
-  border-radius: inherit;
-}
-.project-workspace
-  .split-button:not([data-disabled]):is(:hover, :has(:focus-visible), [data-menu-open])::after {
-  border-color: var(--control-border, var(--muted));
 }
 
 /* Selected rows keep dark action/status ink on yellow in either theme. */

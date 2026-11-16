@@ -281,7 +281,12 @@ const timeout = setTimeout(() => {
   assert.equal(workspaceStyle.status.includes('Не запускался'), false);
   assert.ok(workspaceStyle.status.includes('·'), 'The subtitle contains accumulated metrics only');
   assert.equal(workspaceStyle.refresh, 'rgb(39, 39, 42)');
-  assert.equal(workspaceStyle.agentsBg, 'rgb(247, 247, 248)');
+  assert.equal(
+    workspaceStyle.agentsBg,
+    (await js('document.documentElement.dataset.theme')) === 'dark'
+      ? 'rgb(34, 34, 33)'
+      : 'rgb(247, 247, 248)',
+  );
   assert.equal(workspaceStyle.filesBg, workspaceStyle.agentsBg);
   assert.equal(
     await js(
@@ -499,7 +504,7 @@ const timeout = setTimeout(() => {
   );
   assert.equal(
     await js(`getComputedStyle(document.querySelector('.projects-search')).borderRadius`),
-    '0px',
+    '6px',
   );
   const beforeCreate = await js('window.studio.loadStudio()');
   await js(`document.querySelector('[aria-label="Создать проект"]').click()`);

@@ -63,7 +63,7 @@ export function SearchableSelect({
       }}
     >
       <Popover.Trigger
-        className="ui-select-trigger"
+        className="ui-select-trigger ui-searchable-trigger"
         aria-label={label}
         aria-busy={loading || undefined}
         disabled={disabled || loading}

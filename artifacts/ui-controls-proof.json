@@ -1,0 +1,3391 @@
+{
+  "checkedAt": "2026-11-16T12:24:54.486Z",
+  "actualNativeMainPreloadRenderer": true,
+  "fixtureProviderCatalog": true,
+  "productionCredentialsAccessed": false,
+  "authRequests": 0,
+  "modelOrTerminalRequests": 0,
+  "globalOsThemeChanged": false,
+  "installedAppOrUserStudioChanged": false,
+  "providerSearchByNameAndStableId": true,
+  "searchNeverSavesOrAuthenticates": true,
+  "emptyLoadingMissingIdAndCustomEndpointPreserved": true,
+  "mouseAndKeyboardExactProviderSelection": true,
+  "escapePreservesConnectionModalAndFocus": true,
+  "sharedFieldRadii": [
+    {
+      "label": "connection-dark",
+      "values": [
+        {
+          "name": "INPUT",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Назначение подключения",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "ID провайдера",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Область авторизации Pi",
+          "radius": "6px",
+          "border": "1px"
+        }
+      ]
+    },
+    {
+      "label": "connection-light",
+      "values": [
+        {
+          "name": "INPUT",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Назначение подключения",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "ID провайдера",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Область авторизации Pi",
+          "radius": "6px",
+          "border": "1px"
+        }
+      ]
+    },
+    {
+      "label": "custom-endpoint",
+      "values": [
+        {
+          "name": "INPUT",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Назначение подключения",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Адрес API модели",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Протокол модели",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Авторизация сервера модели",
+          "radius": "6px",
+          "border": "1px"
+        }
+      ]
+    },
+    {
+      "label": "textarea-light",
+      "values": [
+        {
+          "name": "Название агента",
+          "radius": "6px",
+          "border": "0px"
+        },
+        {
+          "name": "Найти в поле",
+          "radius": "6px",
+          "border": "0px"
+        },
+        {
+          "name": "Основной промпт агента",
+          "radius": "6px",
+          "border": "1px"
+        }
+      ]
+    },
+    {
+      "label": "textarea-dark",
+      "values": [
+        {
+          "name": "Название агента",
+          "radius": "6px",
+          "border": "0px"
+        },
+        {
+          "name": "Найти в поле",
+          "radius": "6px",
+          "border": "0px"
+        },
+        {
+          "name": "Основной промпт агента",
+          "radius": "6px",
+          "border": "1px"
+        }
+      ]
+    },
+    {
+      "label": "project-name",
+      "values": [
+        {
+          "name": "Название проекта",
+          "radius": "6px",
+          "border": "1px"
+        },
+        {
+          "name": "Команда агентов",
+          "radius": "6px",
+          "border": "1px"
+        }
+      ]
+    }
+  ],
+  "textareaSearchAndKeyboardResizePreserved": true,
+  "projectScopePortalsAndModals": true,
+  "buttonStateSamples": [
+    {
+      "label": "new-project-modal",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Создать проект",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Открыть проект «Geometry QA»",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Переименовать Geometry QA",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клонировать Geometry QA",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить проект «Geometry QA»",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Закрыть окно",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Отмена",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Создать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "project-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "menu-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "project-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "hover-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "menu-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "confirmation",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Закрыть окно",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Отмена",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "clear-data-modal",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Закрыть окно",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Диалог с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Файлы агента",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Всё",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Отмена",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "missing-model-preflight",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Закрыть окно",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Отмена",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перейти",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Копировать",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "montage-light",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить тёмную тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На весь экран",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Закрыть просмотр",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Воспроизвести",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Выключить звук",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На кадр назад",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На кадр вперёд",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Движущийся квадрат",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Видеоклип",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Озвучка",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Подпись",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "montage-dark",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На весь экран",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Закрыть просмотр",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Воспроизвести",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Выключить звук",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На кадр назад",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На кадр вперёд",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Движущийся квадрат",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Видеоклип",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Озвучка",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Подпись",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    },
+    {
+      "label": "montage-fullscreen",
+      "buttons": [
+        {
+          "name": "Проекты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Агенты",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Включить светлую тему",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Настройки",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Перечитать агентов",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "1. Новый агент. Не подключена модель. Время работы: 0 секунд. Входные токены: 0. Выходные токены: 0. Стоимость по данным Pi: 0 USD",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Удалить агента из проекта",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Показать в Finder",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Запустить",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Другие варианты запуска",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": true
+        },
+        {
+          "name": "Удаление файлов или диалогов с агентом",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "assets",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "square.svg",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "tone.wav",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "clip.mp4",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "timeline.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "film.pistudio.json",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "notes.md",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Вернуть в проект",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Закрыть просмотр",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Воспроизвести",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Выключить звук",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На кадр назад",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "На кадр вперёд",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Движущийся квадрат",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Видеоклип",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Озвучка",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        },
+        {
+          "name": "Клип Подпись",
+          "border": "rgba(0, 0, 0, 0)",
+          "outline": "none",
+          "shadow": "none",
+          "radius": "6px",
+          "split": false
+        }
+      ]
+    }
+  ],
+  "splitGeometryAndNoPseudoFrame": true,
+  "projectConfirmationsAndPreflightPreserved": true,
+  "projectFilesAndSessionsUntouched": true,
+  "officialRemotionViewerButtonsFullscreenFrameAndMediaColors": true
+}
