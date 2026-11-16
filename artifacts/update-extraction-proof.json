@@ -1,14 +1,13 @@
 {
-  "checkedAt": "2026-11-16T00:38:59.708Z",
-  "baseHead": "ab68a08b2e08463f3a26e5d625a60960be7898e9",
-  "checkoutHasUncommittedInstallerChanges": true,
-  "version": "0.2.0-alpha.75",
-  "sourceCommit": "cccdb0b869be9d837a450903c3880e00aeeaf52c",
+  "checkedAt": "2026-11-16T05:29:25.158Z",
+  "baseHead": "32efc8a32eb72c0fd9e94170be669251beb56972",
+  "version": "0.2.0-alpha.77",
+  "sourceCommit": "32efc8a32eb72c0fd9e94170be669251beb56972",
   "archive": {
-    "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip",
-    "bytes": 142268629,
-    "unpackedBytes": 318685970,
-    "sha256": "c55e5c368686be358095d618ad51195a3e7ae6cad26fbe8de39866d6e0ba15b6"
+    "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip",
+    "bytes": 143013059,
+    "unpackedBytes": 324697337,
+    "sha256": "637946c8bbe936b9694b5721f1fb7ace8710bf7f0106557a329e043d6725d356"
   },
   "ed25519Verified": true,
   "streamedArchiveHashVerified": true,
@@ -20,5 +19,5 @@
   "installedApplicationMutated": false,
   "guiProcessesStarted": 0,
   "studioOrSessionAccess": false,
-  "scope": "Signed release ZIP fully extracted with production code and checked against the installed publisher; not a GitHub-to-installed update or Windows acceptance."
+  "scope": "Signed release ZIP fully extracted with production code and checked against installed publisher; not GitHub-to-installed update or Windows acceptance."
 }

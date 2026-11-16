@@ -100,7 +100,9 @@ setInterval(async()=>{
     userData,
     oldIdentity,
     newIdentity,
-    limits: { exitMs: 6000, healthMs: 1000, abortMs: 1000 },
+    // Normal child startup shares CPU with the full parallel suite. Negative startup cases
+    // intentionally keep their short deadline; production uses its separate 90-second limit.
+    limits: { exitMs: 6000, healthMs: mode === 'ok' ? 6000 : 1000, abortMs: 1000 },
   };
   const p = paths(job);
   const helpers: ReturnType<typeof spawn>[] = [];

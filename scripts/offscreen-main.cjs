@@ -41,6 +41,10 @@ module.exports.loadOffscreenMain = (mainEntry) => {
       });
       this.webContents.setFrameRate(30);
     }
+    // Application activation/reopen must never turn an isolated QA window into OS focus.
+    show() {}
+    showInactive() {}
+    focus() {}
   }
   const replacement = new Proxy(electron, {
     get(target, key) {

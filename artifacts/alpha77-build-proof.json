@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-11-16T05:29:25.158Z",
+  "version": "0.2.0-alpha.77",
+  "sourceCommit": "32efc8a32eb72c0fd9e94170be669251beb56972",
+  "assets": [
+    {
+      "platform": "darwin-arm64",
+      "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip",
+      "bytes": 143013059,
+      "unpackedBytes": 324697337,
+      "sha256": "637946c8bbe936b9694b5721f1fb7ace8710bf7f0106557a329e043d6725d356",
+      "sourceCommit": "32efc8a32eb72c0fd9e94170be669251beb56972"
+    },
+    {
+      "platform": "win32-x64",
+      "name": "Pi-Studio-0.2.0-alpha.77-win-x64.zip",
+      "bytes": 171568918,
+      "unpackedBytes": 412092613,
+      "sha256": "336b582e3ed319cec27b319c96416a4cd5136af39e2e5be90c4cdab488c7c5d7",
+      "sourceCommit": "32efc8a32eb72c0fd9e94170be669251beb56972"
+    }
+  ],
+  "macDeepStrictSignatureAndFullInventory": true,
+  "macPackagedSuccessAndRollbackProofs": [
+    "packaged-update-success-proof.json",
+    "packaged-update-no-health-proof.json"
+  ],
+  "rollbackTestSource": "52dbb31df60c73ba8b29e250b70a3a2474a7f448 (same updater code, before notice-only packaging fix)",
+  "releaseTransportInQa": "controlled HTTPS with ephemeral key; real GitHub cycle remains open",
+  "realSigningKeyUsedOnlyForCanonicalReleaseMetadata": true,
+  "nativeEmptyLegacyCompatibility": true,
+  "actualSignedZipExtractionVerified": true,
+  "windowsCrc": true,
+  "rendererNoticePackages": 128,
+  "rendererNoticesSameOnBothPlatforms": true,
+  "macElectronAndChromiumFullNotices": true,
+  "rightsAudit": "Not final acceptance; supplemental notice provenance limitation recorded in third-party-licenses/SOURCES.md",
+  "nativeWindowsAcceptance": false,
+  "unitTests": {
+    "total": 303,
+    "passed": 303
+  },
+  "userInstallationPerformed": false
+}
