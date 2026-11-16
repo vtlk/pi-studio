@@ -123,7 +123,7 @@ setInterval(async()=>{
     await parentExit;
     // The detached rollback launcher may still be finishing its acknowledgement after the helper exits.
     const markers: { nonce: string; pid: number }[] = [];
-    if (await exists(p.result)) {
+    if (helpers.length && (await exists(p.result))) {
       const result = JSON.parse(await readFile(p.result, 'utf8'));
       if (result.status === 'rolled-back')
         markers.push(
