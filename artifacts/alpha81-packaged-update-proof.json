@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-16T10:28:56.144Z",
+  "mode": "success",
+  "from": "0.2.0-alpha.80",
+  "to": "0.2.0-alpha.81",
+  "installedVersion": "0.2.0-alpha.81",
+  "sourceHead": "d971e9313c2c192f7b9e86c74ec4511c80581b20",
+  "signedNativeApplications": true,
+  "deepStrictSignatureAndInventoryAfterCycle": true,
+  "actualProductionCoordinatorInstallerHelperStartupAndRenderer": true,
+  "actualProgramDirectoryReplacement": true,
+  "oneUiConsent": true,
+  "oneUiUpdateRequest": true,
+  "restoredExactProject": true,
+  "studioFilesPreserved": 9,
+  "settingsMetadataRetiredOnly": false,
+  "externalPreferencesAndDummyCredentialPreserved": true,
+  "allAppProcessesExited": true,
+  "transactionStageRemoved": true,
+  "processVersions": [
+    "0.2.0-alpha.80",
+    "0.2.0-alpha.81"
+  ],
+  "modelOrTerminalRequests": 0,
+  "qaBoundaries": [
+    "Ephemeral public key pin replaces exactly the compiled production pin in temporary copies",
+    "Release HTTPS fetch is controlled; no real GitHub acceptance",
+    "Pi startup is skipped and model/Terminal launch endpoints fail the test",
+    "Temporary QA entry configures accessory/offscreen windows before loading unchanged application logic"
+  ],
+  "productionSigningKeyUsedForQaMetadata": false,
+  "userStudioOrInstalledApplicationAccess": false,
+  "scope": "Real signed macOS app cycle in owned temporary installation, with controlled release transport/key. Not the final GitHub-to-installed-user-app or native Windows acceptance."
+}

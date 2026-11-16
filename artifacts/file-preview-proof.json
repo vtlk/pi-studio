@@ -41,8 +41,8 @@
   "finderTargetsAgentOutputForEveryPreview": true,
   "newModelRequests": 0,
   "scope": "Own offscreen native main/preload/renderer, real local files/codecs/protocol. Delayed read responses and read-time removal are explicit QA faults; Finder is intercepted. No user project or dialogue changes.",
-  "version": "0.2.0-alpha.79",
-  "verifiedAt": "2026-11-16T08:28:57.788Z",
+  "version": "0.2.0-alpha.81",
+  "verifiedAt": "2026-11-16T10:24:24.079Z",
   "sourceSha256": {
     "src/renderer/features/project/ui/SearchablePreview.tsx": "a37d74e5bc6da4bd11f652992e7aed55f44a6e7540faa63813ee52753dd765e9",
     "src/renderer/features/project/model/previewSearch.ts": "6d831ef0edba86c6a8dbd0dc0f917477c46fbd568319f07091f8054c27636e71",
@@ -55,10 +55,10 @@
     "src/renderer/features/project/ui/OutputFileTree.tsx": "dda5c38525fcaf17187713986910dc0a589c18afb0460edf4d68b41a4ef622d2",
     "src/renderer/features/project/model/useOutputFile.ts": "3c328faef7597a1838efacea65705f631a5b3f882029d44b80975b07afb0383f",
     "src/renderer/features/project/model/outputTree.ts": "0dfe6d094cde8a69f11475ae98b2a998808e83b3bb1bb427ae1ba4b6b8482f79",
-    "src/main/storage/outputs.ts": "f58c885e869bdbe7ecd5981f6e6fd1684fc5af70cf0ba73edf30fc1eee6dc6f5",
+    "src/main/storage/outputs.ts": "15a393882b123eb043be94496ba5ce144019eb1e5afa38251c070133a4d26741",
     "src/shared/outputOrder.ts": "12792c1e99d6bd8b52c1ac497f866bb19d1b0670a72e1de9067be467f0e3db1a",
     "src/shared/outputPaths.ts": "b58932ad11b9730493cd366e08edb164ce9fc7f3ba06cd10b5d83e5329d9e09b",
-    "scripts/smoke-file-previews.cjs": "7f8717dc4ddb4b2f411500c7a699ad510a73aacbcf33a5af8832d5ee0618d357",
-    "out/main/index.cjs": "af5c8e91dd3a4a6ace774c5dd7abd659613c80305962e9f8acbf7069f63bd88f"
+    "scripts/smoke-file-previews.cjs": "cf08028909b143bec95efc5f7b0f0ced8bb33aea69b47e5dd6817cf2b406954e",
+    "out/main/index.cjs": "4256e04819141ef30914bed127ac7b2aa6004925cdc466104bf476fb7f7e8351"
   }
 }
