@@ -1,0 +1,40 @@
+{
+  "versions": {
+    "2.3.7": {
+      "metadataUrl": "https://registry.npmjs.org/react-remove-scroll-bar/2.3.7",
+      "licenseDeclaration": "MIT",
+      "gitHead": "29e9fcd1eecf7d3b77a767941c4a57fe461fc1e4",
+      "tarballUrl": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.7.tgz",
+      "registryIntegrityVerified": true,
+      "tarballSha256": "5ee31e784254a1a0c80b2a14a569c3dc254af4c75d709a04f79ff409e856df91",
+      "fileCount": 27,
+      "gitHeadLicense": {
+        "url": "https://raw.githubusercontent.com/theKashey/react-remove-scroll-bar/29e9fcd1eecf7d3b77a767941c4a57fe461fc1e4/LICENSE",
+        "httpStatus": 404
+      }
+    },
+    "2.3.8": {
+      "metadataUrl": "https://registry.npmjs.org/react-remove-scroll-bar/2.3.8",
+      "licenseDeclaration": "MIT",
+      "gitHead": "b3b1287aad81def2e2ae707274b74531b61ddbaf",
+      "tarballUrl": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
+      "registryIntegrityVerified": true,
+      "tarballSha256": "ccc872d7a2dc007cbf9d755f30d56b8d80eabdbe22c44c95a709129bfdc46f01",
+      "fileCount": 27,
+      "gitHeadLicense": {
+        "url": "https://raw.githubusercontent.com/theKashey/react-remove-scroll-bar/b3b1287aad81def2e2ae707274b74531b61ddbaf/LICENSE",
+        "httpStatus": 404
+      }
+    }
+  },
+  "runtimeAndTypeFilesCompared": 25,
+  "changedCodeOrTypeFilesBetweenVersions": [],
+  "installed238DifferentFromPublishedTarball": [],
+  "programsExecutedFromDownloads": false,
+  "archivesRetained": false,
+  "exact238SourceLicenseProven": false,
+  "checkedAt": "2026-11-16T13:35:26.339360+00:00",
+  "currentLockIntegrityMatchesRegistry": true,
+  "scope": "Read-only registry tarball, installed-file and reachable gitHead license checks. No upstream code was executed; byte equivalence does not prove exact release-source provenance or final redistribution rights.",
+  "supplementalNoticeSha256": "a79aae0c0f21990d9d963bb3c5a79cdcea9a46f8523ba55c58d7fe776b6ebc84"
+}

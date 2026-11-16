@@ -30,3 +30,14 @@ verifier reject missing/changed text or inconsistent bindings. This verifies
 notice preservation, not permission or eligibility to redistribute dependencies.
 Previously published immutable packages keep their original schema 1 manifests;
 this does not change the runtime updater or replace historical release evidence.
+
+## Additional registry-content check (2026-11-16)
+
+The official npm tarballs for `react-remove-scroll-bar` 2.3.7 and 2.3.8 were
+fetched read-only and verified against registry SHA-512 integrity; the current
+2.3.8 lockfile agrees. All 25 runtime/type files under `dist/` and `constants/`
+are byte-identical across those releases. All 27 installed 2.3.8 files match its
+published tarball. Both versions declare MIT. Both advertised `gitHead` LICENSE
+URLs still return 404, so this narrows the content question without claiming an
+exact release-source license match. No downloaded code ran or archive was kept.
+Evidence: `artifacts/scrollbar-license-provenance-proof.json`.
