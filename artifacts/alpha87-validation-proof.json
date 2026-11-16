@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-11-16T21:07:27.011Z",
+  "candidateVersion": "0.2.0-alpha.87",
+  "productionFixCommit": "e45a6a8",
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 388,
+  "unitTests": {
+    "passed": 353,
+    "failed": 0,
+    "ranBeforeVersionOnlyBump": true
+  },
+  "nativeEvidence": "artifacts/native-computer-desktop-proof.json",
+  "nativeEvidenceSha256": "8197a463fb457c4eb641ffe0450ba0387446a33baf1c069a7e1e4de3c9d19537",
+  "actualNativeRetinaGeometryVerified": true,
+  "modelLoopAccepted": false,
+  "desktopQaStoppedAtUserRequest": true,
+  "additionalDesktopOrKeychainChecksAfterStop": 0,
+  "installedApplicationReplaced": false,
+  "publishedBinary": false,
+  "windowsBuilt": false,
+  "ciEnabled": false,
+  "sourceHashes": {
+    "src/main/computer/CursorGeometry.ts": "d0c30182b1dd68202c5e08f744bf8f6a081345ab66b43d4cf6a5bc64092d69f2",
+    "src/main/computer/ComputerOverlay.ts": "107337def9c5baf625c76a917f797f2b510e39329f204816aa46ca0bc1ad8097",
+    "tests/computer-feedback.test.ts": "fdd6cf495e34ef947775dbc886aa4b39fd97ba4cfe3614e9903a556afd7b010b",
+    "out/main/index.cjs": "e6c35bca5e226b6894622800849fee77952ebe5e028e1aa56662a8930b291b89"
+  },
+  "limits": "Source/build verification and the earlier owned native deterministic check only. GUI/account/signing checks are deferred to avoid more permission dialogs. Existing Mac and Windows downloads stay on alpha.86."
+}
