@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-16T12:54:08.298484+00:00",
+  "installedVersion": "0.2.0-alpha.83",
+  "runtimeSourceCommit": "c0c988b0b4afa3cc6fbe0bf58177a72696a56202",
+  "explicitPerUpdateUserConsent": true,
+  "normalQuitAccepted": true,
+  "oldAppAndOwnedIdlePiExitedBeforeReplacement": true,
+  "installedAppReopened": true,
+  "runningInstalledInstances": 1,
+  "runningPid": 62259,
+  "teamIdentifier": "2N3G6XT5H9",
+  "settingsProjectHistoryAndProtectedFilesHashed": 91,
+  "immediatePostInstallAllComparedFilesUnchanged": true,
+  "afterResumeMetadataHashesChanged": 1,
+  "allComparedHistoryPrefixesPreserved": true,
+  "comparedFilesMissing": 0,
+  "previousPiDialoguesReopenedThroughStudio": 1,
+  "exactOriginalSessionBindingPreserved": true,
+  "resumedAgentObservedWaitingForUserInput": true,
+  "automaticUserMessagesSent": 0,
+  "applicationBackupsCreated": false,
+  "windowsBuilt": false
+}
