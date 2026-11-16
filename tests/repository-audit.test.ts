@@ -188,3 +188,81 @@ test('privacy inventory stores line numbers rather than personal paths', () => {
     [2, 3],
   );
 });
+
+test('manual renderer review is bound to the exact immutable proof and independently recorded release check', async () => {
+  const hash = digest('fixture compiled CSS'),
+    asset = 'index-testHash.css',
+    commit = 'b'.repeat(40),
+    file = 'artifacts/constructor-proof.json',
+    evidenceFile = 'artifacts/historical-renderer-digest-review.json';
+  const bytes = Buffer.from(JSON.stringify({ rendererSha256: { [asset]: hash } }, null, 2));
+  const raw = { RuleID: 'generic-api-key', File: file, Commit: commit, StartLine: 3 };
+  const approved = {
+    rule: raw.RuleID,
+    file,
+    commit,
+    line: 3,
+    artifactSha256: digest(bytes),
+    asset,
+    digest: hash,
+    archiveSha256: 'c'.repeat(64),
+    entry: 'Pi Studio.app/Contents/Resources/app/out/renderer/assets/' + asset,
+    evidence: evidenceFile,
+  };
+  const evidence = {
+    finding: { file, commit, line: 3, jsonPointer: '/rendererSha256/' + asset },
+    artifactSha256: digest(bytes),
+    expectedDigest: hash,
+    archive: { sha256: approved.archiveSha256 },
+    entry: approved.entry,
+    assetPresent: true,
+    rendererDigestMatched: true,
+    archiveProductionEd25519AndSha256Verified: true,
+  };
+  const check = async (finding = raw, data = bytes, review = approved, confirmation = evidence) =>
+    classifyFinding(
+      finding,
+      async (path: string) =>
+        path === file
+          ? data
+          : path === evidenceFile
+            ? Buffer.from(JSON.stringify(confirmation))
+            : undefined,
+      new Set(),
+      undefined,
+      [review],
+    );
+  assert.equal((await check()).disposition, 'reviewed-published-renderer-digest');
+  assert.equal(
+    (await classifyFinding(raw, async () => bytes, new Set())).disposition,
+    'needs-review',
+  );
+  for (const finding of [
+    { ...raw, File: 'other.json' },
+    { ...raw, Commit: 'a'.repeat(40) },
+    { ...raw, StartLine: 1 },
+    { ...raw, RuleID: 'github-pat' },
+  ])
+    assert.equal((await check(finding)).disposition, 'needs-review');
+  assert.equal(
+    (await check(raw, Buffer.from(JSON.stringify({ api_key: hash }, null, 2)))).disposition,
+    'needs-review',
+  );
+  assert.equal(
+    (await check(raw, Buffer.concat([bytes, Buffer.from('\n')]))).disposition,
+    'needs-review',
+  );
+  assert.equal(
+    (await check(raw, bytes, { ...approved, digest: 'd'.repeat(64) })).disposition,
+    'needs-review',
+  );
+  assert.equal(
+    (await check(raw, bytes, approved, { ...evidence, rendererDigestMatched: false })).disposition,
+    'needs-review',
+  );
+  assert.equal(
+    (await check(raw, bytes, approved, { ...evidence, archive: { sha256: 'd'.repeat(64) } }))
+      .disposition,
+    'needs-review',
+  );
+});

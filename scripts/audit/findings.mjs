@@ -15,6 +15,7 @@ export async function classifyFinding(
   read,
   canonicalDigests,
   verifyHistorical = async () => undefined,
+  reviewedRendererDigests = [],
 ) {
   let disposition = 'needs-review';
   if (finding.RuleID === 'generic-api-key') {
@@ -45,6 +46,48 @@ export async function classifyFinding(
       if (referenced && digest(referenced) === pair[2]) disposition = 'verified-source-file-sha256';
       else if (await verifyHistorical(pair[1], pair[2]))
         disposition = 'verified-historical-source-file-sha256';
+    }
+    if (pair && disposition === 'needs-review' && finding.Commit) {
+      // Exact one-time human review of an immutable proof, never a general hex/hash exemption.
+      const approved = reviewedRendererDigests.find(
+        (item) =>
+          item.rule === finding.RuleID &&
+          item.file === finding.File &&
+          item.commit === finding.Commit &&
+          item.line === finding.StartLine &&
+          item.asset === pair[1] &&
+          item.digest === pair[2] &&
+          item.artifactSha256 === digest(data) &&
+          /^index-[a-zA-Z0-9_-]+\.(css|js)$/.test(item.asset) &&
+          /^[a-f0-9]{64}$/.test(item.archiveSha256) &&
+          item.entry?.endsWith('/out/renderer/assets/' + item.asset) &&
+          item.evidence === 'artifacts/historical-renderer-digest-review.json',
+      );
+      if (approved) {
+        try {
+          const proof = JSON.parse(data.toString('utf8'));
+          const evidenceBytes = await read(approved.evidence);
+          const evidence = evidenceBytes && JSON.parse(evidenceBytes.toString('utf8'));
+          if (
+            Object.hasOwn(proof.rendererSha256 ?? {}, pair[1]) &&
+            proof.rendererSha256[pair[1]] === pair[2] &&
+            evidence?.finding?.file === finding.File &&
+            evidence.finding.commit === finding.Commit &&
+            evidence.finding.line === finding.StartLine &&
+            evidence.finding.jsonPointer === '/rendererSha256/' + pair[1] &&
+            evidence.artifactSha256 === approved.artifactSha256 &&
+            evidence.expectedDigest === pair[2] &&
+            evidence.archive?.sha256 === approved.archiveSha256 &&
+            evidence.entry === approved.entry &&
+            evidence.assetPresent === true &&
+            evidence.rendererDigestMatched === true &&
+            evidence.archiveProductionEd25519AndSha256Verified === true
+          )
+            disposition = 'reviewed-published-renderer-digest';
+        } catch {
+          /* Invalid proof remains unreviewed. */
+        }
+      }
     }
   }
   return safeFinding(finding, disposition);

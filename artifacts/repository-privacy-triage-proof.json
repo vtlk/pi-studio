@@ -1,0 +1,234 @@
+{
+  "checkedAt": "2026-11-16T13:01:41.962Z",
+  "sourceAuditSha256": "cf0c33ad0bb6b920c34b3176f3dcbbd481cba56ff4507a8748b13e77c689454d",
+  "scope": "Manual triage of current-tree absolute-user-path locations recorded by the security audit. No raw private path values are copied into this report.",
+  "summary": {
+    "historical-verification-path": 13,
+    "historical-diagnostic-path": 1,
+    "web-example-provenance-path": 2,
+    "controlled-path-test": 2,
+    "historical-documentation-path": 3
+  },
+  "files": [
+    {
+      "file": "artifacts/alpha55-release-proof.json",
+      "lines": [
+        29
+      ],
+      "contentSha256": "662ef9841c3280f66503cc491908d256edfbca78fed906a6ddcd124728063d6f",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha60-release-proof.json",
+      "lines": [
+        9,
+        16
+      ],
+      "contentSha256": "04baf5b07ffadb15439b7cf1b50b40029000ec8f0160f14b3acaeeb6b9eba087",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha62-release-proof.json",
+      "lines": [
+        43,
+        54
+      ],
+      "contentSha256": "17cac38562dce167589586791daf1d18a6f7fdfce1dbff634d0d5255bc9e1b4d",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha63-release-proof.json",
+      "lines": [
+        46,
+        56
+      ],
+      "contentSha256": "51b3007be4cdc5140b83aa0f67ca08df4de437aeb465fabfb05311f9fc725d73",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha64-release-proof.json",
+      "lines": [
+        39,
+        49
+      ],
+      "contentSha256": "cec50568f6efecd3d56bfc8c8fcd860bd93d57724d95f447381ac61cb408793d",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha65-release-proof.json",
+      "lines": [
+        43,
+        53
+      ],
+      "contentSha256": "4ccf1b3d2cd97e83797e851159331fa48542c04ae0deadd5659ca2c0bad257b5",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha66-release-proof.json",
+      "lines": [
+        20,
+        30
+      ],
+      "contentSha256": "e7e48dc4d0e03a49257a9174a1290ce91613348caecfe44d508994f39af75a1d",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha67-release-proof.json",
+      "lines": [
+        35,
+        45
+      ],
+      "contentSha256": "f441efec7bbbf179fc0643205603786c374b00c6937108aaa5b8587fb39da38e",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha69-release-proof.json",
+      "lines": [
+        28,
+        38
+      ],
+      "contentSha256": "dffecfd7478d9ad98fd07ba7064f323c4582aca51e518435ba55dae52439b70a",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha70-package-proof.json",
+      "lines": [
+        16
+      ],
+      "contentSha256": "77523cacd4f0b27d6ed43326e4cd2feea6480411b34e63a41f4169b1f266be6d",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha73-installed-proof.json",
+      "lines": [
+        3
+      ],
+      "contentSha256": "95dc5018cd31902dbc1ddb5b7edb3da04d17c441549fe7560176a6bf12889fa7",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/alpha74-installed-proof.json",
+      "lines": [
+        3
+      ],
+      "contentSha256": "0453f5cb306b350acfd4a99120a27c8081aeb3bc1d991d34997a9aa0d8d813b3",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/keychain-real-read-proof.json",
+      "lines": [
+        4
+      ],
+      "contentSha256": "dff07a3cd940091d7a0364c8ba5cb120787853e5512feb18b83b03ed87c296bf",
+      "category": "historical-verification-path",
+      "proposedAction": "propose replacing personal absolute paths with role placeholders while preserving verification fields"
+    },
+    {
+      "file": "artifacts/voice-workflow/preceding-run.log",
+      "lines": [
+        12
+      ],
+      "contentSha256": "b93034a8dfad3b60abf32bc41c9c0643e2b4f8003d30d7da6e4345368068faae",
+      "category": "historical-diagnostic-path",
+      "proposedAction": "review path normalization while retaining diagnostic meaning"
+    },
+    {
+      "file": "public/assets/source.json",
+      "lines": [
+        2
+      ],
+      "contentSha256": "ff8ddefbebc52cc97415b0066f69f2883a35ae6edfd01c382c7f3d265505dc8c",
+      "category": "web-example-provenance-path",
+      "proposedAction": "review portable provenance notation; preserve source attribution and web-only examples"
+    },
+    {
+      "file": "public/library-runtime/README.md",
+      "lines": [
+        4
+      ],
+      "contentSha256": "89cfa40f2430708fcebe1b02437fa16786befab199e938858d69f5c86e30fdd0",
+      "category": "web-example-provenance-path",
+      "proposedAction": "review portable provenance notation; preserve source attribution and web-only examples"
+    },
+    {
+      "file": "scripts/smoke-qa-isolation.cjs",
+      "lines": [
+        75
+      ],
+      "contentSha256": "03a15a1a8c286c1212eb4db046d5e89a61b52b888d9114f0862ff4ab6767c71c",
+      "category": "controlled-path-test",
+      "proposedAction": "keep-test-semantics; not user data"
+    },
+    {
+      "file": "technical-spec/MVP_COMPLETION_AUDIT.md",
+      "lines": [
+        52
+      ],
+      "contentSha256": "1583fae157a82ce3857e809a98fb4d4b5ccb6863ff3e3c1816d3cf39a7279c8a",
+      "category": "historical-documentation-path",
+      "proposedAction": "propose personal-path normalization without changing the recorded verification outcome"
+    },
+    {
+      "file": "technical-spec/MVP_IMPLEMENTATION.md",
+      "lines": [
+        674,
+        688
+      ],
+      "contentSha256": "b32d6f78f5508a35722d9c3d069bb826a4898656ae8019a71e6f8686f7aba0c6",
+      "category": "historical-documentation-path",
+      "proposedAction": "propose personal-path normalization without changing the recorded verification outcome"
+    },
+    {
+      "file": "technical-spec/PROGRESS.md",
+      "lines": [
+        344,
+        760,
+        794,
+        860,
+        894,
+        922,
+        937,
+        973,
+        1018,
+        1050,
+        1065,
+        1093,
+        1120
+      ],
+      "contentSha256": "c3e9fbe1d5bd2a5152fe49affa15ea929f1c3c5164496392710eb9c3cf0f6222",
+      "category": "historical-documentation-path",
+      "proposedAction": "propose personal-path normalization without changing the recorded verification outcome"
+    },
+    {
+      "file": "tests/repository-audit.test.ts",
+      "lines": [
+        187
+      ],
+      "contentSha256": "38ecb61e181d6fecd70743a928de861517e9473a6d1c2b0d2e5bdcbea8d7e926",
+      "category": "controlled-path-test",
+      "proposedAction": "keep-test-semantics; not user data"
+    }
+  ],
+  "filesModifiedOrDeleted": false,
+  "historyRewritten": false,
+  "releaseAssetsModifiedOrDeleted": false,
+  "privateDataAbsenceProven": false,
+  "remaining": [
+    "Review complete file contents and embedded media for private project names/dialogue/user data, not just absolute paths.",
+    "Agree the precise cleanup list before source/material deletion; published history and release asset removal need separate explicit authorization.",
+    "Repeat the audit against the final publishable source, all refs and release assets; validate redistribution rights."
+  ],
+  "fullRel02Accepted": false
+}

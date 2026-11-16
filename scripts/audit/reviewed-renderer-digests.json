@@ -1,0 +1,15 @@
+[
+  {
+    "rule": "generic-api-key",
+    "file": "artifacts/agent-constructor-proof.json",
+    "commit": "bbbbcb4e3e1a1f469f8d9f41f06735087a2543d9",
+    "line": 24,
+    "artifactSha256": "d96dd63449f7935933d028543b1f83d015fa39f01a377a5c09b43e422c63dd65",
+    "asset": "index-BvZkEYSV.css",
+    "digest": "48fe2fac20ab924787a71ecff8637e6da32cede3680ae8b4ed77f631dab9e319",
+    "reason": "Manually matched the renderer SHA-256 with the actual alpha.79 archive entry after verifying production Ed25519 metadata and the full archive SHA-256. No program was executed.",
+    "evidence": "artifacts/historical-renderer-digest-review.json",
+    "archiveSha256": "c68040617dd490c92c77dfab79850263de1f0bbe305c29a9c98a4e7bb8d766c7",
+    "entry": "Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-BvZkEYSV.css"
+  }
+]

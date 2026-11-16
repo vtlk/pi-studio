@@ -9,6 +9,11 @@ import { readZipText } from './audit/zipText.mjs';
 const execute = promisify(execFile),
   root = resolve(import.meta.dirname, '..');
 const scanner = process.env.PI_STUDIO_GITLEAKS || 'gitleaks';
+const reviewedRendererDigests = JSON.parse(
+  await readFile(join(root, 'scripts/audit/reviewed-renderer-digests.json'), 'utf8'),
+);
+if (!Array.isArray(reviewedRendererDigests)) throw Error('Invalid exact renderer-digest reviews.');
+
 const temporary = await mkdtemp(join(tmpdir(), 'pistudio-repository-audit-'));
 const reportName = process.env.PI_STUDIO_AUDIT_REPORT || 'repository-security-audit-proof.json';
 if (!/^[a-zA-Z0-9._-]+\.json$/.test(reportName))
@@ -114,7 +119,9 @@ async function scan(scope, args, config) {
   const raw = JSON.parse(await readFile(report, 'utf8'));
   const findings = [];
   for (const finding of raw)
-    findings.push(await classifyFinding(finding, read, canonical, verifyHistorical));
+    findings.push(
+      await classifyFinding(finding, read, canonical, verifyHistorical, reviewedRendererDigests),
+    );
   const result = {
     scope,
     findings,
@@ -274,6 +281,7 @@ try {
       redacted: true,
       allowCommentsIgnored: true,
       ignoreFileEmpty: true,
+      exactManualRendererDigestReviews: reviewedRendererDigests.length,
     },
     source: {
       refs,
