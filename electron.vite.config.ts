@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import { nativeRendererGuard } from './scripts/native-renderer-guard.ts';
+import { bundledNotices } from './scripts/bundled-notices';
 
 export default defineConfig({
   main: { build: { rollupOptions: { output: { format: 'cjs', entryFileNames: 'index.cjs' } } } },
@@ -14,6 +15,7 @@ export default defineConfig({
     plugins: [
       react(),
       nativeRendererGuard(),
+      bundledNotices(resolve('.')),
       {
         name: 'studio-native-branding',
         generateBundle() {

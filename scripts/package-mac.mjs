@@ -40,6 +40,11 @@ const application = join(resources, 'app');
 await mkdir(application, { recursive: true });
 const licenses = join(application, 'licenses');
 await mkdir(licenses, { recursive: true });
+await cp(join(root, 'node_modules/electron/dist/LICENSE'), join(licenses, 'Electron-LICENSE.txt'));
+await cp(
+  join(root, 'node_modules/electron/dist/LICENSES.chromium.html'),
+  join(licenses, 'Chromium-LICENSES.html'),
+);
 for (const [source, name] of [
   ['@remotion/player/LICENSE.md', 'Remotion-LICENSE.md'],
   ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
