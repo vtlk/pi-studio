@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-16T07:23:52.817Z",
+  "version": "0.2.0-alpha.78",
+  "files": 18900,
+  "directories": 2416,
+  "symlinks": 31,
+  "jsonl": 67,
+  "bytes": 1622639696,
+  "aggregate": "bdcc6caa52138e65ff87d34b7365efc845d96a222671d222f2bada86c0a48761",
+  "allEntriesUnchanged": true,
+  "canonicalJsonlIncluded": true,
+  "workspaceAndEncryptedCredentialFilesIncluded": true,
+  "userDataCopied": false,
+  "noUserPathsOrContentsInProof": true
+}

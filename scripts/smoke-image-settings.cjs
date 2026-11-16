@@ -69,7 +69,7 @@ global.fetch = async (url, init) => {
     );
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('Подключения');
   await js(`document.querySelector('[aria-label="Добавить подключение"]').click()`);
   await input('[role="dialog"] .field-label input', 'QA Images');

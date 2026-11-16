@@ -506,7 +506,7 @@ const deadline = setTimeout(() => {
     'Escape closes search before its modal',
   );
   await click('Закрыть');
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await sample('workspace', '.settings-field-row input');
   const file = resolve('artifacts/fields-before.json');
   if (process.argv.includes('--baseline')) {

@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-16T07:24:25.452Z",
+  "tag": "v0.2.0-alpha.78",
+  "sourceCommit": "31706057d79ad68b92e092fb7ddb8fcac03cfae1",
+  "isPrerelease": true,
+  "remoteAssets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.78-darwin-arm64.update.json",
+      "size": 622,
+      "digest": "sha256:2abb395ab044c3b647fad37b10c1b8202d9e669b5797f7b8c5568cba30f870fb"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.78-mac-arm64.zip",
+      "size": 143016595,
+      "digest": "sha256:beef212aecd5b29d38fe62f3aef89f5eac4473a15f68f507d49a07b01d05a066"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.78-mac-arm64.zip.sha256",
+      "size": 105,
+      "digest": "sha256:2a8ce5b72e7706ad8f68081388945844cd7cd125901b6204fcef78e1f34172a1"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.78-win-x64.zip",
+      "size": 171572416,
+      "digest": "sha256:15c16f4ccbb404e9ec8ec5f9f97bd9f25edf48f5a6a54ef75d70971df4f46e2a"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.78-win-x64.zip.sha256",
+      "size": 103,
+      "digest": "sha256:98adc2592de9dc5b1f35fc7fe52eef3af45e6f714eb7ada1b962a4468ab5e8a2"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.78-win32-x64.update.json",
+      "size": 630,
+      "digest": "sha256:d0dd995ef3ea623cd264fbbf26a83d528bf0d8bc9f8bb2cd6f626213965b680d"
+    }
+  ],
+  "allSixRemoteSizesAndDigestsMatchLocal": true,
+  "downloadedMetadataEd25519Verified": true,
+  "actionsDisabled": true,
+  "privateRepository": true,
+  "anonymousAvailability": false
+}

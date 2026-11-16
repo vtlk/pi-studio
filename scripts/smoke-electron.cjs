@@ -211,7 +211,7 @@ const deadline = setTimeout(() => {
     (await js(`window.studio.loadStudio()`)).projects[0].agents.map((item) => item.profile.id),
     project.agents.map((item) => item.profile.id),
   );
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await until(
     `Array.from(document.querySelectorAll('.section-menu-item')).some(button => button.textContent.trim() === 'Каталог Skills')`,
   );

@@ -249,7 +249,7 @@ const deadline = setTimeout(() => {
     true,
   );
   await click('Отмена');
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('MCP-серверы');
   const builtinRows = await js(
     `Array.from(document.querySelectorAll('.resource-catalog .resource-row')).map(el=>({name:el.querySelector('strong').textContent,delete:!!el.querySelector('.hover-delete'),actions:!!el.querySelector('.resource-native-actions'),button:el.querySelector('button').textContent}))`,

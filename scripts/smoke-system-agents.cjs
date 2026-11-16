@@ -179,7 +179,7 @@ const deadline = setTimeout(() => {
     (await js('window.studio.loadStudio()')).projects[0].agents.map((agent) => agent.profile.id),
     nextTemplates.map((agent) => agent.id),
   );
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('Помощник подключения');
   await until(
     `document.querySelector('[aria-label="Модель помощника подключения"]')?.textContent.includes('не выбрано')`,
@@ -213,8 +213,8 @@ const deadline = setTimeout(() => {
   );
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
-  await until(`!!document.querySelector('[aria-label="Настройки"]')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await until(`!!document.querySelector('.settings-button')`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('Помощник подключения');
   const helperSummary = await js(
     `document.querySelector('[aria-label="Модель помощника подключения"]').textContent`,

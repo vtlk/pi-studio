@@ -57,7 +57,7 @@ const deadline = setTimeout(() => {
     );
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('Подключения');
   await js(`document.querySelector('[aria-label="Добавить подключение"]').click()`);
   await fill('[role="dialog"] input', 'QA local server');
@@ -170,7 +170,7 @@ const deadline = setTimeout(() => {
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('Подключения');
   await click('Настроить');
   await until(`!!document.querySelector('[aria-label="Адрес API модели"]')`);

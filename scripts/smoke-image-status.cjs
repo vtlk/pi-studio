@@ -114,7 +114,7 @@ process.on('unhandledRejection', fail);
       `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(label)}).click()`,
     );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await until(
     `document.body.textContent.includes('Генерация изображений — настроен · авторизация не проверена')`,
   );
@@ -136,7 +136,7 @@ process.on('unhandledRejection', fail);
   const reloaded = new Promise((r) => win.webContents.once('did-finish-load', r));
   win.webContents.reload();
   await reloaded;
-  await until(`!!document.querySelector('[aria-label="Настройки"]')`);
+  await until(`!!document.querySelector('.settings-button')`);
   const state = await js('window.studio.loadStudio()');
   const status = await js(
     `window.studio.readImageConnection(${JSON.stringify({ folder: studio, connectionId: 'qa-images' })})`,

@@ -67,7 +67,7 @@ const deadline = setTimeout(() => {
   await js(
     `(async()=>{const before=await window.studio.loadStudio();const result=await window.studio.saveSection('resources',[{id:'oauth',name:'QA OAuth MCP',kind:'mcps',source:'pi:qa_oauth',transport:'HTTP',version:'',description:'Synthetic OAuth',args:'',credential:'',contents:'',createdAt:1}],{folder:before.folder,base:before.sections.resources});if(!result.saved)throw new Error('QA save conflicted');})()`,
   );
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('MCP-серверы');
   await until(`document.body.textContent.includes('QA OAuth MCP')`);
   await click('Защищённые параметры');

@@ -76,7 +76,7 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Создать персонажа"]')`);
   await click('Агенты');
   await until(`!!document.querySelector('[aria-label="Создать команду"]')`);
-  await js(`document.querySelector('.topbar [aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.topbar .settings-button').click()`);
   await until(`!!document.querySelector('[aria-label="Настройки студии"]')`);
   assert.equal(
     await js(`document.querySelector('.settings-content h2')?.textContent`),

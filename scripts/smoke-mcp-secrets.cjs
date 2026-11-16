@@ -139,8 +139,8 @@ for await(const line of createInterface({input:process.stdin})){const data=JSON.
     js(
       `(()=>{const input=document.querySelector('[aria-label="Значение ${name}"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(text)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
     );
-  await until(`!!document.querySelector('[aria-label="Настройки"]')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await until(`!!document.querySelector('.settings-button')`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('MCP-серверы');
   await rowAction('http', 'Защищённые параметры');
   await until(`!!document.querySelector('[aria-label="Значение HTTP_KEY"]')`);

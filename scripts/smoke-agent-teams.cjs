@@ -225,7 +225,7 @@ const timeout = setTimeout(() => {
     resolve('artifacts/agent-teams.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
-  await named('Настройки');
+  await click('Настройки');
   await click('Команды агентов');
   assert.equal(
     await js(

@@ -102,7 +102,7 @@ process.on('unhandledRejection', fail);
   await checkRow();
   await js(`document.querySelector('[data-system-role="assistant"] button').click()`);
   await checkRow();
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+  await js(`document.querySelector('.settings-button').click()`);
   await click('MCP-серверы');
   const catalogRow = `Array.from(document.querySelectorAll('.resource-catalog > .resource-row')).find(e=>e.querySelector('strong')?.textContent==='Pi Studio · Браузер')`;
   await until(`!!(${catalogRow})`);

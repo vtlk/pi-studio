@@ -172,7 +172,7 @@ if (!process.versions.electron) {
     await js(`document.getElementById('qa-automatic-info').remove()`);
     state = { ...state, startup: { ...state.startup, phase: 'committed', message: undefined } };
     await until(() => js(`!document.querySelector('.update-workspace').inert`));
-    await js(`document.querySelector('.topbar [aria-label="Настройки"]').click()`);
+    await js(`document.querySelector('.topbar .settings-button').click()`);
     await until(() => js(`!!document.querySelector('[aria-label="Настройки студии"]')`));
     const currentFolder = await js(`document.querySelector('.settings-content input').value`);
     const change = async (value) =>

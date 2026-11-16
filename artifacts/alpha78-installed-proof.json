@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-11-16T07:23:52.590Z",
+  "version": "0.2.0-alpha.78",
+  "installedMainCount": 1,
+  "deepStrictAndInventory": true,
+  "mainMatchesBuild": true,
+  "previousAppAlreadyExited": true,
+  "agentRequestsBeforeReplacement": 0,
+  "backupsCreated": false,
+  "reopenedInstalledApplication": true
+}

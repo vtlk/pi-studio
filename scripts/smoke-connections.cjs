@@ -66,7 +66,7 @@ const deadline = setTimeout(() => {
   await reload();
   const expected = await js(`window.studio.getProviderStatus('openai-codex')`);
   const settings = async () => {
-    await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+    await js(`document.querySelector('.settings-button').click()`);
     await click('Подключения');
   };
   await settings();

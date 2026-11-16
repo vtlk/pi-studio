@@ -128,7 +128,7 @@ process.on('unhandledRejection', fail);
   const saved = () => until(`!!document.querySelector('[data-save-state="idle"]')`);
   const state = () => js('window.studio.loadStudio()');
   const settings = async () => {
-    await js(`document.querySelector('[aria-label="Настройки"]').click()`);
+    await js(`document.querySelector('.settings-button').click()`);
     await click('Подключения');
   };
   const remove = async () => {

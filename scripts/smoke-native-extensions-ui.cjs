@@ -54,7 +54,7 @@ process.on('uncaughtException', fail); process.on('unhandledRejection', fail);
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   await click('Агенты'); await click('Модель');
   await until(`document.querySelector('[aria-label="Модель агента"]')?.textContent.includes('UI extension model')`);
-  await js(`document.querySelector('[aria-label="Настройки"]').click()`); await click('Подключения');
+  await js(`document.querySelector('.settings-button').click()`); await click('Подключения');
   await until(`document.body.textContent.includes('QA extension')`); await click('Настроить');
   await until(`!!document.querySelector('[aria-label="Провайдер Pi"]')`);
   await until(`document.querySelector('[aria-label="Провайдер Pi"]').textContent.includes('UI extension provider')`);

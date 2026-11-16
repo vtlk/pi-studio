@@ -1,0 +1,664 @@
+{
+  "checkedAt": "2026-11-16T07:24:49.871Z",
+  "version": "0.2.0-alpha.78",
+  "installedAppCount": 1,
+  "readOnlyAxInspection": true,
+  "appleAndServicesChildrenExcluded": true,
+  "manualUpdatePresent": true,
+  "releaseDebugRolesAbsent": true,
+  "oldVideoStudioTitleAbsent": true,
+  "actionsInvoked": false,
+  "keyboardOrClipboardUsed": false,
+  "items": [
+    {
+      "path": [
+        "Pi Studio"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "О Pi Studio"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "Проверить обновления…"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "Скрыть Pi Studio"
+      ],
+      "enabled": true,
+      "shortcut": "H",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "Скрыть остальные"
+      ],
+      "enabled": true,
+      "shortcut": "H",
+      "modifiers": 2
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "Показать все"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "Завершить Pi Studio"
+      ],
+      "enabled": true,
+      "shortcut": "Q",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Pi Studio",
+        "Quit and Keep Windows"
+      ],
+      "enabled": true,
+      "shortcut": "Q",
+      "modifiers": 2
+    },
+    {
+      "path": [
+        "Файл"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Файл",
+        "Закрыть окно"
+      ],
+      "enabled": true,
+      "shortcut": "W",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Файл",
+        "Close All"
+      ],
+      "enabled": true,
+      "shortcut": "W",
+      "modifiers": 2
+    },
+    {
+      "path": [
+        "Правка"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Отменить"
+      ],
+      "enabled": true,
+      "shortcut": "Z",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Повторить"
+      ],
+      "enabled": true,
+      "shortcut": "Z",
+      "modifiers": 1
+    },
+    {
+      "path": [
+        "Правка",
+        "Вырезать"
+      ],
+      "enabled": true,
+      "shortcut": "X",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Скопировать"
+      ],
+      "enabled": true,
+      "shortcut": "C",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Вставить"
+      ],
+      "enabled": true,
+      "shortcut": "V",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Вставить с текущим форматированием"
+      ],
+      "enabled": true,
+      "shortcut": "V",
+      "modifiers": 3
+    },
+    {
+      "path": [
+        "Правка",
+        "Удалить"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Выделить всё"
+      ],
+      "enabled": true,
+      "shortcut": "A",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Речь"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Речь",
+        "Начать чтение"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Речь",
+        "Остановить чтение"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "AutoFill"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "AutoFill",
+        "Contact…"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "AutoFill",
+        "Passwords…"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "AutoFill",
+        "Credit Card…"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Правка",
+        "Start Dictation…"
+      ],
+      "enabled": true,
+      "shortcut": "🎤",
+      "modifiers": 8
+    },
+    {
+      "path": [
+        "Правка",
+        "Emoji & Symbols"
+      ],
+      "enabled": true,
+      "shortcut": "E",
+      "modifiers": 24
+    },
+    {
+      "path": [
+        "Вид"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Вид",
+        "Фактический размер"
+      ],
+      "enabled": true,
+      "shortcut": "0",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Вид",
+        "Увеличить"
+      ],
+      "enabled": true,
+      "shortcut": "+",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Вид",
+        "Уменьшить"
+      ],
+      "enabled": true,
+      "shortcut": "-",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Вид",
+        "Полный экран"
+      ],
+      "enabled": true,
+      "shortcut": "F",
+      "modifiers": 24
+    },
+    {
+      "path": [
+        "Окно"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Свернуть"
+      ],
+      "enabled": true,
+      "shortcut": "M",
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Minimise All"
+      ],
+      "enabled": true,
+      "shortcut": "M",
+      "modifiers": 2
+    },
+    {
+      "path": [
+        "Окно",
+        "Изменить размер окна"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 8
+    },
+    {
+      "path": [
+        "Окно",
+        "Zoom All"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 10
+    },
+    {
+      "path": [
+        "Окно",
+        "Fill"
+      ],
+      "enabled": true,
+      "shortcut": "F",
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Centre"
+      ],
+      "enabled": true,
+      "shortcut": "C",
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Halves"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Left"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Right"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Top"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Bottom"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Quarters"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Top Left"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Top Right"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Bottom Left"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Bottom Right"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Arrange"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Left & Right"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 29
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Left & Quarters"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 31
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Right & Left"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 29
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Right & Quarters"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 31
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Top & Bottom"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 29
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Top & Quarters"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 31
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Bottom & Top"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 29
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Bottom & Quarters"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 31
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Quarters"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Move & Resize",
+        "Return to Previous Size"
+      ],
+      "enabled": false,
+      "shortcut": "R",
+      "modifiers": 28
+    },
+    {
+      "path": [
+        "Окно",
+        "Full-Screen Tile"
+      ],
+      "enabled": false,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Все окна на передний план"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Arrange in Front"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 10
+    },
+    {
+      "path": [
+        "Окно",
+        "Remove Window from Set"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Окно",
+        "Pi Studio — харнес для конвейерных производств"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Справка"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    },
+    {
+      "path": [
+        "Справка",
+        "Сообщить о проблеме…"
+      ],
+      "enabled": true,
+      "shortcut": null,
+      "modifiers": 0
+    }
+  ]
+}
