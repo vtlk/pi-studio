@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  getPreviewCapabilities,
-  getPreviewKind,
-} from '../src/renderer/features/project/model/previewCapabilities.ts';
+import { getPreviewKind } from '../src/renderer/features/project/model/previewCapabilities.ts';
 import type { OutputFile } from '../src/renderer/features/project/model/workspace.types.ts';
 
 const file = (name: string, format: OutputFile['format'] = 'text'): OutputFile => ({
@@ -19,19 +16,6 @@ test('Markdown text files select the Markdown viewer regardless of extension cas
   assert.equal(getPreviewKind(file('notes.markdown')), 'markdown');
   assert.equal(getPreviewKind(file('notes.txt')), 'text');
 });
-test('ordinary file viewers allow Finder and the built-in montage viewer hides it', () => {
-  for (const kind of [
-    'text',
-    'markdown',
-    'json',
-    'image',
-    'audio',
-    'video',
-    'unsupported',
-  ] as const)
-    assert.equal(getPreviewCapabilities(kind).revealInFinder, true, kind);
-  assert.equal(getPreviewCapabilities('montage').revealInFinder, false);
-});
-test('a JSON filename alone does not activate an unvalidated montage viewer', () => {
+test('ordinary JSON, including legacy manifest names, stays a searchable text document', () => {
   assert.equal(getPreviewKind(file('movie.pistudio.json', 'json')), 'json');
 });

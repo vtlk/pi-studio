@@ -24,7 +24,6 @@ import { Startup } from '../pi/Startup';
 import { createStudioRunHost } from '../pi/createStudioRunHost';
 import type { LaunchAgentRequest } from '../../shared/runtime';
 import { createSetupAssistant } from '../pi/createSetupAssistant';
-import { readVideoProject } from '../video/readVideoProject';
 import { StudioResources } from '../pi/StudioResources';
 import type { SystemAgent } from '../../shared/systemAgents';
 import packageInfo from '../../../package.json';
@@ -303,23 +302,6 @@ export function registerDesktopHandlers(
     if (['image', 'audio', 'video'].includes(file.format))
       file.src = outputMediaUrl(request.projectId, request.path, file.fingerprint);
     return file;
-  });
-  handle(desktopChannels.inspectVideoProject, async (_event, request: FileRequest) => {
-    try {
-      const root = await (await service.load()).projects.directory(request.projectId);
-      return {
-        ok: true,
-        document: await withReadDeadline(() =>
-          readVideoProject(root, request.projectId, request.path),
-        ),
-      };
-    } catch (error) {
-      return {
-        ok: false,
-        error:
-          error instanceof Error ? error.message : t('useVideoInspection.couldNotReadTheMontage'),
-      };
-    }
   });
   registerProjectActions(service, caller, {
     change: (projectId, action) => {

@@ -30,14 +30,6 @@ export function bundledNotices(root: string): Plugin {
           .filter((name) => /^(?:licen[cs]e|copying|notice|authors)(?:$|[._-])/i.test(name))
           .sort()
           .map((name) => ({ name, path: join(directory, name) }));
-        // This exact media tarball omits the repository-wide license. The matching
-        // player tarball contains byte-identical v4.0.543 root LICENSE.md.
-        if (pkg.name === '@remotion/media' && pkg.version === '4.0.543')
-          files.push({
-            name: 'Remotion v4.0.543 root LICENSE.md (from @remotion/player)',
-            path: resolve(root, 'node_modules/@remotion/player/LICENSE.md'),
-            sha256: '53e92b6560f26f9d913a8ac97e4861e013c99ee9164fa0b11c25d8a02672fc09',
-          });
         if (pkg.name === 'react-remove-scroll-bar' && pkg.version === '2.3.8')
           files.push({
             name: 'react-remove-scroll-bar upstream LICENSE (see third-party-license-sources.md)',

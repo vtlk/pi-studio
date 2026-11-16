@@ -1,6 +1,6 @@
 import { BrowserWindow, nativeImage } from 'electron';
 import { readText } from '../storage/files';
-import { validateStaticSvg } from '../video/readVideoProject';
+import { validateStaticSvg } from './validateReferenceSvg';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';

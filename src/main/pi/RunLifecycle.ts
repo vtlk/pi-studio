@@ -7,8 +7,6 @@ import { validateCompletedOutputs } from './completeStage.ts';
 import type { ChannelEvent } from './RunChannel.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { searchWeb } from './webSearch.ts';
-import { videoContract } from '../video/contract.ts';
-import { readVideoProject } from '../video/readVideoProject.ts';
 import { listProjectFiles, readProjectFile } from './projectFiles.ts';
 import { closedRunStatus } from './closedRunStatus.ts';
 import { runFailure } from '../../shared/runFailure.ts';
@@ -223,23 +221,6 @@ export class RunLifecycle {
       };
     if (name === 'list_project_files') return listProjectFiles(live.run.projectRoot, args);
     if (name === 'read_project_file') return readProjectFile(live.run.projectRoot, args);
-    if (name === 'get_video_contract') return videoContract;
-    if (name === 'validate_video_project') {
-      if (typeof args.manifest !== 'string')
-        throw new Error('Нужен путь манифеста относительно output.');
-      const document = await readVideoProject(
-        live.run.projectRoot,
-        live.run.record.projectId,
-        `${live.run.agent.outputPath}/${args.manifest}`,
-      );
-      return {
-        validated: true,
-        revision: document.revision,
-        manifest: args.manifest,
-        scope: document.manifest.scope,
-        assets: document.assets.map(({ id, sha256, size }) => ({ id, sha256, size })),
-      };
-    }
     if (name === 'report_blocked') {
       live.blocked = true;
       return { paused: true };

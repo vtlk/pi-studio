@@ -18,11 +18,9 @@ export function OutputToolbar({
           <code className="project-active-file">{filePath ?? file.name}</code>
         </Tooltip>
       )}
-      {file &&
-        ['text', 'markdown', 'json'].includes(file.format) &&
-        !file.name.endsWith('.pistudio.json') && (
-          <CopyOutputButton file={file} projectId={projectId} />
-        )}
+      {file && ['text', 'markdown', 'json'].includes(file.format) && (
+        <CopyOutputButton file={file} projectId={projectId} />
+      )}
     </div>
   );
 }

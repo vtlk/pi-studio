@@ -30,6 +30,15 @@ test('native build rejects web fixture imports and inlined example data', () => 
     'Сохраняй единый стиль проекта: геометрическая 2D-графика',
   ])
     assert.throws(() => inspectNativeRenderer({ index: { ...chunk, code } }), /Web example data/);
+  for (const id of [
+    '/node_modules/remotion/dist/index.js',
+    '/node_modules/@remotion/player/dist/index.js',
+    'C:\\node_modules\\@remotion\\media\\dist\\index.js',
+  ])
+    assert.throws(
+      () => inspectNativeRenderer({ index: { ...chunk, modules: { ...chunk.modules, [id]: {} } } }),
+      /must not be bundled/,
+    );
   assert.throws(
     () => inspectNativeRenderer({ index: { ...chunk, modules: {} } }),
     /entry is missing/,

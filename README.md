@@ -165,7 +165,7 @@ Screenshots from separate test projects, shown in Russian. These show the Studio
 
 Pi Studio is released under **[MIT](LICENSE)**. You can use it for free, modify it and distribute your own versions, including for commercial work.
 
-Model subscriptions, APIs and external services are billed separately by their providers. Third-party components retain their own licenses: [notices](third-party-licenses), [Remotion terms](https://www.remotion.dev/license).
+Model subscriptions, APIs and external services are billed separately by their providers. Third-party components retain their own licenses: [notices](third-party-licenses).
 
 The repository will become public after the final audit and release validation. Source access is currently limited to repository collaborators.
 

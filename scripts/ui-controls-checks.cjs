@@ -315,38 +315,12 @@ module.exports = async ({
   );
   await capture('ui-controls-project.png');
   await click('film.pistudio.json');
-  await until(
-    `Array.from(document.querySelectorAll('button')).some(e=>e.textContent.trim()==='Открыть монтаж')`,
-  );
-  await click('Открыть монтаж');
-  await until(
-    `!!document.querySelector('[data-montage-item="video-clip"] canvas')&&!!document.querySelector('[aria-label="На кадр вперёд"]')`,
-  );
-  await until(
-    `document.querySelector('[data-montage-item="video-clip"] canvas').getContext('2d').getImageData(5,5,1,1).data[1]>90`,
-  );
-  await named('На кадр вперёд');
-  await until(`document.querySelector('[data-video-frame]').dataset.videoFrame==='1'`);
-  const pixel = await js(
-    `Array.from(document.querySelector('[data-montage-item="video-clip"] canvas').getContext('2d').getImageData(5,5,1,1).data)`,
-  );
+  await until(`document.querySelector('.output-file-preview pre')?.textContent.includes('"type"')`);
+  assert.equal(await js(`!!document.querySelector('.montage-card')`), false);
   for (const value of ['light', 'dark']) {
     await theme(value);
-    await inspect('montage-' + value);
-    assert.equal(await js(`document.querySelector('[data-video-frame]').dataset.videoFrame`), '1');
-    assert.deepEqual(
-      await js(
-        `Array.from(document.querySelector('[data-montage-item="video-clip"] canvas').getContext('2d').getImageData(5,5,1,1).data)`,
-      ),
-      pixel,
-    );
+    await inspect('legacy-json-' + value);
   }
-  await click('На весь экран');
-  await inspect('montage-fullscreen');
-  await js(`window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
-  await until(`!document.querySelector('.editor-fullscreen')`);
-  assert.equal(await js(`document.querySelector('[data-video-frame]').dataset.videoFrame`), '1');
-  await click('Закрыть просмотр');
   await saved();
   return {
     providerSearchByNameAndStableId: true,
@@ -361,6 +335,6 @@ module.exports = async ({
     splitGeometryAndNoPseudoFrame: true,
     projectConfirmationsAndPreflightPreserved: true,
     projectFilesAndSessionsUntouched: true,
-    officialRemotionViewerButtonsFullscreenFrameAndMediaColors: true,
+    legacyManifestsRemainOrdinaryJson: true,
   };
 };

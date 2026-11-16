@@ -47,9 +47,6 @@ await cp(
   join(licenses, 'Chromium-LICENSES.html'),
 );
 for (const [source, name] of [
-  ['@remotion/player/LICENSE.md', 'Remotion-LICENSE.md'],
-  ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
-  ['zod/LICENSE', 'Zod-LICENSE.txt'],
   ['jsonc-parser/LICENSE.md', 'JSONC-parser-LICENSE.md'],
   ['semver/LICENSE', 'Semver-LICENSE.txt'],
   ['yauzl/LICENSE', 'Yauzl-LICENSE.txt'],
@@ -60,14 +57,9 @@ await writeFile(
   join(licenses, 'README.txt'),
   [
     'Pi Studio bundled dependencies (unmodified upstream code):',
-    'remotion, @remotion/player, @remotion/media 4.0.543: Remotion License; see Remotion-LICENSE.md.',
-    'Source: https://github.com/remotion-dev/remotion/tree/v4.0.543',
-    'Mediabunny 1.64.0: MPL-2.0; see Mediabunny-LICENSE.txt.',
     'Corresponding source: https://registry.npmjs.org/mediabunny/-/mediabunny-1.64.0.tgz (includes src/).',
-    'Zod 4.6.7: MIT; see Zod-LICENSE.txt. Source: https://github.com/colinhacks/zod',
     'jsonc-parser 3.3.1: MIT; see JSONC-parser-LICENSE.md. Source: https://github.com/microsoft/node-jsonc-parser',
     'semver 7.8.6: ISC; yauzl 3.4.0 and pend 1.2.0: MIT. See Semver-LICENSE.txt, Yauzl-LICENSE.txt, Pend-LICENSE.txt. Sources: https://github.com/npm/node-semver, https://github.com/thejoshwolfe/yauzl, https://github.com/andrewrk/node-pend',
-    'Editor Starter and Remotion Timeline are not included.',
     '@earendil-works/pi-claude-code 0.1.0: MIT, pinned d5b5e04c314d3452d357174d16d10dda34daa2d2. See bundled/pi-claude-code/LICENSE and UPSTREAM.json. Official Claude CLI is a separately installed, unmodified dependency; its credentials are not bundled.',
     'Cua Driver 0.49.11: MIT; @ubjs runtimes 0.31.0-3: MPL-2.0. See Cua-MIT.txt, MPL-2.0.txt, Cua-node-runtime-NOTICE.md and Cua-SOURCES.md for exact corresponding source.',
     '',

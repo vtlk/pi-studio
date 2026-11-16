@@ -10,21 +10,13 @@ import { exampleConnections } from './fixtures/connections';
 import { exampleResources } from './fixtures/resources';
 import { useDemoWorkspaceState } from './features/project/model/useDemoWorkspaceState';
 import { ProjectProvider } from './features/project/model/Project';
-import { PlaybackProvider } from './features/preview/model/Playback';
-import { EditorProvider } from './features/editor/model/Editor';
 import { LanguageProvider, initialLanguage } from './shared/model/Language';
 import { ThemeProvider, initialTheme } from './shared/model/Theme';
 
 const appearance = initialTheme(false);
 
 function DemoProviders({ children }: { children: ReactNode }) {
-  return (
-    <EditorProvider>
-      <ProjectProvider>
-        <PlaybackProvider>{children}</PlaybackProvider>
-      </ProjectProvider>
-    </EditorProvider>
-  );
+  return <ProjectProvider>{children}</ProjectProvider>;
 }
 function useWorkspaceState() {
   return { ...useDemoWorkspaceState(), trashProjects: [], busy: false };

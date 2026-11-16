@@ -54,7 +54,7 @@ export function LocalSkillInfo({
           <dl className="data-list">
             <dt>{t('LocalSkillInfo.skillFolder')}</dt>
             <dd>{skill.source}</dd>
-            <dt>{t('MontageCard.state')}</dt>
+            <dt>{t('LocalSkillInfo.state')}</dt>
             <dd>{t('LocalSkillInfo.currentFileAssignedAgentsLoadItThe')}</dd>
           </dl>
           <DisclosureList>

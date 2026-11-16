@@ -302,8 +302,6 @@ test('loopback MCP requires a session capability and never exposes admin tools t
       'get_run_context',
       'list_project_files',
       'read_project_file',
-      'get_video_contract',
-      'validate_video_project',
       'complete_stage',
       'report_blocked',
     ],

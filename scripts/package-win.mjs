@@ -68,9 +68,6 @@ try {
       recursive: true,
     });
   for (const [source, name] of [
-    ['@remotion/player/LICENSE.md', 'Remotion-LICENSE.md'],
-    ['mediabunny/LICENSE', 'Mediabunny-LICENSE.txt'],
-    ['zod/LICENSE', 'Zod-LICENSE.txt'],
     ['jsonc-parser/LICENSE.md', 'JSONC-parser-LICENSE.md'],
     ['semver/LICENSE', 'Semver-LICENSE.txt'],
     ['yauzl/LICENSE', 'Yauzl-LICENSE.txt'],

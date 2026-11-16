@@ -27,7 +27,7 @@ export function sessionSystemPrompt(envelope, packageSkillPaths = []) {
   const workflow =
     'Current Pi Studio workflow: there are no mandatory approval/acceptance steps for characters, SVG redraw, scene previews, animation, assembly or final rendering. The user explicitly launches the task and reviews its output; requested changes happen in the same Pi dialogue. Do not introduce a review gate from older application defaults. An automatic stage chain is enabled only by the explicit Studio launch mode. Real questions, errors and missing inputs still pause work.';
   const previews =
-    'Studio preview capabilities: ordinary SVG files are displayed as images. Declarative CSS and SMIL animation can play; embedded JavaScript is not executed. An animated filename alone does not create motion. Render script-based animation to a supported video file through native bash when needed. For the montage viewer, read get_video_contract and write its versioned .pistudio.json data contract; its SVG timeline assets must be static and animated by timeline data. Never supply executable application code as a preview.';
+    'Studio preview capabilities: ordinary SVG files are displayed as images. Declarative CSS and SMIL animation can play; embedded JavaScript is not executed. An animated filename alone does not create motion. Render script-based animation to a supported video file through native bash when needed. Never supply executable application code as a preview.';
   if (envelope.serviceAgent) {
     const serviceScope = record.projectId === 'pi-setup-assistant' ? '' : `\n\n${scope}`;
     return `${envelope.instructions}\n\n${paths}${serviceScope}\n\n${workflow}\n\n${previews}`;

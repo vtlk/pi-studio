@@ -6,15 +6,11 @@ import { listOutputFiles } from '../model/outputTree';
 import { ResizeHandle } from '@/shared/ui/ResizeHandle';
 import { useElementWidth } from '@/shared/ui/useElementWidth';
 import { OutputPreview } from './OutputPreview';
-import { MontageCard } from '@/features/editor/ui/MontageCard';
 import { useWorkspace } from '../model/Workspace';
 import { OutputFileTree } from './OutputFileTree';
 import { ArtifactPreview } from './ArtifactPreview';
 import { OutputToolbar } from './OutputToolbar';
 import { useOutputFile } from '../model/useOutputFile';
-import { useStorage } from '@/shared/storage/Storage';
-import { useVideoInspection } from '@/features/editor/model/useVideoInspection';
-import { NativeMontageCard } from '@/features/editor/ui/NativeMontageCard';
 import { DeleteAgentDataButton } from './DeleteAgentDataButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { SearchablePreview } from './SearchablePreview';
@@ -36,7 +32,6 @@ export function AgentOutputsView({
 }) {
   useTranslation(undefined, { i18n });
   const { selectedProject } = useWorkspace();
-  const { isDesktop } = useStorage();
   const { ref, width } = useElementWidth();
   const files = listOutputFiles(agent.entries);
   const [fileId, setFileId] = useState('');
@@ -48,10 +43,6 @@ export function AgentOutputsView({
   const projectId = selectedProject?.id;
   const { file: loadedFile, loading, error } = useOutputFile(projectId, selected?.file);
   const selectedFile = loadedFile ?? selected?.file;
-  const nativeManifestPath =
-    isDesktop && selectedFile?.name.endsWith('.pistudio.json') ? selectedFile.diskPath : undefined;
-  const filesVersion = files.map(({ file }) => `${file.diskPath}:${file.fingerprint}`).join('|');
-  const nativeVideo = useVideoInspection(projectId, nativeManifestPath, filesVersion);
   const max = Math.max(140, (width || 600) - 240);
   const actualWidth = Math.min(treeWidth, max);
   return (
@@ -95,9 +86,7 @@ export function AgentOutputsView({
             enabled={
               !settingsAgentId &&
               !!selectedFile &&
-              ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile)) &&
-              !nativeManifestPath &&
-              !selectedFile.name.endsWith('.pistudio.json')
+              ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile))
             }
             ready={!loading && !error}
             empty={!selectedFile?.content}
@@ -113,43 +102,23 @@ export function AgentOutputsView({
               </p>
             ) : selected && selectedFile ? (
               <div className="output-file-preview">
-                {nativeManifestPath && projectId ? (
-                  <NativeMontageCard
-                    key={`${projectId}:${nativeManifestPath}`}
-                    result={nativeVideo}
-                    documentKey={`${projectId}:${nativeManifestPath}`}
-                  />
-                ) : !isDesktop &&
-                  selected.file.name.endsWith('.pistudio.json') &&
-                  selectedProject ? (
-                  <MontageCard
-                    key={selected.file.id}
-                    file={selected.file}
-                    path={selected.path}
-                    agent={agent}
-                    projectId={selectedProject.id}
-                  />
+                {selected.file.artifact ? (
+                  <ArtifactPreview file={selected.file} agent={agent} />
                 ) : (
-                  <>
-                    {selected.file.artifact ? (
-                      <ArtifactPreview file={selected.file} agent={agent} />
-                    ) : (
-                      <OutputPreview
-                        key={`${selectedFile.id}:${selectedFile.fingerprint}`}
-                        file={selectedFile}
-                        markdownFiles={
-                          projectId && selectedFile.diskPath
-                            ? {
-                                projectId,
-                                path: selectedFile.diskPath,
-                                files: files.map(({ file }) => file),
-                                onSelect: selectFile,
-                              }
-                            : undefined
-                        }
-                      />
-                    )}
-                  </>
+                  <OutputPreview
+                    key={`${selectedFile.id}:${selectedFile.fingerprint}`}
+                    file={selectedFile}
+                    markdownFiles={
+                      projectId && selectedFile.diskPath
+                        ? {
+                            projectId,
+                            path: selectedFile.diskPath,
+                            files: files.map(({ file }) => file),
+                            onSelect: selectFile,
+                          }
+                        : undefined
+                    }
+                  />
                 )}
               </div>
             ) : (

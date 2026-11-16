@@ -73,23 +73,6 @@ export const productionTools: SessionTool[] = [
     },
   },
   {
-    name: 'get_video_contract',
-    description:
-      'Read the exact data schema and example for the bundled Remotion Player viewer. Do not invent a format or ship executable TSX/HTML as a viewer.',
-    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-  },
-  {
-    name: 'validate_video_project',
-    description:
-      'Validate a .pistudio.json montage and all its local assets inside this agent output. Returns dependency hashes and a revision. This technical validation does not start rendering.',
-    inputSchema: {
-      type: 'object',
-      properties: { manifest: { type: 'string', minLength: 1, maxLength: 2000 } },
-      required: ['manifest'],
-      additionalProperties: false,
-    },
-  },
-  {
     name: 'complete_stage',
     description:
       'Explicitly report task completion after writing final output files. Studio validates all files. A normal response or closed Terminal is not completion. Output paths are relative to this agent output directory.',

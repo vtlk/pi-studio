@@ -26,6 +26,8 @@ export function inspectNativeRenderer(bundle: NativeBundle) {
   );
   if (forbidden.length)
     throw new Error(`Web-only modules imported by native renderer:\n${forbidden.join('\n')}`);
+  if ([...modules].some((id) => /\/node_modules\/(?:@remotion\/|remotion\/)/.test(id)))
+    throw new Error('User-managed Remotion packages must not be bundled in Pi Studio.');
   if (![...modules].some((id) => id.endsWith('/renderer/main.tsx')))
     throw new Error('Native renderer entry is missing.');
   return { schemaVersion: 1, entry: 'main.tsx', modules: modules.size, webExampleModules: 0 };

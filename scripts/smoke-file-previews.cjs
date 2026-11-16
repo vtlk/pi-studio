@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
-const { mkdtempSync, mkdirSync, realpathSync } = require('node:fs');
+const { mkdtempSync, mkdirSync, realpathSync, writeFileSync } = require('node:fs');
 const { mkdir, writeFile, readFile, rm } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { createHash } = require('node:crypto');
@@ -17,6 +17,8 @@ const deadline = setTimeout(() => {
     mkdirSync(join(root, key));
     app.setPath(key, join(root, key));
   }
+  require('./offscreen-main.cjs').configureQaRuntime();
+  writeFileSync(join(root, 'userData/language.json'), JSON.stringify({ language: 'ru' }));
   let hold = false,
     pending,
     removeOnRead;
@@ -422,20 +424,23 @@ const deadline = setTimeout(() => {
   await until(
     `document.querySelector('.media-example')?.textContent.includes('нет встроенного предпросмотра')`,
   );
-  await file('broken.pistudio.json');
-  await until(`document.querySelector('.montage-card [role="alert"]')?.textContent.length>0`);
-  assert.equal(
-    await js(
-      `Array.from(document.querySelectorAll('button')).some(b=>b.textContent==='Открыть монтаж')`,
-    ),
-    false,
-  );
-  await file('film.pistudio.json');
-  await until(
-    `Array.from(document.querySelectorAll('button')).some(b=>b.textContent==='Открыть монтаж')`,
-  );
+  for (const name of ['broken.pistudio.json', 'film.pistudio.json']) {
+    await file(name);
+    await until(
+      `document.querySelector('.output-file-preview pre')?.textContent.includes('"type"')`,
+    );
+    assert.equal(await js(`!!document.querySelector('.montage-card')`), false);
+    assert.equal(
+      await js(`!!document.querySelector('.project-file-toolbar [aria-label="Копировать"]')`),
+      true,
+    );
+  }
+  assert.equal(await js(`'inspectVideoProject' in window.studio`), false);
+  assert.equal(await js(`!!document.querySelector('.output-file-preview pre')`), true);
+  await js(`document.querySelector('.project-agent-menu-trigger').focus(); document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true}))`);
+  await until(`!!document.querySelector('[role="menu"]')`);
   await js(
-    `document.querySelector('.project-agent-actions [aria-label="Показать в Finder"]').click()`,
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==='Показать в Finder').click()`,
   );
   for (let i = 0; i < 100 && !revealed.length; i++) await new Promise((r) => setTimeout(r, 20));
   assert.deepEqual(revealed, [output]);

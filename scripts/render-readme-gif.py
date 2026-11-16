@@ -4,7 +4,7 @@ from PIL import Image
 
 media = Path(__file__).resolve().parents[1] / "docs" / "media"
 frames = []
-for name in ("agents.png", "projects.png", "project.png", "viewer.png"):
+for name in ("agents.png", "projects.png", "project.png"):
     image = Image.open(media / name).convert("RGB")
     image.thumbnail((960, 635), Image.Resampling.LANCZOS)
     frame = Image.new("RGB", (960, 635), "white")

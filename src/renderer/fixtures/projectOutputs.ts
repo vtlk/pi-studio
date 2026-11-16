@@ -1,5 +1,4 @@
 import { productionExamples } from './productionExamples';
-import { montageExamples } from './montageExamples';
 import { characters, locations, scenes } from './studio';
 import type { OutputEntry, OutputFile } from '@/features/project/model/workspace.types';
 
@@ -132,7 +131,6 @@ ${scenes.map((scene, index) => `## Сцена ${index + 1}. ${scene.name}\n\n${s
     },
   ],
   editor: [
-    ...montageExamples,
     text(
       'composition',
       'композиция.json',
