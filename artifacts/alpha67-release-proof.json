@@ -32,7 +32,7 @@
   "oldMainAbsentBeforeInstall": true,
   "installedFromVerifiedZip": true,
   "before": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "fcc7d7594922d91ca98cec73832ba997f1f8a413b2c6b2cda1918663bc8a5863",
     "files": 17173,
@@ -42,7 +42,7 @@
     "aggregate": "90d173cca165fbb8a055dd11cbdc07aa19c743e046ab49d88be7e69c27d9c122"
   },
   "afterInstallBeforeOpen": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "fcc7d7594922d91ca98cec73832ba997f1f8a413b2c6b2cda1918663bc8a5863",
     "files": 17173,
@@ -56,5 +56,6 @@
   "applicationBackupsCreated": false,
   "retainedLocalZipCount": 1,
   "userPiDialoguesOpened": false,
-  "automaticUserMessagesSent": false
+  "automaticUserMessagesSent": false,
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

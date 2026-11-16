@@ -40,7 +40,7 @@
     "forcedTermination": false,
     "installedUiObserved": true,
     "before": {
-      "folder": "/Users/user1/Movies/Pi Studio",
+      "folder": "<STUDIO_ROOT>",
       "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
       "settings": "4ee30ccdb1c84fc5263087a1090a8c2efb08258653f08a85a0b26a6c87deb314",
       "sections": "f4129fc4859194e85fa85dee7438c372d2aac179428a03b6595e5f17757d14d6",
@@ -51,7 +51,7 @@
       "aggregate": "3423ef82f9a139aba48862299ccd22418fcfea9c49f63b5bc82d57af4c5c15f5"
     },
     "after": {
-      "folder": "/Users/user1/Movies/Pi Studio",
+      "folder": "<STUDIO_ROOT>",
       "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
       "settings": "4ee30ccdb1c84fc5263087a1090a8c2efb08258653f08a85a0b26a6c87deb314",
       "sections": "f4129fc4859194e85fa85dee7438c372d2aac179428a03b6595e5f17757d14d6",
@@ -64,5 +64,6 @@
     "allFingerprintsUnchanged": true,
     "generatedAppStageRemoved": true
   },
-  "realKeychainRepeatedReadProof": "artifacts/keychain-real-read-proof.json"
+  "realKeychainRepeatedReadProof": "artifacts/keychain-real-read-proof.json",
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

@@ -17,7 +17,7 @@
   "installedMainSha256": "4a563390ed1d2e91568989145968e73b372a90156fab6a8e137ff44366c0c246",
   "installedTitleBridgeSha256": "6d109d5b71f8b4473367a901757f85a372715d87674072cbd0ec1f872a21d0ba",
   "before": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "0811050daed9319f0a677c28f05b6bb5a0076590eaa02f36a453535618b7e356",
     "files": 16875,
@@ -27,7 +27,7 @@
     "aggregate": "bf720e1935998027e405cd4e3b53f55a19a4213db0ff45bd6c21d72015b90808"
   },
   "afterInstallBeforeOpen": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "0811050daed9319f0a677c28f05b6bb5a0076590eaa02f36a453535618b7e356",
     "files": 16875,
@@ -47,5 +47,6 @@
   "userPiDialoguesOpened": false,
   "automaticUserMessagesSent": false,
   "terminalAppGuiAcceptance": false,
-  "notes": "Real Pi interactive/native ProcessTerminal title tests passed with packaged bridge in owned PTYs. Actual visible Terminal title/focus remains manual acceptance; no GUI control tool available. Signed with existing Apple Development identity, not notarized. Whole MVP acceptance remains active."
+  "notes": "Real Pi interactive/native ProcessTerminal title tests passed with packaged bridge in owned PTYs. Actual visible Terminal title/focus remains manual acceptance; no GUI control tool available. Signed with existing Apple Development identity, not notarized. Whole MVP acceptance remains active.",
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

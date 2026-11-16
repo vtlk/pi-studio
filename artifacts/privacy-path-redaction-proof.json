@@ -1,0 +1,130 @@
+{
+  "checkedAt": "2026-11-16T18:29:40.247149+00:00",
+  "files": [
+    {
+      "file": "artifacts/alpha55-release-proof.json",
+      "originalSha256": "662ef9841c3280f66503cc491908d256edfbca78fed906a6ddcd124728063d6f",
+      "redactedSha256": "6e022b2abca82c6c9b2d132edc955b4565d0cb37ebb9559bc607cd2f557175e5",
+      "changedFields": [
+        "/installationDeferred/workspace"
+      ]
+    },
+    {
+      "file": "artifacts/alpha60-release-proof.json",
+      "originalSha256": "04baf5b07ffadb15439b7cf1b50b40029000ec8f0160f14b3acaeeb6b9eba087",
+      "redactedSha256": "ee61997a28ce8672ec33dc16745fa7208613efb0c235f5d114219951864898d0",
+      "changedFields": [
+        "/installedApp",
+        "/userStudio/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha62-release-proof.json",
+      "originalSha256": "17cac38562dce167589586791daf1d18a6f7fdfce1dbff634d0d5255bc9e1b4d",
+      "redactedSha256": "3c6361d1cd426823b59f98d1e1c23c118bcf1134e2f6028a70d663696606c2f6",
+      "changedFields": [
+        "/installation/before/folder",
+        "/installation/after/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha63-release-proof.json",
+      "originalSha256": "51b3007be4cdc5140b83aa0f67ca08df4de437aeb465fabfb05311f9fc725d73",
+      "redactedSha256": "169e30993b9ddc900301e5d7ee05f143aa5766383c2fa6988039b5e8ad74ed59",
+      "changedFields": [
+        "/installation/before/folder",
+        "/installation/after/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha64-release-proof.json",
+      "originalSha256": "cec50568f6efecd3d56bfc8c8fcd860bd93d57724d95f447381ac61cb408793d",
+      "redactedSha256": "6c92722653758e0cb6026e30d9dafed8e9093edc5d63635bca6ec361a954a9c9",
+      "changedFields": [
+        "/installation/before/folder",
+        "/installation/after/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha65-release-proof.json",
+      "originalSha256": "4ccf1b3d2cd97e83797e851159331fa48542c04ae0deadd5659ca2c0bad257b5",
+      "redactedSha256": "04fbdeecda395daf766d3109a6ed25d4a347fdb186e94cd1d18240f490516f68",
+      "changedFields": [
+        "/installation/before/folder",
+        "/installation/after/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha66-release-proof.json",
+      "originalSha256": "e7e48dc4d0e03a49257a9174a1290ce91613348caecfe44d508994f39af75a1d",
+      "redactedSha256": "0e62a632561721cf3bb5c195b815d6072b5cce42180abae88931ba30762586fc",
+      "changedFields": [
+        "/before/folder",
+        "/afterInstallBeforeOpen/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha67-release-proof.json",
+      "originalSha256": "f441efec7bbbf179fc0643205603786c374b00c6937108aaa5b8587fb39da38e",
+      "redactedSha256": "697ff59ab033b50a0f6756ebe5e4ad43e95cecf9bc432c93617fdc32b097cff0",
+      "changedFields": [
+        "/before/folder",
+        "/afterInstallBeforeOpen/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha69-release-proof.json",
+      "originalSha256": "dffecfd7478d9ad98fd07ba7064f323c4582aca51e518435ba55dae52439b70a",
+      "redactedSha256": "e65f3bf4bde2fbb88bd74c05223c42d8d9bae33e0450ad20d974dc409024910a",
+      "changedFields": [
+        "/before/folder",
+        "/afterInstallBeforeOpen/folder"
+      ]
+    },
+    {
+      "file": "artifacts/alpha70-package-proof.json",
+      "originalSha256": "77523cacd4f0b27d6ed43326e4cd2feea6480411b34e63a41f4169b1f266be6d",
+      "redactedSha256": "2f4d19ce56a463608a23ec2dcd6176bfb0432ded3d32705adbf74a7608c2f5d4",
+      "changedFields": [
+        "/studio"
+      ]
+    },
+    {
+      "file": "artifacts/alpha73-installed-proof.json",
+      "originalSha256": "95dc5018cd31902dbc1ddb5b7edb3da04d17c441549fe7560176a6bf12889fa7",
+      "redactedSha256": "b8d7e404416d904d094b037d6deae6f6253d8b55a829289f91f4b8ec9433bb91",
+      "changedFields": [
+        "/installedPath"
+      ]
+    },
+    {
+      "file": "artifacts/alpha74-installed-proof.json",
+      "originalSha256": "0453f5cb306b350acfd4a99120a27c8081aeb3bc1d991d34997a9aa0d8d813b3",
+      "redactedSha256": "20023e0c63dc35b3c3300ce5c9986c73c1f737fde12fae264f20e4582ed7c523",
+      "changedFields": [
+        "/installedPath"
+      ]
+    },
+    {
+      "file": "artifacts/keychain-real-read-proof.json",
+      "originalSha256": "dff07a3cd940091d7a0364c8ba5cb120787853e5512feb18b83b03ed87c296bf",
+      "redactedSha256": "57033c244b732a1f79b29127f6d257a5ae65c77f04ab46cf180a9a18bc07be80",
+      "changedFields": [
+        "/installedApp"
+      ]
+    },
+    {
+      "file": "artifacts/voice-workflow/preceding-run.log",
+      "originalSha256": "b93034a8dfad3b60abf32bc41c9c0643e2b4f8003d30d7da6e4345368068faae",
+      "redactedSha256": "11b2dad50deeaec3fc0139c98c25d4a7c217de7a97a347b43e9bc9bb384f9d87",
+      "changedFields": [
+        "stack trace repository prefix"
+      ]
+    }
+  ],
+  "fileCount": 14,
+  "onlyHistoricalPathsAndExplicitNotationChanged": true,
+  "historicalCheckResultsAndReleaseDigestsPreserved": true,
+  "originalHistoryNotRewritten": true,
+  "userStudioOrApplicationModified": false
+}

@@ -13,8 +13,9 @@
   "actionsEnabled": false,
   "opened": true,
   "mainPid": 43202,
-  "studio": "/Users/user1/Movies/Pi Studio",
+  "studio": "<STUDIO_ROOT>",
   "filesUnchangedBeforeOpen": 17736,
   "agentsPreserved": 10,
-  "workspaceAndSettingsUnchangedBeforeOpen": true
+  "workspaceAndSettingsUnchangedBeforeOpen": true,
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

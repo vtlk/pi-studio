@@ -25,7 +25,7 @@
   "packagedBridgeNativeImportPassed": true,
   "unitFsTests": 221,
   "before": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "0a1be022f7eb7529d6093e1f9ba1d29f23e149c205d4fc6d1ef7b307245a91b1",
     "files": 17726,
@@ -35,7 +35,7 @@
     "aggregate": "8ac2ee76716f9e9c311c2f6f8a9d685386e07a05141016f1e04ad64bec3dacc4"
   },
   "afterInstallBeforeOpen": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "0a1be022f7eb7529d6093e1f9ba1d29f23e149c205d4fc6d1ef7b307245a91b1",
     "files": 17726,
@@ -56,5 +56,6 @@
   "applicationBackupsCreated": false,
   "retainedLocalZipCount": 1,
   "userPiDialoguesOpened": false,
-  "automaticUserMessagesSent": false
+  "automaticUserMessagesSent": false,
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

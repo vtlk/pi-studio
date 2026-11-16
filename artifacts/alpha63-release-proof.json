@@ -43,7 +43,7 @@
   "oneUserMainProcess": true,
   "installation": {
     "before": {
-      "folder": "/Users/user1/Movies/Pi Studio",
+      "folder": "<STUDIO_ROOT>",
       "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
       "settings": "10e49c14ed08347f252819935b072e0a9a903c8402a76666e5939555676494e8",
       "files": 16859,
@@ -53,7 +53,7 @@
       "aggregate": "23f3c37968bbf242d90056a4a83e76438391c6b1e04f376932429c90a002d162"
     },
     "after": {
-      "folder": "/Users/user1/Movies/Pi Studio",
+      "folder": "<STUDIO_ROOT>",
       "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
       "settings": "10e49c14ed08347f252819935b072e0a9a903c8402a76666e5939555676494e8",
       "files": 16859,
@@ -69,5 +69,6 @@
   "normalUserQuitConfirmed": true,
   "forcedTermination": false,
   "installedUiObservedByAssistant": false,
-  "userInteractedWithUpdatedApp": true
+  "userInteractedWithUpdatedApp": true,
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

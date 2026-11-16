@@ -1,6 +1,6 @@
 {
   "installedVersion": "0.2.0-alpha.74",
-  "installedPath": "/Users/user1/Applications/Pi Studio.app",
+  "installedPath": "<INSTALLED_APP>",
   "mainPid": 54080,
   "observedUtc": "2026-11-15T22:05:24.391460+00:00",
   "sourceCommit": "0ffa39868d45b0afa384b40e1be14e0ff0da7838",
@@ -13,5 +13,6 @@
   "boundAffectedSessionsPresent": 20,
   "projectManifestsReconstructed": false,
   "userDataModifiedByInstaller": false,
-  "autoCloseIncluded": false
+  "autoCloseIncluded": false,
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

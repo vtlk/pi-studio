@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-11-16T18:36:38.840Z",
+  "actualAnonymousGithub": true,
+  "offeredFromVersion": "0.2.0-alpha.84",
+  "verifiedOfferVersion": "0.2.0-alpha.85",
+  "signedSourceCommit": "4de61713ebb23b5a8cfb5677c3825ea89ae4c6de",
+  "archive": {
+    "name": "Pi-Studio-0.2.0-alpha.85-mac-arm64.zip",
+    "bytes": 142877127,
+    "unpackedBytes": 323953587,
+    "sha256": "4e6da0213e6c16825d9dccd06a92a63a7cc6c38dc2a63f5dab148d86a580f1dc"
+  },
+  "currentVersionHasNoNewerOffer": true,
+  "productionEd25519Verified": true,
+  "authorizationOrCookiesSent": false,
+  "installedApplicationOrUserDataChanged": false,
+  "installerInvoked": false,
+  "archiveDownloadedByThisCheck": true,
+  "archiveDownload": {
+    "bytes": 142877127,
+    "signedSha256Verified": true,
+    "archiveStructureVerified": true,
+    "temporaryArchiveRemoved": true
+  },
+  "osVersion": "27.0.1",
+  "requests": [
+    {
+      "host": "api.github.com",
+      "path": "/repos/vtlk/pi-studio/releases",
+      "status": 200
+    },
+    {
+      "host": "github.com",
+      "path": "/vtlk/pi-studio/releases/download/v0.2.0-alpha.85/Pi-Studio-0.2.0-alpha.85-darwin-arm64.update.json",
+      "status": 302
+    },
+    {
+      "host": "release-assets.githubusercontent.com",
+      "path": "/github-production-release-asset/1455737094/2b0f05a3-779f-4a23-8e14-fff6286689ec",
+      "status": 200
+    },
+    {
+      "host": "api.github.com",
+      "path": "/repos/vtlk/pi-studio/releases",
+      "status": 200
+    },
+    {
+      "host": "github.com",
+      "path": "/vtlk/pi-studio/releases/download/v0.2.0-alpha.85/Pi-Studio-0.2.0-alpha.85-darwin-arm64.update.json",
+      "status": 302
+    },
+    {
+      "host": "release-assets.githubusercontent.com",
+      "path": "/github-production-release-asset/1455737094/2b0f05a3-779f-4a23-8e14-fff6286689ec",
+      "status": 200
+    },
+    {
+      "host": "github.com",
+      "path": "/vtlk/pi-studio/releases/download/v0.2.0-alpha.85/Pi-Studio-0.2.0-alpha.85-mac-arm64.zip",
+      "status": 302
+    },
+    {
+      "host": "release-assets.githubusercontent.com",
+      "path": "/github-production-release-asset/1455737094/8d543a11-307e-447d-920e-516ad58c93f0",
+      "status": 200
+    }
+  ]
+}

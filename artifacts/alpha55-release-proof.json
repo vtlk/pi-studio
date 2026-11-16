@@ -26,8 +26,9 @@
   "installationDeferred": {
     "reason": "Current user Scenes request is running",
     "pid": 32032,
-    "workspace": "/Users/user1/Movies/Pi Studio",
+    "workspace": "<STUDIO_ROOT>",
     "profileCount": 7,
     "installedVersion": "0.2.0-alpha.52"
-  }
+  },
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

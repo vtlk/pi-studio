@@ -40,7 +40,7 @@
   "githubActionsEnabled": false,
   "installation": {
     "before": {
-      "folder": "/Users/user1/Movies/Pi Studio",
+      "folder": "<STUDIO_ROOT>",
       "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
       "settings": "fdeef2f059c6ba178467d737a4e2eeb4c3e363baa392f727adcf7a4a32207599",
       "files": 16875,
@@ -50,7 +50,7 @@
       "aggregate": "083b925d263c353bcc08f43ee12fb86166386a0e73e8b03f50b68f4167add172"
     },
     "after": {
-      "folder": "/Users/user1/Movies/Pi Studio",
+      "folder": "<STUDIO_ROOT>",
       "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
       "settings": "fdeef2f059c6ba178467d737a4e2eeb4c3e363baa392f727adcf7a4a32207599",
       "files": 16875,
@@ -61,5 +61,6 @@
     },
     "allFingerprintsUnchangedBeforeOpen": true
   },
-  "limits": "Prompt-level instructions are not an OS access-control boundary or proof that every model will obey. Packaged native Pi delivery, assignment scope, enabled current instruction and exact idle resume verified with local fixtures. No user dialogue was automatically opened or sent a message. The user must reopen their exact dialogue through Studio to load the fresh prompt. Full MVP audit remains open."
+  "limits": "Prompt-level instructions are not an OS access-control boundary or proof that every model will obey. Packaged native Pi delivery, assignment scope, enabled current instruction and exact idle resume verified with local fixtures. No user dialogue was automatically opened or sent a message. The user must reopen their exact dialogue through Studio to load the fresh prompt. Full MVP audit remains open.",
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }

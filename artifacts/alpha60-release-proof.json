@@ -6,14 +6,14 @@
   "assetId": 749624574,
   "sha256": "sha256:205baebb56241039b860614248bb25f1430a54c6304149dec8112032e7bfc225",
   "bytes": 142560487,
-  "installedApp": "/Users/user1/Applications/Pi Studio.app",
+  "installedApp": "<INSTALLED_APP>",
   "installedVersionVerified": true,
   "oneMainProcess": true,
   "mainPid": 34806,
   "nativeUiSavedAndOriginalProjectsVisible": true,
   "normalMenuQuitBeforeInstall": true,
   "userStudio": {
-    "folder": "/Users/user1/Movies/Pi Studio",
+    "folder": "<STUDIO_ROOT>",
     "workspace": "a67c4defa5bc4921117d118c642d95b8ffbb01c4a5fd41559ae2864306f77fbb",
     "settings": "4ee30ccdb1c84fc5263087a1090a8c2efb08258653f08a85a0b26a6c87deb314",
     "sections": "f4129fc4859194e85fa85dee7438c372d2aac179428a03b6595e5f17757d14d6",
@@ -29,5 +29,6 @@
   "osPermissionsChanged": false,
   "ciEnabled": false,
   "notarized": false,
-  "limits": "Targeted alpha update and preserved user data, not completion of the entire MVP. Computer GUI permissions/capture/input, real repeated Keychain access, external consent and remaining workflow audit are open."
+  "limits": "Targeted alpha update and preserved user data, not completion of the entire MVP. Computer GUI permissions/capture/input, real repeated Keychain access, external consent and remaining workflow audit are open.",
+  "pathNotation": "Personal absolute paths replaced with role placeholders; historical check results unchanged."
 }
