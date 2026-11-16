@@ -168,9 +168,9 @@ const timer = setInterval(async () => {
     ) {
       if (!expectedStageGone()) return;
       const display = await js(
-        `({header:document.querySelector('.project-header h1')?.textContent,inert:document.querySelector('.update-workspace')?.inert,saved:document.querySelector('.prototype-label')?.textContent})`,
+        `({header:document.querySelector('.project-header h1')?.textContent,inert:document.querySelector('.update-workspace')?.inert,idle:document.querySelector('.prototype-label')?.dataset.saveState==='idle'||(document.querySelector('.prototype-label')?.dataset.saveState===undefined&&document.querySelector('.prototype-label')?.textContent==='Сохранено')})`,
       );
-      if (display.header !== config.projectName || display.inert || display.saved !== 'Сохранено')
+      if (display.header !== config.projectName || display.inert || !display.idle)
         return;
       const info = await js('window.studio.getInfo()');
       if (info.version !== version)
