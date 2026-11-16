@@ -183,7 +183,6 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run check:architecture`, `npm 
 
 Keep the English and Russian READMEs in sync when updating features or releases, including every download link, platform version and release-notes link.
 
-[Technical documentation (RU)](technical-spec/README.md) · [MVP status (RU)](technical-spec/MVP_COMPLETION_AUDIT.md) · [Windows (RU)](technical-spec/WINDOWS.md)
 
 </details>
 
@@ -191,6 +190,6 @@ Keep the English and Russian READMEs in sync when updating features or releases,
 
 <div align="center">
 
-**[Download](#download)** &nbsp; · &nbsp; **[Report a bug](https://github.com/vtlk/pi-studio/issues)** &nbsp; · &nbsp; **[Documentation (RU)](technical-spec/README.md)**
+**[Download](#download)** &nbsp; · &nbsp; **[Report a bug](https://github.com/vtlk/pi-studio/issues)**
 
 </div>

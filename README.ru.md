@@ -183,7 +183,6 @@ npm run dev
 
 При изменении возможностей и каждом релизе синхронизируйте английский и русский README, включая все ссылки загрузок, версии платформ и ссылку на изменения.
 
-[Техническая документация](technical-spec/README.md) · [Статус MVP](technical-spec/MVP_COMPLETION_AUDIT.md) · [Windows](technical-spec/WINDOWS.md)
 
 </details>
 
@@ -191,6 +190,6 @@ npm run dev
 
 <div align="center">
 
-**[Скачать](#скачать)** &nbsp; · &nbsp; **[Сообщить об ошибке](https://github.com/vtlk/pi-studio/issues)** &nbsp; · &nbsp; **[Документация](technical-spec/README.md)**
+**[Скачать](#скачать)** &nbsp; · &nbsp; **[Сообщить об ошибке](https://github.com/vtlk/pi-studio/issues)**
 
 </div>
