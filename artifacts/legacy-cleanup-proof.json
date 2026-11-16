@@ -1,0 +1,212 @@
+{
+  "startedAt": "2026-11-16T13:41:44.248347+00:00",
+  "explicitUserApproval": true,
+  "approvedCandidatesSha256": "e3c1c18efafe519d673ac3bbbab57d0431c9e69b7ce282f19cdb0bfd7690ed6d",
+  "preDeletionAudit": {
+    "file": "artifacts/alpha77-all-releases-audit-proof.json",
+    "sha256": "a6d9ab6bb19139c8c0013e926f7f1f48d692616e9ddb18b3f4d8c510e17bb440"
+  },
+  "deletedLocalImages": [
+    {
+      "file": "agent-first-message-preview.png",
+      "bytes": 72047,
+      "sha256": "1fbf9522610e6e418b51e46d4b563128449470ebb6cfdba0a13d998fb0c7c4d2",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "agent-launch-dropdown-preview.png",
+      "bytes": 73618,
+      "sha256": "19a98803c81b33bdaf6ae52831a57d04ef41b2efc23f06e603092be08e00f8dd",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "agent-name-preview.png",
+      "bytes": 55483,
+      "sha256": "9ca6b2a4ba6ab433ab43c88c729a24d9268621456951ffdbc39c8443e3e3461c",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "library-characters-preview.png",
+      "bytes": 73451,
+      "sha256": "5207cc780fa625311a1c9b1d6d398214997196e3972d6561db67d613f6d89f77",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "library-choice-buttons-preview.png",
+      "bytes": 74776,
+      "sha256": "0732bd3b55877895340e3a2647a964cea4609fb0db14cda9115da68b70b7215e",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "library-create-reference-preview.png",
+      "bytes": 60807,
+      "sha256": "de19fbfe1b60414a4f8c637758563d96373775d7d06a3dee001ba50ac7d675c8",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "library-locations-preview.png",
+      "bytes": 82366,
+      "sha256": "0fb116eeb28ef4983b06e724cb7093b8c6780be3f3d334bceb84abfce92f493e",
+      "runtimeAndDocumentationReferencesFound": false
+    },
+    {
+      "file": "project-agent-statuses.png",
+      "bytes": 74772,
+      "sha256": "6566b79e15900ec4798cb31e757f513449707ebd8d2e1dff6bb7799cafd3fd14",
+      "runtimeAndDocumentationReferencesFound": false
+    }
+  ],
+  "deletedReleaseZipAssets": [
+    {
+      "tag": "v0.2.0-alpha.69",
+      "digest": "sha256:48e934cd1abc9116d1f15c7dffdf002a1f33a75de4f2afed369917fe16bae41e",
+      "id": 751498496,
+      "name": "Pi-Studio-0.2.0-alpha.69-mac-arm64.zip",
+      "size": 142584422
+    },
+    {
+      "tag": "v0.2.0-alpha.68",
+      "digest": "sha256:30a35a90bbc084e40dd9453e4264b393471baee67072b18df8b6e5a64d330d02",
+      "id": 751241339,
+      "name": "Pi-Studio-0.2.0-alpha.68-mac-arm64.zip",
+      "size": 142568188
+    },
+    {
+      "tag": "v0.2.0-alpha.67",
+      "digest": "sha256:c74c3c5a209fcd0ce274a0fcf73a17392d8a0e8830a1b237b4704b840cc96d31",
+      "id": 750991339,
+      "name": "Pi-Studio-0.2.0-alpha.67-mac-arm64.zip",
+      "size": 142564031
+    },
+    {
+      "tag": "v0.2.0-alpha.66",
+      "digest": "sha256:129b8cda04ba9485bf0b4eb64fa1b4678ebce4c53ef65567303390ebdfb59996",
+      "id": 750720520,
+      "name": "Pi-Studio-0.2.0-alpha.66-mac-arm64.zip",
+      "size": 142563875
+    },
+    {
+      "tag": "v0.2.0-alpha.65",
+      "digest": "sha256:01edd2197b707d853247eee4b43933f7c29b9efee3812eaa24fb2af9ec8308e8",
+      "id": 750635213,
+      "name": "Pi-Studio-0.2.0-alpha.65-mac-arm64.zip",
+      "size": 142562053
+    },
+    {
+      "tag": "v0.2.0-alpha.64",
+      "digest": "sha256:dc7d86067f6b968bfbc01a4f55cb33afc0fafc4416beec67cffa876e30a4e8c3",
+      "id": 750520871,
+      "name": "Pi-Studio-0.2.0-alpha.64-mac-arm64.zip",
+      "size": 142560964
+    },
+    {
+      "tag": "v0.2.0-alpha.63",
+      "digest": "sha256:7c2f2ffe0de5efb9376bf1283d12e22e08be6e429b21a1ed2ba1500265ed9c67",
+      "id": 750425979,
+      "name": "Pi-Studio-0.2.0-alpha.63-mac-arm64.zip",
+      "size": 142560933
+    },
+    {
+      "tag": "v0.2.0-alpha.62",
+      "digest": "sha256:2abb9b54a5ca4480308f5909cc479042401914cd7644c356acdada6eda109f19",
+      "id": 749996609,
+      "name": "Pi-Studio-0.2.0-alpha.62-mac-arm64.zip",
+      "size": 142560964
+    },
+    {
+      "tag": "v0.2.0-alpha.61",
+      "digest": "sha256:f296b9a3556ce48ef23ccb6b0939c3791920e04691ab5758df95a20aa81cef8e",
+      "id": 749929892,
+      "name": "Pi-Studio-0.2.0-alpha.61-mac-arm64.zip",
+      "size": 142561158
+    },
+    {
+      "tag": "v0.2.0-alpha.60",
+      "digest": "sha256:205baebb56241039b860614248bb25f1430a54c6304149dec8112032e7bfc225",
+      "id": 749624574,
+      "name": "Pi-Studio-0.2.0-alpha.60-mac-arm64.zip",
+      "size": 142560487
+    },
+    {
+      "tag": "v0.2.0-alpha.59",
+      "digest": "sha256:e7f855d3f9b2bf3bc941907157c25486dd29a1b442c83961f933894e27f8cda2",
+      "id": 749403218,
+      "name": "Pi-Studio-0.2.0-alpha.59-mac-arm64.zip",
+      "size": 142560096
+    },
+    {
+      "tag": "v0.2.0-alpha.58",
+      "digest": "sha256:9687e709bcdee9197e865768618ec9aaac33012e7e0cc3575d9718ad82bc092b",
+      "id": 749321945,
+      "name": "Pi-Studio-0.2.0-alpha.58-mac-arm64.zip",
+      "size": 142560055
+    },
+    {
+      "tag": "v0.2.0-alpha.57",
+      "digest": "sha256:facf5f6400e8a810e1a66ce8e825db5a7a47d8adc79a6366773627dd344382f0",
+      "id": 749134801,
+      "name": "Pi-Studio-0.2.0-alpha.57-mac-arm64.zip",
+      "size": 142558975
+    },
+    {
+      "tag": "v0.2.0-alpha.56",
+      "digest": "sha256:f54b89a0169c84fcbf85b99102442c0a922e3f5685ecb6b71f2a53264270ec0e",
+      "id": 748928778,
+      "name": "Pi-Studio-0.2.0-alpha.56-mac-arm64.zip",
+      "size": 124214543
+    },
+    {
+      "tag": "v0.2.0-alpha.55",
+      "digest": "sha256:8182bbf1738b681da43fc8b70fb88259de01d506722e59f4f057e0f12fd7f299",
+      "id": 748700906,
+      "name": "Pi-Studio-0.2.0-alpha.55-mac-arm64.zip",
+      "size": 124199409
+    },
+    {
+      "tag": "v0.2.0-alpha.54",
+      "digest": "sha256:f647c9073b1c47d9c0681a24d713f15af9bf4f9d20cdc50c7eb6a55e8db7ed9d",
+      "id": 748489251,
+      "name": "Pi-Studio-0.2.0-alpha.54-mac-arm64.zip",
+      "size": 124176478
+    },
+    {
+      "tag": "v0.2.0-alpha.53",
+      "digest": "sha256:4bacb5f5ebadeb0aac60d7fd14019e170498ad00379e764a8ee982d19576d5c0",
+      "id": 748426958,
+      "name": "Pi-Studio-0.2.0-alpha.53-mac-arm64.zip",
+      "size": 124176403
+    },
+    {
+      "tag": "v0.2.0-alpha.52",
+      "digest": "sha256:71665c20fd6a6eee8c2ffedc6ed0fc82cfd78881869fd770430ecc30d114d376",
+      "id": 748308007,
+      "name": "Pi-Studio-0.2.0-alpha.52-mac-arm64.zip",
+      "size": 124176410
+    }
+  ],
+  "sourceOrTagsDeleted": false,
+  "userDataOrInstalledApplicationTouched": false,
+  "historyRewritten": false,
+  "completed": false,
+  "interruption": {
+    "operation": "read remaining asset metadata before deletion",
+    "reason": "GitHub GET unexpected EOF; prior six acknowledged deletions were verified absent before resuming",
+    "confirmedDeletedBeforeResume": 6
+  },
+  "deletionRequestsFinishedAt": "2026-11-16T13:46:12.114356+00:00",
+  "postDeletionVerification": {
+    "checkedAt": "2026-11-16T13:47:26.204941+00:00",
+    "exactApproved18AssetIdsAbsent": true,
+    "allOtherPreviousAssetsSameSizeAndDigest": true,
+    "allPreviousReleaseTagsStillListed": true,
+    "all8ApprovedLocalImagesAbsent": true,
+    "preservedMacVersions": [
+      "0.2.0-alpha.83",
+      "0.2.0-alpha.82"
+    ],
+    "preservedWindowsVersion": "0.2.0-alpha.78",
+    "remainingRemoteAssets": 41,
+    "deletedRemoteBytes": 2474269444,
+    "deletedLocalBytes": 567320
+  }
+}
