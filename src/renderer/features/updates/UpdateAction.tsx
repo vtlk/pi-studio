@@ -6,16 +6,60 @@ import './updates.css';
 
 export function UpdateAction() {
   const { state, show } = useUpdates();
-  if (!state?.offer) return null;
+  const startupProblem =
+    state?.startup && ['restored', 'recovery-required'].includes(state.startup.phase);
+  if (!state?.offer && !startupProblem && !state?.maintenanceError) return null;
   return (
-    <IconButton title={`Доступна версия ${state.offer.version} — обновить`} onClick={show}>
+    <IconButton
+      title={
+        state?.maintenanceError
+          ? 'Временные файлы обновления сохранены — сведения'
+          : state?.offer
+            ? `Доступна версия ${state.offer.version} — обновить`
+            : 'Обновление не завершено — сведения'
+      }
+      onClick={show}
+    >
       <Download size={18} />
     </IconButton>
   );
 }
 export function UpdateDialog() {
   const { state, open, frozen, hide, request } = useUpdates();
-  if (!open || !state?.offer) return null;
+  if (!open || !state) return null;
+  if (!state.offer || state.maintenanceError) {
+    const message = state.maintenanceError ?? state.startup?.message;
+    if (!message) return null;
+    return (
+      <div data-update-dialog>
+        <Modal
+          title="Обновление Pi Studio"
+          onClose={hide}
+          dismissible={!frozen}
+          footer={
+            !frozen ? (
+              <>
+                <Button onClick={hide}>Понятно</Button>
+                {state.maintenanceError && <Button onClick={request}>Повторить очистку</Button>}
+              </>
+            ) : undefined
+          }
+        >
+          <p
+            role={
+              state.maintenanceError ||
+              state.startup?.phase === 'restored' ||
+              state.startup?.phase === 'recovery-required'
+                ? 'alert'
+                : 'status'
+            }
+          >
+            {message}
+          </p>
+        </Modal>
+      </div>
+    );
+  }
   const busy = ['downloading', 'verifying', 'waiting', 'installing', 'checking'].includes(
     state.phase,
   );

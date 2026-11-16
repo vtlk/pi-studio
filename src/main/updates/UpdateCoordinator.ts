@@ -7,6 +7,7 @@ import type { UpdateInstaller, PreparedInstallation, InstallLease } from './inst
 import { checkGitHubReleases, type VerifiedUpdate } from './githubReleases.ts';
 import { downloadVerifiedUpdate } from './download.ts';
 import { UpdateSchedule } from './UpdateSchedule.ts';
+import { atomicJson } from '../../../bundled/update-helper/protocol.mjs';
 
 interface Options {
   target: UpdateTarget;
@@ -122,6 +123,11 @@ export class UpdateCoordinator {
     };
     await mkdir(this.options.cacheRoot, { recursive: true, mode: 0o700 });
     this.directory = await mkdtemp(join(this.options.cacheRoot, 'download-'));
+    await atomicJson(join(this.directory, 'owner.json'), {
+      schema: 1,
+      id: randomUUID(),
+      pid: process.pid,
+    });
     const file = join(this.directory, 'package.zip');
     await (this.options.download ?? downloadVerifiedUpdate)({
       update: candidate,
@@ -272,7 +278,17 @@ export class UpdateCoordinator {
     clearInterval(this.timer);
     if (!this.committed) {
       await this.work?.catch(() => undefined);
-      await this.discard();
+      try {
+        await this.discard();
+      } catch (error) {
+        this.state = {
+          ...this.state,
+          phase: 'error',
+          message:
+            'Не удалось подтвердить отмену установщика. Программа остаётся запущенной. Повторите выход.',
+        };
+        throw error;
+      }
     }
   }
 }

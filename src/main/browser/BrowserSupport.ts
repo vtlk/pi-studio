@@ -96,4 +96,7 @@ export class BrowserSupport {
   close() {
     this.controller.abort();
   }
+  assertUpdateIdle() {
+    if (this.installing) throw new Error('Дождитесь установки компонентов браузера.');
+  }
 }

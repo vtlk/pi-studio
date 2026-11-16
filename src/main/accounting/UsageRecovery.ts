@@ -8,6 +8,7 @@ export class UsageRecovery {
   private readonly attempted = new Set<string>();
   private readonly abort = new AbortController();
   private pending = Promise.resolve();
+  private held = false;
   private readonly service: StudioService;
   private readonly script: string;
   private readonly piPath: () => string;
@@ -18,7 +19,7 @@ export class UsageRecovery {
   }
   schedule(store: StudioStore) {
     const pi = String(store.bootstrap().sections.piPath || this.piPath());
-    if (!pi || this.abort.signal.aborted) return;
+    if (!pi || this.abort.signal.aborted || this.held) return;
     for (const project of store.projects.list()) {
       const root = join(store.folder, 'projects', project.folderName!);
       for (const agent of [
@@ -57,5 +58,21 @@ export class UsageRecovery {
   }
   close() {
     this.abort.abort();
+  }
+  hold() {
+    if (this.held) throw new Error('Учёт уже приостановлен для обновления.');
+    this.held = true;
+    let released = false;
+    return {
+      release: () => {
+        if (!released) {
+          released = true;
+          this.held = false;
+        }
+      },
+    };
+  }
+  flush() {
+    return this.pending;
   }
 }

@@ -4,6 +4,7 @@ import { app } from 'electron';
 export function registerGracefulQuit(
   runs: { drain(): Promise<void> }[],
   controllers: { close(): void | Promise<void> }[],
+  admission?: { close(): Promise<void>; failed(error: unknown): void },
 ) {
   let draining = false,
     finished = false;
@@ -13,7 +14,15 @@ export function registerGracefulQuit(
     event.preventDefault();
     if (draining) return;
     draining = true;
-    void Promise.allSettled(runs.map((run) => run.drain())).finally(async () => {
+    void (async () => {
+      try {
+        await admission?.close();
+      } catch (error) {
+        draining = false;
+        admission?.failed(error);
+        return;
+      }
+      await Promise.allSettled(runs.map((run) => run.drain()));
       // Wait for asynchronous cleanup attempts too; every owned controller is attempted.
       // A cancellation that must veto quit belongs in a pre-close admission guard.
       await Promise.allSettled(
@@ -23,6 +32,6 @@ export function registerGracefulQuit(
       // Electron is still unwinding the cancelled native quit inside this microtask.
       // A reentrant quit is ignored; resume on the next event-loop turn instead.
       setImmediate(() => app.quit());
-    });
+    })();
   });
 }

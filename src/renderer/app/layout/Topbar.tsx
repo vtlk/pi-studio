@@ -2,6 +2,7 @@ import { Settings2 } from 'lucide-react';
 import { useNavigation, type Page } from '@/shared/model/Navigation';
 import { IconButton } from '@/shared/ui';
 import { useStorage } from '@/shared/storage/Storage';
+import { UpdateAction } from '@/features/updates/UpdateAction';
 
 const sections: { page: Page; label: string }[] = [
   { page: 'projects', label: 'Проекты' },
@@ -37,6 +38,7 @@ export function Topbar() {
               : 'Сохранено'
           : 'Веб-макет · без сохранения'}
       </span>
+      <UpdateAction />
       <IconButton
         title="Настройки"
         className="settings-button"

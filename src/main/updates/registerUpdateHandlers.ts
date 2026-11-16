@@ -1,11 +1,12 @@
 import { ipcMain, type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts.ts';
 import type { UpdateReadiness } from '../../shared/updates.ts';
+import type { NativeUpdates } from './NativeUpdates.ts';
 import type { UpdateCoordinator } from './UpdateCoordinator.ts';
 
 /** Control stays reachable while the ordinary invocation gate holds the application. */
 export function registerUpdateHandlers(
-  updates: UpdateCoordinator,
+  updates: Pick<NativeUpdates | UpdateCoordinator, 'read' | 'check' | 'request' | 'report'>,
   caller: (event: IpcMainInvokeEvent) => unknown,
 ) {
   ipcMain.handle(desktopChannels.getUpdateState, (event) => {
@@ -22,6 +23,6 @@ export function registerUpdateHandlers(
   });
   ipcMain.handle(desktopChannels.reportUpdateReadiness, (event, ready: UpdateReadiness) => {
     caller(event);
-    updates.report(ready);
+    return updates.report(ready);
   });
 }

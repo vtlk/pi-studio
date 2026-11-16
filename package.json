@@ -108,7 +108,9 @@
     "test:pi-auto-close": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --auto-close",
     "release:sign": "node --experimental-strip-types scripts/release-updates.ts",
     "test:update-archives": "node --experimental-strip-types scripts/smoke-update-archives.ts",
-    "test:updates-ui": "npm run build && electron scripts/smoke-updates-ui.cjs"
+    "test:updates-ui": "npm run build && electron scripts/smoke-updates-ui.cjs",
+    "test:update-lifecycle-ui": "npm run build && node scripts/smoke-update-lifecycle-ui.cjs",
+    "test:update-quit": "node scripts/smoke-update-quit.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

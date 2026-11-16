@@ -20,6 +20,9 @@ import { ResourcesProvider } from '@/features/resources/model/Resources';
 import { StartupGate } from '@/features/startup/StartupGate';
 import { LegacyTemplateCleanup } from '@/features/settings/ui/LegacyTemplateCleanup';
 import { RunFailureNotice } from '@/features/launch/ui/RunFailureNotice';
+import { UpdateBootstrap } from '@/features/updates/UpdateBootstrap';
+import { UpdatesProvider } from '@/features/updates/Updates';
+import { UpdateWorkspace } from '@/features/updates/UpdateWorkspace';
 
 const pages = {
   project: ProjectView,
@@ -66,35 +69,43 @@ export default function App({
   loadCharacter,
 }: AppProps) {
   return (
-    <StartupGate>
-      <TooltipProvider>
-        <StorageProvider>
-          <NavigationProvider>
-            <NoticeProvider>
-              <ConfirmProvider>
-                <ConnectionsProvider initial={defaults?.connections}>
-                  <ResourcesProvider initial={defaults?.resources}>
-                    <AgentProfilesProvider initial={defaults?.agents}>
-                      <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
-                        <ExtraProviders>
-                          <LibraryProvider
-                            initial={defaults?.library}
-                            loadCharacter={loadCharacter}
-                          >
-                            <LaunchProvider>
-                              <StudioShell />
-                            </LaunchProvider>
-                          </LibraryProvider>
-                        </ExtraProviders>
-                      </WorkspaceProvider>
-                    </AgentProfilesProvider>
-                  </ResourcesProvider>
-                </ConnectionsProvider>
-              </ConfirmProvider>
-            </NoticeProvider>
-          </NavigationProvider>
-        </StorageProvider>
-      </TooltipProvider>
-    </StartupGate>
+    <UpdateBootstrap>
+      {(initial) => (
+        <TooltipProvider>
+          <StorageProvider>
+            <NavigationProvider>
+              <NoticeProvider>
+                <ConfirmProvider>
+                  <ConnectionsProvider initial={defaults?.connections}>
+                    <ResourcesProvider initial={defaults?.resources}>
+                      <AgentProfilesProvider initial={defaults?.agents}>
+                        <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
+                          <UpdatesProvider initial={initial}>
+                            <ExtraProviders>
+                              <LibraryProvider
+                                initial={defaults?.library}
+                                loadCharacter={loadCharacter}
+                              >
+                                <LaunchProvider>
+                                  <UpdateWorkspace>
+                                    <StartupGate>
+                                      <StudioShell />
+                                    </StartupGate>
+                                  </UpdateWorkspace>
+                                </LaunchProvider>
+                              </LibraryProvider>
+                            </ExtraProviders>
+                          </UpdatesProvider>
+                        </WorkspaceProvider>
+                      </AgentProfilesProvider>
+                    </ResourcesProvider>
+                  </ConnectionsProvider>
+                </ConfirmProvider>
+              </NoticeProvider>
+            </NavigationProvider>
+          </StorageProvider>
+        </TooltipProvider>
+      )}
+    </UpdateBootstrap>
   );
 }

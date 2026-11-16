@@ -24,6 +24,15 @@ export interface UpdateReadiness {
   saved: boolean;
   token?: string;
   view?: UpdateView;
+  startupToken?: string;
+  hydrated?: boolean;
+}
+export interface UpdateStartupInfo {
+  phase: 'starting' | 'committed' | 'restored' | 'aborting' | 'recovery-required';
+  token: string;
+  message?: string;
+  view?: UpdateView;
+  folder?: string;
 }
 export interface UpdateState {
   phase:
@@ -41,4 +50,6 @@ export interface UpdateState {
   message?: string;
   checkedAt?: number;
   prepareToken?: string;
+  startup?: UpdateStartupInfo;
+  maintenanceError?: string;
 }

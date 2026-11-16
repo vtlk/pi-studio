@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-16T01:47:26.410Z",
+  "scope": "Production graceful-quit admission in real accessory Electron with controlled cancellation failure; no installed updater/GitHub/native Windows claim.",
+  "isolatedUserData": true,
+  "visibleWindows": false,
+  "modelOrTerminalRequests": 0,
+  "guardKeptProcessAlive": true,
+  "noDrainBeforeAdmission": true,
+  "admissionAttempts": 2,
+  "failedAdmissions": 1,
+  "exited": true
+}

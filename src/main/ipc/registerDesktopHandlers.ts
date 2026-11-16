@@ -44,8 +44,14 @@ import { ComputerSupport } from '../computer/ComputerSupport';
 import { registerComputerHandlers } from '../computer/registerComputerHandlers';
 import { createTeamImportTools } from '../teams/createTeamImportTools';
 import { registerTeamHandlers } from '../teams/registerTeamHandlers';
+import { registerNativeUpdates } from '../updates/registerNativeUpdates';
+import type { NativeUpdates } from '../updates/NativeUpdates';
+import type { UpdateStartup } from '../updates/UpdateStartup';
+import { createStudioWindow, setUpdateQuitGuard } from '../windows/createStudioWindow';
 
-export function registerDesktopHandlers(): StudioService {
+export function registerDesktopHandlers(
+  options: { startup?: UpdateStartup; updates?: (updates: NativeUpdates) => void } = {},
+): StudioService {
   const service = new StudioService(
     join(app.getPath('userData'), 'workspace.json'),
     join(app.getPath('videos'), 'Pi Studio'),
@@ -145,9 +151,36 @@ export function registerDesktopHandlers(): StudioService {
     catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
   });
+  const updates = registerNativeUpdates({
+    service,
+    startup,
+    boot: options.startup,
+    runs: [runs.updates, setup.updates, generators.updates],
+    images,
+    team,
+    auth: browserAuth,
+    browser,
+    accounting: usageRecovery,
+    caller,
+  });
+  options.updates?.(updates);
+  setUpdateQuitGuard(() => {
+    if (updates.installing) {
+      updates.quitPrevented();
+      return true;
+    }
+    const phase = options.startup?.read().phase;
+    return !!phase && !['committed', 'restored'].includes(phase);
+  });
   registerGracefulQuit(
     [team, runs, setup, generators, computer],
     [browserAuth, startup, runs, setup, generators, browser, usageRecovery, team],
+    {
+      close: () => updates.close(),
+      failed: () => {
+        createStudioWindow();
+      },
+    },
   );
   function caller(event: IpcMainInvokeEvent) {
     const window = BrowserWindow.fromWebContents(event.sender);

@@ -187,6 +187,32 @@ const read = (code) => window.webContents.executeJavaScript(code);
     ),
     true,
   );
+  state = {
+    ...state,
+    maintenanceError: 'Временная программа сохранена: неизвестные файлы.',
+    phase: 'available',
+  };
+  await until(
+    `document.querySelector('[role="alert"]')?.textContent.includes('неизвестные файлы')`,
+  );
+  assert.equal(
+    await read(
+      `[...document.querySelectorAll('[data-update-dialog] button')].some(b=>b.textContent==='Повторить очистку')`,
+    ),
+    true,
+  );
+  assert.equal(
+    await read(
+      `[...document.querySelectorAll('[data-update-dialog] button')].some(b=>b.textContent==='Обновить')`,
+    ),
+    false,
+    'Cleanup error has priority over another available offer',
+  );
+  state = { ...state, offer: undefined };
+  await until(
+    `!!document.querySelector('button[aria-label="Временные файлы обновления сохранены — сведения"]')`,
+  );
+  assert.equal(requests, 1, 'Maintenance information does not start another download');
   await mkdir('artifacts', { recursive: true });
   await writeFile('artifacts/update-ui.png', (await window.webContents.capturePage()).toPNG());
   const proof = {
@@ -202,6 +228,8 @@ const read = (code) => window.webContents.executeJavaScript(code);
     tokenFlushAcknowledged: true,
     applicationInertDuringLease: true,
     freezingDialogCannotDismiss: true,
+    maintenanceErrorVisibleWithoutOffer: true,
+    maintenanceErrorTakesPriorityOverNewOffer: true,
     clipboardOrAudioOrModelAccess: false,
     userStudioAccess: false,
   };

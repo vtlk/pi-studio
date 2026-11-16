@@ -2,6 +2,10 @@ import { BrowserWindow, dialog, session, shell } from 'electron';
 import { join } from 'node:path';
 
 let studioWindow: BrowserWindow | undefined;
+let updateQuitGuard: (() => boolean) | undefined;
+export function setUpdateQuitGuard(guard: () => boolean) {
+  updateQuitGuard = guard;
+}
 export function createStudioWindow(): BrowserWindow {
   if (studioWindow && !studioWindow.isDestroyed()) {
     studioWindow.show();
@@ -47,6 +51,8 @@ export function createStudioWindow(): BrowserWindow {
   });
   window.webContents.on('will-navigate', (event) => event.preventDefault());
   window.webContents.on('will-prevent-unload', (event) => {
+    // Installation cancellation must keep the window, without opening an OS dialog.
+    if (updateQuitGuard?.()) return;
     const choice = dialog.showMessageBoxSync(window, {
       type: 'warning',
       message: 'Изменения ещё не сохранены',

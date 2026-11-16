@@ -63,7 +63,7 @@ test('startup cancellation retains a PID marker until real exit and never acknow
     executable: executable(f.target, 'darwin'),
     version: f.job.version,
     userData: f.userData,
-    argv: [],
+    argv: [`--pistudio-update=${f.job.id}`],
     quit: () => {
       quits++;
     },

@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-11-16T04:23:17.553Z",
+  "baseHead": "f3e1d948cac9c741b36dbc480049af874cc781f9",
+  "checkoutContainsUncommittedLifecycleChanges": true,
+  "sources": {
+    "src/main/index.ts": "700f131c76d5f849f3794cb30a79d530c53ee44f0539004d34c7b658567d3ade",
+    "src/main/updates/registerNativeUpdates.ts": "8a1bd5c3f252b38d069560c7d9c5d6b4c3991bf656a74be1218a0de9f20d62bb",
+    "src/main/updates/NativeUpdates.ts": "21103140eb787a16833112c432905bbf62d7d0208341f6dc386eb9e5ae7d5d01",
+    "src/main/updates/InstallationAdmission.ts": "54c1b04f50caa1a36579a3ce410684d0f1076648ee63aacfab0c3c06c77d5cac",
+    "src/main/updates/StartupAdmission.ts": "5347eeb52f0b42b058a0f5d7fc39757b927af607ee2e9b8540fd1b3578557163",
+    "src/main/updates/cleanupUpdate.ts": "21c4dffd67c4f31e474bbd6c75dd63839eb75795d3710abafbd2d615432a6b28",
+    "src/main/updates/cleanupDownloads.ts": "183218373e0b6821e0af71efe42b350937b71c2d890a9b02a175ef183d9db755",
+    "src/main/updates/UpdateViewStore.ts": "5b039ae4e0a691b0f2a198aec0425e51747de49b258f95e5f110fda81f8f6e9a",
+    "src/main/ipc/registerGracefulQuit.ts": "0890bd0f3d0fb5407badc53e9a033adc414ad7a29c28ba46500a941cfab5bd3a",
+    "src/renderer/app/App.tsx": "568034ef79af74ec2410e274a8f95b941ba17ba19d1dfd5a766f5febd3e6f577",
+    "src/renderer/features/updates/Updates.tsx": "485552aef6fa1066c70cc5eead9d607e565bff5cac108cc22caae4525e0b6e4e",
+    "src/renderer/features/updates/UpdateBootstrap.tsx": "8e27fac48f068b5eca622363d0dc1e1f0d7a5b4196df27a72c9c15a4cf09eef4",
+    "src/renderer/features/updates/UpdateAction.tsx": "1736f243fd02b453ab6b7ed63a4ae053a53a73f7befcc5fb7ef58c85facfdaba",
+    "out/main/index.cjs": "8356be5d47708db4ee0a17a9b70fab38e039f8f38125b855d3e85215d70d9478",
+    "out/preload/index.cjs": "477619cc6c31e06738d56274be5df1524f3845262c8e88996c132250dfc44ec7"
+  },
+  "unitTests": {
+    "total": 302,
+    "passed": 302,
+    "failed": 0
+  },
+  "build": true,
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 409,
+  "registeredInSource": {
+    "packagedOnlyAnonymousCoordinator": true,
+    "startupHourlyWake": true,
+    "topbarDownloadAndSharedDialog": true,
+    "currentOsArchVersionAndPinnedKey": true,
+    "ipcAndRunHoldsBeforeAsyncFlush": true,
+    "accountingPauseFlush": true,
+    "realInstallerAndHealthBinding": true,
+    "frozenBeforeFirstEditableFrame": true,
+    "restoreSameStudioViewOnce": true,
+    "unsavedFolderModalSecretGuards": true,
+    "legacyInfoDialogDoesNotDeadlockFrozenStartup": true,
+    "failedHelperCancellationVetoesQuit": true,
+    "cleanupPreservesUnknownAndRecoveryFiles": true,
+    "abandonedDownloadOwnerChecks": true
+  },
+  "isolatedProofs": [
+    "update-lifecycle-ui-proof.json",
+    "update-quit-proof.json",
+    "update-ui-proof.json",
+    "native-quit-proof.json",
+    "agent-constructor-proof.json"
+  ],
+  "newReleasePackagedOrInstalled": false,
+  "installedAppVersion": "0.2.0-alpha.75",
+  "installedAppOrUserStudioChanged": false,
+  "remaining": [
+    "Signed packaged bootstrap/rollback end-to-end",
+    "Actual GitHub release N to N+1 installed cycle",
+    "Native Windows x64 cycle",
+    "Private-to-public ordering gate and anonymous final acceptance"
+  ],
+  "earlierQaIssue": "One exact owned offscreen test process hung on quit and was terminated after verifying PID/command. Later bounded native quit tests pass; UI QA now uses a Node parent for actual-exit proof and cache cleanup after Chromium exit. No user app/process was targeted.",
+  "scope": "Production source lifecycle/Topbar binding plus unit/FS, full offscreen native app with controlled updater states, and real Electron quit admission. Not a claim of a complete installed updater or native Windows acceptance."
+}

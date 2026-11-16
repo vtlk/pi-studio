@@ -35,6 +35,7 @@ export class UpdateStartup {
   private acknowledged = false;
   private checking = false;
   private quitting = false;
+  private started = false;
   private readonly quit: () => void;
   constructor(job: UpdateJob, phase: 'starting' | 'restored' | 'committed', quit: () => void) {
     this.job = job;
@@ -50,7 +51,8 @@ export class UpdateStartup {
     return { ...this.state };
   }
   async start() {
-    if (this.state.phase !== 'starting') return;
+    if (this.state.phase !== 'starting' || this.started) return;
+    this.started = true;
     const p = paths(this.job);
     // Keep the marker until actual process exit. Removing it on will-quit would race rollback.
     await atomicJson(join(p.startups, `${process.pid}.json`), {
@@ -180,5 +182,7 @@ export async function resolveUpdateStartup(options: Options) {
   } else if (!sameIdentity(current, job.newIdentity) || options.version !== job.version)
     throw new Error('Установщик ещё заменяет программу. Дождитесь автоматического запуска.');
   else if (result?.status === 'committed') phase = 'committed';
+  if (phase === 'starting' && !explicit.length)
+    throw new Error('Установщик ещё запускает Studio. Она откроется автоматически.');
   return { userData, startup: new UpdateStartup(job, phase, options.quit) };
 }

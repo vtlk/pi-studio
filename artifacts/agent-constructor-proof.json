@@ -18,11 +18,11 @@
   "externalRequests": 0,
   "separateProcessReopen": true,
   "version": "0.2.0-alpha.75",
-  "verifiedAt": "2026-11-15T23:26:59.556Z",
-  "mainSha256": "f7a66814055e83e31e0f7f7a16cf8cf230136afd4d044a814f861cf6c802aecc",
+  "verifiedAt": "2026-11-16T01:19:03.321Z",
+  "mainSha256": "a7e519b1cac2ad10ed2306bc23037a84fe38b06f2eb163a8400e33fb29ecb445",
   "rendererSha256": {
-    "index-UOr6b6Ip.js": "ad8a8947f85d2e5a5a2db8b82cde1e8ab79d7f5df08bc6d792706ded0313ffdf",
-    "index-aeDW_MhW.css": "14632d5b477036bac7924d8195ce001af23821a55d9385845600e325c29bebf1"
+    "index-CLaYh5Lr.css": "2a87f85a7360bad3c66e173af485497a579cb99e379359fd5636a27532266fc2",
+    "index-UyegHs5i.js": "6e89de87cd6037bf1ea447da3af195cfdce667a8b782d78b0bb6840e5f76c447"
   },
   "sourceSha256": {
     "src/renderer/features/agents/model/AgentProfiles.tsx": "28e82afff1241707eaf88ec69c749947eb87a22335660931c77c60700aea8107",

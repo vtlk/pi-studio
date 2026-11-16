@@ -71,6 +71,7 @@ export function SettingsView() {
                 <input
                   placeholder="/Users/…/Pi Studio"
                   value={folder}
+                  data-unsaved-draft={folder !== (bootstrap?.folder ?? '') || undefined}
                   onChange={(event) => setFolder(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' && isDesktop) void openStudio(folder.trim());

@@ -12,17 +12,60 @@ function hasTransientDraft() {
     ) ||
     [...document.querySelectorAll<HTMLInputElement>('input[type="password"]')].some(
       (element) => !!element.value,
-    )
+    ) ||
+    !!document.querySelector('[data-unsaved-draft="true"]')
   );
 }
-export function UpdatesProvider({ children }: { children: ReactNode }) {
-  const { saving, error, saveNow } = useStorage();
-  const { page } = useNavigation();
-  const { selectedProject } = useWorkspace();
-  const [state, setState] = useState<UpdateState>();
+export function UpdatesProvider({
+  children,
+  initial,
+}: {
+  children: ReactNode;
+  initial?: UpdateState;
+}) {
+  const { saving, error, saveNow, bootstrap } = useStorage();
+  const { page, navigate } = useNavigation();
+  const { selectedProject, projects, setProjectId } = useWorkspace();
+  const [state, setState] = useState<UpdateState | undefined>(initial);
+  const [restored, setRestored] = useState<string>();
   const [open, setOpen] = useState(false);
-  const current = useRef({ saving, error, saveNow, page, projectId: selectedProject?.id });
-  current.current = { saving, error, saveNow, page, projectId: selectedProject?.id };
+  const current = useRef({
+    saving,
+    error,
+    saveNow,
+    page,
+    projectId: selectedProject?.id,
+    hydrated: !!bootstrap,
+    restored,
+  });
+  current.current = {
+    saving,
+    error,
+    saveNow,
+    page,
+    projectId: selectedProject?.id,
+    hydrated: !!bootstrap,
+    restored,
+  };
+  const startupToken = state?.startup?.token;
+  useEffect(() => {
+    if (state?.maintenanceError) setOpen(true);
+  }, [state?.maintenanceError]);
+  useEffect(() => {
+    if (!startupToken || restored === startupToken) return;
+    const view =
+      !state?.startup?.folder || state.startup.folder === bootstrap?.folder
+        ? state?.startup?.view
+        : undefined;
+    if (view?.page === 'project') {
+      if (projects.some((project) => project.id === view.projectId)) {
+        setProjectId(view.projectId!);
+        navigate('project');
+      } else navigate('projects');
+    } else if (view) navigate(view.page);
+    setRestored(startupToken);
+    if (state?.startup?.phase === 'restored') setOpen(true);
+  }, [startupToken, restored, state?.startup, projects, setProjectId, navigate, bootstrap?.folder]);
   const alive = useRef(true);
   const requestPending = useRef(false);
   useEffect(() => {
@@ -40,7 +83,14 @@ export function UpdatesProvider({ children }: { children: ReactNode }) {
           JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
         );
         await api.reportUpdateReadiness({
-          saved: !current.current.saving && !current.current.error && !hasTransientDraft(),
+          // The replacement was inert before its first editable frame: automatic legacy/info
+          // dialogs contain no new user draft and must not deadlock startup health.
+          saved:
+            !current.current.saving &&
+            !current.current.error &&
+            (next.startup?.phase === 'starting' || !hasTransientDraft()),
+          startupToken: next.startup?.token,
+          hydrated: current.current.hydrated && current.current.restored === next.startup?.token,
         });
       } catch {
         // Background update availability never prevents working in the current installation.
@@ -84,7 +134,8 @@ export function UpdatesProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [token]);
-  const frozen = !!token;
+  const frozen =
+    !!token || (!!state?.startup && !['committed', 'restored'].includes(state.startup.phase));
   return (
     <UpdatesContext.Provider
       value={{
