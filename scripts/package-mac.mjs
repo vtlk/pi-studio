@@ -5,6 +5,7 @@ import { constants } from 'node:fs';
 import { homedir } from 'node:os';
 import { packageCua } from './package-cua.mjs';
 import { verifyClaudePackage } from './verify-claude-package.mjs';
+import { browserCloneSnapshot, recordBrowserCloneAudit } from './mac-browser-clone-audit.mjs';
 import { writeInventory, verifyInventory } from '../bundled/update-helper/inventory.mjs';
 
 if (process.platform !== 'darwin') throw new Error('Packaging Pi Studio requires macOS.');
@@ -14,6 +15,7 @@ if (!signingIdentity || signingIdentity === '-')
     'Set PI_STUDIO_SIGN_IDENTITY to an existing certificate signing identity before packaging. Ad-hoc fallback is disabled to preserve Keychain application identity.',
   );
 const root = resolve(import.meta.dirname, '..');
+const browserClonesBefore = await browserCloneSnapshot();
 await verifyClaudePackage(join(root, 'bundled/pi-claude-code'));
 const metadata = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 // Documents may be cloud-managed and acquire FinderInfo during signing. Build in local cache.
@@ -175,6 +177,7 @@ for (const file of await readdir(join(root, 'dist'))) {
   )
     await rm(join(root, 'dist', file));
 }
+await recordBrowserCloneAudit(root, 'package', browserClonesBefore);
 console.log(
   `Application: ${bundle}\nArchive: ${archive}\nSignature: certificate identity (not notarized).`,
 );

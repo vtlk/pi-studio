@@ -20,6 +20,7 @@ import { retireLegacyFeatures } from '../src/main/storage/retireLegacyFeatures.t
 import { parseStudio } from '../src/main/storage/validation.ts';
 import { isDeepStrictEqual } from 'node:util';
 import { inspectUpdateArchive } from '../src/main/updates/archive.ts';
+import { browserCloneSnapshot, recordBrowserCloneAudit } from './mac-browser-clone-audit.mjs';
 
 const [oldApp, newApp, mode = 'success'] = process.argv.slice(2);
 const signingIdentity = process.env.PI_STUDIO_SIGN_IDENTITY;
@@ -35,6 +36,7 @@ if (
     'Usage: PI_STUDIO_SIGN_IDENTITY=<existing identity> node --experimental-strip-types scripts/smoke-packaged-update.ts /absolute/old/Pi Studio.app /absolute/new/Pi Studio.app [success|no-health]',
   );
 const root = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-packaged-update-')));
+const browserClonesBefore = await browserCloneSnapshot();
 if ((await statfs(root).then((fs) => fs.bavail * fs.bsize)) < 2 * 1024 ** 3)
   throw Error('Not enough space for isolated packaged update QA.');
 const target = join(root, 'Pi Studio.app'),
@@ -328,15 +330,21 @@ try {
   let settingsMetadataRetiredOnly = false;
   if (mode === 'success' && before['.pistudio/studio.json'] !== after['.pistudio/studio.json']) {
     const expected = retireLegacyFeatures(beforeSettings);
-    if (!expected.changed || !isDeepStrictEqual(
-      parseStudio(expected.document),
-      parseStudio(JSON.parse(await readFile(settingsFile, 'utf8'))),
-    )) throw Error('Unexpected settings changes across the packaged update');
+    if (
+      !expected.changed ||
+      !isDeepStrictEqual(
+        parseStudio(expected.document),
+        parseStudio(JSON.parse(await readFile(settingsFile, 'utf8'))),
+      )
+    )
+      throw Error('Unexpected settings changes across the packaged update');
     settingsMetadataRetiredOnly = true;
     // Every other byte remains covered; this exception requires the exact validated migration.
     after['.pistudio/studio.json'] = before['.pistudio/studio.json'];
   }
-  if (JSON.stringify(Object.entries(before).sort()) !== JSON.stringify(Object.entries(after).sort()))
+  if (
+    JSON.stringify(Object.entries(before).sort()) !== JSON.stringify(Object.entries(after).sort())
+  )
     throw Error('Studio bytes changed across the packaged update');
   if (
     preferences !== (await digest(join(userData, 'workspace.json'))) ||
@@ -434,4 +442,5 @@ try {
       }
   }
   await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await recordBrowserCloneAudit(process.cwd(), 'update-test', browserClonesBefore);
 }
