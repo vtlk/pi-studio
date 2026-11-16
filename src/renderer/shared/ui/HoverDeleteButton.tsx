@@ -4,11 +4,13 @@ import { Tooltip } from './Tooltip';
 export function HoverDeleteButton({
   label,
   description,
+  confirmationTitle,
   onDelete,
   disabled = false,
 }: {
   label: string;
   description?: string;
+  confirmationTitle?: string;
   onDelete: () => void;
   disabled?: boolean;
 }) {
@@ -20,7 +22,9 @@ export function HoverDeleteButton({
         className="hover-delete"
         aria-label={label}
         disabled={disabled}
-        onClick={() => confirm({ title: label, description, onConfirm: onDelete })}
+        onClick={() =>
+          confirm({ title: confirmationTitle ?? label, description, onConfirm: onDelete })
+        }
       >
         <Trash2 size={17} strokeWidth={1.8} />
       </button>

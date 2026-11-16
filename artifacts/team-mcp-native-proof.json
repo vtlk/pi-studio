@@ -1,6 +1,6 @@
 {
   "nativePi": "1.5.2",
-  "packagedBridge": true,
+  "packagedBridge": false,
   "loopbackModel": true,
   "externalModelRequests": 0,
   "userStudioTouched": false,
@@ -12,6 +12,8 @@
   "duplicateReplay": false,
   "cycleRejected": true,
   "revokedOnExplicitOpen": true,
+  "revokedThroughExistingNativeTransport": true,
+  "reattachmentRestoresSameTransport": true,
   "ordinaryResumeUserMessages": 0,
   "windowsRuntimeAccepted": false,
   "visibleTerminalAccepted": false

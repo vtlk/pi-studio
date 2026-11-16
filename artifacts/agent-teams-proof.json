@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T09:19:06.032Z",
+  "checkedAt": "2026-11-16T09:29:45.380Z",
   "nativeMain": true,
   "packagedEntry": false,
   "version": "0.2.0-alpha.80",
@@ -29,6 +29,13 @@
     "removedTeamDuringPickerRefused": true,
     "studioChangeDuringPickerRefused": true,
     "staleExportsNeverWriteFile": true
+  },
+  "unlinkChecks": {
+    "keyboardConfirmationAndCancel": true,
+    "ordinaryAndSystemUnlinkPersisted": true,
+    "pinnedMcpProtected": true,
+    "undoPreservesLaterLinksAndNameAndOtherAgent": true,
+    "failedSaveHasNoSuccessAndRetainsNativeAssignment": true
   },
   "canceledImportPreservesCatalog": true,
   "missingAssistantModelKeepsPackageAndTargetsExactModelTab": true,

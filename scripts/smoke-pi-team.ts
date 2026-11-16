@@ -22,6 +22,7 @@ const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio')
 const store = await service.load(),
   pi = await checkPi('');
 let senderStep = 0,
+  liveRevocationPhase = 0,
   workerStep = 0,
   workerFinished = 0,
   failure: unknown;
@@ -92,6 +93,25 @@ const server = createServer(async (req, res) => {
       if (step === 0) toolName = 'list_agents';
       if (step === 1) {
         assert.ok(content.includes('sourceTeamId'));
+        if (liveRevocationPhase === 0) {
+          await service.serialize(() =>
+            store.saveSection(
+              'agents',
+              profiles.map((profile) =>
+                profile.id === 'sender' ? { ...profile, mcps: [] } : profile,
+              ),
+            ),
+          );
+          liveRevocationPhase = 1;
+          senderStep--; // The same live SDK transport must reject this call before continuing.
+        } else if (liveRevocationPhase === 1) {
+          assert.ok(
+            content.includes('MCP team отключён или больше не назначен'),
+            'Existing native MCP transport rejected the revoked caller',
+          );
+          await service.serialize(() => store.saveSection('agents', profiles));
+          liveRevocationPhase = 2;
+        }
         toolName = 'read_agent_settings';
         args = { agent_id: 'worker' };
       }
@@ -325,6 +345,7 @@ try {
   const result = await store.projects.read(projectId);
   assert.equal(result.agents[0].runStatus, 'ready', 'Native wait/delivery workflow completed');
   assert.equal(senderStep, 13);
+  assert.equal(liveRevocationPhase, 2);
   assert.equal(workerStep, 7);
   assert.equal(children.length, 3, 'Only sender and two exact worker opens');
   const session = result.agents[1].session!;
@@ -370,6 +391,8 @@ try {
     duplicateReplay: false,
     cycleRejected: true,
     revokedOnExplicitOpen: true,
+    revokedThroughExistingNativeTransport: true,
+    reattachmentRestoresSameTransport: true,
     ordinaryResumeUserMessages: 0,
     windowsRuntimeAccepted: false,
     visibleTerminalAccepted: false,

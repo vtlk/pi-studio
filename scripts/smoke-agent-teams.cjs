@@ -363,6 +363,20 @@ const timeout = setTimeout(() => {
       };
     },
   });
+  const unlinkChecks = await require('./mcp-unlink-checks.cjs')({
+    js,
+    until,
+    click,
+    field,
+    saved,
+    load,
+    named,
+    key,
+    window,
+    refuseSaves: (value) => {
+      refuseSaves = value;
+    },
+  });
   const proof = {
     checkedAt: new Date().toISOString(),
     nativeMain: true,
@@ -382,6 +396,7 @@ const timeout = setTimeout(() => {
     nativeExportImportPicker: true,
     menuChecks,
     transferGuards,
+    unlinkChecks,
     canceledImportPreservesCatalog: true,
     missingAssistantModelKeepsPackageAndTargetsExactModelTab: true,
     userStudioChanged: false,

@@ -18,16 +18,16 @@
   "externalRequests": 0,
   "separateProcessReopen": true,
   "version": "0.2.0-alpha.80",
-  "verifiedAt": "2026-11-16T08:37:03.907Z",
-  "mainSha256": "f2b8b50f8c10498d272a844c23dda9c8961231767de2d05d053303ffb714d53e",
+  "verifiedAt": "2026-11-16T09:28:01.257Z",
+  "mainSha256": "18a7fd166700403b1a72b4bfaadd1fc870f326ef89c66b9cf166467543e142d1",
   "rendererSha256": {
-    "index-Bm_dKtDi.css": "b4e5484f363cd5dbe3763aaecc621596e9f7fc8f99023a2e5ccdf0ee9ec86949",
-    "index-S7LKfmTD.js": "978a1ae6b1c61e768cfb8e107298486900a4443a0e4a94afc9b6f9d4baae04d4"
+    "index-C1LAfSmR.js": "2b6ae42a9c30d0d008f2ff7fd696164a2cb0cf84e843762e0b8b5cb8940f9197",
+    "index-DA2usaAA.css": "dae49bb95dcc53f590b0107c243f140ef583bbce5c046468ec92e89b376c70c8"
   },
   "sourceSha256": {
     "src/renderer/features/agents/model/AgentProfiles.tsx": "28e82afff1241707eaf88ec69c749947eb87a22335660931c77c60700aea8107",
     "src/renderer/features/agents/ui/InstructionBlock.tsx": "33dde9e9e11450250384436e08fd59ed353315c0ecffea2e974250e924f12638",
-    "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "8956a8fd8574aa25c2c12d034c8ca0ac4a7f335ae954d216600f2348d13b2e13",
+    "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "2c8a730707050116bca17a3576e1056a803437e6ecc8b721aecd2c28b7802552",
     "scripts/smoke-agent-constructor.cjs": "e5a53011b26de52eacab0f3d88d6d65d805b835e1f6fe4d0aa881e3bffec91d0"
   },
   "scope": "Real compiled main/preload/React CRUD and disk persistence in two offscreen processes. Model catalog/status/startup are explicit IPC fixtures; no model, Pi Terminal, MCP execution or user studio changes."

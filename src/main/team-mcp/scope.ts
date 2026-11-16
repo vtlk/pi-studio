@@ -3,6 +3,7 @@ import type { TeamCaller } from './types.ts';
 import type { ProjectAgent } from '../../shared/project.ts';
 import type { Connection } from '../../shared/connections.ts';
 import type { Resource } from '../../shared/resources.ts';
+import { hasTeamMcp } from '../../shared/builtinResources.ts';
 
 export async function teamScope(service: StudioService, run: TeamCaller) {
   return service.serialize(async () => {
@@ -15,6 +16,10 @@ export async function teamScope(service: StudioService, run: TeamCaller) {
     )
       throw new Error('Привязка team к проекту/агенту изменилась. Откройте диалог через Studio.');
     const catalog = store.agentCatalog();
+    const sender = catalog.agents.find((agent) => agent.id === run.record.agentId);
+    // Open transports retain their schema; authority always comes from current saved assignments.
+    if (!sender?.enabled || !hasTeamMcp(sender))
+      throw new Error('MCP team отключён или больше не назначен этому агенту.');
     const team = catalog.teams.find((item) => item.id === project.sourceTeamId);
     const sections = store.bootstrap().sections;
     return {

@@ -4,7 +4,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
 import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
-import { useNotice } from '@/shared/model/Notice';
+import { useResourceUnlink } from '../model/useResourceUnlink';
 import { useResources } from '@/features/resources/model/Resources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
@@ -18,7 +18,7 @@ import { ComputerResourceRow } from '@/features/resources/ui/ComputerResourceRow
 export function CapabilitiesPanel() {
   const { agentTab, selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
   const { resources } = useResources();
-  const { demo } = useNotice();
+  const { busy, unlink } = useResourceUnlink();
   const [catalog, setCatalog] = useState(false);
   if (!selectedAgent) return null;
   const field = agentTab === 'Skills' ? 'skills' : agentTab === 'MCP' ? 'mcps' : 'plugins';
@@ -89,24 +89,15 @@ export function CapabilitiesPanel() {
                 }}
                 actions={
                   <HoverDeleteButton
-                    label={`Убрать ${id} у агента`}
+                    label={field === 'mcps' ? 'Открепить MCP' : `Убрать ${id} у агента`}
+                    confirmationTitle={
+                      field === 'mcps'
+                        ? `Открепить MCP «${resource?.name ?? id}» от агента «${selectedAgent.name}»`
+                        : undefined
+                    }
+                    disabled={busy}
                     description="Убирается только связь с этим агентом. Ресурс и настройки других агентов сохраняются."
-                    onDelete={() => {
-                      const position = selectedAgent[field].indexOf(id);
-                      updateAgent((current) => ({
-                        [field]: current[field].filter((item) => item !== id),
-                      }));
-                      demo('Связь с ресурсом убрана.', {
-                        label: 'Вернуть',
-                        onClick: () =>
-                          updateAgent((current) => {
-                            if (current[field].includes(id)) return {};
-                            const links = [...current[field]];
-                            links.splice(Math.max(0, position), 0, id);
-                            return { [field]: links };
-                          }),
-                      });
-                    }}
+                    onDelete={() => void unlink(field, id)}
                   />
                 }
               >

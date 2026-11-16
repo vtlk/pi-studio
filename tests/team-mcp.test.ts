@@ -74,6 +74,41 @@ test('team is optional, fresh native remains empty; removal revokes next-open to
   await assert.rejects(f.support.call(fresh, 'list_agents', {}), /не назначен/);
 });
 
+test('saved unlink revokes every existing team transport call; other agent and reattachment remain independent', async (t) => {
+  const f = await fixture(t);
+  const transport = f.support.groups(f.run)[0];
+  const otherRun = await buildRunContext(f.directory, f.project, 'b', f.agents, []);
+  const other = f.support.groups(otherRun)[0];
+  const signal = new AbortController().signal;
+  const projectBefore = await readFile(join(f.directory, 'project.json'));
+  await transport.call('list_agents', {}, signal);
+  const catalog = f.store.agentCatalog();
+  await f.store.saveSection('agentCatalog', {
+    ...catalog,
+    agents: catalog.agents.map((agent) => (agent.id === 'a' ? { ...agent, mcps: [] } : agent)),
+  });
+  for (const tool of transport.tools)
+    await assert.rejects(
+      transport.call(tool.name, {}, signal),
+      /MCP team отключён или больше не назначен/,
+    );
+  await other.call('list_agents', {}, signal);
+  assert.deepEqual(await readFile(join(f.directory, 'project.json')), projectBefore);
+  assert.equal(builtinResource(teamMcpId)?.source, 'builtin:team');
+  await f.store.saveSection('agentCatalog', catalog);
+  await transport.call('list_agents', {}, signal);
+  await f.store.saveSection('agentCatalog', {
+    ...catalog,
+    agents: catalog.agents.map((agent) =>
+      agent.id === 'a'
+        ? { ...agent, capabilitySettings: { [`mcps:${teamMcpId}`]: { enabled: false } } }
+        : agent,
+    ),
+  });
+  await assert.rejects(transport.call('list_agents', {}, signal), /MCP team отключён/);
+  await other.call('list_agents', {}, signal);
+});
+
 test('read settings returns full current blocks and distinguishable runtime, no credentials or mutations', async (t) => {
   const f = await fixture(t);
   const before = await readFile(join(f.store.folder, '.pistudio/studio.json'), 'utf8');
@@ -206,7 +241,11 @@ test('journal persists FIFO/idempotency, detects independent cycles and never ke
   await assert.rejects(journal.accept(message('project', 'b', 'a', 'cycle')), /цикл/);
   const second = { ...message('project', 'a', 'c', 'fifo'), createdAt: first.createdAt };
   await journal.accept(second);
-  assert.deepEqual((await journal.list()).map((item) => item.id), [first.id, second.id], 'FIFO is stable even when creation timestamps tie');
+  assert.deepEqual(
+    (await journal.list()).map((item) => item.id),
+    [first.id, second.id],
+    'FIFO is stable even when creation timestamps tie',
+  );
   await journal.update(first.id, (previous) => ({
     ...previous,
     state: 'dispatching',
@@ -367,7 +406,7 @@ test('cancelling a queued task during preparation wins the final dispatch check 
   assert.equal((await journal.get(item.id))?.state, 'cancelled');
 });
 
-test('team deletion retains scoped outputs and never substitutes another team; chain conflicts reject before queue', async (t) => {
+test('team deletion revokes the removed sender and preserves output files; chain conflicts reject before queue', async (t) => {
   const f = await fixture(t);
   await writeFile(join(f.directory, f.project.agents[1].outputPath, 'keep.txt'), 'ARCHIVED_RESULT');
   f.support.attach({
@@ -384,23 +423,22 @@ test('team deletion retains scoped outputs and never substitutes another team; c
   );
   assert.deepEqual(await f.support.projectMessages(f.project.id), []);
   await f.store.saveSection('agentCatalog', { agents: [], teams: [] });
-  const listing = (await f.support.call(f.run, 'list_agents', {})) as {
-    teamMissing: boolean;
-    agents: unknown[];
-  };
-  assert.equal(listing.teamMissing, true);
-  assert.deepEqual(listing.agents, []);
-  const output = (await f.support.call(f.run, 'read_output', {
-    agent_id: 'b',
-    path: 'keep.txt',
-  })) as { content: string };
-  assert.equal(output.content, 'ARCHIVED_RESULT');
+  await assert.rejects(f.support.call(f.run, 'list_agents', {}), /MCP team отключён/);
+  await assert.rejects(
+    f.support.call(f.run, 'read_output', { agent_id: 'b', path: 'keep.txt' }),
+    /MCP team отключён/,
+  );
+  assert.equal(
+    await readFile(join(f.directory, f.project.agents[1].outputPath, 'keep.txt'), 'utf8'),
+    'ARCHIVED_RESULT',
+  );
+  assert.deepEqual(await f.support.projectMessages(f.project.id), []);
   await assert.rejects(
     f.support.call(f.run, 'say_to_agent', {
       agent_id: 'b',
       text: 'Never fallback',
       request_id: 'gone',
     }),
-    /удалена/,
+    /MCP team отключён/,
   );
 });
