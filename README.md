@@ -1,174 +1,176 @@
+<p align="center"><strong>English</strong> · <a href="README.ru.md">Русский</a></p>
+
 <div align="center">
 
 <img src="docs/media/cover.png" alt="Pi Studio — Agent Pipeline" width="760" />
 
-### Конвейер для производства типовых продуктов с помощью AI-агентов
+### An AI agent pipeline for repeatable product development
 
-Один агент исследует, другой делает, третий проверяет.<br>Настройте порядок работы один раз — используйте его в новых проектах.
+One agent researches, another creates, a third reviews.<br>Set up the workflow once — reuse it across new projects.
 
-<a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
+<a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/status-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Status: alpha" /> <img src="https://img.shields.io/badge/platforms-macOS_·_Windows_preview-FFD83D?style=flat-square&labelColor=252525" alt="macOS and Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.83/Pi-Studio-0.2.0-alpha.83-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.78/Pi-Studio-0.2.0-alpha.78-win-x64.zip)**
+**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.83/Pi-Studio-0.2.0-alpha.83-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.78/Pi-Studio-0.2.0-alpha.78-win-x64.zip)**
 
-**[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
+**[How it works](#one-team-many-projects)** &nbsp; · &nbsp; **[Models](#your-models-your-tools)** &nbsp; · &nbsp; **[Get started](#quick-start)**
 
 </div>
 
-## Одна команда, много проектов
+## One team, many projects
 
-**Pi Studio объединяет AI-агентов в конвейер:** каждый выполняет свой этап и передаёт результат дальше. Соберите команду для разработки, контента или видео и используйте её в каждом новом проекте.
+**Pi Studio connects AI agents into a pipeline:** each agent handles a stage and passes its results to the next. Build a team for software development, content or video, then reuse it for each new project.
 
-В основе — [Pi](https://github.com/earendil-works/pi). У каждого агента своя модель, инструкции, инструменты, диалог и папка с результатами. Файлы хранятся на вашем компьютере.
+Built on [Pi](https://github.com/earendil-works/pi). Each agent has its own model, instructions, tools, conversation and results. Project files stay on your computer.
 
-<img src="docs/media/project.png" alt="Проект в Pi Studio: слева агенты, в центре их файлы, справа просмотр результата" width="100%" />
+<img src="docs/media/project.png" alt="A Pi Studio project: agents on the left, their files in the middle and a result preview on the right" width="100%" />
 
-<sub>Настоящий интерфейс на демонстрационных данных. Примеры агентов и материалов не предустановлены.</sub>
+<sub>Real interface with demonstration data, shown in Russian. Example agents and materials are not preinstalled.</sub>
 
-## Что можно поставить на поток
+## What can you put on a production line?
 
-Продукты создаются по вашим инструкциям и правилам, с использованием ваших внешних подключений и инструментов, а также браузера и управления приложениями компьютера через Computer Use.
+Products follow your instructions and rules, using your external connections and tools, a browser and desktop applications through Computer Use.
 
-Одна команда может повторять весь производственный процесс для новых продуктов, клиентов или выпусков. Например, так могут выглядеть ваши цепочки:
+One team can repeat the entire production process for new products, clients or releases. Here are some example pipelines:
 
-| Направление | Пример цепочки |
+| Area | Example pipeline |
 |:---|:---|
-| **Лендинги** | Анализ болей аудитории → создание оффера → определение типа лендинга → дизайн и разработка → проверка адаптивности |
-| **CRM-системы** | Описание бизнес-процессов → анализ интеграций → составление ТЗ → разработка → ревью и тестирование → деплой |
-| **Видео** | Идея и сценарий → раскадровка и подготовка материалов → анимация, озвучка и монтаж → проверка и финальный ролик → публикация |
-| **Контент** | Исследование темы и аудитории → контент-план и структура → генерация материалов → редактура → автопостинг |
-| **Реклама** | Анализ продукта → создание офферов → производство креативов и вариантов → адаптация под площадки → автопостинг |
+| **Landing pages** | Audience pain points → offer creation → landing page type → design and development → responsive layout checks |
+| **CRM systems** | Business process mapping → integration analysis → technical specification → development → code review and testing → deployment |
+| **Video** | Concept and script → storyboard and asset preparation → animation, voiceover and editing → review and final video → publishing |
+| **Content** | Topic and audience research → content plan and structure → material generation → editing → automated posting |
+| **Advertising** | Product analysis → offer creation → creative production and variations → platform adaptation → automated posting |
 
-Роли, инструменты и число этапов задаёте вы. Цепочку можно сделать длиннее, разделив сложные этапы между несколькими агентами.
+You choose the roles, tools and number of stages. Make a pipeline longer by splitting complex stages between several agents.
 
-## Как работает команда
+## How a team works
 
-| 1. Настройте | 2. Запустите | 3. Повторите |
+| 1. Configure | 2. Run | 3. Repeat |
 |:---|:---|:---|
-| Добавьте агентов, объясните каждому его задачу и подключите нужные инструменты. | Создайте проект и выберите «Запустить и продолжить». Агенты выполнят этапы по порядку. | Используйте ту же команду для следующего проекта. У каждого проекта останутся свои файлы и диалоги. |
+| Add agents, explain each one's task and connect the tools they need. | Create a project and choose “Launch and continue.” Agents work through the stages in order. | Use the same team for your next project. Each project keeps its own files and conversations. |
 
-Можно запускать этапы вручную, возвращаться к любому агенту и просить изменения в его диалоге. Вопрос или ошибка останавливают автоматическое продолжение.
+You can run stages manually, return to any agent and request changes in its conversation. A question or error pauses automatic continuation.
 
-### Агенты могут обращаться друг к другу
+### Agents can ask each other for help
 
-Агент может поручить задачу другому участнику команды через MCP **team**, дождаться завершения его работы и прочитать результат.
+Through the **team** MCP server, an agent can delegate a task to a teammate, wait for the work to finish and read the result.
 
-> Например, автор просит исследователя уточнить факты, а затем использует его материалы в тексте.
+> For example, a writer asks a researcher to verify facts, then uses the findings in the text.
 
-Инструмент работает с участниками команды в текущем проекте и назначается явно.
+This tool is explicitly assigned and works with teammates in the current project.
 
-## Ваши модели, ваши инструменты
+## Your models, your tools
 
-Для каждого агента выбирайте своё подключение и модель. Например, один агент может работать через Codex, а другой — через Claude Code.
+Choose a separate connection and model for each agent. One agent might use Codex while another uses Claude Code.
 
-| Подключения | Что доступно |
+| Connections | Available options |
 |:---|:---|
-| **ChatGPT / Codex, Claude Code, GitHub Copilot** | Подключение своего аккаунта через поддерживаемый вход |
-| **OpenAI, Anthropic, Google, xAI, DeepSeek, Mistral** | Прямые подключения к поставщикам моделей |
-| **OpenRouter, Groq, Cerebras, Together, Fireworks и другие** | Модели через агрегаторы и сервисы |
-| **Amazon Bedrock, Azure, Google Vertex AI** | Облачные подключения |
-| **Локальные модели и совместимые API** | Свой сервер с явно заданным адресом и моделями |
+| **ChatGPT / Codex, Claude Code, GitHub Copilot** | Connect your account through a supported sign-in method |
+| **OpenAI, Anthropic, Google, xAI, DeepSeek, Mistral** | Direct connections to model providers |
+| **OpenRouter, Groq, Cerebras, Together, Fireworks and more** | Models through aggregators and inference services |
+| **Amazon Bedrock, Azure, Google Vertex AI** | Cloud connections |
+| **Local models and compatible APIs** | Your own server with an explicit address and model list |
 
-**[Все подключения и способы входа →](docs/CONNECTIONS.md)**
+**[All connections and sign-in methods →](docs/CONNECTIONS.en.md)**
 
-### Подключайте агентам нужные возможности
+### Give each agent the capabilities it needs
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-**MCP — доступ к сервисам**
+**MCP — connect to services**
 
-Подключайте внешние MCP-серверы и назначайте их инструменты нужным агентам.
+Connect external MCP servers and assign their tools to the agents that need them.
 
 </td>
 <td width="50%" valign="top">
 
-**Skills — навыки для работы**
+**Skills — your ways of working**
 
-Добавляйте инструкции и навыки, чтобы агент выполнял задачу по вашим правилам.
+Add instructions and skills so an agent follows your rules when doing its work.
 
 </td>
 </tr>
 <tr>
 <td width="50%" valign="top">
 
-**Browser Use — работа с сайтами**
+**Browser Use — work with websites**
 
-Агент видит страницу, нажимает кнопки, вводит текст и работает с файлами в отдельном браузере.
+An agent can see a page, click buttons, enter text and work with files in a separate browser.
 
 </td>
 <td width="50%" valign="top">
 
-**Computer Use — работа с приложениями**
+**Computer Use — work with applications**
 
-Инструменты снимков окон, кликов, клавиатуры и прокрутки. Требуют разрешений ОС; полная проверка ещё продолжается.
+Window screenshots, clicks, keyboard input and scrolling. Requires OS permissions; full validation is still in progress.
 
 </td>
 </tr>
 </table>
 
-Для браузера и Computer Use нужна модель, которая понимает изображения. Компоненты браузера устанавливаются отдельно. [Условия и текущие ограничения →](docs/CONNECTIONS.md#браузер-и-computer-use)
+Browser Use and Computer Use require a model that understands images. Browser components are installed separately. [Requirements and current limitations →](docs/CONNECTIONS.en.md#browser-and-computer-use)
 
-## Помощник настройки
+## Setup assistant
 
-В Studio есть **отдельный встроенный агент**, которому можно поручить настройку инструментов и навыков. Объясните обычными словами, что нужно подключить и какому агенту:
+Studio includes a **separate built-in agent** that helps configure tools and skills. Tell it what you need and which agent should use it:
 
-> «Подключи этот MCP-сервер к агенту „Исследователь“».
+> “Connect this MCP server to the Researcher agent.”
 >
-> «Установи этот скилл и добавь его агенту „Разработчик“».
+> “Install this skill and assign it to the Developer agent.”
 >
-> «Найди подходящий навык для монтажа видео и подключи его агенту „Монтажёр“».
+> “Find a suitable video-editing skill and connect it to the Editor agent.”
 
-Помощник может искать навыки, устанавливать совместимые пакеты, настраивать MCP-серверы и назначать ресурсы конкретным агентам. Если сервис требует входа или API-ключа, авторизация проходит через браузер или защищённые поля приложения.
+The assistant can find skills, install compatible packages, configure MCP servers and assign resources to specific agents. If a service needs sign-in or an API key, authentication happens through a browser or protected fields in the app.
 
-Выберите для помощника подключение и модель, затем откройте его диалог в **«Агенты → Системные → Помощник настройки»**.
+Choose a connection and model for the assistant, then open its conversation under **Agents → System**.
 
-## Скачать
+## Download
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.83/Pi-Studio-0.2.0-alpha.83-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.78/Pi-Studio-0.2.0-alpha.78-win-x64.zip)** |
-| **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.83 | alpha.78 · preview |
+| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.83/Pi-Studio-0.2.0-alpha.83-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.78/Pi-Studio-0.2.0-alpha.78-win-x64.zip)** |
+| **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
+| **Version** | alpha.83 | alpha.78 · preview |
 
-> **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Windows-сборка ещё не проверена на настоящем Windows-компьютере. Репозиторий пока закрыт: для загрузки нужен доступ к нему.
+> **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. The Windows build has not yet been tested on a Windows computer. The repository is currently private; downloading requires access to it.
 
-[Что изменилось в alpha.83 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.83)
+[What's new in alpha.83 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.83)
 
-## Быстрый старт
+## Quick start
 
-1. **Установите Studio.** Если нужной версии Pi нет, приложение предложит её установить.
-2. **Подключите модель.** Добавьте своё подключение и выполните вход.
-3. **Соберите команду.** Создайте агентов, задайте роли и порядок — или импортируйте настройки команды. Подключение инструментов можно поручить [помощнику настройки](#помощник-настройки).
-4. **Создайте проект.** Выберите команду и запустите первый этап.
+1. **Install Studio.** If the required Pi version is missing, the app will offer to install it.
+2. **Connect a model.** Add your connection and sign in.
+3. **Build a team.** Create agents, set their roles and order — or import team settings. You can ask the [setup assistant](#setup-assistant) to connect tools.
+4. **Create a project.** Choose your team and start the first stage.
 
-Новая студия пустая: без чужих проектов, готовых команд и подключённых аккаунтов.
+A new studio starts empty, without example projects, preconfigured teams or connected accounts.
 
 <details>
-<summary><strong>Ещё скриншоты</strong></summary>
+<summary><strong>More screenshots</strong></summary>
 
-### Настройка агентов
+### Configure agents
 
-<img src="docs/media/agents.png" alt="Конструктор: список агентов и настройки выбранного агента" width="100%" />
+<img src="docs/media/agents.png" alt="Agent constructor: agent list and settings for the selected agent" width="100%" />
 
-### Просмотр видео
+### Preview video
 
-<img src="docs/media/viewer.png" alt="Встроенный просмотр видеопроекта и его сцен" width="100%" />
+<img src="docs/media/viewer.png" alt="Built-in video project viewer and its scenes" width="100%" />
 
-Снимки отдельных тестовых проектов. Это интерфейс Studio, не запись работы модели.
+Screenshots from separate test projects, shown in Russian. These show the Studio interface, not a recording of a model run.
 
 </details>
 
-## Бесплатно и с открытым кодом
+## Free and open source
 
-Pi Studio распространяется по **[MIT](LICENSE)**. Программой можно пользоваться бесплатно, изменять её и распространять свои версии, в том числе для коммерческих задач.
+Pi Studio is released under **[MIT](LICENSE)**. You can use it for free, modify it and distribute your own versions, including for commercial work.
 
-Подписки моделей, API и внешние сервисы оплачиваются отдельно по тарифам их поставщиков. У сторонних компонентов свои лицензии: [уведомления](third-party-licenses), [условия Remotion](https://www.remotion.dev/license).
+Model subscriptions, APIs and external services are billed separately by their providers. Third-party components retain their own licenses: [notices](third-party-licenses), [Remotion terms](https://www.remotion.dev/license).
 
-Публичное открытие репозитория запланировано после финального аудита и проверки релизов. Сейчас исходники доступны участникам репозитория.
+The repository will become public after the final audit and release validation. Source access is currently limited to repository collaborators.
 
 <details>
-<summary><strong>Для разработчиков</strong></summary>
+<summary><strong>For developers</strong></summary>
 
 Electron · React · TypeScript.
 
@@ -177,9 +179,11 @@ npm ci
 npm run dev
 ```
 
-Проверки: `npm run typecheck`, `npm run lint`, `npm run check:architecture`, `npm test`.
+Checks: `npm run typecheck`, `npm run lint`, `npm run check:architecture`, `npm test`.
 
-[Техническая документация](technical-spec/README.md) · [Статус MVP](technical-spec/MVP_COMPLETION_AUDIT.md) · [Windows](technical-spec/WINDOWS.md)
+Keep the English and Russian READMEs in sync when updating features or releases, including every download link, platform version and release-notes link.
+
+[Technical documentation (RU)](technical-spec/README.md) · [MVP status (RU)](technical-spec/MVP_COMPLETION_AUDIT.md) · [Windows (RU)](technical-spec/WINDOWS.md)
 
 </details>
 
@@ -187,6 +191,6 @@ npm run dev
 
 <div align="center">
 
-**[Скачать](#скачать)** &nbsp; · &nbsp; **[Сообщить об ошибке](https://github.com/vtlk/pi-studio/issues)** &nbsp; · &nbsp; **[Документация](technical-spec/README.md)**
+**[Download](#download)** &nbsp; · &nbsp; **[Report a bug](https://github.com/vtlk/pi-studio/issues)** &nbsp; · &nbsp; **[Documentation (RU)](technical-spec/README.md)**
 
 </div>
