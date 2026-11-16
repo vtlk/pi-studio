@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { configureTeam, saveTeamAgent } from './teamAdministration.ts';
 import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 import { randomUUID } from 'node:crypto';
@@ -46,7 +47,8 @@ export class SetupAdministration {
         'check_team_import',
       ].includes(name)
     ) {
-      if (!this.teamImports) throw new Error('Инструменты импорта команды недоступны.');
+      if (!this.teamImports)
+        throw new Error(t('error.setupAdministration.teamImportToolsUnavailable'));
       return this.teamImports.call(run, name, args);
     }
     const resourceTools = [
@@ -61,9 +63,7 @@ export class SetupAdministration {
       const folder = await this.service.serialize(async () => {
         const store = await this.service.load();
         if (join(store.folder, '.pistudio/setup-assistant') !== run.projectRoot)
-          throw new Error(
-            'Этот помощник относится к другой папке студии. Откройте помощника заново.',
-          );
+          throw new Error(t('error.setupAdministration.thisAssistantBelongsToA'));
         return store.folder;
       });
       if (name === 'configure_mcp')
@@ -72,7 +72,8 @@ export class SetupAdministration {
           loadedInAgentSession: false,
         };
       if (name === 'import_mcp') {
-        if (typeof args.name !== 'string') throw new Error('Нужно имя native MCP.');
+        if (typeof args.name !== 'string')
+          throw new Error(t('error.setupAdministration.aNativeMcpNameIs'));
         return {
           resource: await this.native.importMcp(
             folder,
@@ -92,7 +93,8 @@ export class SetupAdministration {
           loadedInAgentSession: false,
         };
       if (name === 'check_resource' || name === 'authenticate_mcp') {
-        if (typeof args.resourceId !== 'string') throw new Error('Нужен ID ресурса.');
+        if (typeof args.resourceId !== 'string')
+          throw new Error(t('error.setupAdministration.aResourceIdIsRequired'));
         return name === 'check_resource'
           ? this.native.check(args.resourceId, folder)
           : this.native.login(args.resourceId, folder);
@@ -103,9 +105,7 @@ export class SetupAdministration {
     return this.service.serialize(async () => {
       const store = await this.service.load();
       if (join(store.folder, '.pistudio/setup-assistant') !== run.projectRoot)
-        throw new Error(
-          'Этот помощник относится к другой папке студии. Откройте помощника заново.',
-        );
+        throw new Error(t('error.setupAdministration.thisAssistantBelongsToA'));
       const sections = store.bootstrap().sections;
       const agents = (sections.agents ?? []) as Agent[];
       const systems = (sections.systemAgents ?? []) as SystemAgent[];
@@ -133,16 +133,16 @@ export class SetupAdministration {
       if (name === 'register_model_endpoint') {
         const old =
           typeof args.id === 'string' ? connections.find((item) => item.id === args.id) : undefined;
-        if (args.id && !old) throw new Error('Подключение отсутствует.');
+        if (args.id && !old) throw new Error(t('error.setupAdministration.connectionMissing'));
         if (old && !['compatible', 'local'].includes(old.purpose))
-          throw new Error('Выберите подключение сервера моделей.');
+          throw new Error(t('error.setupAdministration.selectAModelServerConnection'));
         if (
           typeof args.name !== 'string' ||
           !args.name.trim() ||
           !['compatible', 'local'].includes(String(args.purpose)) ||
           typeof args.endpoint !== 'string'
         )
-          throw new Error('Укажите название, тип и адрес сервера.');
+          throw new Error(t('error.setupAdministration.specifyAServerNameType'));
         const id = old?.id ?? randomUUID();
         const connection: Connection = {
           id,
@@ -170,15 +170,15 @@ export class SetupAdministration {
           typeof args.provider !== 'string' ||
           !models.providers.some((provider) => provider.id === args.provider)
         )
-          throw new Error('Провайдер отсутствует в реестре установленного Pi.');
+          throw new Error(t('error.setupAdministration.theProviderIsMissingFrom'));
         if (typeof args.name !== 'string' || !args.name.trim())
-          throw new Error('Нужно название подключения.');
+          throw new Error(t('error.setupAdministration.aConnectionNameIsRequired'));
         const old =
           typeof args.id === 'string'
             ? connections.find((connection) => connection.id === args.id)
             : undefined;
         if (args.id && !old)
-          throw new Error('Запрошенное подключение отсутствует; другое не подставляется.');
+          throw new Error(t('error.setupAdministration.theRequestedConnectionIsMissing'));
         const connection: Connection = {
           ...(old ?? {
             id: randomUUID(),
@@ -198,7 +198,8 @@ export class SetupAdministration {
         return { connection, authorization: 'not_checked' };
       }
       if (name === 'import_skill') {
-        if (typeof args.path !== 'string') throw new Error('Нужен полный путь к skill.');
+        if (typeof args.path !== 'string')
+          throw new Error(t('error.setupAdministration.aFullSkillPathIs'));
         const resource = await importSkill(args.path, resources);
         await store.saveSection('resources', [
           resource,
@@ -214,7 +215,7 @@ export class SetupAdministration {
             : undefined;
         const system = systems.find((agent) => agent.id === old?.id);
         if (args.id && !old)
-          throw new Error('Запрошенный профиль отсутствует; другой агент не подставляется.');
+          throw new Error(t('error.setupAdministration.theRequestedProfileIsMissing'));
         const draft: Record<string, unknown> = {
           ...(old ?? {
             id: randomUUID(),
@@ -228,19 +229,21 @@ export class SetupAdministration {
         };
         for (const key of ['name', 'enabled', 'mainInstruction'] as const)
           if (args[key] !== undefined) draft[key] = args[key];
-        if (!String(draft.name).trim()) throw new Error('Назовите агента.');
+        if (!String(draft.name).trim())
+          throw new Error(t('error.setupAdministration.nameTheAgent'));
         if (args.instructions !== undefined) {
-          if (!Array.isArray(args.instructions)) throw new Error('Некорректные инструкции.');
+          if (!Array.isArray(args.instructions))
+            throw new Error(t('error.setupAdministration.invalidInstructions'));
           draft.instructions = args.instructions.map((value) => {
             if (!value || typeof value !== 'object')
-              throw new Error('Некорректный блок инструкции.');
+              throw new Error(t('error.setupAdministration.invalidInstructionBlock'));
             const block = value as Record<string, unknown>;
             return { ...block, id: block.id ?? randomUUID(), enabled: block.enabled ?? true };
           });
         }
         if (args.model !== undefined) {
           if (!args.model || typeof args.model !== 'object')
-            throw new Error('Некорректная модель.');
+            throw new Error(t('error.setupAdministration.invalidModel'));
           const model = args.model as Record<string, unknown>;
           if (
             !connections.some(
@@ -250,9 +253,7 @@ export class SetupAdministration {
                 connection.purpose !== 'images',
             )
           )
-            throw new Error(
-              'Модель должна использовать существующее подключение этого провайдера.',
-            );
+            throw new Error(t('error.setupAdministration.theModelMustUseAn'));
           if (
             !models.models.some(
               (item) => item.provider === model.provider && item.id === model.id,
@@ -264,7 +265,7 @@ export class SetupAdministration {
                 item.endpointConfig?.models.some((entry) => entry.id === model.id),
             )
           )
-            throw new Error('Модель отсутствует в реестре Pi.');
+            throw new Error(t('error.setupAdministration.theModelIsMissingFrom'));
           draft.model = { ...model, temperature: '' };
         }
         const agent = parseAgent(draft);
@@ -290,7 +291,7 @@ export class SetupAdministration {
           new Set(args.ids).size !== agents.length ||
           args.ids.some((id) => !agents.some((agent) => agent.id === id))
         )
-          throw new Error('Укажите ровно все текущие ID без повторов.');
+          throw new Error(t('error.setupAdministration.provideExactlyAllCurrentIds'));
         await store.saveSection(
           'agents',
           args.ids.map((id) => agents.find((agent) => agent.id === id)!),
@@ -299,14 +300,15 @@ export class SetupAdministration {
       }
       if (name === 'assign_resource') {
         const agent = [...agents, ...systems].find((item) => item.id === stableId(args.agentId));
-        if (!agent) throw new Error('Агент отсутствует.');
+        if (!agent) throw new Error(t('error.setupAdministration.agentMissing'));
         if (!['skills', 'mcps', 'plugins'].includes(String(args.kind)))
-          throw new Error('Некорректный вид ресурса.');
+          throw new Error(t('error.setupAdministration.invalidResourceKind'));
         const kind = args.kind as CapabilityKind;
         const resource = [...resources, ...optionalBuiltinMcps].find(
           (item) => item.id === args.resourceId && item.kind === kind,
         );
-        if (!resource) throw new Error('Ресурс отсутствует в каталоге.');
+        if (!resource)
+          throw new Error(t('error.setupAdministration.resourceMissingFromTheCatalog'));
         const updated = {
           ...agent,
           [kind]: agent[kind].includes(resource.id) ? agent[kind] : [...agent[kind], resource.id],
@@ -336,7 +338,7 @@ export class SetupAdministration {
           loadedInAgentSession: false,
         };
       }
-      throw new Error('Административный инструмент недоступен.');
+      throw new Error(t('error.setupAdministration.administrativeToolUnavailable'));
     });
   }
 }

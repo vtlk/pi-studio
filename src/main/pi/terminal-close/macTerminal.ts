@@ -1,4 +1,5 @@
-import { terminalCloseDetail, terminalCloseMessages, type TerminalCloseDetail } from '../../../shared/runFailure.ts';
+import { t } from '../../../shared/i18n/index.ts';
+import { terminalCloseDetail, type TerminalCloseDetail } from '../../../shared/runFailure.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { basename } from 'node:path';
@@ -46,15 +47,25 @@ export const closeMacTabScript = `on run argv
 end run`;
 
 function terminalError(reason: TerminalCloseDetail = 'identity_changed') {
-  return Object.assign(new Error('Не удалось безопасно закрыть вкладку Pi. ' + terminalCloseMessages[reason]), {
-    terminalDetail: reason,
-  });
+  return Object.assign(
+    new Error(t('error.macTerminal.couldNotSafelyCloseThe') + t(`terminalCloseMessages.${reason}`)),
+    {
+      terminalDetail: reason,
+    },
+  );
 }
 function closeError(error: unknown) {
-  const detail = error && typeof error === 'object' && 'terminalDetail' in error
-    ? terminalCloseDetail(error.terminalDetail) : undefined;
+  const detail =
+    error && typeof error === 'object' && 'terminalDetail' in error
+      ? terminalCloseDetail(error.terminalDetail)
+      : undefined;
   if (detail) return terminalError(detail);
-  if (error && typeof error === 'object' && 'stderr' in error && String(error.stderr).includes('-1743'))
+  if (
+    error &&
+    typeof error === 'object' &&
+    'stderr' in error &&
+    String(error.stderr).includes('-1743')
+  )
     return terminalError('automation_denied');
   return terminalError();
 }
@@ -152,7 +163,7 @@ export async function captureMacTab(
             if (status === 'shared') throw terminalError('shared_window');
             if (status !== 'pending') throw terminalError();
             if (Date.now() >= deadline) throw terminalError('terminal_busy');
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
         } catch (error) {
           throw closeError(error);

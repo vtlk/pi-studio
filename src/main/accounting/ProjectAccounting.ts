@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { safePath } from '../storage/files.ts';
 import type { WorkspaceProject } from '../../shared/project.ts';
 import type { ProjectUsage } from '../../shared/projectUsage.ts';
@@ -42,7 +43,7 @@ export class ProjectAccounting {
   private ledger(run: PreparedRun) {
     const ledger = this.ledgers.get(run.project.id);
     if (!ledger || ledger.directory !== run.projectRoot)
-      throw new Error('Учёт этого проекта ещё не загружен или папка изменилась.');
+      throw new Error(t('error.projectAccounting.thisProjectSUsageAccounting'));
     return ledger;
   }
   async begin(run: PreparedRun) {

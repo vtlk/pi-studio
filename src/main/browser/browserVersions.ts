@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 export const AGENT_BROWSER_VERSION = '0.43.0';
 export const CHROME_VERSION = '157.0.8103.78';
 export const chromeArchives = {
@@ -20,9 +21,9 @@ export const chromeExecutable = () =>
 
 export function browserArchive(arch: string, platform = process.platform) {
   if (arch !== 'arm64' && arch !== 'x64')
-    throw new Error('Архитектура браузера не поддерживается.');
+    throw new Error(t('error.browserVersions.unsupportedBrowserArchitecture'));
   if (platform === 'win32') {
-    if (arch !== 'x64') throw new Error('Поддерживается Windows x64.');
+    if (arch !== 'x64') throw new Error(t('error.browserVersions.windowsXIsSupported'));
     return {
       arch,
       url: `https://registry.npmjs.org/@agent-browser/cli-win32-x64-msvc/-/cli-win32-x64-msvc-${AGENT_BROWSER_VERSION}.tgz`,
@@ -38,9 +39,9 @@ export function browserArchive(arch: string, platform = process.platform) {
 
 export function chromeArchive(arch: string, platform = process.platform) {
   if (arch !== 'arm64' && arch !== 'x64')
-    throw new Error('Архитектура браузера не поддерживается.');
+    throw new Error(t('error.browserVersions.unsupportedBrowserArchitecture'));
   if (platform === 'win32') {
-    if (arch !== 'x64') throw new Error('Поддерживается Windows x64.');
+    if (arch !== 'x64') throw new Error(t('error.browserVersions.windowsXIsSupported'));
     return {
       arch,
       folder: 'chrome-headless-shell-win64',

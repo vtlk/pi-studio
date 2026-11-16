@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { TeamCaller } from './types.ts';
 import type { ProjectAgent } from '../../shared/project.ts';
@@ -14,12 +15,12 @@ export async function teamScope(service: StudioService, run: TeamCaller) {
       root !== run.projectRoot ||
       !project.agents.some((item) => item.profile.id === run.record.agentId)
     )
-      throw new Error('Привязка team к проекту/агенту изменилась. Откройте диалог через Studio.');
+      throw new Error(t('error.scope.theTeamBindingToThe'));
     const catalog = store.agentCatalog();
     const sender = catalog.agents.find((agent) => agent.id === run.record.agentId);
     // Open transports retain their schema; authority always comes from current saved assignments.
     if (!sender?.enabled || !hasTeamMcp(sender))
-      throw new Error('MCP team отключён или больше не назначен этому агенту.');
+      throw new Error(t('error.scope.mcpTeamIsDisabledOr'));
     const team = catalog.teams.find((item) => item.id === project.sourceTeamId);
     const sections = store.bootstrap().sections;
     return {
@@ -35,16 +36,16 @@ export async function teamScope(service: StudioService, run: TeamCaller) {
 }
 export type TeamScope = Awaited<ReturnType<typeof teamScope>>;
 export function outputAgent(scope: TeamScope, id: unknown): ProjectAgent {
-  if (typeof id !== 'string') throw new Error('Нужен стабильный agent_id.');
+  if (typeof id !== 'string') throw new Error(t('error.scope.aStableAgentIdIs'));
   const agent = [
     ...scope.project.agents,
     ...(scope.project.archivedAgents ?? []).map((item) => item.agent),
   ].find((item) => item.profile.id === id);
-  if (!agent) throw new Error('Агент отсутствует в этом проекте. Другой проект не подставляется.');
+  if (!agent) throw new Error(t('error.scope.theAgentIsMissingFrom'));
   return agent;
 }
 export function recipient(scope: TeamScope, args: Record<string, unknown>) {
-  if (!scope.team) throw new Error('Исходная команда удалена; отправка недоступна.');
+  if (!scope.team) throw new Error(t('error.scope.theSourceTeamWasDeleted'));
   const members = scope.catalog.agents.filter((item) => scope.team!.agentIds.includes(item.id));
   const matches =
     args.agent_id !== undefined
@@ -53,12 +54,15 @@ export function recipient(scope: TeamScope, args: Record<string, unknown>) {
   if (matches.length !== 1)
     throw new Error(
       matches.length
-        ? `Неоднозначное имя. Укажите agent_id: ${matches.map((item) => item.id).join(', ')}`
-        : 'Получатель отсутствует в исходной команде.',
+        ? t('error.scope.ambiguousNameSpecifyAgentId', {
+            value1: matches.map((item) => item.id).join(', '),
+          })
+        : t('error.scope.theRecipientIsMissingFrom'),
     );
   const current = matches[0];
   const saved = scope.project.agents.find((item) => item.profile.id === current.id);
-  if (!saved) throw new Error('Агент ещё не в проекте. Нажмите «Перечитать агентов».');
-  if (!current.enabled || !saved.profile.enabled) throw new Error('Получатель выключен.');
+  if (!saved) throw new Error(t('error.scope.theAgentIsNotIn'));
+  if (!current.enabled || !saved.profile.enabled)
+    throw new Error(t('error.scope.recipientDisabled'));
   return { current, saved };
 }

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { chmod, mkdir } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -16,7 +17,7 @@ export async function privateDirectory(path: string) {
   );
   const sid = stdout.trim();
   if (!/^S-1-[0-9-]+$/.test(sid))
-    throw new Error('Не удалось определить владельца папки обновления.');
+    throw new Error(t('error.privateDirectory.couldNotDetermineTheUpdate'));
   // Restrict this newly owned staging directory, without changing user credential-store ACLs.
   await execute(
     'icacls.exe',

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { TeamCaller, TeamMessage, TeamHost } from './types.ts';
 import { TeamJournal, messageHash } from './TeamJournal.ts';
@@ -20,7 +21,7 @@ export async function dispatchTeamMessage(
   try {
     const scope = await teamScope(service, run);
     if (scope.project.sourceTeamId !== item.sourceTeamId)
-      throw new Error('Исходная команда изменилась.');
+      throw new Error(t('error.teamSupport.theSourceTeamChanged'));
     const { saved } = recipient(scope, { agent_id: item.recipientId });
     if (
       saved.runStatus === 'waiting' ||
@@ -39,9 +40,7 @@ export async function dispatchTeamMessage(
       (saved.session?.id !== item.expectedSession.id ||
         saved.session.path !== item.expectedSession.path)
     )
-      throw new Error(
-        'Точная binding получателя изменилась. Старое сообщение не перенаправляется.',
-      );
+      throw new Error(t('error.dispatch.theRecipientSExactBinding'));
     const text = deliveryText(item);
     await host.launchTeamTask(
       item.projectId,
@@ -61,10 +60,10 @@ export async function dispatchTeamMessage(
           fresh.project.sourceTeamId !== item.sourceTeamId ||
           (item.expectedSession && target.session?.id !== item.expectedSession.id)
         )
-          throw new Error('Получатель/команда изменились до отправки.');
+          throw new Error(t('error.dispatch.theRecipientTeamChangedBefore'));
         await journal.update(item.id, (previous) => {
           if (previous.state !== 'queued')
-            throw new Error('Поручение уже отменено или отправлено.');
+            throw new Error(t('error.dispatch.theTaskWasAlreadyCancelled'));
           return {
             ...previous,
             state: 'dispatching',

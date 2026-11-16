@@ -1,3 +1,5 @@
+import { agentName } from '@/shared/model/localizedProfiles';
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -47,7 +49,7 @@ export function ConnectionsPanel() {
         {connections.map((connection) => {
           const uses = (agent: Pick<(typeof agents)[number], 'model'>) =>
             agent.model?.connectionId === connection.id;
-          const users = [...agents, ...systemAgents].filter(uses).map((agent) => agent.name);
+          const users = [...agents, ...systemAgents].filter(uses).map(agentName);
           const projectUsers = projects
             .filter((project) => project.agents.some((agent) => uses(agent.profile)))
             .map((project) => project.name);
@@ -99,19 +101,22 @@ export function ConnectionsPanel() {
               </div>
               <Button onClick={() => setEdit(connection)}>{t('ConnectionsPanel.configure')}</Button>
               <HoverDeleteButton
-                label={t('ConnectionsPanel.deleteConnection', { value1: connection.name })}
-                description={t('ConnectionsPanel.agentsProjectsImageGenerationToolReferencesWill', {
-                  value1: users.join(', ') || t('ConnectionsPanel.none'),
-                  value2: projectUsers.join(', ') || t('ConnectionsPanel.none'),
-                  value3:
-                    imageTool.connectionId === connection.id
-                      ? t('ConnectionsPanel.usesThisConnection')
-                      : t('ConnectionsPanel.doesNotUseIt'),
-                })}
+                label={uiText('ConnectionsPanel.deleteConnection', { value1: connection.name })}
+                description={uiText(
+                  'ConnectionsPanel.agentsProjectsImageGenerationToolReferencesWill',
+                  {
+                    value1: users.join(', ') || t('ConnectionsPanel.none'),
+                    value2: projectUsers.join(', ') || t('ConnectionsPanel.none'),
+                    value3:
+                      imageTool.connectionId === connection.id
+                        ? t('ConnectionsPanel.usesThisConnection')
+                        : t('ConnectionsPanel.doesNotUseIt'),
+                  },
+                )}
                 onDelete={() => {
                   removeConnection(connection.id);
-                  demo(t('ConnectionsPanel.connectionRecordDeleted'), {
-                    label: t('useResourceUnlink.undo'),
+                  demo(uiText('ConnectionsPanel.connectionRecordDeleted'), {
+                    label: uiText('useResourceUnlink.undo'),
                     onClick: () => saveConnection(connection),
                   });
                 }}

@@ -1,3 +1,4 @@
+import { t, type MessageKey } from './i18n/index.ts';
 const messages = {
   resources:
     'Не удалось загрузить назначенные ресурсы Pi. Проверьте MCP, skills и расширения этого агента.',
@@ -28,6 +29,6 @@ export function openingFailure(value: unknown): OpeningFailure | undefined {
 }
 export function openingFailureText(issue: OpeningFailure) {
   return issue.kind === 'mcp'
-    ? `Не подключены MCP: ${issue.servers!.join(', ')}. Проверьте их в настройках агента или через /mcp в Pi.`
-    : messages[issue.kind];
+    ? t('openingFailure.mcp', { servers: issue.servers!.join(', ') })
+    : t(`openingFailure.${issue.kind}` as MessageKey);
 }

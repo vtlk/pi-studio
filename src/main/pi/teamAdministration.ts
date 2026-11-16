@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { randomUUID } from 'node:crypto';
 import type { Agent } from '../../shared/studio.ts';
 import type { StudioStore } from '../storage/StudioStore.ts';
@@ -5,10 +6,11 @@ import { stableId } from '../storage/validation.ts';
 
 export async function configureTeam(store: StudioStore, args: Record<string, unknown>) {
   const catalog = store.agentCatalog();
-  if (typeof args.name !== 'string' || !args.name.trim()) throw new Error('Назовите команду.');
+  if (typeof args.name !== 'string' || !args.name.trim())
+    throw new Error(t('error.teamAdministration.nameTheTeam'));
   const old =
     typeof args.id === 'string' ? catalog.teams.find((team) => team.id === args.id) : undefined;
-  if (args.id && !old) throw new Error('Команда отсутствует.');
+  if (args.id && !old) throw new Error(t('TeamTransfers.theTeamIsUnavailable'));
   const team = {
     id: old?.id ?? randomUUID(),
     name: args.name.trim(),
@@ -28,7 +30,7 @@ export async function saveTeamAgent(store: StudioStore, agent: Agent, requestedT
   const previousTeam = catalog.teams.find((team) => team.agentIds.includes(agent.id));
   const teamId = requestedTeamId === undefined ? previousTeam?.id : stableId(requestedTeamId);
   if (!teamId || !catalog.teams.some((team) => team.id === teamId))
-    throw new Error('Укажите существующую команду (teamId) для агента.');
+    throw new Error(t('error.teamAdministration.specifyAnExistingTeamTeamid'));
   const old = catalog.agents.some((item) => item.id === agent.id);
   await store.saveSection('agentCatalog', {
     agents: old

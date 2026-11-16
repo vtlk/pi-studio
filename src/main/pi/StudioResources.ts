@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Resource, ResourceCheck } from '../../shared/resources.ts';
@@ -44,7 +45,7 @@ export class StudioResources {
     return this.service.serialize(async () => {
       const store = await this.service.load();
       if (expected && store.folder !== expected)
-        throw new Error('Папка студии изменилась. Откройте помощника заново.');
+        throw new Error(t('error.studioResources.theStudioFolderChangedReopen'));
       return {
         folder: store.folder,
         piPath: String(store.bootstrap().sections.piPath ?? '') || this.options.piPath(),
@@ -63,7 +64,7 @@ export class StudioResources {
     return this.service.serialize(async () => {
       const store = await this.service.load();
       if (store.folder !== folder)
-        throw new Error('Студия сменилась; ресурс не добавлен в другой каталог.');
+        throw new Error(t('error.studioResources.theStudioChangedTheResource'));
       const current = (store.bootstrap().sections.resources ?? []) as Resource[];
       const old = current.find(
         (item) => item.kind === resource.kind && item.source === resource.source,
@@ -91,9 +92,9 @@ export class StudioResources {
       !/^[a-zA-Z0-9_-]+$/.test(args.name) ||
       reservedMcpName(args.name)
     )
-      throw new Error('Укажите имя native MCP; pi_studio зарезервировано.');
+      throw new Error(t('error.studioResources.specifyANativeMcpName'));
     if (!args.config || typeof args.config !== 'object' || Array.isArray(args.config))
-      throw new Error('Нужна конфигурация сервера в формате native Pi.');
+      throw new Error(t('error.studioResources.serverConfigurationInNativePi'));
     const config = args.config as Record<string, unknown>;
     assertCredentialReferences(config);
     const scope = await this.scope(folder);
@@ -118,12 +119,12 @@ export class StudioResources {
     metadata?: NativeResourceResult,
   ) {
     if (!/^[a-zA-Z0-9_-]+$/.test(name) || reservedMcpName(name))
-      throw new Error('Некорректное имя native MCP.');
+      throw new Error(t('error.studioResources.invalidNativeMcpName'));
     if (!metadata) {
       const listed = await this.listNative(folder);
       metadata = listed.servers?.find((server) => server.name === name);
     }
-    if (!metadata) throw new Error('Такой сервер не найден в native Pi.');
+    if (!metadata) throw new Error(t('error.studioResources.noSuchServerFoundIn'));
     const source = `pi:${name}`;
     return this.publish(
       folder,
@@ -175,9 +176,9 @@ export class StudioResources {
     if (id === browserMcp.id && this.options.browser) return this.options.browser.check();
     if (id === computerMcp.id && this.options.computer) return this.options.computer.check();
     const resource = scope.resources.find((item) => item.id === id);
-    if (!resource) throw new Error('Ресурс отсутствует в текущем каталоге.');
+    if (!resource) throw new Error(t('error.studioResources.resourceMissingFromTheCurrent'));
     if (resource.credential === 'keychain:pistudio-mcp' && !this.options.mcpSecrets)
-      throw new Error('Защищённые параметры MCP недоступны.');
+      throw new Error(t('error.studioResources.protectedMcpParametersUnavailable'));
     const secretRevision = await this.options.mcpSecrets?.revision(scope.folder, resource);
     let result: NativeResourceResult;
     if (resource.kind === 'skills') {
@@ -211,7 +212,7 @@ export class StudioResources {
       });
     } else {
       if (resource.credential)
-        throw new Error('Для авторизации используйте native Pi и ссылку pi:имя.');
+        throw new Error(t('error.studioResources.forAuthenticationUseNativePi'));
       const config = /^https?:\/\//.test(resource.source)
         ? { url: resource.source }
         : { command: resource.source, args: JSON.parse(resource.args || '[]') as unknown };
@@ -233,9 +234,9 @@ export class StudioResources {
       const current = (store.bootstrap().sections.resources ?? []) as Resource[];
       const selected = current.find((item) => item.id === id);
       if (store.folder !== scope.folder || !selected || signature(selected) !== signature(resource))
-        throw new Error('Настройки ресурса изменились во время проверки. Повторите её.');
+        throw new Error(t('error.studioResources.resourceSettingsChangedDuringVerific'));
       if (secretRevision !== (await this.options.mcpSecrets?.revision(scope.folder, selected)))
-        throw new Error('Ключи или конфигурация MCP изменились во время проверки. Повторите её.');
+        throw new Error(t('error.studioResources.mcpKeysOrConfigurationChanged'));
       await store.saveSection(
         'resources',
         current.map((item) => (item.id === id ? { ...item, check } : item)),
@@ -247,18 +248,18 @@ export class StudioResources {
     const scope = await this.scope();
     if (id === browserMcp.id && this.options.browser) return this.options.browser.install();
     const resource = scope.resources.find((item) => item.id === id && item.kind === 'plugins');
-    if (!resource) throw new Error('Пакет отсутствует.');
+    if (!resource) throw new Error(t('error.studioResources.packageMissing'));
     return this.installPackage(scope.folder, resource.source, resource.name);
   }
   async login(id: string, expectedFolder?: string) {
     const scope = await this.scope(expectedFolder);
     const resource = scope.resources.find((item) => item.id === id && item.kind === 'mcps');
     if (!resource?.source.startsWith('pi:'))
-      throw new Error('Сначала настройте сервер через помощника как native Pi MCP (pi:имя).');
+      throw new Error(t('error.studioResources.configureTheServerThroughThe'));
     const name = resource.source.slice(3);
-    if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Некорректное имя MCP.');
+    if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error(t('error.studioResources.invalidMcpName'));
     const raw = await nativeMcpConfig(name);
-    if (raw.enabled === false) throw new Error('Сервер выключен в Pi.');
+    if (raw.enabled === false) throw new Error(t('ResourceActions.serverDisabledInPi'));
     if (raw.auth && typeof raw.auth === 'object' && 'provider' in raw.auth)
       return {
         opened: false,
@@ -272,7 +273,8 @@ export class StudioResources {
         authorized: false,
         next: 'Откройте «Настройки → MCP-серверы → Защищённые параметры», сохраните необходимые значения и проверьте подключение. Ключи не передаются в чат или Terminal.',
       };
-    if (!this.options.browserAuth) throw new Error('Браузерный вход MCP недоступен.');
+    if (!this.options.browserAuth)
+      throw new Error(t('error.studioResources.mcpBrowserSignInUnavailable'));
     const config = this.options.mcpSecrets
       ? await this.options.mcpSecrets.resolver(scope.folder, scope.piPath)(resource, raw)
       : raw;
@@ -292,7 +294,8 @@ export class StudioResources {
       `${scope.folder}\0${id}`,
       { name, config },
       async () => {
-        if (!(await unchanged())) throw new Error('Настройки MCP изменились во время входа.');
+        if (!(await unchanged()))
+          throw new Error(t('error.studioResources.mcpSettingsChangedDuringSign'));
         const check = await this.check(id);
         return (await unchanged()) && check.status === 'available';
       },

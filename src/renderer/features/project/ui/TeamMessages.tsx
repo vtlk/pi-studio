@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n, type MessageKey } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -91,9 +92,9 @@ export function TeamMessages({ project }: { project: WorkspaceProject }) {
                   <Button
                     onClick={() =>
                       confirm({
-                        title: t('TeamMessages.cancelTask'),
-                        description: t('TeamMessages.removeThisTaskFromTheQueueWithout'),
-                        confirmLabel: t('TeamMessages.cancelTask2'),
+                        title: uiText('TeamMessages.cancelTask'),
+                        description: uiText('TeamMessages.removeThisTaskFromTheQueueWithout'),
+                        confirmLabel: uiText('TeamMessages.cancelTask2'),
                         onConfirm: () => act(item, 'cancel'),
                       })
                     }

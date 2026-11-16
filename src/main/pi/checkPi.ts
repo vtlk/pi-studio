@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { access, readdir } from 'node:fs/promises';
 import { constants } from 'node:fs';
@@ -11,10 +12,7 @@ const execute = promisify(execFile);
 export class PiNotFoundError extends Error {}
 async function candidates(requested: string) {
   if (requested.trim()) {
-    if (!isAbsolute(requested.trim()))
-      throw new Error(
-        'Укажите полный путь к исполняемому файлу Pi или оставьте поле пустым для поиска.',
-      );
+    if (!isAbsolute(requested.trim())) throw new Error(t('error.checkPi.enterTheFullPathTo'));
     return [requested.trim()];
   }
   const paths = [
@@ -52,7 +50,7 @@ async function candidates(requested: string) {
 }
 export async function checkPi(requested: string): Promise<PiCheck> {
   if (typeof requested !== 'string' || requested.length > 4096 || requested.includes('\0'))
-    throw new Error('Некорректный путь Pi.');
+    throw new Error(t('error.checkPi.invalidPiPath'));
   for (const candidate of await candidates(requested)) {
     let path: string;
     try {
@@ -82,7 +80,5 @@ export async function checkPi(requested: string): Promise<PiCheck> {
       exactSessions: help.includes('--session <path|id>') && help.includes('--fork <path|id>'),
     };
   }
-  throw new PiNotFoundError(
-    'Pi не найден. Установите @earendil-works/pi-coding-agent и укажите полный путь.',
-  );
+  throw new PiNotFoundError(t('error.checkPi.piNotFoundInstallEarendil'));
 }

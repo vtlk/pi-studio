@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { isAbsolute } from 'node:path';
 /** Secret values stay in native Pi/secure storage. MCP configuration accepts references, never chat secrets. */
 export function assertCredentialReferences(config: Record<string, unknown>) {
@@ -6,9 +7,7 @@ export function assertCredentialReferences(config: Record<string, unknown>) {
   const secretKey = /authorization|token|secret|password|api.?key|credential/i;
   const visit = (value: unknown, key = '') => {
     if (typeof value === 'string' && secretKey.test(key) && !reference(value))
-      throw new Error(
-        'Секреты нельзя передавать помощнику. Используйте native Pi OAuth либо ссылку на окружение/защищённое хранилище.',
-      );
+      throw new Error(t('error.resourceConfig.doNotPassSecretsTo'));
     if (Array.isArray(value)) {
       for (let i = 0; i < value.length; i++) {
         const item = value[i];
@@ -17,10 +16,7 @@ export function assertCredentialReferences(config: Record<string, unknown>) {
           /^--?(?:api[-_]?key|token|password|secret|authorization)(?:=|$)/i.test(item)
         ) {
           const inline = item.includes('=') ? item.slice(item.indexOf('=') + 1) : value[i + 1];
-          if (!reference(inline))
-            throw new Error(
-              'Секрет в аргументах запуска не допускается. Используйте ссылку native Pi.',
-            );
+          if (!reference(inline)) throw new Error(t('error.resourceConfig.secretsAreNotAllowedIn'));
         }
         visit(item);
       }
@@ -36,9 +32,7 @@ export function assertCredentialReferences(config: Record<string, unknown>) {
       url.password ||
       [...url.searchParams.keys()].some((key) => secretKey.test(key))
     )
-      throw new Error(
-        'URL MCP не должен содержать учётные данные или токены. Используйте native Pi auth.',
-      );
+      throw new Error(t('error.resourceConfig.theMcpUrlMustNot'));
   }
 }
 export function packageSource(value: unknown) {
@@ -49,9 +43,9 @@ export function packageSource(value: unknown) {
     value.includes('\0') ||
     /[\r\n]/.test(value)
   )
-    throw new Error('Нужен источник пакета Pi.');
+    throw new Error(t('error.resourceConfig.aPiPackageSourceIs'));
   if (!(isAbsolute(value) || /^(npm:|git:|https:\/\/github\.com\/)/.test(value)))
-    throw new Error('Укажите локальный абсолютный путь либо источник native Pi npm:/git:.');
+    throw new Error(t('error.resourceConfig.provideAnAbsoluteLocalPath'));
   const url = value.replace(/^git:/, '');
   if (/^https?:\/\//.test(url)) {
     const parsed = new URL(url);
@@ -60,7 +54,7 @@ export function packageSource(value: unknown) {
       parsed.password ||
       [...parsed.searchParams.keys()].some((key) => /token|secret|password|api.?key/i.test(key))
     )
-      throw new Error('Не указывайте секреты в URL пакета.');
+      throw new Error(t('error.resourceConfig.doNotIncludeSecretsIn'));
   }
   return value;
 }

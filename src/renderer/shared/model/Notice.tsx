@@ -1,3 +1,4 @@
+import { uiText, textOf, type UiText } from './UiText';
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { NoticeContext } from './Notice.context';
@@ -6,22 +7,24 @@ import { CircleHelp, X } from 'lucide-react';
 import { IconButton } from '../ui';
 
 interface NoticeAction {
-  label: string;
+  label: UiText;
   onClick: () => void;
 }
 interface Notice {
-  message: string;
+  message: UiText;
   action?: NoticeAction;
 }
 export type NoticeContextValue = {
-  demo: (message?: string, action?: NoticeAction) => void;
+  demo: (message?: UiText, action?: NoticeAction) => void;
 } | null;
 export function NoticeProvider({ children }: { children: ReactNode }) {
   useTranslation(undefined, { i18n });
   const [toast, setToast] = useState<Notice | null>(null);
   const demo = useCallback(
-    (message = t('Notice.thisIsAnInterfacePrototypeWorkingIntegration'), action?: NoticeAction) =>
-      setToast({ message, action }),
+    (
+      message: UiText = uiText('Notice.thisIsAnInterfacePrototypeWorkingIntegration'),
+      action?: NoticeAction,
+    ) => setToast({ message, action }),
     [],
   );
   useEffect(() => {
@@ -35,7 +38,7 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
       {toast && (
         <div className="toast" role="status">
           <CircleHelp size={18} />
-          <span>{toast.message}</span>
+          <span>{textOf(toast.message)}</span>
           {toast.action && (
             <button
               className="toast-action"
@@ -44,7 +47,7 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
                 setToast(null);
               }}
             >
-              {toast.action.label}
+              {textOf(toast.action.label)}
             </button>
           )}
           <IconButton title={t('Notice.dismissNotification')} onClick={() => setToast(null)}>

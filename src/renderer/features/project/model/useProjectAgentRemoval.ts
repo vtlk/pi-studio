@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/shared/model/Confirm';
@@ -16,15 +17,15 @@ export function useProjectAgentRemoval(agent: ProjectAgent) {
     remove: () => {
       if (!projectId || busy) return;
       confirm({
-        title: t('useProjectAgentRemoval.removeAgentFromTheProject', {
+        title: uiText('useProjectAgentRemoval.removeAgentFromTheProject', {
           value1: agent.profile.name || t('AgentList.untitled'),
         }),
-        description: t('useProjectAgentRemoval.theAgentWillLeaveThisProjectS'),
+        description: uiText('useProjectAgentRemoval.theAgentWillLeaveThisProjectS'),
         onConfirm: () => {
           void (async () => {
             if ((await removeProjectAgent(projectId, agent.profile.id)) === false) return;
-            demo(t('useProjectAgentRemoval.agentRemovedFromTheProjectFilesAnd'), {
-              label: t('useResourceUnlink.undo'),
+            demo(uiText('useProjectAgentRemoval.agentRemovedFromTheProjectFilesAnd'), {
+              label: uiText('useResourceUnlink.undo'),
               onClick: () => {
                 void restoreProjectAgent(projectId, agent.profile.id);
               },

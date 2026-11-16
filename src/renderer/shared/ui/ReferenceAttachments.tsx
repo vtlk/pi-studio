@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -155,9 +156,9 @@ export function ReferenceAttachments({
                 </small>
               </div>
               <HoverDeleteButton
-                label={t('ReferenceAttachments.removeReference', { value1: attachment.name })}
+                label={uiText('ReferenceAttachments.removeReference', { value1: attachment.name })}
                 disabled={disabled}
-                description={t('ReferenceAttachments.removeThisAttachmentFromTheRequestThe')}
+                description={uiText('ReferenceAttachments.removeThisAttachmentFromTheRequestThe')}
                 onDelete={() => {
                   update(current.current.filter((item) => item.id !== attachment.id));
                   releaseReferences([attachment]);

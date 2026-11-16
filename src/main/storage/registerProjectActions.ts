@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { clipboard, shell, type IpcMainInvokeEvent } from 'electron';
 import { lstat } from 'node:fs/promises';
@@ -25,9 +26,9 @@ export function registerProjectActions(
       const root = await (await service.load()).projects.directory(request.projectId);
       const file = await loadOutput(root, request.path);
       if (!['text', 'markdown', 'json'].includes(file.format) || typeof file.content !== 'string')
-        throw new Error('Копирование доступно только для текстовых файлов.');
+        throw new Error(t('error.registerProjectActions.copyingIsAvailableOnlyFor'));
       if (!request.fingerprint || file.fingerprint !== request.fingerprint)
-        throw new Error('Файл изменился. Выберите его заново и повторите копирование.');
+        throw new Error(t('error.registerProjectActions.theFileChangedSelectIt'));
       clipboard.writeText(file.content);
     });
   });
@@ -72,10 +73,10 @@ export function registerProjectActions(
         const store = await service.load();
         const project = store.bootstrap().projects.find((item) => item.id === request.projectId);
         const agent = project?.agents.find((item) => item.profile.id === request.agentId);
-        if (!agent) throw new Error('Агент отсутствует в проекте.');
+        if (!agent) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
         const path = await safePath(await store.projects.directory(project!.id), agent.outputPath);
         if (!(await lstat(path)).isDirectory())
-          throw new Error('Папка результатов агента отсутствует.');
+          throw new Error(t('error.registerProjectActions.agentOutputFolderMissing'));
         shell.showItemInFolder(path);
       });
     },

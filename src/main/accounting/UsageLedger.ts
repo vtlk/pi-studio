@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { atomicJson, isMissing, safePath } from '../storage/files.ts';
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
@@ -106,8 +107,7 @@ export class UsageLedger {
     return task;
   }
   private async commit(change: (doc: Document) => void) {
-    if (this.problem)
-      throw new Error('Учёт расхода недоступен: проверьте .pistudio/usage.json проекта.');
+    if (this.problem) throw new Error(t('error.usageLedger.usageAccountingUnavailableCheckThe'));
     const next = structuredClone(this.document);
     change(next);
     const clean = parseUsageDocument(next);

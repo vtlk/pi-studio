@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
@@ -56,7 +57,7 @@ export function InstructionBlock({ item }: { item: Instruction }) {
         }}
         actions={
           <HoverDeleteButton
-            label={t('InstructionBlock.deleteInstruction', { value1: item.name })}
+            label={uiText('InstructionBlock.deleteInstruction', { value1: item.name })}
             onDelete={() => {
               const position = selectedAgent.instructions.findIndex(
                 (entry) => entry.id === item.id,
@@ -64,8 +65,8 @@ export function InstructionBlock({ item }: { item: Instruction }) {
               updateAgent((current) => ({
                 instructions: current.instructions.filter((entry) => entry.id !== item.id),
               }));
-              demo(t('InstructionBlock.instructionRemovedFromTheProfile'), {
-                label: t('useResourceUnlink.undo'),
+              demo(uiText('InstructionBlock.instructionRemovedFromTheProfile'), {
+                label: uiText('useResourceUnlink.undo'),
                 onClick: () =>
                   updateAgent((current) => {
                     if (current.instructions.some((entry) => entry.id === item.id)) return {};

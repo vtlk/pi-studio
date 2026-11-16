@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { lstat, open, readFile, realpath } from 'node:fs/promises';
@@ -9,7 +10,7 @@ const execute = promisify(execFile);
 export async function applicationIdentity(path: string) {
   const info = await lstat(path, { bigint: true });
   if (!info.isDirectory() || info.isSymbolicLink() || (await realpath(path)) !== path)
-    throw new Error('Приложение должно находиться в собственной обычной папке, а не по ссылке.');
+    throw new Error(t('error.verifyApplication.theAppMustBeIn'));
   return {
     dev: info.dev.toString(),
     ino: info.ino.toString(),
@@ -29,14 +30,14 @@ async function ordinaryFile(root: string, path: string) {
   const info = await lstat(path);
   const location = relative(root, await realpath(path));
   if (!info.isFile() || info.isSymbolicLink() || location.startsWith('..'))
-    throw new Error('Недопустимая структура программы в обновлении.');
+    throw new Error(t('error.verifyApplication.invalidAppStructureInThe'));
 }
 export async function designatedRequirement(root: string) {
   await execute('/usr/bin/codesign', ['--verify', '--deep', '--strict', root], { timeout: 30000 });
   const result = await execute('/usr/bin/codesign', ['-d', '-r-', root]);
   const requirement = result.stdout.split('designated => ')[1]?.trim();
   if (!requirement || /^cdhash\b/.test(requirement))
-    throw new Error('У приложения нет постоянной доверенной подписи.');
+    throw new Error(t('error.verifyApplication.theAppHasNoPermanent'));
   return requirement;
 }
 async function windowsSigner(path: string) {
@@ -62,7 +63,7 @@ export async function verifyApplication(
   await ordinaryFile(candidate, executable);
   const info = JSON.parse(await readFile(metadata, 'utf8'));
   if (info.name !== 'pi-video-studio' || info.version !== manifest.version)
-    throw new Error('Версия программы внутри обновления не совпадает с подписанными метаданными.');
+    throw new Error(t('error.verifyApplication.theAppVersionInsideThe'));
   if (manifest.platform === 'darwin') {
     const requirement = await designatedRequirement(current);
     await execute(
@@ -86,7 +87,7 @@ export async function verifyApplication(
         .split(/\s+/)
         .includes(manifest.arch === 'x64' ? 'x86_64' : manifest.arch)
     )
-      throw new Error('Идентификатор или архитектура Mac-приложения не совпадают.');
+      throw new Error(t('error.verifyApplication.macAppIdentifierOrArchitecture'));
   } else {
     const handle = await open(executable, 'r');
     try {
@@ -94,11 +95,11 @@ export async function verifyApplication(
       await handle.read(header, 0, 64, 0);
       const offset = header.readUInt32LE(60);
       if (header.toString('ascii', 0, 2) !== 'MZ' || offset < 64 || offset > 10 * 1024 ** 2)
-        throw new Error('Недопустимый исполняемый файл Windows.');
+        throw new Error(t('error.verifyApplication.invalidWindowsExecutable'));
       const pe = Buffer.alloc(6);
       const { bytesRead } = await handle.read(pe, 0, 6, offset);
       if (bytesRead !== 6 || pe.readUInt32LE(0) !== 0x4550 || pe.readUInt16LE(4) !== 0x8664)
-        throw new Error('Обновлению требуется исполняемый файл Windows x64.');
+        throw new Error(t('error.verifyApplication.theUpdateRequiresAWindows'));
     } finally {
       await handle.close();
     }
@@ -106,7 +107,7 @@ export async function verifyApplication(
     if (before.thumbprint) {
       const after = await windowsSigner(executable);
       if (after.status !== 'Valid' || !before.thumbprint || after.thumbprint !== before.thumbprint)
-        throw new Error('Издатель подписи Windows изменился. Установка отменена.');
+        throw new Error(t('error.verifyApplication.theWindowsSignaturePublisherChanged'));
     }
   }
 }

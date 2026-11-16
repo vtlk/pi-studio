@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { parseReasoning, type ThinkingLevel } from '../../shared/reasoning.ts';
 import { mkdir, realpath } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -38,14 +39,13 @@ export async function buildRunContext(
 ): Promise<PreparedRun> {
   projectRoot = await realpath(projectRoot);
   const saved = project.agents.find((item) => item.profile.id === agentId);
-  if (!saved) throw new Error('Агент отсутствует в снимке проекта.');
-  if (!saved.profile.enabled) throw new Error('Агент выключен.');
+  if (!saved) throw new Error(t('error.contextBuilder.theAgentIsMissingFrom'));
+  if (!saved.profile.enabled) throw new Error(t('session.agentDisabled'));
   const current = constructor.find((item) => item.id === agentId);
-  if (!current)
-    throw new Error('Текущие инструкции агента удалены. Другой профиль не подставляется.');
+  if (!current) throw new Error(t('error.contextBuilder.theAgentSCurrentInstructions'));
   const model = current.model;
   if (!hasModelConfiguration(model))
-    throw new Error('Выберите подключение, модель и уровень рассуждения агента в конструкторе.');
+    throw new Error(t('error.contextBuilder.selectTheAgentSConnection'));
   // This app-owned capability is revoked from the current constructor on each explicit open.
   const teamAccess = hasTeamMcp(current);
   const optionalIds = optionalBuiltinMcps.map((item) => item.id);

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { InstallLease } from './installation.ts';
 
 interface Options {
@@ -26,7 +27,8 @@ export function acquireInstallation(options: Options): InstallLease | undefined 
     background = options.background.hold();
     return {
       verify: () => {
-        if (released) throw new Error('Установка уже отменена.');
+        if (released)
+          throw new Error(t('error.installationAdmission.installationAlreadyCancelled'));
         options.assertIdle();
         for (const hold of held) hold.verify();
       },

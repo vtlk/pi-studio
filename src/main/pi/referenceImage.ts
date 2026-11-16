@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { BrowserWindow, nativeImage } from 'electron';
 import { readText } from '../storage/files';
 import { validateStaticSvg } from './validateReferenceSvg';
@@ -25,16 +26,16 @@ export async function referenceImage(path: string, type: string): Promise<Buffer
         });
         image = nativeImage.createFromPath(target);
       } catch {
-        throw new Error(`Не удалось преобразовать ${type} в PNG. Выберите PNG/JPEG/WebP/GIF.`);
+        throw new Error(t('error.referenceImage.couldNotConvertToPng', { value1: type }));
       } finally {
         await rm(directory, { recursive: true, force: true });
       }
     }
     if (image.isEmpty())
-      throw new Error(`Не удалось преобразовать ${type} в PNG. Выберите PNG/JPEG/WebP/GIF.`);
+      throw new Error(t('error.referenceImage.couldNotConvertToPng', { value1: type }));
     const size = image.getSize();
     if (size.width > 16384 || size.height > 16384)
-      throw new Error('Изображение больше 16384 пикселей.');
+      throw new Error(t('error.referenceImage.theImageExceedsPixels'));
     return image.toPNG();
   }
   const svg = await readText(path);

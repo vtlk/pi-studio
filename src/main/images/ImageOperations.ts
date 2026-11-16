@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { atomicJson, isMissing, readJson, safePath } from '../storage/files.ts';
@@ -48,7 +49,7 @@ export class ImageOperations {
         operations?: unknown;
       };
       if (data.version !== 1 || !Array.isArray(data.operations) || data.operations.length > 1000)
-        throw new Error('Некорректные сведения об операциях изображений.');
+        throw new Error(t('error.imageOperations.invalidImageOperationInformation'));
       for (const item of data.operations)
         if (
           !item ||
@@ -59,9 +60,7 @@ export class ImageOperations {
           typeof item.requestId !== 'string' ||
           !['pending', 'saved', 'uncertain', 'failed', 'save_failed'].includes(item.state)
         )
-          throw new Error(
-            'Повреждены сведения об операции изображения. Автоматического повтора нет.',
-          );
+          throw new Error(t('error.imageOperations.imageOperationInformationIsDamaged'));
       return data.operations as ImageOperation[];
     } catch (error) {
       if (isMissing(error)) return [];
@@ -75,9 +74,7 @@ export class ImageOperations {
     );
     const recent = operations.filter((operation) => !unresolved.includes(operation)).slice(-100);
     if (unresolved.length + recent.length > 1000)
-      throw new Error(
-        'Слишком много незавершённых операций изображений. Разберите их перед новой генерацией.',
-      );
+      throw new Error(t('error.imageOperations.tooManyUnfinishedImageOperations'));
     await atomicJson(await this.path(scope), {
       version: 1,
       operations: [...unresolved, ...recent].sort((a, b) => a.createdAt - b.createdAt),

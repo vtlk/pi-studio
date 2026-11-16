@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -42,10 +43,12 @@ export class PreparedUpdate implements PreparedInstallation {
     this.revalidate = revalidate;
   }
   async arm() {
-    if (this.disposed || this.started) throw new Error('Установщик уже запущен или отменён.');
+    if (this.disposed || this.started)
+      throw new Error(t('error.preparedUpdate.theInstallerWasAlreadyStarted'));
     await this.revalidate();
     const p = paths(this.job);
-    if (await exists(p.active)) throw new Error('Другое обновление ещё не завершено.');
+    if (await exists(p.active))
+      throw new Error(t('error.preparedUpdate.anotherUpdateHasNotFinished'));
     await atomicJson(p.active, { id: this.job.id, target: this.job.target });
     const env = { ...process.env };
     for (const name of ['ELECTRON_RUN_AS_NODE', 'NODE_OPTIONS', 'NODE_PATH']) delete env[name];
@@ -85,7 +88,7 @@ export class PreparedUpdate implements PreparedInstallation {
       }
       await sleep(40);
     }
-    throw new Error('Установщик не подтвердил готовность. Прежняя версия сохранена.');
+    throw new Error(t('error.preparedUpdate.theInstallerDidNotConfirm'));
   }
   async commit() {
     const p = paths(this.job);
@@ -98,7 +101,7 @@ export class PreparedUpdate implements PreparedInstallation {
       (await authenticated(p.result, this.job)) ||
       !sameIdentity(await identity(this.job.target), this.job.oldIdentity)
     )
-      throw new Error('Установщик больше не готов. Программа не заменена.');
+      throw new Error(t('error.preparedUpdate.theInstallerIsNoLonger'));
     await this.revalidate();
     await atomicJson(p.commit, { nonce: this.job.nonce });
   }
@@ -128,14 +131,14 @@ export class PreparedUpdate implements PreparedInstallation {
         alive(this.worker) ||
         (this.spawned && !(await authenticated(p.result, this.job)))
       )
-        throw new Error('Не подтверждена остановка установщика. Файлы приложения сохранены.');
+        throw new Error(t('error.preparedUpdate.installerShutdownUnconfirmedAppFiles'));
     }
     // Cancellation must prove that replacement never started. Never discard a recovery copy here.
     if (
       !sameIdentity(await identity(this.job.target), this.job.oldIdentity) ||
       (await exists(p.previous))
     )
-      throw new Error('Замена уже началась; требуется восстановление установщика.');
+      throw new Error(t('error.preparedUpdate.replacementHasAlreadyStartedInstalle'));
     if (await exists(p.active)) {
       if ((await readJson(p.active)).id === this.job.id) await rm(p.active);
     }

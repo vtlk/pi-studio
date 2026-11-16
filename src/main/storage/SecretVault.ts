@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
 import { mkdir, realpath, rm } from 'node:fs/promises';
 import { atomicJson, isMissing, readJson, safePath } from './files.ts';
@@ -40,7 +41,7 @@ export class SecretVault {
         !/^[A-Za-z0-9+/]+={0,2}$/.test(saved.encrypted) ||
         saved.encrypted.length > 65536
       )
-        throw new Error('Повреждён защищённый ключ подключения. Введите его заново.');
+        throw new Error(t('error.secretVault.theProtectedConnectionKeyIs'));
       return Buffer.from(saved.encrypted, 'base64');
     } catch (error) {
       if (isMissing(error)) return undefined;
@@ -61,17 +62,21 @@ export class SecretVault {
       value.length > 16384 ||
       /[\r\n\0]/.test(value)
     )
-      throw new Error('Введите ключ без переносов строки.');
+      throw new Error(t('error.secretVault.enterAKeyWithoutLine'));
     if (!(await this.available()))
       throw new Error(
-        `Защищённое хранилище ${process.platform === 'win32' ? 'Windows' : 'macOS'} недоступно. Ключ не сохранён.`,
+        t('error.secretVault.protectedStorageUnavailableTheKey', {
+          value1: process.platform === 'win32' ? 'Windows' : 'macOS',
+        }),
       );
     let encrypted: Buffer;
     try {
       encrypted = await this.protector.encryptStringAsync(value.trim());
     } catch {
       throw new Error(
-        `Не удалось защитить ключ средствами ${process.platform === 'win32' ? 'Windows' : 'macOS'}. Ключ не сохранён.`,
+        t('error.secretVault.couldNotProtectTheKey', {
+          value1: process.platform === 'win32' ? 'Windows' : 'macOS',
+        }),
       );
     }
     await atomicJson(await this.path(folder, id), {
@@ -81,10 +86,12 @@ export class SecretVault {
   }
   async read(folder: string, id: string) {
     const encrypted = await this.encrypted(folder, id);
-    if (!encrypted) throw new Error('Сначала сохраните API-ключ подключения изображений.');
+    if (!encrypted) throw new Error(t('error.secretVault.saveTheImageConnectionS'));
     if (!(await this.available()))
       throw new Error(
-        `Защищённое хранилище ${process.platform === 'win32' ? 'Windows' : 'macOS'} недоступно.`,
+        t('error.secretVault.protectedStorageUnavailable', {
+          value1: process.platform === 'win32' ? 'Windows' : 'macOS',
+        }),
       );
     try {
       const result = await this.protector.decryptStringAsync(encrypted);
@@ -94,8 +101,8 @@ export class SecretVault {
     } catch {
       throw new Error(
         process.platform === 'win32'
-          ? 'Не удалось прочитать защищённый ключ Windows. Войдите в исходную учётную запись Windows или введите ключ заново.'
-          : 'Не удалось прочитать защищённый ключ. Разрешите доступ к Связке ключей или введите ключ заново.',
+          ? t('error.secretVault.couldNotReadTheProtected')
+          : t('error.secretVault.couldNotReadTheProtected2'),
       );
     }
   }

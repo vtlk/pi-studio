@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
 import { open, rm, statfs } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -24,19 +25,19 @@ export async function downloadVerifiedUpdate(options: {
     free <
     update.manifest.archive.bytes + update.manifest.archive.unpackedBytes * 2 + 128 * 1024 ** 2
   )
-    throw new Error('Недостаточно свободного места для безопасного обновления.');
+    throw new Error(t('error.download.notEnoughFreeSpaceFor'));
   // Revalidate the signed metadata after the user's explicit choice, including asset revocation.
   const response = await githubResponse(update.manifestUrl, signal, options.fetch);
   const current = verifyManifest(await boundedBody(response, maxManifestBytes), options.publicKey);
   if (JSON.stringify(current) !== JSON.stringify(update.manifest))
-    throw new Error('Релиз изменился. Проверьте обновление ещё раз.');
+    throw new Error(t('error.download.theReleaseChangedCheckFor'));
   const archive = await githubResponse(update.archiveUrl, signal, options.fetch);
-  if (!archive.body) throw new Error('GitHub вернул пустой пакет обновления.');
+  if (!archive.body) throw new Error(t('error.download.githubReturnedAnEmptyUpdate'));
   const expected = current.archive;
   const contentLength = archive.headers.get('content-length');
   if (contentLength !== null && Number(contentLength) !== expected.bytes) {
     await archive.body.cancel();
-    throw new Error('Размер загрузки не совпадает с подписанным пакетом.');
+    throw new Error(t('error.download.theDownloadSizeDoesNot'));
   }
   let handle: Awaited<ReturnType<typeof open>> | undefined;
   let owned = false;
@@ -52,13 +53,13 @@ export async function downloadVerifiedUpdate(options: {
       if (chunk.done) break;
       received += chunk.value.length;
       if (received > expected.bytes)
-        throw new Error('Загрузка превышает подписанный размер пакета.');
+        throw new Error(t('error.download.theDownloadExceedsTheSigned'));
       hash.update(chunk.value);
       await handle.writeFile(chunk.value);
       options.progress(received);
     }
     if (received !== expected.bytes || hash.digest('hex') !== expected.sha256)
-      throw new Error('Контрольная сумма обновления не совпала. Программа сохранена.');
+      throw new Error(t('error.download.updateChecksumMismatchTheApp'));
     await handle.sync();
     await handle.close();
     handle = undefined;

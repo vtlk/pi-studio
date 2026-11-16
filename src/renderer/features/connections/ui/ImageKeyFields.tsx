@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui';
@@ -53,11 +54,11 @@ export function ImageKeyFields({
           disabled={busy}
           onClick={() =>
             confirm({
-              title: t('ImageKeyFields.deleteTheApiKeyForConnection', {
+              title: uiText('ImageKeyFields.deleteTheApiKeyForConnection', {
                 value1: name.trim() || id,
               }),
-              description: t('ImageKeyFields.theKeyWillBeRemovedFromThis'),
-              confirmLabel: t('ImageKeyFields.deleteKey'),
+              description: uiText('ImageKeyFields.theKeyWillBeRemovedFromThis'),
+              confirmLabel: uiText('ImageKeyFields.deleteKey'),
               onConfirm: () => {
                 if (!window.studio || !bootstrap) return;
                 setBusy(true);
@@ -71,7 +72,7 @@ export function ImageKeyFields({
                     demo(
                       error instanceof Error
                         ? error.message
-                        : t('ImageKeyFields.couldNotDeleteTheKey'),
+                        : uiText('ImageKeyFields.couldNotDeleteTheKey'),
                     ),
                   )
                   .finally(() => setBusy(false));

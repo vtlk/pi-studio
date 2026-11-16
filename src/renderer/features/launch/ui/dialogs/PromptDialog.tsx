@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { enabledResources, useResources } from '@/features/resources/model/Resources';
 import { useCoreTools } from '@/features/connections/model/useCoreTools';
-import { systemAgentDefinitions } from '../../../../../shared/systemAgents';
+import { resourceLabel } from '@/shared/model/localizedResources';
+import { reasoningLabel } from '@/shared/model/localizedProfiles';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
 import { useLaunch } from '../../model/Launch';
@@ -22,12 +23,12 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
     selectedAgent
       ? enabledResources(selectedAgent, kind).map((id) =>
           kind === 'mcps' && builtinResource(id)
-            ? builtinResource(id)!.name
+            ? resourceLabel(builtinResource(id)!, 'name')
             : (resources.find((item) => item.kind === kind && item.id === id)?.name ?? id),
         )
       : [];
   const internalMcp = selectedSystemRole
-    ? systemAgentDefinitions[selectedSystemRole].mcp
+    ? t('builtin.administration.name')
     : isDesktop
       ? t('CapabilitiesPanel.piStudioProject')
       : undefined;
@@ -35,7 +36,7 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
     ...(internalMcp ? [t('PromptDialog.builtInPinned', { value1: internalMcp })] : []),
     ...(isDesktop
       ? [browserMcp, computerMcp].map((resource) =>
-          t('PromptDialog.builtInPinned', { value1: resource.name }),
+          t('PromptDialog.builtInPinned', { value1: resourceLabel(resource, 'name') }),
         )
       : []),
     ...names('mcps'),
@@ -57,7 +58,7 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
       value2: mcps.join(', ') || t('ConnectionsPanel.none'),
       value3: names('plugins').join(', ') || t('ConnectionsPanel.none'),
       value4: selectedAgent?.model?.id || t('PromptDialog.notSelected'),
-      value5: selectedAgent?.model?.reasoning || t('PromptDialog.default'),
+      value5: reasoningLabel(selectedAgent?.model?.reasoning) || t('PromptDialog.default'),
     }),
   ].join('\n\n');
   return (

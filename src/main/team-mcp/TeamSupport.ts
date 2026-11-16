@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { dispatchTeamMessage } from './dispatch.ts';
 import { projectCaller } from './projectCaller.ts';
 import type { TeamMessageAction } from '../../shared/teamMessages.ts';
@@ -40,7 +41,7 @@ export class TeamSupport {
   }
   assertUpdateIdle() {
     if (this.armed.size || this.pumping.size)
-      throw new Error('Дождитесь выполнения или отмените ожидающие поручения команды.');
+      throw new Error(t('error.teamSupport.waitForPendingTeamTasks'));
   }
   drain() {
     this.close();
@@ -70,25 +71,23 @@ export class TeamSupport {
   }
   async manageMessage(request: TeamMessageAction) {
     if (!request || !['resume', 'cancel'].includes(request.action))
-      throw new Error('Некорректное действие с поручением.');
+      throw new Error(t('error.teamSupport.invalidTaskAction'));
     let run = await projectCaller(this.service, request.projectId);
     const journal = this.journal(run),
       item = await journal.get(request.messageId);
-    if (!item) throw new Error('Поручение отсутствует.');
+    if (!item) throw new Error(t('error.teamSupport.taskMissing'));
     if (request.action === 'cancel') {
       const active = this.host?.inspect(item.projectId, item.recipientId);
       if (
         ['dispatching', 'received'].includes(item.state) ||
         (active?.run.record.runId === item.runId && active?.status === 'running')
       )
-        throw new Error(
-          'Получатель ещё работает. Завершите его запрос в Pi; отмена очереди его не прерывает.',
-        );
+        throw new Error(t('error.teamSupport.theRecipientIsStillWorking'));
       if (!['queued', 'uncertain', 'failed'].includes(item.state))
-        throw new Error('Поручение уже завершено.');
+        throw new Error(t('error.teamSupport.theTaskIsAlreadyComplete'));
       await journal.update(item.id, (previous) => {
         if (!['queued', 'uncertain', 'failed'].includes(previous.state))
-          throw new Error('Поручение уже принято получателем или завершено.');
+          throw new Error(t('error.teamSupport.theRecipientAlreadyAcceptedOr'));
         return {
           ...previous,
           state: 'cancelled',
@@ -97,14 +96,11 @@ export class TeamSupport {
       });
       this.armed.delete(item.id);
     } else {
-      if (item.state !== 'queued')
-        throw new Error(
-          'Возобновлять можно только недоставленное поручение. Неопределённая доставка не повторяется.',
-        );
+      if (item.state !== 'queued') throw new Error(t('error.teamSupport.onlyAnUndeliveredTaskCan'));
       run = await projectCaller(this.service, request.projectId, item.senderId);
       const scope = await teamScope(this.service, run);
       if (scope.project.sourceTeamId !== item.sourceTeamId)
-        throw new Error('Исходная команда изменилась.');
+        throw new Error(t('error.teamSupport.theSourceTeamChanged'));
       recipient(scope, { agent_id: item.recipientId });
       this.armed.add(item.id);
       this.contexts.set(`${run.projectRoot}/${run.project.id}`, run);
@@ -118,7 +114,7 @@ export class TeamSupport {
         name: 'team',
         tools: teamTools,
         call: async (name, args, signal) => {
-          if (signal.aborted) throw new Error('Вызов отменён.');
+          if (signal.aborted) throw new Error(t('error.teamSupport.callCancelled'));
           let result = await this.call(run, name, args);
           if (name === 'say_to' || name === 'say_to_agent') {
             const accepted = result as { id: string };
@@ -136,11 +132,10 @@ export class TeamSupport {
     ];
   }
   async call(run: TeamCaller, name: string, args: Record<string, unknown>) {
-    if (this.stopping) throw new Error('Studio закрывается; новые поручения не отправляются.');
-    if (!run.teamAccess) throw new Error('MCP team не назначен этому открытию.');
+    if (this.stopping) throw new Error(t('error.teamSupport.studioIsClosingNoNew'));
+    if (!run.teamAccess) throw new Error(t('error.teamSupport.mcpTeamIsNotAssigned'));
     // Service workspaces must never select a project implicitly.
-    if (!run.project.sourceTeamId)
-      throw new Error('team требует привязки к открытому проекту и его исходной команде.');
+    if (!run.project.sourceTeamId) throw new Error(t('error.teamSupport.teamRequiresABindingTo'));
     const scope = await teamScope(this.service, run);
     if (['list_agents', 'message_status', 'say_to', 'say_to_agent'].includes(name))
       await this.reconcile(run);
@@ -159,16 +154,14 @@ export class TeamSupport {
     const { current, saved } = recipient(scope, args);
     const conflict = this.host?.teamUnavailable(scope.project.id, current.id);
     if (conflict?.includes('цепочка'))
-      throw new Error(
-        'Поручение не отправлено: включена цепочка проекта. Сначала явно завершите или выключите её; team не заменяет её задание.',
-      );
+      throw new Error(t('error.teamSupport.taskNotSentTheProject'));
     if (
       !hasModelConfiguration(current.model) ||
       !scope.connections.some(
         (item) => item.id === current.model?.connectionId && item.purpose !== 'images',
       )
     )
-      throw new Error('Подключение, модель или уровень рассуждения получателя не настроены.');
+      throw new Error(t('error.teamSupport.theRecipientSConnectionModel'));
     if (
       typeof args.request_id !== 'string' ||
       !/^[a-zA-Z0-9_-]{1,128}$/.test(args.request_id) ||
@@ -176,10 +169,10 @@ export class TeamSupport {
       !args.text.trim() ||
       args.text.length > 190000
     )
-      throw new Error('Нужны text и стабильный request_id (буквы/цифры/_/-).');
+      throw new Error(t('error.teamSupport.textAndAStableRequest'));
     const lineage = [...(run.teamDelivery?.lineage ?? []), run.record.agentId];
     if (lineage.includes(current.id))
-      throw new Error('Самопосылка и циклы передачи team запрещены.');
+      throw new Error(t('error.teamSupport.selfMessagingAndTeamHandoff'));
     const now = Date.now();
     const item = await this.journal(run).accept({
       version: 1,
@@ -265,7 +258,7 @@ export class TeamSupport {
     const item = await journal.get(delivery.messageId);
     if (!item || item.runId !== run.record.runId) return;
     if (event.type === 'team_received') {
-      if (event.messageId !== item.id) throw new Error('Неверный team receipt.');
+      if (event.messageId !== item.id) throw new Error(t('error.teamSupport.invalidTeamReceipt'));
       await verifyReceipt(run, item, event.entryId, item.dispatchHash!);
       await journal.update(item.id, (previous) =>
         ['dispatching', 'uncertain'].includes(previous.state)

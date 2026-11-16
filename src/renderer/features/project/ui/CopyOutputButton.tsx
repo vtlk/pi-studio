@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -22,9 +23,9 @@ export function CopyOutputButton({ file, projectId }: { file: OutputFile; projec
           fingerprint: file.fingerprint,
         });
       } else await navigator.clipboard.writeText(file.content);
-      demo(t('CopyOutputButton.contentsOfCopied', { value1: file.name }));
+      demo(uiText('CopyOutputButton.contentsOfCopied', { value1: file.name }));
     } catch {
-      demo(t('CopyOutputButton.couldNotCopySelectTheFileAgain', { value1: file.name }));
+      demo(uiText('CopyOutputButton.couldNotCopySelectTheFileAgain', { value1: file.name }));
     } finally {
       setBusy(false);
     }

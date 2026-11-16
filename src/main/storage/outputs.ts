@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { readdir, lstat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { OutputEntry, OutputFile } from '../../shared/project.ts';
@@ -43,7 +44,7 @@ export async function scanOutputs(
   budget = { remaining: 5000 },
   depth = 0,
 ): Promise<OutputEntry[]> {
-  if (depth > 20) throw new Error('Папка результатов вложена глубже 20 уровней.');
+  if (depth > 20) throw new Error(t('error.outputs.theOutputFolderIsNested'));
   let directory: string;
   let children;
   try {
@@ -56,7 +57,7 @@ export async function scanOutputs(
   const entries: OutputEntry[] = [];
   for (const entry of children) {
     if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
-    if (--budget.remaining < 0) throw new Error('В результатах больше 5000 файлов/папок.');
+    if (--budget.remaining < 0) throw new Error(t('error.outputs.thereAreMoreThanOutput'));
     const diskPath = `${relative}/${entry.name}`;
     let stat;
     try {
@@ -89,10 +90,10 @@ export async function scanOutputs(
 export async function loadOutput(root: string, relative: string): Promise<OutputFile> {
   try {
     if (!/^agents\/[a-zA-Z0-9_-]+\/output\/.+/.test(relative))
-      throw new Error('Файл не находится в output агента.');
+      throw new Error(t('error.outputs.outsideAgentOutput'));
     const path = await safePath(root, relative);
     const stat = await lstat(path);
-    if (!stat.isFile()) throw new Error('Выбранный путь не является файлом.');
+    if (!stat.isFile()) throw new Error(t('error.outputs.theSelectedPathIsNot'));
     const name = relative.split('/').at(-1)!;
     const format = fileFormat(name);
     const file: OutputFile = {
@@ -109,11 +110,7 @@ export async function loadOutput(root: string, relative: string): Promise<Output
     if (['text', 'json', 'markdown'].includes(format)) file.content = await readText(path);
     return file;
   } catch (error) {
-    if (isMissing(error))
-      throw new Error(
-        'Выбранный файл больше недоступен. Выберите другой файл или дождитесь обновления списка.',
-        { cause: error },
-      );
+    if (isMissing(error)) throw new Error(t('error.outputs.theSelectedFileIsNo'), { cause: error });
     throw error;
   }
 }

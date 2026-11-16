@@ -1,3 +1,4 @@
+import { t } from './i18n/index.ts';
 export interface EndpointModel {
   id: string;
   name: string;
@@ -20,14 +21,15 @@ export function modelEndpointUrl(value: string) {
     url.search ||
     url.hash
   )
-    throw new Error('Нужен HTTP/HTTPS адрес API без ключа, параметров и фрагмента.');
+    throw new Error(t('error.modelEndpoint.anHttpHttpsApiAddress'));
   return url.href.replace(/\/+$/, '');
 }
 export function endpointProviderId(id: string) {
   return `studio-${id}`;
 }
 export function parseModelEndpoint(value: unknown): ModelEndpoint {
-  if (!value || typeof value !== 'object') throw new Error('Настройте протокол сервера моделей.');
+  if (!value || typeof value !== 'object')
+    throw new Error(t('error.modelEndpoint.configureTheModelServerProtocol'));
   const data = value as ModelEndpoint;
   if (
     !['openai-completions', 'openai-responses'].includes(data.api) ||
@@ -35,7 +37,7 @@ export function parseModelEndpoint(value: unknown): ModelEndpoint {
     !Array.isArray(data.models) ||
     data.models.length > 1000
   )
-    throw new Error('Некорректные настройки сервера моделей.');
+    throw new Error(t('error.modelEndpoint.invalidModelServerSettings'));
   const ids = new Set<string>();
   const models = data.models.map((model) => {
     if (
@@ -55,7 +57,7 @@ export function parseModelEndpoint(value: unknown): ModelEndpoint {
       model.maxTokens > model.contextWindow ||
       ids.has(model.id.trim())
     )
-      throw new Error('Проверьте ID, возможности и лимиты модели; ID должны быть уникальны.');
+      throw new Error(t('error.modelEndpoint.checkModelIdsCapabilitiesAnd'));
     ids.add(model.id.trim());
     return {
       id: model.id.trim(),

@@ -1,3 +1,4 @@
+import { t } from './i18n/index.ts';
 import type { PiModelSummary } from './models.ts';
 
 export const reasoningLabels = {
@@ -21,13 +22,11 @@ export function parseReasoning(value: string | undefined): ThinkingLevel | 'defa
 
 export function resolveReasoning(value: string, model: PiModelSummary): ThinkingLevel {
   const selection = parseReasoning(value);
-  if (!selection) throw new Error('Выберите корректный уровень рассуждения агента.');
+  if (!selection) throw new Error(t('error.reasoning.selectAValidAgentReasoning'));
   if (!model.reasoningLevels?.length || !model.defaultReasoningLevel)
-    throw new Error('Каталог Pi не сообщил уровни рассуждения. Обновите каталог моделей.');
+    throw new Error(t('error.reasoning.thePiCatalogDidNot'));
   const level = selection === 'default' ? model.defaultReasoningLevel : selection;
   if (!model.reasoningLevels.includes(level))
-    throw new Error(
-      'Выбранная модель не поддерживает этот уровень рассуждения. Выберите другой уровень в настройках агента.',
-    );
+    throw new Error(t('error.reasoning.theSelectedModelDoesNot'));
   return level;
 }

@@ -49,16 +49,16 @@ async function startStudio() {
     app.quit();
     return;
   }
+  await app.whenReady();
+  const language = await LanguagePreferences.load(
+    join(app.getPath('userData'), 'language.json'),
+    app.getPreferredSystemLanguages()[0] ?? app.getLocale(),
+  );
   await boot.startup?.start();
   if (boot.startup?.read().phase === 'aborting') return;
   const appearance = await ThemePreferences.load(
     join(app.getPath('userData'), 'appearance.json'),
     nativeTheme,
-  );
-  await app.whenReady();
-  const language = await LanguagePreferences.load(
-    join(app.getPath('userData'), 'language.json'),
-    app.getPreferredSystemLanguages()[0] ?? app.getLocale(),
   );
   if (process.platform === 'win32') app.setAppUserModelId('studio.pi.desktop');
   app.setAboutPanelOptions({

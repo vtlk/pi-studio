@@ -1,3 +1,4 @@
+import { reasoningLabel } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui';
@@ -28,7 +29,7 @@ export function SetupAssistant() {
         {model?.id || t('PromptDialog.notSelected')}
         {' · '}
         {t('SetupAssistant.reasoningLevel')}
-        {model?.reasoning || t('SetupAssistant.notSelected2')}
+        {reasoningLabel(model?.reasoning) || t('SetupAssistant.notSelected2')}
       </p>
       <div className="action-row">
         <Button

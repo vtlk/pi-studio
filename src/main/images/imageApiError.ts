@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 export interface ImageApiDiagnostic {
   status: number;
   code?: string;
@@ -115,23 +116,21 @@ export function imagesApiFailure(
     if (/\bapi\.model\.read\b/i.test(message))
       return error(
         'access',
-        `OpenAI: не хватает разрешения api.model.read для чтения каталога. В OpenAI Platform включите «List models → Read» для ключа и проверьте права его владельца в проекте.${catalog ? ' Генерация не запускалась.' : ' Автоматического повтора нет.'}`,
+        t('error.imageApiError.openaiApiModelReadPermission', {
+          value1: catalog
+            ? t('error.imageApiError.noGenerationWasStarted')
+            : t('error.imageApiError.noAutomaticRetry'),
+        }),
       );
     if (/\bapi\.model\.request\b/i.test(message))
-      return error(
-        'access',
-        'OpenAI: не хватает разрешения api.model.request для генерации. Проверьте права ключа и его владельца в проекте OpenAI. Чтение списка моделей само по себе не даёт доступ к генерации.',
-      );
+      return error('access', t('error.imageApiError.openaiApiModelRequestPermission'));
     if (
       ['unsupported_country_region_territory', 'country_not_supported'].includes(rawCode) ||
       /(?:unsupported|not supported).*(?:country|region|territory)|(?:country|region|territory).*(?:unsupported|not supported)/i.test(
         message,
       )
     )
-      return error(
-        'access',
-        'OpenAI: API недоступен для страны или региона текущего подключения. Проверьте доступность OpenAI API; замена модели не устранит это ограничение.',
-      );
+      return error('access', t('error.imageApiError.openaiTheApiIsUnavailable'));
   }
   if (
     rawCode === 'organization_verification_required' ||
@@ -139,10 +138,7 @@ export function imagesApiFailure(
       message,
     )
   )
-    return error(
-      'access',
-      'OpenAI требует верификацию организации для выбранной модели. Проверьте статус организации в OpenAI Platform. Автоматической подмены нет.',
-    );
+    return error('access', t('error.imageApiError.openaiRequiresOrganizationVerificati'));
   if (status === 401 || status === 403) {
     if (
       rawCode !== 'invalid_api_key' &&
@@ -151,31 +147,39 @@ export function imagesApiFailure(
     )
       return error(
         'access',
-        `OpenAI запретил ${catalog ? 'чтение каталога моделей' : 'генерацию изображения'} (HTTP ${status}). Проверьте разрешения API-ключа и права в проекте OpenAI. Неверный ключ не подтверждён.`,
+        t('error.imageApiError.openaiDeniedHttpCheckApi', {
+          value1: catalog
+            ? t('error.imageApiError.readingTheModelCatalog')
+            : t('error.imageApiError.imageGeneration'),
+          value2: status,
+        }),
       );
     return error(
       'authentication',
-      `Images API: ключ не принят (HTTP ${status}). Проверьте, что ключ действующий и относится к нужному проекту OpenAI.`,
+      t('error.imageApiError.imagesApiKeyRejectedHttp', { value1: status }),
     );
   }
   if (status === 429)
     return error(
       'quota',
       rawCode === 'insufficient_quota'
-        ? 'Images API: исчерпана квота API. Подписка ChatGPT не подменяется другим подключением.'
-        : 'Images API: достигнут лимит запросов. Автоматического повтора нет.',
+        ? t('error.imageApiError.imagesApiApiQuotaExhausted')
+        : t('error.imageApiError.imagesApiRequestLimitReached'),
     );
   if ([400, 404, 422].includes(status)) {
     const explanation =
       ['content_policy_violation', 'moderation_blocked', 'safety_violations'].includes(rawCode) ||
       /blocked by.*(?:safety|moderation)|content policy/i.test(message)
-        ? 'Images API отклонил запрос или референс при проверке безопасности.'
+        ? t('error.imageApiError.theImagesApiRejectedThe')
         : ['model_not_found', 'model_not_available'].includes(rawCode)
-          ? 'Images API: выбранная модель недоступна для этого подключения.'
+          ? t('error.imageApiError.imagesApiTheSelectedModel')
           : diagnostic.param
-            ? `Images API отклонил параметр «${diagnostic.param}». Проверьте его значение и поддержку выбранной моделью.`
-            : 'Images API отклонил запрос. Сервер не указал распознанный параметр отказа.';
-    return error('parameters', `${explanation} Автоматической подмены нет. Повтор не выполнен.`);
+            ? t('error.imageApiError.theImagesApiRejectedParameter', { value1: diagnostic.param })
+            : t('error.imageApiError.theImagesApiRejectedThe2');
+    return error(
+      'parameters',
+      t('error.imageApiError.noAutomaticSubstitutionNoRetry', { value1: explanation }),
+    );
   }
-  return error('generation', 'Images API вернул ошибку. Автоматического повтора нет.');
+  return error('generation', t('error.imageApiError.theImagesApiReturnedAn'));
 }

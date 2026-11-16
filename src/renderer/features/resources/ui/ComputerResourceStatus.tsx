@@ -1,4 +1,4 @@
-import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { t, i18n, type MessageKey } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getStudioApi } from '@/shared/desktopApi';
@@ -10,7 +10,7 @@ export function ComputerResourceStatus() {
   const mac = !navigator.platform.startsWith('Win');
   const [state, setState] = useState<ComputerState>();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<MessageKey>();
   const [restart, setRestart] = useState(false);
   const revision = useRef({ value: 0 });
   const refresh = useCallback(async () => {
@@ -21,11 +21,11 @@ export function ComputerResourceStatus() {
       const next = await getStudioApi().getComputerState();
       if (request === counter.value) {
         setState(next);
-        setError('');
+        setError(undefined);
       }
     } catch {
       if (request === counter.value)
-        setError(t('ComputerResourceStatus.couldNotCheckMacosPermissions'));
+        setError('ComputerResourceStatus.couldNotCheckMacosPermissions');
     }
   }, []);
   useEffect(() => {
@@ -48,7 +48,7 @@ export function ComputerResourceStatus() {
       setRestart(true);
       await refresh();
     } catch {
-      setError(t('ComputerResourceStatus.couldNotOpenSystemPermissions'));
+      setError('ComputerResourceStatus.couldNotOpenSystemPermissions');
     } finally {
       setBusy(false);
     }
@@ -56,8 +56,8 @@ export function ComputerResourceStatus() {
   return (
     <div className="resource-native-actions" data-computer-status>
       <p className="subtle" role="status">
-        {error ||
-          state?.message ||
+        {(error && t(error)) ||
+          (state?.phase === 'unavailable' && t('ComputerResourceStatus.componentUnavailable')) ||
           (!window.studio
             ? t('ComputerResourceStatus.permissionsAreAvailableInTheMacosApp')
             : state?.phase === 'ready'

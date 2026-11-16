@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { LiveRun } from './RunTypes.ts';
 
 export function assertRunsIdle(
@@ -15,7 +16,5 @@ export function assertRunsIdle(
       (run) => (!projectId || run.run.record.projectId === projectId) && run.status === 'running',
     )
   )
-    throw new Error(
-      'Дождитесь завершения или остановите работающий Pi перед изменением папки проекта/студии.',
-    );
+    throw new Error(t('error.assertRunsIdle.waitForPiToFinish'));
 }

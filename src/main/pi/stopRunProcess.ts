@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { processAlive } from './terminal.ts';
 
@@ -16,8 +17,7 @@ export async function stopRunProcess(live: LiveRun, closed: RunDependencies['clo
   else process.kill(live.pid, 'SIGTERM');
   for (let i = 0; i < 200 && processAlive(live.pid); i++)
     await new Promise((resolve) => setTimeout(resolve, 50));
-  if (processAlive(live.pid))
-    throw new Error('Pi ещё закрывается. Повторите через несколько секунд.');
+  if (processAlive(live.pid)) throw new Error(t('error.stopRunProcess.piIsStillClosingTry'));
 }
 
 export async function drainRunProcesses(live: Iterable<LiveRun>, dependencies: RunDependencies) {

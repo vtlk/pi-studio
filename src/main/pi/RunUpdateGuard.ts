@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { LiveRun } from './RunTypes.ts';
 
 interface Host {
@@ -32,21 +33,21 @@ export class RunUpdateGuard {
           this.chains.get(live.run.project.id) === live.chain,
       )
     )
-      throw new Error('Дождитесь завершения или отмены цепочки агентов.');
+      throw new Error(t('error.runUpdateGuard.waitForTheAgentChain'));
   }
   assertOpen() {
-    if (this.held)
-      throw new Error('Pi Studio устанавливает обновление. Новые запросы не отправляются.');
+    if (this.held) throw new Error(t('error.runUpdateGuard.piStudioIsInstallingAn'));
   }
   hold() {
     this.assertIdle();
-    if (this.held || this.stopping()) throw new Error('Pi уже закрывается.');
+    if (this.held || this.stopping()) throw new Error(t('error.runUpdateGuard.piIsAlreadyClosing'));
     // No active chain survived the check; invalidate orphan permissions left by closed Pi.
     this.chains.clear();
     this.held = true;
     let released = false;
     const verify = () => {
-      if (released || !this.held) throw new Error('Разрешение установки уже завершено.');
+      if (released || !this.held)
+        throw new Error(t('error.runUpdateGuard.installationPermissionHasAlreadyEnde'));
       this.assertIdle();
     };
     return {

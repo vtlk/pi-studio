@@ -1,4 +1,5 @@
-import { t, i18n } from '../../../shared/i18n/index.ts';
+import { uiText } from '@/shared/model/UiText';
+import { i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { HoverDeleteButton } from './HoverDeleteButton';
 import { Tooltip } from './Tooltip';
@@ -102,7 +103,7 @@ export function SectionMenu<T extends string | number>({
             {item.actions}
             {item.onRemove && (
               <HoverDeleteButton
-                label={t('SectionMenu.delete', { value1: item.label })}
+                label={uiText('SectionMenu.delete', { value1: item.label })}
                 onDelete={item.onRemove}
               />
             )}

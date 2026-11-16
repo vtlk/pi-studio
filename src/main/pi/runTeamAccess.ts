@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
 import type { TeamDelivery } from '../team-mcp/types.ts';
@@ -63,7 +64,7 @@ export function runTeamAccess(state: {
         state.chains.has(projectId) ||
         state.live.get(runKey({ projectId, agentId }))?.run.record.runId !== runId
       )
-        throw new Error('Цепочка или точный диалог изменились до передачи team.');
+        throw new Error(t('error.runTeamAccess.theChainOrExactDialogue'));
     },
   };
 }

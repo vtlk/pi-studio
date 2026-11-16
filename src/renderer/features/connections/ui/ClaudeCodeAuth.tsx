@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
@@ -47,10 +48,12 @@ export function ClaudeCodeAuth({
       await beforeAuth();
       if (action && folder) {
         await getStudioApi().manageClaudeCode({ folder, connectionId, action });
-        demo(t('ClaudeCodeAuth.finishTheActionInTerminalAndClick'));
+        demo(uiText('ClaudeCodeAuth.finishTheActionInTerminalAndClick'));
       } else await check();
     } catch (error) {
-      demo(error instanceof Error ? error.message : t('ClaudeCodeAuth.couldNotCheckClaudeCode'));
+      demo(
+        error instanceof Error ? error.message : uiText('ClaudeCodeAuth.couldNotCheckClaudeCode'),
+      );
     } finally {
       setBusy(false);
     }
@@ -78,8 +81,8 @@ export function ClaudeCodeAuth({
           disabled={busy || !folder}
           onClick={() =>
             confirm({
-              title: t('ClaudeCodeAuth.signOutOfTheSharedClaudeCode'),
-              description: t('ClaudeCodeAuth.theCliSignOutAffectsAllClaude'),
+              title: uiText('ClaudeCodeAuth.signOutOfTheSharedClaudeCode'),
+              description: uiText('ClaudeCodeAuth.theCliSignOutAffectsAllClaude'),
               onConfirm: () => void perform('logout'),
             })
           }

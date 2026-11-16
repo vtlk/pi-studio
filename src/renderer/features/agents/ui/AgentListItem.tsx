@@ -1,3 +1,5 @@
+import { uiText } from '@/shared/model/UiText';
+import { agentName } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
@@ -34,7 +36,7 @@ export function AgentListItem({
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
       <Tooltip
-        label={agent.name || t('AgentList.untitled')}
+        label={agentName(agent) || t('AgentList.untitled')}
         onlyWhenTruncated
         overflowSelector=".agent-list-name"
       >
@@ -45,7 +47,7 @@ export function AgentListItem({
           {...listeners}
           aria-label={t('AgentListItem.summary', {
             value1: position,
-            value2: agent.name || t('AgentList.untitled'),
+            value2: agentName(agent) || t('AgentList.untitled'),
             value3: agent.enabled ? t('AgentList.enabled') : t('AgentList.disabled'),
           })}
           aria-current={selected ? 'true' : undefined}
@@ -56,7 +58,9 @@ export function AgentListItem({
         </button>
       </Tooltip>
       <HoverDeleteButton
-        label={t('AgentListItem.deleteAgent', { value1: agent.name || t('AgentList.untitled') })}
+        label={uiText('AgentListItem.deleteAgent', {
+          value1: agentName(agent) || t('AgentList.untitled'),
+        })}
         onDelete={onDelete}
       />
     </div>

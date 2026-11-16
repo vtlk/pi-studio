@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { CuaRuntime } from './CuaRuntime.ts';
@@ -49,7 +50,7 @@ export class ComputerSupport {
       return {
         version: cuaVersion,
         phase: 'unavailable',
-        message: 'Компонент Computer Use недоступен. Переустановите текущую версию Pi Studio.',
+        message: t('ComputerResourceStatus.componentUnavailable'),
       };
     }
   }
@@ -61,9 +62,9 @@ export class ComputerSupport {
   }
   async bind(run: PreparedRun, visual: boolean) {
     if (this.closing || this.bindings.has(run.record.runId))
-      throw new Error('Computer Use: диалог уже закрывается или подключён.');
+      throw new Error(t('error.computerSupport.computerUseTheDialogueIs'));
     const tools = await this.runtime.tools().catch(() => [statusTool]);
-    if (this.closing) throw new Error('Computer Use закрывается.');
+    if (this.closing) throw new Error(t('error.computerSupport.computerUseIsClosing'));
     const controller = new AbortController(),
       session = `studio-${randomUUID()}`;
     const group: SessionMcpGroup = {

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { dirname, join } from 'node:path';
 import { modelAuthOperation, type ModelAuthScope } from './modelAuth.ts';
 import type { PiModelCatalog } from '../../shared/models.ts';
@@ -18,6 +19,6 @@ export async function readPiCatalog(
     },
   );
   if (!Array.isArray(data.providers) || !Array.isArray(data.models))
-    throw new Error('Pi вернул несовместимый каталог моделей.');
+    throw new Error(t('error.catalog.piReturnedAnIncompatibleModel'));
   return data;
 }

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { piEnvironment, piNode } from './platform.ts';
 import { spawn, type ChildProcess } from 'node:child_process';
 import type { Readable } from 'node:stream';
@@ -12,7 +13,7 @@ import { getProviderStatus } from './provider.ts';
 
 export function validateCodexAuthUrl(value: unknown): string {
   if (typeof value !== 'string' || value.length > 12_000)
-    throw new Error('Неподдерживаемая ссылка входа Pi.');
+    throw new Error(t('error.browserAuth.unsupportedPiSignInLink'));
   const url = new URL(value);
   if (
     url.protocol !== 'https:' ||
@@ -20,7 +21,7 @@ export function validateCodexAuthUrl(value: unknown): string {
     url.username ||
     url.password
   )
-    throw new Error('Pi вернул неподдерживаемый адрес входа.');
+    throw new Error(t('error.browserAuth.piReturnedAnUnsupportedSign'));
   return url.href;
 }
 interface Login {
@@ -34,7 +35,7 @@ interface Login {
 }
 export function validateMcpAuthUrl(value: unknown): string {
   if (typeof value !== 'string' || value.length > 12000 || /[\r\n\0]/.test(value))
-    throw new Error('Неподдерживаемая ссылка OAuth MCP.');
+    throw new Error(t('error.browserAuth.unsupportedMcpOauthLink'));
   const url = new URL(value);
   if (
     url.username ||
@@ -44,7 +45,7 @@ export function validateMcpAuthUrl(value: unknown): string {
       (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))
     )
   )
-    throw new Error('Для OAuth MCP нужен HTTPS или локальный callback.');
+    throw new Error(t('error.browserAuth.mcpOauthRequiresHttpsOr'));
   return url.href;
 }
 export async function resolvePiSdk(cli: string) {
@@ -63,7 +64,7 @@ export async function resolvePiSdk(cli: string) {
     }
     directory = dirname(directory);
   }
-  throw new Error('Не найдена полная установка Pi 1.5.2 для браузерного входа.');
+  throw new Error(t('error.browserAuth.aCompletePiInstallationWas'));
 }
 export class BrowserAuth {
   private logins = new Map<string, Login>();
@@ -79,7 +80,7 @@ export class BrowserAuth {
         ['opening', 'waiting', 'verifying'].includes(login.state.phase),
       )
     )
-      throw new Error('Завершите или отмените вход перед обновлением Studio.');
+      throw new Error(t('error.browserAuth.finishOrCancelSignIn'));
   }
   async start(path: string): Promise<AuthLoginState> {
     return this.begin(path, {
@@ -87,9 +88,9 @@ export class BrowserAuth {
       payload: { provider: 'openai-codex', method: 'oauth' },
       script: this.script,
       validateUrl: validateCodexAuthUrl,
-      message: 'Открываем вход через ChatGPT…',
-      success: 'Вход через ChatGPT выполнен.',
-      failure: 'Не удалось войти через ChatGPT. Проверьте подключение и повторите вход.',
+      message: t('error.browserAuth.openingChatgptSignIn'),
+      success: t('error.browserAuth.signedInThroughChatgpt'),
+      failure: t('error.browserAuth.couldNotSignInThrough'),
       verify: async (resolvedPath) =>
         (await getProviderStatus(resolvedPath, 'openai-codex')).status === 'ready',
     });
@@ -116,9 +117,9 @@ export class BrowserAuth {
         cwd: request.cwd,
       },
       verify: request.verify,
-      message: 'Запускаем штатный вход Pi…',
-      success: 'Вход выполнен для выбранного подключения.',
-      failure: 'Не удалось подтвердить вход выбранного подключения. Повторите вход.',
+      message: t('error.browserAuth.startingPiSNativeSign'),
+      success: t('error.browserAuth.signedInForTheSelected'),
+      failure: t('error.browserAuth.couldNotConfirmSignIn'),
     });
   }
   startMcp(
@@ -133,9 +134,9 @@ export class BrowserAuth {
       validateUrl: validateMcpAuthUrl,
       verify,
       payload: request,
-      message: 'Открываем OAuth-вход MCP…',
-      success: 'Вход выполнен. MCP доступен.',
-      failure: 'Не удалось подтвердить вход MCP. Проверьте настройки OAuth и повторите вход.',
+      message: t('error.browserAuth.openingMcpOauthSignIn'),
+      success: t('error.browserAuth.signedInMcpIsAvailable'),
+      failure: t('error.browserAuth.couldNotConfirmMcpSign'),
     });
   }
   private async begin(
@@ -159,7 +160,7 @@ export class BrowserAuth {
     if (active) return { ...active.state };
     const pi = await checkPi(path);
     if (!pi.supported)
-      throw new Error(`Для браузерного входа поддерживается Pi 1.5.2; найдена ${pi.version}.`);
+      throw new Error(t('error.browserAuth.browserSignInSupportsPi', { value1: pi.version }));
     const cli = await realpath(pi.path);
     const node = await piNode(pi.path);
     const sdk = await resolvePiSdk(cli);
@@ -190,10 +191,10 @@ export class BrowserAuth {
     child.stdin!.on('error', () => {});
     if (options.payload)
       child.stdin!.write(`${JSON.stringify({ type: 'init', ...options.payload })}\n`);
-    child.on('error', () => this.fail(login, 'Не удалось запустить штатный вход Pi.'));
+    child.on('error', () => this.fail(login, t('error.browserAuth.couldNotStartPiS')));
     child.on('close', () => {
       if (login.state.phase === 'opening' || login.state.phase === 'waiting')
-        this.fail(login, 'Вход не завершён. Повторите попытку.');
+        this.fail(login, t('error.browserAuth.signInIncompleteTryAgain'));
     });
     return { ...login.state };
   }
@@ -215,14 +216,14 @@ export class BrowserAuth {
             message:
               typeof event.deviceCode === 'string' &&
               /^[a-zA-Z0-9 -]{1,100}$/.test(event.deviceCode)
-                ? `Введите код ${event.deviceCode} в открывшемся браузере.`
-                : 'Подтвердите вход в открывшемся браузере.',
+                ? t('error.browserAuth.enterCodeInTheBrowser', { value1: event.deviceCode })
+                : t('error.browserAuth.confirmSignInInThe'),
           };
       } else if (event.type === 'prompt' && typeof event.id === 'string') {
         login.state = {
           id: login.state.id,
           phase: 'waiting',
-          message: 'Завершите вход Pi в форме ниже или в браузере.',
+          message: t('error.browserAuth.completePiSignInIn'),
           prompt: {
             id: event.id,
             secret: event.secret === true,
@@ -248,7 +249,7 @@ export class BrowserAuth {
         login.state = {
           id: login.state.id,
           phase: 'verifying',
-          message: 'Проверяем сохранённый вход…',
+          message: t('error.browserAuth.checkingSavedSignIn'),
         };
         const ready = await login.verify();
         if (login.state.phase !== 'verifying') return;
@@ -258,15 +259,19 @@ export class BrowserAuth {
           message: ready ? login.success : login.failure,
         };
       } else if (event.type === 'cancelled')
-        login.state = { id: login.state.id, phase: 'cancelled', message: 'Вход отменён.' };
+        login.state = {
+          id: login.state.id,
+          phase: 'cancelled',
+          message: t('error.browserAuth.signInCancelled'),
+        };
       else if (event.type === 'failed') this.fail(login, login.failure);
     } catch {
-      this.fail(login, 'Не удалось обработать ответ входа Pi.');
+      this.fail(login, t('error.browserAuth.couldNotProcessThePi'));
     }
   }
   read(id: string) {
     const login = this.logins.get(id);
-    if (!login) throw new Error('Вход не найден.');
+    if (!login) throw new Error(t('error.browserAuth.signInNotFound'));
     return structuredClone(login.state);
   }
   answer(id: string, promptId: string, answer: string) {
@@ -277,14 +282,14 @@ export class BrowserAuth {
       typeof answer !== 'string' ||
       answer.length > 16_000
     )
-      throw new Error('Запрос входа уже неактуален.');
+      throw new Error(t('error.browserAuth.thisSignInRequestIs'));
     login.child.stdin!.write(`${JSON.stringify({ type: 'answer', id: promptId, answer })}\n`);
     delete login.state.prompt;
   }
   cancel(id: string) {
     const login = this.logins.get(id);
     if (!login || !['opening', 'waiting', 'verifying'].includes(login.state.phase)) return;
-    login.state = { id, phase: 'cancelled', message: 'Вход отменён.' };
+    login.state = { id, phase: 'cancelled', message: t('error.browserAuth.signInCancelled') };
     login.child.stdin!.write('{"type":"cancel"}\n');
     login.child.kill();
   }

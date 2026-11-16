@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { randomUUID } from 'node:crypto';
 import type { AgentTeam } from '../../shared/agentTeams.ts';
 import type { Agent } from '../../shared/studio.ts';
@@ -13,7 +14,7 @@ export function reconcileTeams(agents: Agent[], previous: AgentTeam[]): AgentTea
   const added = agents.filter((agent) => !assigned.has(agent.id));
   if (added.length) {
     if (!teams.length) teams.push({ id: randomUUID(), name: 'Моя команда', agentIds: [] });
-    if (teams.length !== 1) throw new Error('Укажите команду для нового агента.');
+    if (teams.length !== 1) throw new Error(t('error.agentCatalog.specifyATeamForThe'));
     teams[0].agentIds.push(...added.map((agent) => agent.id));
   }
   // A legacy flat reorder changes only the order within each existing team.

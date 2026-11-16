@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { isAbsolute } from 'node:path';
 import { shellQuote } from './provider.ts';
 import { openTerminalCommand } from './terminalCommand.ts';
@@ -13,24 +14,24 @@ export async function openClaudeCodeAction(
   open = openTerminalCommand,
 ) {
   if (!['install', 'login', 'logout'].includes(action))
-    throw new Error('Неизвестное действие Claude Code.');
+    throw new Error(t('error.claudeCode.unknownClaudeCodeAction'));
   if (action === 'install') {
     if (process.platform === 'win32') {
       await openWindowsPowerShellCommand(
         'Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression',
-        'Установка Claude Code',
+        t('error.claudeCode.installClaudeCode'),
       );
       return;
     }
     await open(
       'curl -fsSL https://claude.ai/install.sh | /bin/bash -s -- stable',
       undefined,
-      'Установка Claude Code',
+      t('error.claudeCode.installClaudeCode'),
     );
     return;
   }
   if (!state.command || !isAbsolute(state.command) || /[\0\r\n]/.test(state.command))
-    throw new Error(state.detail || 'Сначала установите Claude Code CLI.');
+    throw new Error(state.detail || t('error.claudeCode.installTheClaudeCodeCli'));
   const env = process.env;
   const configuration = env.PI_CLAUDE_CODE_CONFIG_DIR ?? env.CLAUDE_CONFIG_DIR;
   if (process.platform === 'win32') {
@@ -45,7 +46,7 @@ export async function openClaudeCodeAction(
     ];
     await openWindowsPowerShellCommand(
       `Set-Location -LiteralPath ${powershellLiteral(cwd)}; ${keys.map((key) => `Remove-Item Env:${key} -ErrorAction SilentlyContinue`).join('; ')}; ${configuration ? `$env:CLAUDE_CONFIG_DIR = ${powershellLiteral(configuration)}; ` : ''}& ${powershellLiteral(state.command)} auth ${action}`,
-      'Claude Code · Авторизация',
+      t('error.claudeCode.claudeCodeSignIn'),
     );
     return;
   }
@@ -53,5 +54,5 @@ export async function openClaudeCodeAction(
   // This is the user's normal CLI authentication, shared by every Claude connection.
   // Strip inherited API auth. Neither Studio nor Pi handles the returned tokens.
   const command = `cd ${shellQuote(cwd)} && env -u ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN -u ANTHROPIC_BASE_URL -u CLAUDE_CODE_OAUTH_TOKEN -u CLAUDE_CODE_USE_BEDROCK -u CLAUDE_CODE_USE_VERTEX -u CLAUDE_CODE_USE_FOUNDRY${config} ${shellQuote(state.command)} auth ${action}`;
-  await open(command, undefined, 'Claude Code · Авторизация');
+  await open(command, undefined, t('error.claudeCode.claudeCodeSignIn'));
 }

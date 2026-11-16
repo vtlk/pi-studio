@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { sessionSystemPrompt } from '../../../bundled/pi-bridge/prompt.mjs';
 import { builtinResource, hasTeamMcp } from '../../shared/builtinResources.ts';
@@ -14,11 +15,11 @@ export async function agentSettings(
   check?: (folder: string, connectionId: string) => Promise<ModelConnectionStatus>,
 ) {
   if (typeof id !== 'string' || !scope.team?.agentIds.includes(id))
-    throw new Error('Настройки доступны только для участников исходной команды.');
+    throw new Error(t('error.settings.settingsAreAvailableOnlyFor'));
   const current = scope.catalog.agents.find((item) => item.id === id);
   const saved = scope.project.agents.find((item) => item.profile.id === id);
-  if (!current) throw new Error('Текущий профиль удалён.');
-  if (!saved) throw new Error('Агент ещё не в проекте. Нажмите «Перечитать агентов».');
+  if (!current) throw new Error(t('error.settings.theCurrentProfileWasDeleted'));
+  if (!saved) throw new Error(t('error.scope.theAgentIsNotIn'));
   const role = [
     current.mainInstruction ?? '',
     ...current.instructions

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { readFile, readdir, lstat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { StudioStore } from '../storage/StudioStore.ts';
@@ -20,9 +21,10 @@ export async function readImport(store: StudioStore, id: string) {
     !Array.isArray(report.agents) ||
     !['pending', 'sending', 'sent', 'uncertain'].includes(String(report.handoff))
   )
-    throw new Error('Импорт команды отсутствует или его команда удалена.');
+    throw new Error(t('error.importState.theTeamImportIsMissing'));
   const file = await safePath(root, 'package.pistudio-team');
-  if ((await lstat(file)).size > packageLimit) throw new Error('Слишком большой пакет команды.');
+  if ((await lstat(file)).size > packageLimit)
+    throw new Error(t('error.importState.teamPackageTooLarge'));
   const data = decodePackage(await readFile(file));
   const mappings = [
     ...Object.values(record(state.agentMap)),
@@ -37,7 +39,7 @@ export async function readImport(store: StudioStore, id: string) {
       (id) => !data.manifest.resources.some((resource) => resource.id === id),
     )
   )
-    throw new Error('Нарушены связи импортированного пакета.');
+    throw new Error(t('error.importState.importedPackageReferencesAreInvalid'));
   return { root, state, data };
 }
 export async function listImports(store: StudioStore) {

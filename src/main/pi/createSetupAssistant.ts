@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
@@ -84,16 +85,16 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           request.firstMessage !== undefined ||
           request.autoContinue
         )
-          throw new Error('Некорректное открытие помощника.');
+          throw new Error(t('error.createSetupAssistant.invalidAssistantOpeningRequest'));
         const store = await service.load();
         const sections = store.bootstrap().sections;
         const agent = (sections.systemAgents as SystemAgent[]).find(
           (agent) => agent.systemRole === 'assistant',
         );
         if (!agent || request.agentId !== agent.id)
-          throw new Error('Системный помощник не найден.');
+          throw new Error(t('error.createSetupAssistant.systemAssistantNotFound'));
         if (!agent.enabled)
-          throw new Error('Системный помощник выключен. Включите его в конструкторе.');
+          throw new Error(t('error.createSetupAssistant.systemAssistantDisabledEnableIt'));
         const path = String(sections.piPath ?? '') || options.piPath();
         const { selectedModel, modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
           agent.model,
@@ -111,7 +112,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
             outputPath?: string;
           };
           if (state.schemaVersion !== 1)
-            throw new Error('Неподдерживаемая версия истории помощника.');
+            throw new Error(t('error.createSetupAssistant.unsupportedAssistantHistoryVersion'));
           session = state.session;
           if (state.outputPath) outputPath = state.outputPath;
           else if (session && /^agents\/[a-zA-Z0-9_-]+\/sessions\/.+\.jsonl$/.test(session.path))

@@ -1,6 +1,6 @@
 import { t, type MessageKey } from '../../../shared/i18n/index.ts';
-import { builtinResource } from '../../../shared/builtinResources';
-import type { Resource } from '../../../shared/resources';
+import { builtinResource } from '../../../shared/builtinResources.ts';
+import type { Resource } from '../../../shared/resources.ts';
 const labels: Record<string, { name: MessageKey; description: MessageKey }> = {
   'pistudio-project': { name: 'builtin.project.name', description: 'builtin.project.description' },
   'pistudio-browser': { name: 'builtin.browser.name', description: 'builtin.browser.description' },
@@ -14,7 +14,7 @@ const labels: Record<string, { name: MessageKey; description: MessageKey }> = {
   },
   'pistudio-team': { name: 'builtin.team.name', description: 'builtin.team.description' },
 };
-/** Only canonical bundled metadata is localized. User-written resource metadata stays verbatim. */
+/** Built-in metadata is read-only and resolved by stable ID, including older saved labels. */
 export function resourceLabel(resource: Resource, field: 'name' | 'description'): string;
 export function resourceLabel(
   resource: Resource | undefined,
@@ -24,5 +24,11 @@ export function resourceLabel(resource: Resource | undefined, field: 'name' | 'd
   if (!resource) return undefined;
   const canonical = builtinResource(resource.id);
   const key = labels[resource.id]?.[field];
-  return canonical && resource[field] === canonical[field] && key ? t(key) : resource[field];
+  return canonical && key ? t(key) : resource[field];
+}
+
+export function resourceVersion(resource: Resource): string {
+  return resource.version === 'Текущий локальный файл'
+    ? t('resource.currentLocalFile')
+    : resource.version;
 }

@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { teamAgents } from '../../../../shared/agentTeams';
@@ -36,7 +37,7 @@ export function useNativeWorkspaceState() {
   ) => {
     if (!window.studio || mutating.current) return undefined;
     if (!(await saveNow())) {
-      demo(t('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
+      demo(uiText('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
       return undefined;
     }
     if (mutating.current) return undefined;
@@ -56,7 +57,9 @@ export function useNativeWorkspaceState() {
       );
       return result.project.agents.find((agent) => agent.profile.id === agentId)?.session;
     } catch (error) {
-      demo(error instanceof Error ? error.message : t('useNativeWorkspaceState.couldNotOpenPi'));
+      demo(
+        error instanceof Error ? error.message : uiText('useNativeWorkspaceState.couldNotOpenPi'),
+      );
       return undefined;
     } finally {
       mutating.current = false;
@@ -84,7 +87,9 @@ export function useNativeWorkspaceState() {
       return true;
     } catch (error) {
       demo(
-        error instanceof Error ? error.message : t('useNativeWorkspaceState.fileOperationError'),
+        error instanceof Error
+          ? error.message
+          : uiText('useNativeWorkspaceState.fileOperationError'),
       );
       return false;
     } finally {
@@ -135,17 +140,17 @@ export function useNativeWorkspaceState() {
       setProjects((previous) => previous.map((item) => (item.id === project.id ? project : item)));
       demo(
         target === 'dialogue'
-          ? t('useNativeWorkspaceState.dialogueDeletedYouCanStartANew')
+          ? uiText('useNativeWorkspaceState.dialogueDeletedYouCanStartANew')
           : target === 'files'
-            ? t('useNativeWorkspaceState.agentFilesMovedToMacosTrashDialogue')
-            : t('useNativeWorkspaceState.agentDialogueAndFilesDeletedYouCan'),
+            ? uiText('useNativeWorkspaceState.agentFilesMovedToMacosTrashDialogue')
+            : uiText('useNativeWorkspaceState.agentDialogueAndFilesDeletedYouCan'),
       );
       return true;
     } catch (error) {
       demo(
         error instanceof Error
           ? error.message
-          : t('useNativeWorkspaceState.couldNotDeleteAgentData'),
+          : uiText('useNativeWorkspaceState.couldNotDeleteAgentData'),
       );
       return false;
     } finally {

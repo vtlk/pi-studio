@@ -1,3 +1,5 @@
+import { uiText } from '@/shared/model/UiText';
+import { agentName } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -106,12 +108,12 @@ export function AgentList() {
                         danger: true,
                         onSelect: () =>
                           confirm({
-                            title: t('AgentList.deleteTeam2', { value1: team.name }),
-                            description: t('AgentList.theTeamAndItsAgentsWillBe'),
+                            title: uiText('AgentList.deleteTeam2', { value1: team.name }),
+                            description: uiText('AgentList.theTeamAndItsAgentsWillBe'),
                             onConfirm: () => {
                               removeTeam(team.id);
-                              demo(t('AgentList.teamDeleted', { value1: team.name }), {
-                                label: t('useResourceUnlink.undo'),
+                              demo(uiText('AgentList.teamDeleted', { value1: team.name }), {
+                                label: uiText('useResourceUnlink.undo'),
                                 onClick: () => restoreTeam(team, profiles, teamIndex),
                               });
                             },
@@ -142,10 +144,13 @@ export function AgentList() {
                       onSelect={() => setAgentId(agent.id)}
                       onDelete={() => {
                         removeAgent(agent.id);
-                        demo(t('AgentList.agentRemovedFromTheBuilder', { value1: agent.name }), {
-                          label: t('useResourceUnlink.undo'),
-                          onClick: () => restoreAgent(agent, index, team.id),
-                        });
+                        demo(
+                          uiText('AgentList.agentRemovedFromTheBuilder', { value1: agent.name }),
+                          {
+                            label: uiText('useResourceUnlink.undo'),
+                            onClick: () => restoreAgent(agent, index, team.id),
+                          },
+                        );
                       }}
                     />
                   ))}
@@ -180,7 +185,7 @@ export function AgentList() {
       {systemAgents.map((agent, index) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
           <Tooltip
-            label={agent.name || t('AgentList.untitled')}
+            label={agentName(agent) || t('AgentList.untitled')}
             onlyWhenTruncated
             overflowSelector=".agent-list-name"
           >
@@ -193,7 +198,7 @@ export function AgentList() {
               )}
               data-enabled={agent.enabled}
               aria-label={t('AgentList.summary', {
-                value1: agent.name || t('AgentList.untitled'),
+                value1: agentName(agent) || t('AgentList.untitled'),
                 value2: agent.enabled ? t('AgentList.enabled') : t('reasoning.off'),
               })}
               aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}

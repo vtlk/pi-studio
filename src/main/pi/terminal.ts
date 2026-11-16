@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { realpath } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { shellQuote } from './provider.ts';
@@ -25,7 +26,7 @@ export const activateSessionTerminal = (pid: number, title?: string) =>
     ? focusWindowsSession(pid)
     : activateTerminalProcess(pid, undefined, title);
 export async function focusRunningTerminal(run: LiveRun, activate = activateSessionTerminal) {
-  if (!run.pid) throw new Error('Не удалось определить окно выбранного диалога Pi.');
+  if (!run.pid) throw new Error(t('error.terminal.couldNotIdentifyTheSelected'));
   await activate(run.pid, runTerminalTitle(run.run));
 }
 export function processAlive(pid: number) {

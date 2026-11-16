@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { TeamMessages } from './TeamMessages';
@@ -59,9 +60,9 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
           kind="primary"
           onClick={() =>
             confirm({
-              title: t('ProjectView.refreshAgents'),
-              description: t('ProjectView.compareTheProjectWithTheAgentsPage'),
-              confirmLabel: t('ProjectView.refresh'),
+              title: uiText('ProjectView.refreshAgents'),
+              description: uiText('ProjectView.compareTheProjectWithTheAgentsPage'),
+              confirmLabel: uiText('ProjectView.refresh'),
               onConfirm: () => setRefreshOpen(true),
             })
           }

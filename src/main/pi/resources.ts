@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { access, realpath } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 import type { ProjectAgentProfile } from '../../shared/project.ts';
@@ -27,10 +28,10 @@ function args(value: string): string[] {
   try {
     parsed = JSON.parse(value);
   } catch {
-    throw new Error('Аргументы MCP должны быть JSON-массивом строк.');
+    throw new Error(t('error.resources.mcpArgumentsMustBeA'));
   }
   if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== 'string'))
-    throw new Error('Аргументы MCP должны быть JSON-массивом строк.');
+    throw new Error(t('error.resources.mcpArgumentsMustBeA'));
   return parsed;
 }
 /** Resolve only selected, enabled resources. Pi retains its native OAuth/token handling. */
@@ -48,11 +49,12 @@ export async function resolveResources(
       const resource = catalog.find((item) => item.id === id && item.kind === kind);
       if (!resource)
         throw new Error(
-          `Назначенный ресурс ${kind}/${id} отсутствует. Перечитайте настройки агента явно.`,
+          t('error.resources.assignedResourceIsMissingExplicitly', { value1: kind, value2: id }),
         );
       if (kind === 'skills') {
         const skill = await inspectSkill(resource.source);
-        if (names.has(skill.name)) throw new Error(`Повторяющееся имя skill: ${skill.name}.`);
+        if (names.has(skill.name))
+          throw new Error(t('error.resources.duplicateSkillName', { value1: skill.name }));
         names.add(skill.name);
         result.skills.push({ id, name: skill.name, path: skill.source });
       } else if (kind === 'plugins') {
@@ -61,39 +63,38 @@ export async function resolveResources(
           source = await realpath(source);
           await access(source);
         } else if (!/^(npm:|git:|https:\/\/github\.com\/)/.test(source))
-          throw new Error(
-            `Пакет «${resource.name}»: нужен существующий путь или источник Pi npm:/git:.`,
-          );
+          throw new Error(t('error.resources.packageAnExistingPathOr', { value1: resource.name }));
         result.plugins.push({ id, source });
       } else {
         const name = resource.source.startsWith('pi:')
           ? resource.source.slice(3)
           : `studio_${id.replace(/[^a-zA-Z0-9_]/g, '_')}`;
         if (!/^[a-zA-Z0-9_-]+$/.test(name) || reservedMcpName(name))
-          throw new Error(`Недопустимое имя MCP «${resource.name}».`);
+          throw new Error(t('error.resources.invalidMcpName', { value1: resource.name }));
         let config: Record<string, unknown>;
         if (resource.source.startsWith('pi:')) {
           const server = await nativeMcpConfig(name);
-          if (server.enabled === false) throw new Error(`MCP «${name}» выключен в Pi.`);
+          if (server.enabled === false)
+            throw new Error(t('error.resources.mcpIsDisabledInPi', { value1: name }));
           config = { ...server };
         } else {
           if (resource.credential)
             throw new Error(
-              `MCP «${resource.name}»: настройте секрет через штатный Pi и используйте ссылку pi:имя.`,
+              t('error.resources.mcpConfigureTheSecretThrough', { value1: resource.name }),
             );
           config = /^https?:\/\//.test(resource.source)
             ? { url: resource.source, exposure: 'direct' }
             : { command: resource.source, args: args(resource.args), exposure: 'direct' };
         }
         if (resource.credential === 'keychain:pistudio-mcp' && !materialize)
-          throw new Error('Защищённые параметры MCP недоступны в этом запуске.');
+          throw new Error(t('error.resources.protectedMcpParametersAreUnavailable'));
         if (materialize) config = await materialize(resource, config);
         if (
           result.mcpServers.some(
             (item) => item.name.replaceAll('-', '_') === name.replaceAll('-', '_'),
           )
         )
-          throw new Error(`Повторяющееся имя MCP: ${name}.`);
+          throw new Error(t('error.resources.duplicateMcpName', { value1: name }));
         result.mcpServers.push({
           name,
           config: { ...config, enabled: true },

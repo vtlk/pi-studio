@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -51,11 +52,11 @@ export function ProjectNameDialog({
               demo(
                 isDesktop
                   ? mode === 'clone'
-                    ? t('ProjectNameDialog.theProjectAndAllItsFilesWere')
-                    : t('ProjectNameDialog.projectNameAndFolderChanged')
+                    ? uiText('ProjectNameDialog.theProjectAndAllItsFilesWere')
+                    : uiText('ProjectNameDialog.projectNameAndFolderChanged')
                   : mode === 'clone'
-                    ? t('ProjectNameDialog.anIndependentCopyOfTheSnapshotAnd')
-                    : t('ProjectNameDialog.theNameAndExamplePathChangedIn'),
+                    ? uiText('ProjectNameDialog.anIndependentCopyOfTheSnapshotAnd')
+                    : uiText('ProjectNameDialog.theNameAndExamplePathChangedIn'),
               );
               onClose();
             }}

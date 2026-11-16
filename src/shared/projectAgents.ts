@@ -1,3 +1,4 @@
+import { t } from './i18n/index.ts';
 import type { WorkspaceProject, ProjectAgent } from './project.ts';
 
 export function synchronizeProjectAgentList(
@@ -33,7 +34,7 @@ export function synchronizeProjectAgentList(
 
 export function archiveProjectAgent(project: WorkspaceProject, agentId: string): WorkspaceProject {
   const position = project.agents.findIndex((agent) => agent.profile.id === agentId);
-  if (position < 0) throw new Error('Агент отсутствует в проекте.');
+  if (position < 0) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
   const agent = structuredClone(project.agents[position]);
   if (agent.runStatus === 'running') agent.runStatus = 'stopped';
   return {
@@ -44,9 +45,9 @@ export function archiveProjectAgent(project: WorkspaceProject, agentId: string):
 }
 export function restoreProjectAgent(project: WorkspaceProject, agentId: string): WorkspaceProject {
   const archived = project.archivedAgents?.find((item) => item.agent.profile.id === agentId);
-  if (!archived) throw new Error('Удалённый агент не найден.');
+  if (!archived) throw new Error(t('error.projectAgents.removedAgentNotFound'));
   if (project.agents.some((item) => item.profile.id === agentId))
-    throw new Error('Агент уже есть в проекте.');
+    throw new Error(t('error.projectAgents.theAgentIsAlreadyIn'));
   const agents = [...project.agents];
   agents.splice(Math.min(archived.position, agents.length), 0, structuredClone(archived.agent));
   return {

@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
@@ -87,7 +88,7 @@ export function SettingsView() {
                 onClick={() =>
                   isDesktop
                     ? void chooseStudio()
-                    : demo(t('SettingsView.systemFolderSelectionIsAvailableInThe'))
+                    : demo(uiText('SettingsView.systemFolderSelectionIsAvailableInThe'))
                 }
               >
                 {t('SettingsView.chooseFolder')}
@@ -121,7 +122,7 @@ export function SettingsView() {
                 disabled={checking}
                 onClick={async () => {
                   if (!window.studio) {
-                    demo(t('SettingsView.piChecksAreAvailableInTheMacos'));
+                    demo(uiText('SettingsView.piChecksAreAvailableInTheMacos'));
                     return;
                   }
                   setChecking(true);
@@ -131,7 +132,9 @@ export function SettingsView() {
                     setPiCheck(result);
                     setPi(result.path);
                   } catch (error) {
-                    demo(error instanceof Error ? error.message : t('SettingsView.piCheckError'));
+                    demo(
+                      error instanceof Error ? error.message : uiText('SettingsView.piCheckError'),
+                    );
                   } finally {
                     setChecking(false);
                   }

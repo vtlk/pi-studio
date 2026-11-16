@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Disclosure, DisclosureList } from '@/shared/ui/Disclosure';
@@ -83,7 +84,7 @@ export function ImageToolSettings() {
               demo(
                 error instanceof Error
                   ? error.message
-                  : t('ImageToolSettings.couldNotReadImagesApiModels'),
+                  : uiText('ImageToolSettings.couldNotReadImagesApiModels'),
               );
             } finally {
               setBusy(false);

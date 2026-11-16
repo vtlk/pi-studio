@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { lstat, realpath, mkdir, mkdtemp, rename, rm } from 'node:fs/promises';
 import { join, dirname, relative, isAbsolute, sep } from 'node:path';
 import { execFile } from 'node:child_process';
@@ -43,18 +44,18 @@ export async function updateHelperNode(
   if (existing) {
     const info = await lstat(root);
     if (!info.isDirectory() || info.isSymbolicLink() || (await realpath(root)) !== root)
-      throw new Error('Папка компонентов обновления перенаправлена.');
+      throw new Error(t('error.updateRuntime.theUpdateComponentsFolderIs'));
     const { stdout } = await execute(executable, ['--version'], {
       timeout: 10000,
       windowsHide: true,
       signal,
     });
     if (stdout.trim() !== `v${NODE_VERSION}`)
-      throw new Error('Неподдерживаемая версия компонентов обновления.');
+      throw new Error(t('error.updateRuntime.unsupportedUpdateComponentsVersion'));
     return executable;
   }
   if (!['arm64', 'x64'].includes(process.arch) || (windows && process.arch !== 'x64'))
-    throw new Error('Архитектура компонентов обновления не поддерживается.');
+    throw new Error(t('error.updateRuntime.unsupportedUpdateComponentsArchitect'));
   await mkdir(dirname(root), { recursive: true, mode: 0o700 });
   const stage = await mkdtemp(join(dirname(root), '.update-node-'));
   try {
@@ -88,7 +89,7 @@ export async function updateHelperNode(
       signal,
     });
     if (stdout.trim() !== `v${NODE_VERSION}`)
-      throw new Error('Компоненты обновления не прошли проверку.');
+      throw new Error(t('error.updateRuntime.updateComponentsFailedVerification'));
     signal.throwIfAborted();
     await rename(stage, root);
     return executable;

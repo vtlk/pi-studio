@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { CuaDriverLike, ToolResult } from '@trycua/cua-driver';
 import type { SessionTool } from '../pi/RunChannel.ts';
 
@@ -47,7 +48,7 @@ export class CuaRuntime {
   private tail: Promise<unknown> = Promise.resolve();
   private closed = false;
   private driver() {
-    if (this.closed) throw new Error('Computer Use закрыт.');
+    if (this.closed) throw new Error(t('error.cuaRuntime.computerUseIsClosed'));
     this.loading ??= (async () => {
       const sdk = await import('@trycua/cua-driver');
       return sdk.CuaDriver.createConfigured(
@@ -111,7 +112,7 @@ export class CuaRuntime {
       await this.driver()
     ).callTool('check_permissions', JSON.stringify({ prompt: false, probe_direct_capture: false }));
     if (result.isError || !result.structuredJson)
-      throw new Error('Не удалось проверить разрешения Computer Use.');
+      throw new Error(t('error.cuaRuntime.couldNotCheckComputerUse'));
     const state = JSON.parse(result.structuredJson) as {
       accessibility?: boolean;
       screen_recording?: boolean;

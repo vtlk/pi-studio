@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { resolveReasoning } from '../../shared/reasoning.ts';
 import { dirname, join } from 'node:path';
 import type { Agent } from '../../shared/studio.ts';
@@ -22,10 +23,8 @@ export async function resolveAgentLaunchConfig(
   const validated = validateAgentModel(selection, connections);
   if (!validated.ok) {
     if (validated.reason === 'missing-model')
-      throw new Error('Выберите подключение, модель и уровень рассуждения агента в конструкторе.');
-    throw new Error(
-      'Подключение агента отсутствует или изменено. Выберите действующее подключение и модель в конструкторе.',
-    );
+      throw new Error(t('error.contextBuilder.selectTheAgentSConnection'));
+    throw new Error(t('error.resolveAgentLaunchConfig.theAgentSConnectionIs'));
   }
   const { model, connection } = validated;
   const { piPath, folder, catalog, bootstraps } = options;
@@ -42,15 +41,13 @@ export async function resolveAgentLaunchConfig(
     folder,
   );
   if (status.status !== 'ready')
-    throw new Error(status.detail ?? 'Войдите в выбранный аккаунт Pi перед запуском.');
+    throw new Error(status.detail ?? t('error.resolveAgentLaunchConfig.signInToTheSelected'));
   const models = await readPiCatalog(piPath, catalog, folder, modelAuth);
   const selectedModel = models.models.find(
     (item) => item.provider === model.provider && item.id === model.id,
   );
   if (!selectedModel)
-    throw new Error(
-      'Выбранная модель отсутствует в текущем каталоге Pi. Автоматической подмены нет.',
-    );
+    throw new Error(t('error.resolveAgentLaunchConfig.theSelectedModelIsMissing'));
   const thinkingLevel = resolveReasoning(model.reasoning, selectedModel);
   return { model, selectedModel, modelAuth, thinkingLevel };
 }

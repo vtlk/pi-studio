@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { lstat, readdir, readFile, realpath } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { TeamPackageFile } from '../../shared/teamPackage.ts';
@@ -10,7 +11,8 @@ export async function collectPackageFiles(source: string, prefix: string) {
   const root = await realpath(source),
     files: TeamPackageFile[] = [],
     requirements: string[] = [];
-  if (!(await lstat(root)).isDirectory()) throw new Error('Для переноса нужна папка ресурса.');
+  if (!(await lstat(root)).isDirectory())
+    throw new Error(t('error.collectPackageFiles.aResourceFolderIsRequired'));
   let size = 0;
   const walk = async (relative: string) => {
     const directory = join(root, relative);
@@ -35,9 +37,10 @@ export async function collectPackageFiles(source: string, prefix: string) {
         continue;
       }
       if (before.size > packageLimit || size + before.size > packageLimit || files.length >= 10000)
-        throw new Error('Файлы ресурса превышают лимит пакета (64 МБ / 10000 файлов).');
+        throw new Error(t('error.collectPackageFiles.resourceFilesExceedPackageLimits'));
       // Revalidate the exact path and identity after reading, rather than exporting a changed tree.
-      if ((await realpath(file)) !== file) throw new Error('Путь ресурса изменился при экспорте.');
+      if ((await realpath(file)) !== file)
+        throw new Error(t('error.collectPackageFiles.theResourcePathChangedDuring'));
       const bytes = await readFile(file),
         after = await lstat(file);
       if (
@@ -47,7 +50,7 @@ export async function collectPackageFiles(source: string, prefix: string) {
         before.mtimeMs !== after.mtimeMs ||
         bytes.length !== after.size
       )
-        throw new Error('Ресурс изменился при экспорте. Повторите после сохранения.');
+        throw new Error(t('error.collectPackageFiles.theResourceChangedDuringExport'));
       size += bytes.length;
       files.push({
         path: `${prefix}/${name}`,

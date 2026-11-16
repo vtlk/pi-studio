@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { maxArchiveBytes } from './manifest.ts';
 
 export const repository = 'vtlk/pi-studio';
@@ -18,7 +19,7 @@ export class UpdateNetworkError extends Error {
 export type FetchUpdate = typeof fetch;
 export function releaseAssetUrl(tag: string, name: string) {
   if (!/^v[0-9A-Za-z.-]+$/.test(tag) || !/^[0-9A-Za-z.-]+$/.test(name))
-    throw new Error('Недопустимое имя файла релиза.');
+    throw new Error(t('error.githubTransport.invalidReleaseFilename'));
   return `https://github.com/${repository}/releases/download/${encodeURIComponent(tag)}/${encodeURIComponent(name)}`;
 }
 function allowed(url: URL) {
@@ -41,7 +42,7 @@ export async function githubResponse(
   const timeout = AbortSignal.any([signal, AbortSignal.timeout(60_000)]);
   for (let redirects = 0; redirects <= 5; redirects++) {
     timeout.throwIfAborted();
-    if (!allowed(url)) throw new Error('Источник обновления не разрешён.');
+    if (!allowed(url)) throw new Error(t('error.githubTransport.updateSourceNotAllowed'));
     const response = await request(url, {
       redirect: 'manual',
       signal: timeout,
@@ -56,7 +57,8 @@ export async function githubResponse(
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       await response.body?.cancel();
       const location = response.headers.get('location');
-      if (!location || redirects === 5) throw new Error('Некорректное перенаправление обновления.');
+      if (!location || redirects === 5)
+        throw new Error(t('error.githubTransport.invalidUpdateRedirect'));
       url = new URL(location, url);
       continue;
     }
@@ -71,10 +73,10 @@ export async function githubResponse(
         : reset;
       throw new UpdateNetworkError(
         response.status === 404
-          ? 'Релизы недоступны. Репозиторий может быть закрыт.'
+          ? t('error.githubTransport.releasesUnavailableTheRepositoryMay')
           : [403, 429].includes(response.status)
-            ? 'GitHub временно ограничил проверку обновлений.'
-            : `Не удалось получить обновление (HTTP ${response.status}).`,
+            ? t('error.githubTransport.githubTemporarilyRateLimitedUpdate')
+            : t('error.githubTransport.couldNotRetrieveTheUpdate', { value1: response.status }),
         Number.isFinite(retryAt) && retryAt > now
           ? Math.min(retryAt, now + 24 * 3600_000)
           : undefined,
@@ -82,14 +84,14 @@ export async function githubResponse(
     }
     if (Number(response.headers.get('content-length')) > maxArchiveBytes) {
       await response.body?.cancel();
-      throw new Error('Файл обновления превышает допустимый размер.');
+      throw new Error(t('error.githubTransport.theUpdateFileExceedsThe'));
     }
     return response;
   }
-  throw new Error('Слишком много перенаправлений обновления.');
+  throw new Error(t('error.githubTransport.tooManyUpdateRedirects'));
 }
 export async function boundedBody(response: Response, limit: number) {
-  if (!response.body) throw new Error('GitHub вернул пустой ответ.');
+  if (!response.body) throw new Error(t('error.githubTransport.githubReturnedAnEmptyResponse'));
   const reader = response.body.getReader();
   let size = 0;
   const chunks: Uint8Array[] = [];
@@ -98,7 +100,7 @@ export async function boundedBody(response: Response, limit: number) {
       const chunk = await reader.read();
       if (chunk.done) break;
       size += chunk.value.length;
-      if (size > limit) throw new Error('Ответ обновления превышает допустимый размер.');
+      if (size > limit) throw new Error(t('error.githubTransport.theUpdateResponseExceedsThe'));
       chunks.push(chunk.value);
     }
     return Buffer.concat(chunks);

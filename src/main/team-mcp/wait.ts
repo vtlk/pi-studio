@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { TeamJournal } from './TeamJournal.ts';
 import { publicMessage } from './types.ts';
 export async function waitForTeamMessage(
@@ -8,7 +9,7 @@ export async function waitForTeamMessage(
 ) {
   while (!signal.aborted) {
     const item = await journal.get(id);
-    if (!item) throw new Error('Сообщение не найдено.');
+    if (!item) throw new Error(t('error.wait.messageNotFound'));
     if (['completed', 'failed', 'uncertain', 'cancelled'].includes(item.state))
       return {
         ...publicMessage(item, armed.has(id)),
@@ -38,7 +39,5 @@ export async function waitForTeamMessage(
       signal.addEventListener('abort', abort, { once: true });
     });
   }
-  throw new Error(
-    'Ожидание прервано; поручение могло быть принято. Проверьте message_status с тем же ID. Не повторяйте с новым request_id и не продолжайте зависимую работу.',
-  );
+  throw new Error(t('error.wait.waitingWasInterruptedTheTask'));
 }

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { chmod, mkdir, rm, writeFile } from 'node:fs/promises';
@@ -25,10 +26,10 @@ export async function readAgentBrowser(root: string) {
       typeof state.sha256 !== 'string' ||
       !/^[a-f0-9]{64}$/.test(state.sha256)
     )
-      throw new Error('Не совпала версия компонента браузера.');
+      throw new Error(t('error.installAgentBrowser.browserComponentVersionMismatch'));
     const binary = join(root, browserExecutable());
     if ((await componentHash(binary, limit)) !== state.sha256)
-      throw new Error('Компонент браузера изменён. Переустановите его через настройки.');
+      throw new Error(t('error.installAgentBrowser.theBrowserComponentWasModified'));
     return binary;
   } catch (error) {
     if (isMissing(error)) return undefined;
@@ -64,9 +65,10 @@ export async function installAgentBrowser(
     });
     const files = entries.trim().split('\n');
     if (files.some((path) => !path.startsWith('package/') || path.split('/').includes('..')))
-      throw new Error('Некорректный архив компонента браузера.');
+      throw new Error(t('error.installAgentBrowser.invalidBrowserComponentArchive'));
     const binaries = files.filter((path) => path.endsWith('/' + browserExecutable()));
-    if (binaries.length !== 1) throw new Error('В архиве отсутствует компонент браузера.');
+    if (binaries.length !== 1)
+      throw new Error(t('error.installAgentBrowser.theBrowserComponentIsMissing'));
     const { stdout: binary } = await execute(tar, ['-xOzf', archive, binaries[0]], {
       signal,
       encoding: 'buffer',
@@ -80,7 +82,7 @@ export async function installAgentBrowser(
             binary.subarray(0, 4).toString('hex'),
           ))
     )
-      throw new Error('Компонент браузера не соответствует платформе.');
+      throw new Error(t('error.installAgentBrowser.theBrowserComponentDoesNot'));
     const target = join(stage, browserExecutable());
     await writeFile(target, binary, { mode: 0o700 });
     await chmod(target, 0o700);
@@ -90,7 +92,7 @@ export async function installAgentBrowser(
       maxBuffer: 10000,
     });
     if (version.stdout.trim() !== `agent-browser ${AGENT_BROWSER_VERSION}`)
-      throw new Error('Версия компонента браузера не прошла проверку.');
+      throw new Error(t('error.installAgentBrowser.browserComponentVersionVerificationF'));
     await rm(archive);
     await atomicJson(join(stage, 'installed.json'), {
       version: AGENT_BROWSER_VERSION,

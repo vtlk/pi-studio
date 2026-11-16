@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { constants } from 'node:fs';
 import { open, rename, mkdir, realpath, lstat, rm } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
@@ -7,7 +8,7 @@ import { windowsFileName } from '../../shared/windowsNames.ts';
 export async function atomicJson(file: string, value: unknown) {
   const content = `${JSON.stringify(value, null, 2)}\n`;
   if (Buffer.byteLength(content) > 16 * 1024 * 1024)
-    throw new Error('Настройки слишком большие (максимум 16 МБ).');
+    throw new Error(t('error.files.settingsAreTooLargeMaximum'));
   await atomicText(file, content);
 }
 export async function atomicText(file: string, value: string) {
@@ -35,12 +36,7 @@ export function withReadDeadline<T>(action: () => Promise<T>, milliseconds = 10_
   let timer: ReturnType<typeof setTimeout>;
   return new Promise<T>((resolve, reject) => {
     timer = setTimeout(
-      () =>
-        reject(
-          new Error(
-            'Чтение папки или файла не завершилось за 10 секунд. Проверьте доступность диска или выберите другую папку студии.',
-          ),
-        ),
+      () => reject(new Error(t('error.files.readingTheFolderOrFile'))),
       milliseconds,
     );
     action().then(resolve, reject);
@@ -52,7 +48,7 @@ export function readJson(file: string): Promise<unknown> {
     try {
       const stat = await handle.stat();
       if (!stat.isFile() || stat.size > 16 * 1024 * 1024)
-        throw new Error('Некорректный размер файла настроек.');
+        throw new Error(t('error.files.invalidSettingsFileSize'));
       return JSON.parse(await handle.readFile('utf8'));
     } finally {
       await handle.close();
@@ -76,7 +72,7 @@ export async function safePath(root: string, path: string, allowMissing = false)
     path.includes('\0') ||
     path.includes('\\')
   )
-    throw new Error('Недопустимый относительный путь.');
+    throw new Error(t('error.files.invalidRelativePath'));
   const parts = path.split('/');
   if (
     parts.some(
@@ -87,13 +83,13 @@ export async function safePath(root: string, path: string, allowMissing = false)
         (process.platform === 'win32' && !windowsFileName(part)),
     )
   )
-    throw new Error('Недопустимый относительный путь.');
+    throw new Error(t('error.files.invalidRelativePath'));
   let current = await realpath(root);
   for (const part of parts) {
     current = resolve(current, part);
     try {
       if ((await lstat(current)).isSymbolicLink())
-        throw new Error('Символические ссылки не поддерживаются.');
+        throw new Error(t('error.files.symbolicLinksAreNotSupported'));
     } catch (error) {
       if (!(allowMissing && isMissing(error))) throw error;
     }
@@ -101,7 +97,7 @@ export async function safePath(root: string, path: string, allowMissing = false)
   return current;
 }
 export function folderLabel(value: unknown) {
-  if (typeof value !== 'string') throw new Error('Введите название проекта.');
+  if (typeof value !== 'string') throw new Error(t('error.files.enterAProjectName'));
   const name = value.trim().normalize('NFC');
   if (
     !name ||
@@ -110,7 +106,7 @@ export function folderLabel(value: unknown) {
     /[/\\:]/.test(name) ||
     [...name].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
   )
-    throw new Error('Название: 1–100 символов, без слешей, двоеточий и точки в начале.');
+    throw new Error(t('error.files.nameCharactersWithoutSlashesColons'));
   return name;
 }
 export function readText(file: string, limit = 2 * 1024 * 1024) {
@@ -118,10 +114,9 @@ export function readText(file: string, limit = 2 * 1024 * 1024) {
     const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
     try {
       const stat = await handle.stat();
-      if (!stat.isFile() || stat.size > limit)
-        throw new Error('Файл слишком большой для текстового просмотра (максимум 2 МБ).');
+      if (!stat.isFile() || stat.size > limit) throw new Error(t('error.files.theFileIsTooLarge'));
       const bytes = await handle.readFile();
-      if (bytes.includes(0)) throw new Error('Бинарный файл: текстовый просмотр недоступен.');
+      if (bytes.includes(0)) throw new Error(t('error.files.binaryFileTextPreviewUnavailable'));
       return bytes.toString('utf8');
     } finally {
       await handle.close();

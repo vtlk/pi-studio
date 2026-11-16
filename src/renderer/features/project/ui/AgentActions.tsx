@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
@@ -63,7 +64,7 @@ export function AgentActions({
   const launch = async (autoContinue: boolean) => {
     if (openingRef.current || busy) return;
     if (!getCurrentAgentInstructions(agent.profile.id, agents)) {
-      demo(t('AgentActions.agentProfileDeletedCurrentInstructionsAreUnavailable'));
+      demo(uiText('AgentActions.agentProfileDeletedCurrentInstructionsAreUnavailable'));
       return;
     }
     const action = getAgentLaunchAction(agent);
@@ -86,7 +87,7 @@ export function AgentActions({
       updateOpening(true);
       try {
         if (!(await saveNow())) {
-          demo(t('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
+          demo(uiText('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
           return;
         }
         await window.studio.launchAgent({
@@ -96,7 +97,9 @@ export function AgentActions({
         });
       } catch (error) {
         demo(
-          error instanceof Error ? error.message : t('AgentActions.couldNotResumeThePiDialogue'),
+          error instanceof Error
+            ? error.message
+            : uiText('AgentActions.couldNotResumeThePiDialogue'),
         );
       } finally {
         updateOpening(false);
@@ -105,7 +108,7 @@ export function AgentActions({
     }
     setAutoContinue(autoContinue);
     demo(
-      t('AgentActions.piIsNotConnectedDialogueWillOpen', {
+      uiText('AgentActions.piIsNotConnectedDialogueWillOpen', {
         value1: action.session.path,
         value2: action.session.needsFork
           ? t('AgentActions.aStandardForkIntoTheCurrentProject')
@@ -165,7 +168,7 @@ export function AgentActions({
               onSelect: () =>
                 void (async () => {
                   if (!window.studio || !selectedProject) {
-                    demo(t('AgentActions.finderIsAvailableInTheMacosApp'));
+                    demo(uiText('AgentActions.finderIsAvailableInTheMacosApp'));
                     return;
                   }
                   try {
@@ -177,7 +180,7 @@ export function AgentActions({
                     demo(
                       error instanceof Error
                         ? error.message
-                        : t('AgentActions.couldNotRevealTheAgentFolder'),
+                        : uiText('AgentActions.couldNotRevealTheAgentFolder'),
                     );
                   }
                 })(),
@@ -187,7 +190,7 @@ export function AgentActions({
               icon: Settings2,
               onSelect: () => {
                 if (!agents.some((profile) => profile.id === agent.profile.id)) {
-                  demo(t('AgentActions.thisAgentWasRemovedFromTheBuilder'));
+                  demo(uiText('AgentActions.thisAgentWasRemovedFromTheBuilder'));
                   return;
                 }
                 onOpenSettings(agent.profile.id);

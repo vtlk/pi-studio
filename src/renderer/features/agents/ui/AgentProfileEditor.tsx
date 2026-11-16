@@ -1,3 +1,4 @@
+import { agentTabLabel } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
@@ -58,16 +59,7 @@ export function AgentProfileEditor({
               items={['Промпт', 'Инструкции', 'Skills', 'MCP', 'Плагины', 'Модель'].map(
                 (label) => ({
                   id: label,
-                  label:
-                    label === 'Промпт'
-                      ? t('AgentProfiles.prompt')
-                      : label === 'Инструкции'
-                        ? t('AgentProfileEditor.instructions')
-                        : label === 'Плагины'
-                          ? t('AgentProfileEditor.plugins')
-                          : label === 'Модель'
-                            ? t('AgentProfileEditor.model')
-                            : label,
+                  label: agentTabLabel(label),
                 }),
               )}
               selected={agentTab}

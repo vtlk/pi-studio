@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -140,11 +141,11 @@ export function McpSecretsDialog({
               disabled={busy}
               onClick={() =>
                 confirm({
-                  title: t('McpSecretsDialog.deleteProtectedParameters'),
-                  description: t('McpSecretsDialog.deleteAllSavedKeysForMcpFrom', {
+                  title: uiText('McpSecretsDialog.deleteProtectedParameters'),
+                  description: uiText('McpSecretsDialog.deleteAllSavedKeysForMcpFrom', {
                     value1: resource.name,
                   }),
-                  confirmLabel: t('McpSecretsDialog.delete'),
+                  confirmLabel: uiText('McpSecretsDialog.delete'),
                   onConfirm: () => apply(true),
                 })
               }

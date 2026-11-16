@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { piNode } from '../pi/platform.ts';
 import { createHash } from 'node:crypto';
 import { mkdir, realpath, rm } from 'node:fs/promises';
@@ -61,7 +62,7 @@ export class BrowserSupport {
       .digest('hex');
     const pi = await checkPi(piPath);
     const node = await piNode(pi.path);
-    if (!pi.supported) throw new Error('Browser Use требует поддерживаемый Pi 1.5.2.');
+    if (!pi.supported) throw new Error(t('error.browserSupport.browserUseRequiresTheSupported'));
     await mkdir(join(this.root, 'bindings'), { recursive: true, mode: 0o700 });
     const binding = this.binding(run);
     await atomicJson(binding, {
@@ -97,6 +98,6 @@ export class BrowserSupport {
     this.controller.abort();
   }
   assertUpdateIdle() {
-    if (this.installing) throw new Error('Дождитесь установки компонентов браузера.');
+    if (this.installing) throw new Error(t('error.browserSupport.waitForBrowserComponentsTo'));
   }
 }

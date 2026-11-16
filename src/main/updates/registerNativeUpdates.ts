@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { app, powerMonitor } from 'electron';
 import { dirname, join } from 'node:path';
 import { mkdirSync, realpathSync } from 'node:fs';
@@ -113,7 +114,7 @@ export function registerNativeUpdates(o: Options) {
           await o.service.serialize(async () => {
             const store = await o.service.load();
             const next = coordinator!.read().offer?.version;
-            if (!next) throw new Error('Не определена версия обновления.');
+            if (!next) throw new Error(t('error.registerNativeUpdates.updateVersionNotDetermined'));
             const valid =
               view?.page === 'project' &&
               !store.projects.list().some((p) => p.id === view.projectId)

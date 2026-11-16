@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { constants } from 'node:fs';
 import { open, lstat, rm, rename } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -10,7 +11,7 @@ export async function publishBrowserComponent(
 ) {
   try {
     if ((await lstat(root)).isSymbolicLink())
-      throw new Error('Каталог компонента не должен быть символической ссылкой.');
+      throw new Error(t('error.componentFiles.theComponentDirectoryMustNot'));
   } catch (error) {
     if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
   }
@@ -26,16 +27,17 @@ export async function componentState(path: string) {
   try {
     const stat = await file.stat();
     if (!stat.isFile() || stat.size > 16384)
-      throw new Error('Некорректная запись компонента браузера.');
+      throw new Error(t('error.componentFiles.invalidBrowserComponentRecord'));
     const buffer = Buffer.alloc(stat.size + 1);
     const { bytesRead } = await file.read(buffer, 0, buffer.length, 0);
-    if (bytesRead !== stat.size) throw new Error('Запись компонента изменилась во время чтения.');
+    if (bytesRead !== stat.size)
+      throw new Error(t('error.componentFiles.theComponentRecordChangedWhile'));
     const state = JSON.parse(buffer.subarray(0, bytesRead).toString('utf8')) as Record<
       string,
       unknown
     >;
     if (!state || typeof state !== 'object' || Array.isArray(state))
-      throw new Error('Некорректная запись компонента браузера.');
+      throw new Error(t('error.componentFiles.invalidBrowserComponentRecord'));
     return state;
   } finally {
     await file.close();
@@ -48,7 +50,7 @@ export async function componentHash(path: string, max: number) {
   try {
     const before = await file.stat();
     if (!before.isFile() || before.size < 4 || before.size > max)
-      throw new Error('Некорректный файл компонента браузера.');
+      throw new Error(t('error.componentFiles.invalidBrowserComponentFile'));
     const hash = createHash('sha256'),
       buffer = Buffer.alloc(64 * 1024);
     let offset = 0;
@@ -70,7 +72,7 @@ export async function componentHash(path: string, max: number) {
       before.mtimeMs !== after.mtimeMs ||
       before.ctimeMs !== after.ctimeMs
     )
-      throw new Error('Компонент браузера изменился во время проверки.');
+      throw new Error(t('error.componentFiles.theBrowserComponentChangedDuring'));
     return hash.digest('hex');
   } finally {
     await file.close();
@@ -94,7 +96,8 @@ export async function downloadBrowserComponent(
     redirect: 'error',
     signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
   });
-  if (!response.ok || !response.body) throw new Error('Не удалось загрузить компонент браузера.');
+  if (!response.ok || !response.body)
+    throw new Error(t('error.componentFiles.couldNotDownloadTheBrowser'));
   const reader = response.body.getReader(),
     hash = createHash(expected.algorithm);
   let file: Awaited<ReturnType<typeof open>> | undefined;
@@ -106,7 +109,8 @@ export async function downloadBrowserComponent(
       if (item.done) break;
       signal.throwIfAborted();
       received += item.value.length;
-      if (received > expected.maxBytes) throw new Error('Неожиданный размер компонента браузера.');
+      if (received > expected.maxBytes)
+        throw new Error(t('error.componentFiles.unexpectedBrowserComponentSize'));
       hash.update(item.value);
       await file.writeFile(item.value);
     }
@@ -115,5 +119,5 @@ export async function downloadBrowserComponent(
     await file?.close();
   }
   if (hash.digest(expected.encoding) !== expected.hash)
-    throw new Error('Не совпала контрольная сумма компонента браузера.');
+    throw new Error(t('error.componentFiles.browserComponentChecksumMismatch'));
 }

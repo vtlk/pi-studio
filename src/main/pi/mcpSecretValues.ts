@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { realpath } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -15,7 +16,8 @@ export function piConfigValues(path: string) {
   if (!pending) {
     pending = (async () => {
       const pi = await checkPi(path);
-      if (!pi.supported) throw new Error('Для параметров MCP требуется поддерживаемый Pi 1.5.2.');
+      if (!pi.supported)
+        throw new Error(t('error.mcpSecretValues.mcpParametersRequireTheSupported'));
       const sdk = await resolvePiSdk(await realpath(pi.path));
       return import(
         new URL('./core/resolve-config-value.js', pathToFileURL(sdk)).href
@@ -46,7 +48,7 @@ export function mcpSecretFields(config: Record<string, unknown>, parser: PiConfi
   const names = new Set(
     entries(config).flatMap(({ text }) => parser.getConfigValueEnvVarNames(text)),
   );
-  if (names.size > 64) throw new Error('Слишком много защищённых параметров одного MCP.');
+  if (names.size > 64) throw new Error(t('error.mcpSecrets.tooManyProtectedParametersFor'));
   return [...names].sort();
 }
 export function withMcpSecrets(
@@ -58,12 +60,11 @@ export function withMcpSecrets(
   for (const { section, key, text } of entries(config)) {
     const names = parser.getConfigValueEnvVarNames(text);
     if (!names.some((name) => Object.hasOwn(values, name))) continue;
-    if (parser.isCommandConfigValue(text)) throw new Error('Секреты не подставляются в команды.');
+    if (parser.isCommandConfigValue(text))
+      throw new Error(t('error.mcpSecretValues.secretsAreNotSubstitutedInto'));
     const value = parser.resolveConfigValue(text, values);
     if (value === undefined)
-      throw new Error(
-        'Не удалось разрешить переменные MCP. Сохраните секреты или настройте остальные переменные в окружении Pi.',
-      );
+      throw new Error(t('error.mcpSecretValues.couldNotResolveMcpVariables'));
     // Native Pi parses these fields again. Its literal escapes prevent a key from becoming a command or env reference.
     let literal = value.replaceAll('$', () => '$$');
     if (literal.startsWith('!')) literal = `$!${literal.slice(1)}`;

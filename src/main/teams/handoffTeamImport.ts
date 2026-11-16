@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { RunHost } from '../pi/RunHost.ts';
@@ -17,7 +18,7 @@ export async function handoffTeamImport(
 ): Promise<TeamSetupResult> {
   const pending = await service.serialize(async () => {
     const store = await service.load();
-    if (store.folder !== folder) throw new Error('Папка студии изменилась.');
+    if (store.folder !== folder) throw new Error(t('registerTeamHandlers.studioFolderChanged'));
     const imported = await readImport(store, id),
       sections = store.bootstrap().sections;
     const assistant = (sections.systemAgents as SystemAgent[]).find(
@@ -39,7 +40,7 @@ export async function handoffTeamImport(
     return {
       ...base,
       outcome: 'busy',
-      message: 'Помощник занят. Пакет сохранён; продолжите его настройку после завершения запроса.',
+      message: t('error.handoffTeamImport.theAssistantIsBusyThe'),
     };
   }
   const send = pending.state.report.handoff === 'pending';
@@ -54,10 +55,11 @@ export async function handoffTeamImport(
       await setup.launchServiceTask(request, message, () =>
         service.serialize(async () => {
           const store = await service.load();
-          if (store.folder !== folder) throw new Error('Папка студии изменилась.');
+          if (store.folder !== folder)
+            throw new Error(t('registerTeamHandlers.studioFolderChanged'));
           const current = await readImport(store, id);
           if (current.state.report.handoff !== 'pending')
-            throw new Error('Это задание уже передавалось. Автоматического повтора нет.');
+            throw new Error(t('error.handoffTeamImport.thisTaskWasAlreadyHanded'));
           current.state.report.handoff = 'sending';
           await atomicJson(join(current.root, 'state.json'), current.state);
         }),
@@ -66,7 +68,7 @@ export async function handoffTeamImport(
   } catch (error) {
     const report = await service.serialize(async () => {
       const store = await service.load();
-      if (store.folder !== folder) throw new Error('Папка студии изменилась.');
+      if (store.folder !== folder) throw new Error(t('registerTeamHandlers.studioFolderChanged'));
       const current = await readImport(store, id);
       if (current.state.report.handoff === 'sending') {
         current.state.report.handoff = 'uncertain';
@@ -81,12 +83,12 @@ export async function handoffTeamImport(
       message:
         error instanceof Error
           ? error.message
-          : 'Передача задания не подтверждена. Повтор автоматически не выполняется.',
+          : t('error.handoffTeamImport.taskDeliveryUnconfirmedItWill'),
     };
   }
   const report = await service.serialize(async () => {
     const store = await service.load();
-    if (store.folder !== folder) throw new Error('Папка студии изменилась.');
+    if (store.folder !== folder) throw new Error(t('registerTeamHandlers.studioFolderChanged'));
     return (await readImport(store, id)).state.report;
   });
   return {

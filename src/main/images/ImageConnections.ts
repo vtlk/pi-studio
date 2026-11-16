@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type {
   Connection,
@@ -31,7 +32,7 @@ export class ImageConnections {
     return this.service.serialize(async () => {
       const store = await this.service.load();
       if (store.folder !== request.folder)
-        throw new Error('Папка студии изменилась. Откройте подключение заново.');
+        throw new Error(t('error.imageConnections.theStudioFolderChangedReopen'));
       const connection = ((store.bootstrap().sections.connections ?? []) as Connection[]).find(
         (item) => item.id === request.connectionId,
       );
@@ -41,7 +42,7 @@ export class ImageConnections {
         connection.providerId !== 'openai' ||
         connection.endpoint
       )
-        throw new Error('Подключение OpenAI Images API отсутствует или изменено.');
+        throw new Error(t('error.imageConnections.theOpenaiImagesApiConnection'));
       return {
         folder: store.folder,
         id: connection.id,
@@ -62,7 +63,7 @@ export class ImageConnections {
   }
   async save(request: ImageConnectionRequest & { key: string }) {
     if (typeof request?.key !== 'string' || !/^[\x21-\x7e]{10,8192}$/.test(request.key.trim()))
-      throw new Error('Введите корректный API-ключ без пробелов и переносов строки.');
+      throw new Error(t('error.imageConnections.enterAValidApiKey'));
     const scope = await this.scope(request);
     await this.vault.save(scope.folder, scope.id, request.key);
     this.checked.delete(scope.cache);
@@ -85,7 +86,9 @@ export class ImageConnections {
     } catch (error) {
       await this.scope(request);
       if ((await this.vault.inspect(scope.folder, scope.id)).revision !== before.revision)
-        throw new Error('Ключ изменился во время проверки. Повторите проверку.', { cause: error });
+        throw new Error(t('error.imageConnections.theKeyChangedDuringVerification'), {
+          cause: error,
+        });
       this.checked.delete(scope.cache);
       if (error instanceof ImagesApiError && ['authentication', 'access'].includes(error.kind))
         this.checked.set(scope.cache, {
@@ -98,7 +101,7 @@ export class ImageConnections {
     }
     await this.scope(request);
     if ((await this.vault.inspect(scope.folder, scope.id)).revision !== before.revision)
-      throw new Error('Ключ изменился во время проверки. Повторите проверку.');
+      throw new Error(t('error.imageConnections.theKeyChangedDuringVerification'));
     this.checked.set(scope.cache, {
       revision: before.revision,
       checkedAt: Date.now(),
@@ -116,7 +119,7 @@ export class ImageConnections {
     const key = await this.vault.read(scope.folder, scope.id);
     const current = await this.vault.inspect(scope.folder, scope.id);
     if (current.revision !== before.revision || !current.stored)
-      throw new Error('Ключ изменился во время чтения. Повторите действие.');
+      throw new Error(t('error.imageConnections.theKeyChangedWhileBeing'));
     return { key, revision: current.revision };
   }
   async reportAuthorization(

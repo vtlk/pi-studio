@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
@@ -35,7 +36,10 @@ export function NativeConnectionAuth({
   const [auth, setAuth] = useState<AuthLoginState>();
   const [answer, setAnswer] = useState('');
   const [method, setMethod] = useState<'oauth' | 'api_key'>('oauth');
-  const methods = provider?.loginMethods ?? [];
+  const methods = (provider?.loginMethods ?? []).map((method) => ({
+    ...method,
+    label: method.id === 'api_key' ? t('ConnectionEditor.apiKey') : t('auth.oauth'),
+  }));
   const keyless = connection.endpointConfig?.auth === 'none';
   const selectedMethod = methods.find((item) => item.id === method)?.id ?? methods[0]?.id;
   const active = !!auth && ['opening', 'waiting', 'verifying'].includes(auth.phase);
@@ -104,7 +108,7 @@ export function NativeConnectionAuth({
       demo(
         error instanceof Error
           ? error.message
-          : t('NativeConnectionAuth.couldNotConfigureTheConnection'),
+          : uiText('NativeConnectionAuth.couldNotConfigureTheConnection'),
       );
     } finally {
       setBusy(false);
@@ -245,13 +249,13 @@ export function NativeConnectionAuth({
             disabled={!window.studio || !request || busy || active || !matches}
             onClick={() =>
               confirm({
-                title: t('NativeConnectionAuth.deleteTheSavedLoginForConnection', {
+                title: uiText('NativeConnectionAuth.deleteTheSavedLoginForConnection', {
                   value1: connection.name.trim() || connection.id,
                 }),
                 description:
                   connection.authScope === 'connection'
-                    ? t('NativeConnectionAuth.piWillRemoveLocalAuthenticationForThis')
-                    : t('NativeConnectionAuth.theSharedPiLoginForThisProvider'),
+                    ? uiText('NativeConnectionAuth.piWillRemoveLocalAuthenticationForThis')
+                    : uiText('NativeConnectionAuth.theSharedPiLoginForThisProvider'),
                 onConfirm: () =>
                   void perform(async () => {
                     await getStudioApi().removeConnectionLogin(request!);

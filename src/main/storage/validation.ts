@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { Agent } from '../../shared/studio.ts';
 import type { WorkspaceProject, ProjectAgent } from '../../shared/project.ts';
 import { storageSections, type StorageSection, type StudioSections } from '../../shared/storage.ts';
@@ -7,37 +8,8 @@ import { modelEndpointUrl, parseModelEndpoint } from '../../shared/modelEndpoint
 import { retiredBuiltin } from './retireLegacyFeatures.ts';
 import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
 
-export function record(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error('Ожидался объект данных.');
-  return value as Record<string, unknown>;
-}
-function text(value: unknown, max = 200_000): string {
-  if (typeof value !== 'string' || value.length > max)
-    throw new Error('Некорректное текстовое поле.');
-  return value;
-}
-export function stableId(value: unknown): string {
-  const id = text(value, 128);
-  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(id)) throw new Error('Некорректный ID.');
-  return id;
-}
-function boolean(value: unknown): boolean {
-  if (typeof value !== 'boolean') throw new Error('Некорректный переключатель.');
-  return value;
-}
-function timestamp(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
-    throw new Error('Некорректная дата.');
-  return value;
-}
-function list(value: unknown): unknown[] {
-  if (!Array.isArray(value) || value.length > 10_000) throw new Error('Некорректный список.');
-  return value;
-}
-function strings(value: unknown) {
-  return list(value).map((item) => text(item, 2000));
-}
+import { record, text, stableId, boolean, timestamp, list, strings } from './validationFields.ts';
+export { record, stableId } from './validationFields.ts';
 
 export function parseAgent(value: unknown): Agent {
   const item = record(value);
@@ -81,21 +53,22 @@ export function parseAgent(value: unknown): Agent {
 export function parseAgents(value: unknown): Agent[] {
   const agents = list(value).map(parseAgent);
   if (new Set(agents.map((agent) => agent.id)).size !== agents.length)
-    throw new Error('Повторяющиеся ID агентов.');
+    throw new Error(t('error.validation.duplicateAgentIds'));
   return agents;
 }
 export function parseTeams(value: unknown): AgentTeam[] {
-  if (!Array.isArray(value) || value.length > 1000) throw new Error('Некорректный список команд.');
+  if (!Array.isArray(value) || value.length > 1000)
+    throw new Error(t('error.validation.invalidTeamList'));
   const teams = value.map((value) => {
     const item = record(value);
     if (typeof item.name !== 'string' || !item.name.trim() || item.name.length > 500)
-      throw new Error('Назовите команду агентов.');
+      throw new Error(t('error.validation.nameTheAgentTeam'));
     if (!Array.isArray(item.agentIds) || item.agentIds.length > 10000)
-      throw new Error('Некорректный состав команды.');
+      throw new Error(t('error.validation.invalidTeamMembership'));
     return { id: stableId(item.id), name: item.name.trim(), agentIds: item.agentIds.map(stableId) };
   });
   if (new Set(teams.map((team) => team.id)).size !== teams.length)
-    throw new Error('Повторяющийся ID команды.');
+    throw new Error(t('error.validation.duplicateTeamId'));
   return teams;
 }
 export function parseAgentCatalog(value: unknown): AgentCatalog {
@@ -108,7 +81,7 @@ export function parseAgentCatalog(value: unknown): AgentCatalog {
     members.length !== agents.length ||
     members.some((id) => !agents.some((agent) => agent.id === id))
   )
-    throw new Error('Каждый обычный агент должен принадлежать ровно одной команде.');
+    throw new Error(t('error.validation.eachOrdinaryAgentMustBelong'));
   return {
     agents: teams.flatMap((team) =>
       team.agentIds.map((id) => agents.find((agent) => agent.id === id)!),
@@ -120,7 +93,7 @@ export function parseSystemAgents(value: unknown): SystemAgent[] {
   const profiles = list(value).map((value) => {
     const item = record(value);
     if (!systemAgentRoles.includes(item.systemRole as SystemAgent['systemRole']))
-      throw new Error('Неизвестный системный агент.');
+      throw new Error(t('error.validation.unknownSystemAgent'));
     return { ...parseAgent(item), systemRole: item.systemRole as SystemAgent['systemRole'] };
   });
   if (
@@ -128,7 +101,7 @@ export function parseSystemAgents(value: unknown): SystemAgent[] {
     new Set(profiles.map((item) => item.systemRole)).size !== profiles.length ||
     new Set(profiles.map((item) => item.id)).size !== profiles.length
   )
-    throw new Error('Системного помощника нельзя удалять или добавлять вручную.');
+    throw new Error(t('error.validation.theSystemAssistantCannotBe'));
   return profiles;
 }
 export function snapshotAgent(agent: Agent): ProjectAgent {
@@ -156,7 +129,7 @@ function parseProjectAgent(value: unknown): ProjectAgent {
   const saved = record(value);
   const profile = record(saved.profile);
   if ('instructions' in profile || 'mainInstruction' in profile)
-    throw new Error('Проект не должен хранить копии инструкций.');
+    throw new Error(t('error.validation.theProjectMustNotStore'));
   const agent = snapshotAgent(parseAgent({ ...profile, instructions: [] }));
   agent.outputPath = text(saved.outputPath, 500);
   const directory = agentDirectory(agent.outputPath);
@@ -168,7 +141,7 @@ function parseProjectAgent(value: unknown): ProjectAgent {
       path.includes('..') ||
       !path.endsWith('.jsonl')
     )
-      throw new Error('Некорректный путь сессии Pi.');
+      throw new Error(t('error.validation.invalidPiSessionPath'));
     agent.session = {
       id: stableId(binding.id),
       title: text(binding.title, 500),
@@ -182,10 +155,11 @@ function parseProjectAgent(value: unknown): ProjectAgent {
 
 export function parseProject(value: unknown): WorkspaceProject {
   const item = record(value);
-  if (item.schemaVersion !== 1) throw new Error('Неподдерживаемая версия project.json.');
+  if (item.schemaVersion !== 1)
+    throw new Error(t('error.validation.unsupportedProjectJsonVersion'));
   const agents = list(item.agents).map(parseProjectAgent);
   if (new Set(agents.map((agent) => agent.profile.id)).size !== agents.length)
-    throw new Error('Повторяющиеся ID снимка.');
+    throw new Error(t('error.validation.duplicateSnapshotIds'));
   const project: WorkspaceProject = {
     ...(item.sourceTeamId === undefined ? {} : { sourceTeamId: stableId(item.sourceTeamId) }),
     id: stableId(item.id),
@@ -200,17 +174,17 @@ export function parseProject(value: unknown): WorkspaceProject {
             const archive = record(value);
             const agent = parseProjectAgent(archive.agent);
             if (agents.some((item) => item.profile.id === agent.profile.id))
-              throw new Error('Удалённый агент одновременно активен.');
+              throw new Error(t('error.validation.aRemovedAgentIsAlso'));
             const position = timestamp(archive.position);
             if (!Number.isInteger(position) || position > 10000)
-              throw new Error('Некорректная позиция удалённого агента.');
+              throw new Error(t('error.validation.invalidRemovedAgentPosition'));
             return { agent, position };
           }),
         }),
   };
   const all = [...project.agents, ...(project.archivedAgents ?? []).map((item) => item.agent)];
   if (new Set(all.map((agent) => agent.outputPath.toLowerCase())).size !== all.length)
-    throw new Error('Повторяющиеся папки агентов.');
+    throw new Error(t('error.validation.duplicateAgentFolders'));
   return project;
 }
 export function projectDocument(project: WorkspaceProject) {
@@ -236,7 +210,7 @@ export function projectDocument(project: WorkspaceProject) {
 
 export function parseSection(section: unknown, value: unknown): unknown {
   if (!storageSections.includes(section as StorageSection))
-    throw new Error('Неизвестный раздел настроек.');
+    throw new Error(t('error.validation.unknownSettingsSection'));
   if (section === 'agents') return parseAgents(value);
   if (section === 'agentTeams') return parseTeams(value);
   if (section === 'agentCatalog') return parseAgentCatalog(value);
@@ -258,9 +232,9 @@ export function parseSection(section: unknown, value: unknown): unknown {
         item.authScope !== undefined &&
         !['native', 'connection'].includes(String(item.authScope))
       )
-        throw new Error('Некорректная область авторизации подключения.');
+        throw new Error(t('error.validation.invalidConnectionAuthenticationScope'));
       if (!['codex', 'images', 'pi', 'compatible', 'local'].includes(String(item.purpose)))
-        throw new Error('Некорректный тип подключения.');
+        throw new Error(t('error.validation.invalidConnectionType'));
       return {
         ...base,
         purpose: item.purpose,
@@ -277,12 +251,12 @@ export function parseSection(section: unknown, value: unknown): unknown {
       };
     }
     if (!['skills', 'mcps', 'plugins'].includes(String(item.kind)))
-      throw new Error('Некорректный тип ресурса.');
+      throw new Error(t('error.validation.invalidResourceType'));
     if (item.kind === 'mcps' && retiredBuiltin(item.id, item.source))
-      throw new Error('Этот встроенный MCP удалён из приложения. Ресурс не сохранён.');
+      throw new Error(t('error.validation.thisBuiltInMcpWas'));
     const credential = text(item.credential, 500);
     if (credential && !/^keychain:[a-zA-Z0-9_.-]+$/.test(credential))
-      throw new Error('Сохраняйте только ссылку keychain:имя, без секретов.');
+      throw new Error(t('error.validation.saveOnlyAKeychainName'));
     const names = item.mcpSecretNames;
     if (
       names !== undefined &&
@@ -290,7 +264,7 @@ export function parseSection(section: unknown, value: unknown): unknown {
         names.length > 64 ||
         names.some((name) => typeof name !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
     )
-      throw new Error('Некорректные имена защищённых параметров MCP.');
+      throw new Error(t('error.validation.invalidProtectedMcpParameterNames'));
     return {
       ...base,
       kind: item.kind,
@@ -314,13 +288,13 @@ export function parseSection(section: unknown, value: unknown): unknown {
                   String(check.status),
                 )
               )
-                throw new Error('Некорректный статус проверки ресурса.');
+                throw new Error(t('error.validation.invalidResourceCheckStatus'));
               const toolCount = check.toolCount;
               if (
                 toolCount !== undefined &&
                 (typeof toolCount !== 'number' || !Number.isSafeInteger(toolCount) || toolCount < 0)
               )
-                throw new Error('Некорректное число инструментов.');
+                throw new Error(t('error.validation.invalidToolCount'));
               return {
                 status: check.status,
                 checkedAt: timestamp(check.checkedAt),
@@ -334,9 +308,9 @@ export function parseSection(section: unknown, value: unknown): unknown {
 export function parseStudio(value: unknown): StudioSections {
   const document = record(value);
   if (document.schemaVersion !== 1)
-    throw new Error('Неподдерживаемая версия studio.json. Файл не изменён.');
+    throw new Error(t('error.validation.unsupportedStudioJsonVersionThe'));
   const entries = Object.entries(record(document.sections));
   if (entries.some(([key]) => key === 'agentCatalog'))
-    throw new Error('Виртуальный каталог не должен хранить копии профилей на диске.');
+    throw new Error(t('error.validation.theVirtualCatalogMustNot'));
   return Object.fromEntries(entries.map(([key, value]) => [key, parseSection(key, value)]));
 }

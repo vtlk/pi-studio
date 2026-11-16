@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { lstat, realpath, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { exists, readJson } from '../../../bundled/update-helper/protocol.mjs';
@@ -15,7 +16,7 @@ export async function cleanupDownloads(root: string) {
   if (!(await exists(root))) return;
   const info = await lstat(root);
   if (!info.isDirectory() || info.isSymbolicLink() || (await realpath(root)) !== root)
-    throw new Error('Папка загрузок перенаправлена. Очистка отменена.');
+    throw new Error(t('error.cleanupDownloads.theDownloadsFolderIsRedirected'));
   for (const name of await readdir(root)) {
     if (!/^download-[A-Za-z0-9]{6}$/.test(name)) continue;
     const directory = join(root, name),

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createPublicKey, verify } from 'node:crypto';
 import semver from 'semver';
 import type { UpdateManifest, UpdatePlatform } from '../../shared/updates.ts';
@@ -13,12 +14,12 @@ export function manifestName(version: string, platform: UpdatePlatform, arch: st
 }
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error('Неверный формат метаданных обновления.');
+    throw new Error(t('error.manifest.invalidUpdateMetadataFormat'));
   return value as Record<string, unknown>;
 }
 function exactKeys(value: Record<string, unknown>, keys: string[]) {
   if (Object.keys(value).sort().join() !== keys.sort().join())
-    throw new Error('Неизвестные или отсутствующие поля обновления.');
+    throw new Error(t('error.manifest.unknownOrMissingUpdateFields'));
 }
 export function validateManifest(value: unknown): UpdateManifest {
   const data = record(value);
@@ -49,7 +50,7 @@ export function validateManifest(value: unknown): UpdateManifest {
     typeof data.sourceCommit !== 'string' ||
     !/^[a-f0-9]{40}$/.test(data.sourceCommit)
   )
-    throw new Error('Версия, платформа или формат обновления не поддерживаются.');
+    throw new Error(t('error.manifest.unsupportedUpdateVersionPlatformOr'));
   const archive = record(data.archive);
   exactKeys(archive, ['name', 'sha256', 'bytes', 'unpackedBytes']);
   if (
@@ -64,20 +65,21 @@ export function validateManifest(value: unknown): UpdateManifest {
     Number(archive.unpackedBytes) < 1 ||
     Number(archive.unpackedBytes) > maxUnpackedBytes
   )
-    throw new Error('Пакет обновления имеет недопустимые имя, размер или контрольную сумму.');
+    throw new Error(t('error.manifest.theUpdatePackageHasAn'));
   return structuredClone(data) as unknown as UpdateManifest;
 }
 function base64(value: unknown, limit: number) {
   if (typeof value !== 'string' || value.length > limit || !/^[A-Za-z0-9+/]+={0,2}$/.test(value))
-    throw new Error('Неверный формат подписи обновления.');
+    throw new Error(t('error.manifest.invalidUpdateSignatureFormat'));
   const result = Buffer.from(value, 'base64');
-  if (result.toString('base64') !== value) throw new Error('Неверная кодировка подписи.');
+  if (result.toString('base64') !== value)
+    throw new Error(t('error.manifest.invalidSignatureEncoding'));
   return result;
 }
 /** Verify the original bytes before parsing any trusted installation metadata. */
 export function verifyManifest(envelope: Uint8Array, publicKey: string): UpdateManifest {
   if (envelope.byteLength > maxManifestBytes)
-    throw new Error('Метаданные обновления слишком велики.');
+    throw new Error(t('error.manifest.updateMetadataTooLarge'));
   const data = record(JSON.parse(Buffer.from(envelope).toString('utf8')));
   exactKeys(data, ['payload', 'signature']);
   const payload = base64(data.payload, 24 * 1024);
@@ -88,6 +90,6 @@ export function verifyManifest(envelope: Uint8Array, publicKey: string): UpdateM
     signature.length !== 64 ||
     !verify(null, payload, key, signature)
   )
-    throw new Error('Подпись обновления не подтверждена. Пакет не будет установлен.');
+    throw new Error(t('error.manifest.updateSignatureUnverifiedThePackage'));
   return validateManifest(JSON.parse(payload.toString('utf8')));
 }

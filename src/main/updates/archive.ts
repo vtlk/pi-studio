@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { posix } from 'node:path';
 import { openPromise } from 'yauzl';
 import type { UpdatePlatform } from '../../shared/updates.ts';
@@ -43,7 +44,7 @@ export async function inspectUpdateArchive(
             .split('/')
             .some((part) => /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i.test(part)))
       )
-        throw new Error('Архив обновления содержит недопустимый путь или формат.');
+        throw new Error(t('error.archive.theUpdateArchiveContainsAn'));
       const mode = entry.externalFileAttributes >>> 16;
       const kind = mode & 0o170000;
       const directory = entry.fileName.endsWith('/');
@@ -56,33 +57,34 @@ export async function inspectUpdateArchive(
         (kind === 0o120000 && (directory || platform !== 'darwin')) ||
         entries.has(key(name))
       )
-        throw new Error('Архив содержит конфликтующие или специальные файлы.');
+        throw new Error(t('error.archive.theArchiveContainsConflictingOr'));
       const header = await zip.readLocalFileHeaderPromise(entry);
       if (
         header.fileName.toString('utf8') !== entry.fileName ||
         header.compressionMethod !== entry.compressionMethod ||
         header.generalPurposeBitFlag !== entry.generalPurposeBitFlag
       )
-        throw new Error('Заголовки архива обновления не согласованы.');
+        throw new Error(t('error.archive.updateArchiveHeadersAreInconsistent'));
       unpackedBytes += entry.uncompressedSize;
       if (
         !Number.isSafeInteger(unpackedBytes) ||
         unpackedBytes > maxUnpackedBytes ||
         (expectedUnpacked !== undefined && unpackedBytes > expectedUnpacked)
       )
-        throw new Error('Распакованный пакет превышает подписанный размер.');
+        throw new Error(t('error.archive.theUnpackedPackageExceedsThe'));
       let link: string | undefined;
       if (kind === 0o120000) {
-        if (entry.uncompressedSize > 4096) throw new Error('Недопустимая ссылка в архиве.');
+        if (entry.uncompressedSize > 4096)
+          throw new Error(t('error.archive.invalidLinkInTheArchive'));
         const stream = await zip.openReadStreamPromise(entry);
         const chunks: Buffer[] = [];
         for await (const chunk of stream) chunks.push(Buffer.from(chunk));
         const target = Buffer.concat(chunks).toString('utf8');
         if (!target || posix.isAbsolute(target) || unsafeChars(target))
-          throw new Error('Ссылка в архиве выходит за пределы программы.');
+          throw new Error(t('error.archive.anArchiveLinkPointsOutside'));
         link = posix.normalize(posix.join(posix.dirname(name), target));
         if (!link.startsWith(root + '/'))
-          throw new Error('Ссылка в архиве выходит за пределы программы.');
+          throw new Error(t('error.archive.anArchiveLinkPointsOutside'));
       }
       entries.set(key(name), { name, directory, link });
     }
@@ -91,7 +93,7 @@ export async function inspectUpdateArchive(
       for (let i = 1; i < parts.length; i++) {
         const parent = entries.get(key(parts.slice(0, i).join('/')));
         if (parent && (!parent.directory || parent.link))
-          throw new Error('Файлы архива нельзя размещать внутри ссылки или другого файла.');
+          throw new Error(t('error.archive.archiveFilesCannotBePlaced'));
       }
       if (item.link) {
         let target = item.link;
@@ -110,7 +112,7 @@ export async function inspectUpdateArchive(
           }
           target = posix.join(links[index]!.link!, ...segments.slice(index + 1));
         }
-        if (!resolved) throw new Error('Архив содержит циклическую или отсутствующую ссылку.');
+        if (!resolved) throw new Error(t('error.archive.theArchiveContainsACyclic'));
       }
     }
     const executable =
@@ -129,7 +131,7 @@ export async function inspectUpdateArchive(
       unpackedBytes < 1 ||
       (expectedUnpacked !== undefined && unpackedBytes !== expectedUnpacked)
     )
-      throw new Error('Архив не содержит полную программу ожидаемого размера.');
+      throw new Error(t('error.archive.theArchiveDoesNotContain'));
     signal?.throwIfAborted();
     return { root, entryCount: entries.size, unpackedBytes };
   } finally {

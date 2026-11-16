@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
@@ -23,10 +24,10 @@ export async function readChrome(root: string) {
       typeof state.sha256 !== 'string' ||
       !/^[a-f0-9]{64}$/.test(state.sha256)
     )
-      throw new Error('Не совпала версия браузера.');
+      throw new Error(t('error.installChrome.browserVersionMismatch'));
     const binary = join(root, chromeExecutable());
     if ((await componentHash(binary, binaryLimit)) !== state.sha256)
-      throw new Error('Браузер изменён. Переустановите компонент через настройки.');
+      throw new Error(t('error.installChrome.theBrowserWasModifiedReinstall'));
     return binary;
   } catch (error) {
     if (isMissing(error)) return undefined;
@@ -78,7 +79,7 @@ export async function installChrome(
       maxBuffer: 10000,
     });
     if (!version.stdout.includes(CHROME_VERSION))
-      throw new Error('Версия браузера не прошла проверку.');
+      throw new Error(t('error.installChrome.browserVersionVerificationFailed'));
     await atomicJson(join(content, 'installed.json'), {
       version: CHROME_VERSION,
       sha256: await componentHash(binary, binaryLimit),

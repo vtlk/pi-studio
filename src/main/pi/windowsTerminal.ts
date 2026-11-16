@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { ensureWindowsProfile } from './terminal-close/windowsProfile.ts';
 import { execFile } from 'node:child_process';
 import { access } from 'node:fs/promises';
@@ -21,9 +22,7 @@ async function terminal() {
       /* Next location. */
     }
   }
-  throw new Error(
-    'Для диалогов Pi установите Windows Terminal из Microsoft Store и повторите открытие.',
-  );
+  throw new Error(t('error.windowsTerminal.forPiDialoguesInstallWindows'));
 }
 const titleArgument = (title: string) => title.replace(/[;"\p{Cc}]/gu, ' ').slice(0, 300);
 
@@ -36,7 +35,8 @@ export async function openWindowsSession(
 ) {
   const profile = await ensureWindowsProfile();
   const name = basename(bootstrap, '.json');
-  if (!/^[a-zA-Z0-9_-]{1,128}$/.test(name)) throw new Error('Некорректный ID окна Pi.');
+  if (!/^[a-zA-Z0-9_-]{1,128}$/.test(name))
+    throw new Error(t('error.windowsTerminal.invalidPiWindowId'));
   const env = piEnvironment(dirname(node));
   const script = `$env:PATH = ${powershellLiteral(env.PATH)}; $env:PI_TELEMETRY = '0'; $env:PI_OFFLINE = '1'; & ${powershellLiteral(node)} ${powershellLiteral(bridge)} ${powershellLiteral(bootstrap)}; exit $LASTEXITCODE`;
   await execute(
@@ -58,7 +58,8 @@ export async function openWindowsSession(
 }
 
 export async function focusWindowsSession(pid: number) {
-  if (!Number.isSafeInteger(pid) || pid < 2) throw new Error('Некорректный процесс Pi.');
+  if (!Number.isSafeInteger(pid) || pid < 2)
+    throw new Error(t('error.windowsTerminal.invalidPiProcess'));
   const { stdout } = await execute(
     windowsPowershell(),
     powershellArguments(`(Get-CimInstance Win32_Process -Filter 'ProcessId = ${pid}').CommandLine`),
@@ -69,7 +70,7 @@ export async function focusWindowsSession(pid: number) {
     stdout.match(
       /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.json(?:"|\s|$)/i,
     )?.[1];
-  if (!id) throw new Error('Окно выбранного диалога Pi недоступно. Дождитесь завершения процесса.');
+  if (!id) throw new Error(t('error.windowsTerminal.theSelectedPiDialogueS'));
   // No new-tab or user input on focus. A closed bridge is handled by RunHost's normal reopen.
   await execute(await terminal(), ['-w', `pi-studio-${id}`, 'focus-tab', '-t', '0'], {
     timeout: 10000,
@@ -99,7 +100,7 @@ export async function openWindowsShellCommand(command: string, title = 'Pi Studi
       /* Next location. */
     }
   }
-  if (!bash) throw new Error('Установите Git for Windows (Git Bash), затем повторите действие.');
+  if (!bash) throw new Error(t('error.windowsTerminal.installGitForWindowsGit'));
   const script = `& ${powershellLiteral(bash)} '-lc' ${powershellLiteral(command)}; exit $LASTEXITCODE`;
   await openWindowsPowerShellCommand(script, title);
 }

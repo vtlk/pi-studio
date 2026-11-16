@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -110,10 +111,10 @@ export function ProjectsView() {
                 if ((await removeProject(project.id)) === false) return;
                 demo(
                   isDesktop
-                    ? t('ProjectsView.projectMovedToStudioTrashAllFiles')
-                    : t('ProjectsView.projectRemovedFromThePrototypeList'),
+                    ? uiText('ProjectsView.projectMovedToStudioTrashAllFiles')
+                    : uiText('ProjectsView.projectRemovedFromThePrototypeList'),
                   {
-                    label: t('useResourceUnlink.undo'),
+                    label: uiText('useResourceUnlink.undo'),
                     onClick: () => restoreProject(project),
                   },
                 );

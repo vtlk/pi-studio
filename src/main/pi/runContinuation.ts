@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
 import { runKey, ContinuationCancelled, type LiveRun, type Continuation } from './RunTypes.ts';
@@ -39,7 +40,7 @@ export function runContinuation(
     used = true;
     try {
       if (request.projectId !== run.project.id)
-        throw new Error('Цепочка не может перейти в другой проект.');
+        throw new Error(t('error.runContinuation.theChainCannotMoveTo'));
       check();
       return await state.open({ ...request, autoContinue: true }, message, { token, check });
     } catch (error) {

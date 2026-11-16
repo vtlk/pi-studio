@@ -1,3 +1,5 @@
+import { changeLanguage } from '../src/shared/i18n/index.ts';
+await changeLanguage('en');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {

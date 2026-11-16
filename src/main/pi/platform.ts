@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { access } from 'node:fs/promises';
 import { delimiter, dirname, join } from 'node:path';
 import { PI_PACKAGE } from './runtimeConfig.ts';
@@ -53,7 +54,7 @@ export async function piNode(cli: string): Promise<string> {
       /* Optional runtime location. */
     }
   }
-  throw new Error('Не найден Node.js для установленного Pi. Переустановите компоненты Pi.');
+  throw new Error(t('error.platform.nodeJsWasNotFound'));
 }
 
 export async function windowsPiCli(path: string) {

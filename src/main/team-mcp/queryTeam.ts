@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { lstat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { StudioService } from '../storage/StudioStore.ts';
@@ -94,7 +95,7 @@ export async function queryTeam(
       JSON.stringify([scope.catalog, scope.connections, scope.resources, scope.project]) !==
       JSON.stringify([fresh.catalog, fresh.connections, fresh.resources, fresh.project])
     )
-      throw new Error('Настройки изменились во время чтения. Повторите запрос.');
+      throw new Error(t('error.queryTeam.settingsChangedWhileBeingRead'));
     return result;
   }
   if (name === 'list_output' || name === 'read_output') {
@@ -103,10 +104,10 @@ export async function queryTeam(
     const identity = await lstat(root);
     const assertOutput = async () => {
       if ((await safePath(scope.root, target.outputPath)) !== root)
-        throw new Error('Output перемещён. Повторите запрос.');
+        throw new Error(t('error.queryTeam.outputMovedRetryTheRequest'));
       const after = await lstat(root);
       if (identity.ino !== after.ino || identity.dev !== after.dev || !after.isDirectory())
-        throw new Error('Output был заменён во время чтения.');
+        throw new Error(t('error.queryTeam.outputWasReplacedWhileBeing'));
     };
     if (name === 'list_output') {
       const result = await listProjectFiles(
@@ -135,8 +136,8 @@ export async function queryTeam(
   if (name === 'message_status') {
     const item = await journal.get(String(args.message_id));
     if (!item || ![item.senderId, item.recipientId].includes(run.record.agentId))
-      throw new Error('Сообщение не принадлежит этому агенту.');
+      throw new Error(t('error.queryTeam.theMessageDoesNotBelong'));
     return publicMessage(item, armed.has(item.id));
   }
-  throw new Error('Неизвестный инструмент team.');
+  throw new Error(t('error.queryTeam.unknownTeamTool'));
 }

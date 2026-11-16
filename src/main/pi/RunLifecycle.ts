@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { validStudioTerminalIdentity } from './terminal-close/windowsProfile.ts';
 import { AutomaticCloseError } from './automaticClose.ts';
 import { relative, join } from 'node:path';
@@ -28,7 +29,7 @@ export class RunLifecycle {
     this.dependencies.closed?.(live.run);
     live.status = closedRunStatus(live.status);
     await this.dependencies.update(live.run, live.status).catch(() => {});
-    live.fail(new Error('Связь с Pi потеряна. Готовность результата не подтверждена.'));
+    live.fail(new Error(t('error.runLifecycle.connectionToPiLostResult')));
     await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true }).catch(
       () => {},
     );
@@ -40,9 +41,7 @@ export class RunLifecycle {
       if (process.platform === 'win32' && !this.dependencies.headless) {
         const terminal = event.terminalIdentity;
         if (!validStudioTerminalIdentity(terminal))
-          throw new Error(
-            'Перезапустите Windows Terminal, чтобы загрузить профиль Pi Studio, затем откройте диалог снова.',
-          );
+          throw new Error(t('error.runLifecycle.restartWindowsTerminalToLoad'));
         live.terminalIdentity = terminal;
       }
       live.pid = event.pid;
@@ -202,11 +201,7 @@ export class RunLifecycle {
       if (event.type === 'error') this.dependencies.failureChanged?.(live.run, live.failure!);
       const issue = openingFailure(event.openingIssue);
       live.fail(
-        new Error(
-          issue
-            ? openingFailureText(issue)
-            : 'Pi не смог открыть или продолжить диалог. Проверьте выбранную модель, авторизацию и назначенные ресурсы.',
-        ),
+        new Error(issue ? openingFailureText(issue) : t('error.runLifecycle.piCouldNotOpenOr')),
       );
     }
   }
@@ -226,16 +221,11 @@ export class RunLifecycle {
       return { paused: true };
     }
     if (name === 'complete_stage') {
-      if (!live.sequence)
-        throw new Error(
-          'Дождитесь нового запроса пользователя в этом открытии Pi. Прошлый запрос не запускается повторно.',
-        );
+      if (!live.sequence) throw new Error(t('error.runLifecycle.waitForANewUser'));
       const sequence = live.sequence;
       const ensureCurrent = () => {
         if (live.sequence !== sequence || live.status !== 'running')
-          throw new Error(
-            'Сигнал завершения относится к завершённому или другому запросу. Результат не применён.',
-          );
+          throw new Error(t('error.runLifecycle.theCompletionSignalBelongsTo'));
       };
       ensureCurrent();
       const completion = await validateCompletedOutputs(live.run.record.output, args.outputs);

@@ -1,3 +1,4 @@
+import { textOf, type UiText } from './UiText';
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { ConfirmContext } from './Confirm.context';
@@ -6,9 +7,9 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui';
 
 interface Confirmation {
-  title: string;
-  description?: string;
-  confirmLabel?: string;
+  title: UiText;
+  description?: UiText;
+  confirmLabel?: UiText;
   onConfirm: () => void;
 }
 export type ConfirmContextValue = { confirm: (request: Confirmation) => void } | null;
@@ -21,7 +22,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       {pending && (
         <Modal
           alert
-          title={pending.title}
+          title={textOf(pending.title)}
           onClose={() => setPending(null)}
           footer={
             <>
@@ -34,12 +35,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                   action();
                 }}
               >
-                {pending.confirmLabel ?? t('McpSecretsDialog.delete')}
+                {pending.confirmLabel ? textOf(pending.confirmLabel) : t('McpSecretsDialog.delete')}
               </Button>
             </>
           }
         >
-          <p>{pending.description ?? t('Confirm.deleteTheSelectedItem')}</p>
+          <p>{pending.description ? textOf(pending.description) : t('Confirm.deleteTheSelectedItem')}</p>
         </Modal>
       )}
     </ConfirmContext.Provider>

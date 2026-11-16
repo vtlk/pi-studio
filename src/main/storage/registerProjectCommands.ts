@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { type IpcMainInvokeEvent } from 'electron';
 import type { ProjectCommand } from '../../shared/storage';
@@ -21,16 +22,14 @@ export function registerProjectCommands(
           : command.kind === 'update-agents'
             ? (await store.projects.read(command.projectId)).sourceTeamId
             : undefined;
-      if (!teamId) throw new Error('Выберите команду агентов для проекта.');
+      if (!teamId) throw new Error(t('error.registerProjectCommands.selectAnAgentTeamFor'));
       const current = store.teamProfiles(teamId);
       if (
         command.kind === 'update-agents' &&
         JSON.stringify(current.map((agent) => snapshotAgent(agent).profile)) !==
           JSON.stringify(command.agents.map((agent) => snapshotAgent(agent).profile))
       )
-        throw new Error(
-          'Общий список агентов изменился. Перечитайте настройки и откройте сравнение заново.',
-        );
+        throw new Error(t('error.registerProjectCommands.theSharedAgentListChanged'));
       return current;
     };
     if (command.kind === 'remove-agent') await runs.stopAgent(command.projectId, command.agentId);

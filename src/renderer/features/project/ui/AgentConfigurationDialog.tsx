@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
@@ -30,7 +31,7 @@ export function AgentConfigurationDialog({
             kind="primary"
             onClick={() => {
               if (![...agents, ...systemAgents].some((agent) => agent.id === agentId)) {
-                demo(t('AgentActions.thisAgentWasRemovedFromTheBuilder'));
+                demo(uiText('AgentActions.thisAgentWasRemovedFromTheBuilder'));
                 return;
               }
               setAgentId(agentId);

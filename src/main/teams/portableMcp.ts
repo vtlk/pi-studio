@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { assertCredentialReferences } from '../pi/resourceConfig.ts';
 import { posix, win32 } from 'node:path';
 export const isLocalMcpPath = (path: string) =>
@@ -50,10 +51,7 @@ export function assertPortableMcp(config: Record<string, unknown>) {
     if (!fields || typeof fields !== 'object' || Array.isArray(fields)) continue;
     for (const [key, value] of Object.entries(fields)) {
       if (kind === 'headers' && /^(accept|content-type)$/i.test(key)) continue;
-      if (!reference(value))
-        throw new Error(
-          'Пакет содержит значения защищённых параметров MCP вместо требований входа.',
-        );
+      if (!reference(value)) throw new Error(t('error.portableMcp.thePackageContainsProtectedMcp'));
     }
   }
 }

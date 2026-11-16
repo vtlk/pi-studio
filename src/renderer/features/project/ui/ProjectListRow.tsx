@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, Copy, Folder, LoaderCircle, Pencil } from 'lucide-react';
@@ -143,9 +144,9 @@ export function ProjectListRow({
             <Copy size={19} />
           </IconButton>
           <HoverDeleteButton
-            label={t('ProjectListRow.deleteProject', { value1: project.name })}
+            label={uiText('ProjectListRow.deleteProject', { value1: project.name })}
             disabled={busy}
-            description={t('ProjectListRow.theProjectAndAllItsFilesWill')}
+            description={uiText('ProjectListRow.theProjectAndAllItsFilesWill')}
             onDelete={onDelete}
           />
         </div>

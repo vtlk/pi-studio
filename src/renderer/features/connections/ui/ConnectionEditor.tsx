@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
@@ -69,6 +70,7 @@ export function ConnectionEditor({
   const close = () => {
     if (!busy) onClose();
   };
+  const note = t('ConnectionEditor.theConnectionNeverSwitchesAutomaticallyAfterA');
   return (
     <Modal
       title={connection.name || t('ConnectionEditor.addConnection')}
@@ -99,7 +101,7 @@ export function ConnectionEditor({
                 demo(
                   error instanceof Error
                     ? error.message
-                    : t('ConnectionEditor.couldNotSaveTheConnection'),
+                    : uiText('ConnectionEditor.couldNotSaveTheConnection'),
                 );
               } finally {
                 setBusy(false);
@@ -233,7 +235,9 @@ export function ConnectionEditor({
               } catch (error) {
                 await refreshImageConnection(draft.id).catch(() => {});
                 demo(
-                  error instanceof Error ? error.message : t('ConnectionEditor.checkNotPerformed'),
+                  error instanceof Error
+                    ? error.message
+                    : uiText('ConnectionEditor.checkNotPerformed'),
                 );
               } finally {
                 setBusy(false);
@@ -309,7 +313,7 @@ export function ConnectionEditor({
                     demo(
                       error instanceof Error
                         ? error.message
-                        : t('ConnectionEditor.couldNotReadTheServerSModels'),
+                        : uiText('ConnectionEditor.couldNotReadTheServerSModels'),
                     );
                   } finally {
                     setBusy(false);
@@ -341,9 +345,7 @@ export function ConnectionEditor({
           </Button>
         </>
       )}
-      <p className="subtle">
-        {t('ConnectionEditor.theConnectionNeverSwitchesAutomaticallyAfterA')}
-      </p>
+      <p className="subtle">{note}</p>
     </Modal>
   );
 }

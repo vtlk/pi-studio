@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { WorkspaceProject } from '../../shared/project.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { validateCompletedOutputs } from './completeStage.ts';
@@ -5,7 +6,7 @@ import { join } from 'node:path';
 
 export function nextEnabledStage(project: WorkspaceProject, agentId: string) {
   const index = project.agents.findIndex((agent) => agent.profile.id === agentId);
-  if (index < 0) throw new Error('Текущий агент больше не входит в цепочку проекта.');
+  if (index < 0) throw new Error(t('error.stageChain.theCurrentAgentIsNo'));
   return project.agents.slice(index + 1).find((agent) => agent.profile.enabled);
 }
 export function nextStageMessage(

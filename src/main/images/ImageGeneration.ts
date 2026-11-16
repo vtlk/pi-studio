@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
@@ -34,13 +35,11 @@ export class ImageGeneration {
   }
   assertIdle(projectId?: string) {
     if ([...this.requests.keys()].some((run) => !projectId || run.project.id === projectId))
-      throw new Error(
-        'Дождитесь окончания операции изображения перед изменением папки проекта или студии.',
-      );
+      throw new Error(t('error.imageGeneration.waitForTheImageOperation'));
   }
   assertRunIdle(run: PreparedRun) {
     if (this.requests.has(run))
-      throw new Error('Операция изображения этого агента ещё не завершена.');
+      throw new Error(t('error.imageGeneration.thisAgentSImageOperation'));
   }
   bind(run: PreparedRun, folder: string, model: PiModelSummary) {
     // Unknown protocols and executable extensions keep image capabilities unknown.
@@ -104,9 +103,7 @@ export class ImageGeneration {
   private binding(run: PreparedRun) {
     const binding = this.bindings.get(run);
     if (!binding?.eligible || binding.closed)
-      throw new Error(
-        'Генерация изображений недоступна этой сессии: возможности не подтверждены или Pi закрыт.',
-      );
+      throw new Error(t('error.imageGeneration.imageGenerationIsUnavailableFor'));
     return binding;
   }
   async tool(run: PreparedRun, name: string, args: Record<string, unknown>) {
@@ -115,14 +112,13 @@ export class ImageGeneration {
       const operation = (await this.operations.read(binding.scope)).find(
         (item) => item.id === args.operationId,
       );
-      if (!operation) throw new Error('Операция отсутствует у этого проектного агента.');
+      if (!operation) throw new Error(t('error.imageGeneration.thisProjectAgentHasNo'));
       return operation;
     }
-    if (name !== 'generate_image') throw new Error('Неизвестный инструмент изображений.');
-    if (!run.requestSequence)
-      throw new Error('Дождитесь нового пользовательского запроса в Pi перед генерацией.');
+    if (name !== 'generate_image') throw new Error(t('error.imageGeneration.unknownImageTool'));
+    if (!run.requestSequence) throw new Error(t('error.imageGeneration.waitForANewUser'));
     if (this.busy.has(binding.scope))
-      throw new Error('Операция изображения этого агента уже выполняется. Дождитесь результата.');
+      throw new Error(t('error.imageGeneration.thisAgentAlreadyHasAn'));
     const parameters = imageParameters(args);
     const requestId = `${run.record.runId}:${run.requestSequence}`;
     this.busy.add(binding.scope);
@@ -137,13 +133,14 @@ export class ImageGeneration {
     try {
       const configuration = await this.service.serialize(async () => {
         const store = await this.service.load();
-        if (store.folder !== binding.folder) throw new Error('Папка студии изменилась.');
+        if (store.folder !== binding.folder)
+          throw new Error(t('registerTeamHandlers.studioFolderChanged'));
         const settings = store.bootstrap().sections.imageTool as
           { connectionId?: string; modelId?: string } | undefined;
         if (!settings?.connectionId || !settings.modelId)
-          throw new Error('Настройте общее подключение и модель Images API в настройках студии.');
+          throw new Error(t('error.imageGeneration.configureTheSharedImagesApi'));
         if (!/^gpt-image-[a-zA-Z0-9._-]{1,120}$/.test(settings.modelId))
-          throw new Error('Выберите модель GPT Image в общих настройках инструмента.');
+          throw new Error(t('error.imageGeneration.selectAGptImageModel'));
         return { connectionId: settings.connectionId, modelId: settings.modelId };
       });
       const references = await readImageReferences(run.projectRoot, args.references);
@@ -161,20 +158,24 @@ export class ImageGeneration {
       );
       if (unresolved)
         throw new Error(
-          `Операция ${unresolved.id}: результат ${unresolved.state}. Запрос мог быть оплачен. Дождитесь нового обращения пользователя перед повтором или другой генерацией.`,
+          t('error.imageGeneration.operationResultTheRequestMay', {
+            value1: unresolved.id,
+            value2: unresolved.state,
+          }),
         );
       const previous = [...operations].reverse().find((item) => item.requestHash === requestHash);
       if (args.retryOperationId && previous?.id !== args.retryOperationId)
-        throw new Error(
-          'Повтор относится к другой или отсутствующей операции. Запрос не отправлен.',
-        );
+        throw new Error(t('error.imageGeneration.theRetryRefersToA'));
       if (
         previous &&
         ['pending', 'uncertain', 'save_failed'].includes(previous.state) &&
         !(args.retryOperationId === previous.id && previous.requestId !== requestId)
       )
         throw new Error(
-          `Операция ${previous.id}: результат ${previous.state}. Запрос мог быть оплачен. Прочитайте get_image_operation и спросите пользователя перед новым платным повтором.`,
+          t('error.imageGeneration.operationResultTheRequestMay2', {
+            value1: previous.id,
+            value2: previous.state,
+          }),
         );
       if (previous?.requestId === requestId && previous.state === 'saved') {
         const saved = previous.path
@@ -182,7 +183,7 @@ export class ImageGeneration {
           : undefined;
         if (!previous.path || !saved || saved.sha256 !== previous.sha256)
           throw new Error(
-            `Результат операции ${previous.id} изменён или удалён. Автоматической повторной генерации нет.`,
+            t('error.imageGeneration.theResultOfOperationWas', { value1: previous.id }),
           );
         return {
           operationId: previous.id,
@@ -195,7 +196,7 @@ export class ImageGeneration {
       }
       if (previous?.requestId === requestId && previous.state === 'failed')
         throw new Error(
-          `Операция ${previous.id} отклонена API. Исправьте подключение/параметры и дайте новый запрос в Pi; автоматического повтора нет.`,
+          t('error.imageGeneration.theApiRejectedOperationFix', { value1: previous.id }),
         );
       const authorization = await this.connections.authorization({
         folder: binding.folder,
@@ -277,7 +278,14 @@ export class ImageGeneration {
               : 'uncertain';
         await this.operations.save(binding.scope, operations).catch(() => {});
         throw new Error(
-          `${error instanceof ImagesApiError ? error.message : 'Не удалось завершить операцию изображения. Повтор не выполнен.'} Операция: ${operation.id}; состояние: ${operation.state}.`,
+          t('error.imageGeneration.operationState', {
+            value1:
+              error instanceof ImagesApiError
+                ? error.message
+                : t('error.imageGeneration.couldNotCompleteTheImage'),
+            value2: operation.id,
+            value3: operation.state,
+          }),
           { cause: error },
         );
       }

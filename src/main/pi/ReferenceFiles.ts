@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { open, mkdir, rm, writeFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { basename, extname, join } from 'node:path';
@@ -26,7 +27,7 @@ async function read(path: string) {
   try {
     const before = await file.stat();
     if (!before.isFile() || before.size > limit)
-      throw new Error('Референс должен быть обычным файлом размером до 256 МБ.');
+      throw new Error(t('error.referenceFiles.aReferenceMustBeA'));
     const bytes = await file.readFile();
     const after = await file.stat();
     if (
@@ -34,7 +35,7 @@ async function read(path: string) {
       before.mtimeMs !== after.mtimeMs ||
       before.ino !== after.ino
     )
-      throw new Error('Референс изменился во время чтения. Выберите его заново.');
+      throw new Error(t('error.referenceFiles.theReferenceChangedWhileBeing'));
     return bytes;
   } finally {
     await file.close();
@@ -53,14 +54,14 @@ export class ReferenceFiles {
   }
   release(ids: unknown) {
     if (!Array.isArray(ids) || ids.length > 128 || ids.some((id) => typeof id !== 'string'))
-      throw new Error('Некорректный список временных референсов.');
+      throw new Error(t('error.referenceFiles.invalidTemporaryReferenceList'));
     for (const id of ids) this.selected.delete(id);
   }
   async select(paths: string[], folder: string): Promise<ReferenceFile[]> {
     for (const [id, item] of this.selected)
       if (Date.now() - item.selectedAt > 4 * 3600_000) this.selected.delete(id);
     if (paths.length > 32 || this.selected.size + paths.length > 128)
-      throw new Error('Выберите не больше 32 референсов за один раз.');
+      throw new Error(t('error.referenceFiles.selectNoMoreThanReferences'));
     const items = [];
     for (const path of paths) {
       const bytes = await read(path);
@@ -79,19 +80,17 @@ export class ReferenceFiles {
   }
   validate(ids: unknown, folder: string, imageInput: boolean) {
     if (!Array.isArray(ids) || ids.length > 32 || new Set(ids).size !== ids.length)
-      throw new Error('Некорректный список референсов (максимум 32).');
+      throw new Error(t('error.referenceFiles.invalidReferenceListMaximum'));
     const items = ids.map((id) => {
       const item = typeof id === 'string' ? this.selected.get(id) : undefined;
       if (!item || item.folder !== folder || Date.now() - item.selectedAt > 4 * 3600_000)
-        throw new Error('Выберите референсы заново: файл или студия изменились.');
+        throw new Error(t('error.referenceFiles.selectReferencesAgainTheFile'));
       return item;
     });
     if (items.reduce((size, item) => size + item.file.size, 0) > limit)
-      throw new Error('Общий размер референсов не должен превышать 256 МБ.');
+      throw new Error(t('error.referenceFiles.referencesMustTotalNoMore'));
     if (!imageInput && items.some((item) => item.file.type.startsWith('image/')))
-      throw new Error(
-        'Выбранная модель не подтверждает поддержку изображений. Выберите визуальную модель; референсы не отправлялись.',
-      );
+      throw new Error(t('error.referenceFiles.theSelectedModelDoesNot'));
     return items;
   }
   async attach(run: PreparedRun, ids: unknown, folder: string, imageInput: boolean) {
@@ -106,7 +105,9 @@ export class ReferenceFiles {
         const bytes = await read(item.path);
         const sha256 = createHash('sha256').update(bytes).digest('hex');
         if (sha256 !== item.sha256)
-          throw new Error(`Референс «${item.file.name}» изменился. Выберите его заново.`);
+          throw new Error(
+            t('error.referenceFiles.referenceChangedSelectItAgain', { value1: item.file.name }),
+          );
         const id = randomUUID();
         const relative = `${base}/attachments/${id}/${item.file.name}`;
         const target = await safePath(run.projectRoot, relative, true);
@@ -115,15 +116,19 @@ export class ReferenceFiles {
         const attachment: SavedAttachment = { ...item.file, id, sha256, path: relative };
         if (item.file.type.startsWith('image/')) {
           if (bytes.length > 32 * 1024 * 1024)
-            throw new Error('Изображение больше 32 МБ. Уменьшите его перед запуском.');
+            throw new Error(t('error.referenceFiles.theImageExceedsMbReduce'));
           if (['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(item.file.type))
             attachment.image = { path: relative, mimeType: item.file.type };
           else {
             if (!this.convert)
-              throw new Error(`Нет конвертера ${item.file.type}. Референс не отправлен.`);
+              throw new Error(
+                t('error.referenceFiles.noConverterAvailableTheReference', {
+                  value1: item.file.type,
+                }),
+              );
             const converted = await this.convert(target, item.file.type);
             if (!converted.length || converted.length > 32 * 1024 * 1024)
-              throw new Error('Не удалось подготовить PNG-референс размером до 32 МБ.');
+              throw new Error(t('error.referenceFiles.couldNotPrepareAPng'));
             const imagePath = `${base}/attachments/${id}/.pistudio-reference.png`;
             await writeFile(await safePath(run.projectRoot, imagePath, true), converted, {
               flag: 'wx',

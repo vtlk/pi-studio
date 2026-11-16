@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { dirname } from 'node:path';
 import { promisify } from 'node:util';
@@ -11,7 +12,7 @@ import { powershellLiteral } from './windowsShell.ts';
 const execute = promisify(execFile);
 export function providerId(value: unknown): string {
   if (typeof value !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/.test(value))
-    throw new Error('Некорректный ID провайдера Pi.');
+    throw new Error(t('error.provider.invalidPiProviderId'));
   return value;
 }
 export function shellQuote(value: string) {
@@ -55,7 +56,7 @@ export async function getProviderStatus(path: string, provider: string): Promise
       !('stdout' in error) ||
       typeof error.stdout !== 'string'
     )
-      throw new Error('Не удалось проверить авторизацию Pi.', { cause: error });
+      throw new Error(t('error.provider.couldNotCheckPiAuthentication'), { cause: error });
     output = error.stdout;
   }
   const result: unknown = JSON.parse(output);
@@ -65,19 +66,19 @@ export async function getProviderStatus(path: string, provider: string): Promise
     !('status' in result) ||
     !['ready', 'not_ready', 'invalid'].includes(String(result.status))
   )
-    throw new Error('Pi вернул неподдерживаемый ответ проверки авторизации.');
+    throw new Error(t('error.provider.piReturnedAnUnsupportedAuthenticatio'));
   return { provider: id, status: result.status as ProviderStatus['status'] };
 }
 export async function openProviderLogin(path: string, provider: string, cwd: string) {
   const id = providerId(provider);
   const pi = await checkPi(path);
   if (!pi.supported)
-    throw new Error(`Pi ${pi.version} ещё не проверен со Studio. Поддерживается 1.5.2.`);
+    throw new Error(t('error.provider.piHasNotBeenVerified', { value1: pi.version }));
   if (process.platform === 'win32') {
     const node = await piNode(pi.path);
     await openWindowsPowerShellCommand(
       `Set-Location -LiteralPath ${powershellLiteral(cwd)}; $env:PATH = ${powershellLiteral(piEnvironment(dirname(node)).PATH)}; & ${powershellLiteral(node)} ${powershellLiteral(pi.path)} auth login ${powershellLiteral(id)}`,
-      'Pi · Авторизация',
+      t('error.provider.piSignIn'),
     );
     return;
   }

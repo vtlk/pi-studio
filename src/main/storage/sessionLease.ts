@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { WorkspaceProject } from '../../shared/project.ts';
 import { agentDirectory } from '../../shared/agentPaths.ts';
 import { execFile } from 'node:child_process';
@@ -38,7 +39,7 @@ export async function hasLiveSessionLease(cwd: string) {
     return /[\\/]session\.mjs/.test(stdout) && stdout.includes(lease.runId);
   } catch (error) {
     if (error && typeof error === 'object' && 'code' in error && error.code === 1) return false;
-    throw new Error('Не удалось проверить, закрыт ли диалог Pi. Повторите операцию.', {
+    throw new Error(t('error.sessionLease.couldNotCheckWhetherThe'), {
       cause: error,
     });
   }
@@ -51,8 +52,6 @@ export async function assertProjectSessionsClosed(project: WorkspaceProject, roo
   ]) {
     const cwd = await safePath(root, agentDirectory(agent.outputPath), true);
     if (await hasLiveSessionLease(cwd))
-      throw new Error(
-        'В проекте ещё открыт другой процесс Pi. Закройте диалог перед переносом папки.',
-      );
+      throw new Error(t('error.sessionLease.anotherPiProcessIsStill'));
   }
 }

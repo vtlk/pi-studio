@@ -1,3 +1,5 @@
+import { resourceVersion } from '@/shared/model/localizedResources';
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
@@ -48,7 +50,7 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           <dt>{t('LocalSkillInfo.skillFolder')}</dt>
           <dd>{resource.source || t('ResourceEditor.notImported')}</dd>
           <dt>{t('ResourceEditor.version')}</dt>
-          <dd>{resource.version || t('ResourceEditor.notPinned')}</dd>
+          <dd>{resourceVersion(resource) || t('ResourceEditor.notPinned')}</dd>
           <dt>{t('ResourceEditor.contents')}</dt>
           <dd>{t('ResourceEditor.skillMdAndSupportingFiles')}</dd>
         </dl>
@@ -122,12 +124,14 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           {!window.studio && (
             <div className="action-row">
               <Button
-                onClick={() => demo(t('ResourceEditor.mcpAuthenticationHasNotBeenPerformedThe'))}
+                onClick={() =>
+                  demo(uiText('ResourceEditor.mcpAuthenticationHasNotBeenPerformedThe'))
+                }
               >
                 {t('ResourceEditor.authenticate')}
               </Button>
               <Button
-                onClick={() => demo(t('ResourceEditor.connectionNotCheckedMcpIsNotConnected'))}
+                onClick={() => demo(uiText('ResourceEditor.connectionNotCheckedMcpIsNotConnected'))}
               >
                 {t('ClaudeCodeAuth.checkConnection')}
               </Button>
@@ -153,7 +157,7 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           {draft.kind === 'plugins' && window.studio && (
             <p className="subtle">
               {t('ResourceEditor.installedVersion')}
-              {resource.version || t('ResourceEditor.unknown')}
+              {resourceVersion(resource) || t('ResourceEditor.unknown')}
               {t('ResourceEditor.setThePackageVersionInItsSource')}
             </p>
           )}
@@ -169,8 +173,8 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
               onClick={() =>
                 demo(
                   draft.kind === 'skills'
-                    ? t('ResourceEditor.fileImportIsNotConnectedYetThe')
-                    : t('ResourceEditor.packageInstallationIsNotConnectedYetSource'),
+                    ? uiText('ResourceEditor.fileImportIsNotConnectedYetThe')
+                    : uiText('ResourceEditor.packageInstallationIsNotConnectedYetSource'),
                 )
               }
             >

@@ -1,4 +1,5 @@
-import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { uiText } from '@/shared/model/UiText';
+import { i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
 import { useStorage } from '@/shared/storage/Storage';
@@ -43,18 +44,18 @@ export function LegacyTemplateCleanup() {
       const oldResources = resources.filter((_, index) => resourceMatches[index]);
       if (!oldAgents.length && !oldConnections.length && !oldResources.length) return;
       confirm({
-        title: t('LegacyTemplateCleanup.removeSavedPrototypeTemplates'),
-        description: t(
+        title: uiText('LegacyTemplateCleanup.removeSavedPrototypeTemplates'),
+        description: uiText(
           'LegacyTemplateCleanup.unchangedExamplesFoundAgentsConnectionsResourcesRemove',
           { value1: oldAgents.length, value2: oldConnections.length, value3: oldResources.length },
         ),
-        confirmLabel: t('LegacyTemplateCleanup.removeTemplates'),
+        confirmLabel: uiText('LegacyTemplateCleanup.removeTemplates'),
         onConfirm: () => {
           oldAgents.forEach(({ agent }) => removeAgent(agent.id));
           oldConnections.forEach((connection) => removeConnection(connection.id));
           oldResources.forEach((resource) => removeResource(resource.kind, resource.id));
-          demo(t('LegacyTemplateCleanup.prototypeTemplatesRemovedFromSharedSettings'), {
-            label: t('useResourceUnlink.undo'),
+          demo(uiText('LegacyTemplateCleanup.prototypeTemplatesRemovedFromSharedSettings'), {
+            label: uiText('useResourceUnlink.undo'),
             onClick: () => {
               oldAgents.forEach(({ agent, index, teamId }) => restoreAgent(agent, index, teamId));
               oldConnections.forEach(saveConnection);
@@ -67,7 +68,7 @@ export function LegacyTemplateCleanup() {
     void review().catch(() => {
       if (!disposed) {
         reviewed.current = true;
-        demo(t('LegacyTemplateCleanup.couldNotCheckPreviousTemplatesSavedData'));
+        demo(uiText('LegacyTemplateCleanup.couldNotCheckPreviousTemplatesSavedData'));
       }
     });
     return () => {

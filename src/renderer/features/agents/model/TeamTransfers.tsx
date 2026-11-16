@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -98,7 +99,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     setMessage(text);
     if (notify)
       demo(text, {
-        label: t('TeamTransfers.report'),
+        label: uiText('TeamTransfers.report'),
         onClick: () => {
           setDetails(true);
           void refreshReports();

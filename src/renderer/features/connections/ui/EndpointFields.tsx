@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Cpu } from 'lucide-react';
@@ -115,7 +116,7 @@ export function EndpointFields({
             actions={
               <HoverDeleteButton
                 disabled={disabled}
-                label={t('EndpointFields.deleteModel', { value1: model.id || index + 1 })}
+                label={uiText('EndpointFields.deleteModel', { value1: model.id || index + 1 })}
                 onDelete={() =>
                   update({
                     ...connection,

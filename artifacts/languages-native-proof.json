@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T13:28:35.792Z",
+  "checkedAt": "2026-11-16T17:40:17.178Z",
   "nativeMainPreloadRenderer": true,
   "phases": [
     {
@@ -7,6 +7,11 @@
       "initialLanguage": "ru",
       "explicitChoiceSurvivesRestart": false,
       "launches": 0,
+      "browserLaunches": 0,
+      "forbiddenActions": 0,
+      "uiAudit": [
+        "native startup diagnostics use the resolved language"
+      ],
       "errors": []
     },
     {
@@ -14,6 +19,16 @@
       "initialLanguage": "en",
       "explicitChoiceSurvivesRestart": false,
       "launches": 0,
+      "browserLaunches": 0,
+      "forbiddenActions": 0,
+      "uiAudit": [
+        "plugin catalog and nested package modal; live RU/EN",
+        "all pinned MCP names, descriptions, loaded browser status and permissions",
+        "built-in MCP picker",
+        "skill catalog and nested creation modal",
+        "settings catalog and browser/computer detail modals",
+        "live confirmation and Undo notice; stable team restoration"
+      ],
       "errors": []
     },
     {
@@ -21,6 +36,9 @@
       "initialLanguage": "ru",
       "explicitChoiceSurvivesRestart": true,
       "launches": 0,
+      "browserLaunches": 0,
+      "forbiddenActions": 0,
+      "uiAudit": [],
       "errors": []
     }
   ],
@@ -28,13 +46,28 @@
   "userDataChanged": false,
   "osLanguageChanged": false,
   "nativeWindowsAccepted": false,
-  "isolatedSourceTree": "60486e03480bceee36689d64eec2398872f95e73",
-  "isolatedSourceChecks": {
-    "unitTestsPassed": 329,
+  "isolatedSourceTree": "8ad2047a48b976b69a9126df514cfa210e4e6514",
+  "checks": {
+    "unitTestsPassed": 326,
     "typecheck": true,
     "lint": true,
     "architecture": true,
     "nativeBuildGuard": true
   },
-  "workspaceUnitTestsPassed": 348
+  "coverage": [
+    "all five built-in MCP metadata entries by stable ID, including stale saved labels",
+    "agent tab labels in catalogs and nested modals",
+    "legacy reasoning display in model and prompt summaries",
+    "system profile labels without rewriting names",
+    "reactive browser and computer status labels",
+    "confirmations, notifications and Undo without language snapshots",
+    "660 additional native diagnostic messages and sign-in progress",
+    "native startup diagnostics after resolving the app language"
+  ],
+  "preservedContent": [
+    "user names and profile text",
+    "prompt and skill contents",
+    "legacy persisted values and runtime identifiers",
+    "existing transcripts and imported package contents"
+  ]
 }

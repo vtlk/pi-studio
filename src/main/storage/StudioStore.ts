@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { mkdir, realpath } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 import type {
@@ -36,7 +37,7 @@ export class StudioStore {
   }
   static async open(folder: string) {
     if (typeof folder !== 'string' || !isAbsolute(folder) || folder.includes('\0'))
-      throw new Error('Нужен абсолютный путь к папке студии.');
+      throw new Error(t('error.studioStore.anAbsoluteStudioFolderPath'));
     await mkdir(folder, { recursive: true });
     const store = new StudioStore(await realpath(folder));
     await mkdir(await safePath(store.folder, '.pistudio', true), { recursive: true });
@@ -49,7 +50,9 @@ export class StudioStore {
     } catch (error) {
       if (!isMissing(error))
         throw new Error(
-          `Не удалось открыть studio.json: ${error instanceof Error ? error.message : 'ошибка'}`,
+          t('error.studioStore.couldNotOpenStudioJson', {
+            value1: error instanceof Error ? error.message : t('useNativeWorkspaceState.error'),
+          }),
           { cause: error },
         );
       await atomicJson(file, { schemaVersion: 1, sections: {} });
@@ -116,13 +119,13 @@ export class StudioStore {
       ((this.sections.systemAgents ?? []) as SystemAgent[]).map((agent) => agent.id),
     );
     if (agents.some((agent) => systemIds.has(agent.id)))
-      throw new Error('Системный помощник не входит в импортируемые команды.');
+      throw new Error(t('error.studioStore.theSystemAssistantIsExcluded'));
     if (
       previous.teams.some((item) => item.id === team.id) ||
       agents.some((agent) => previous.agents.some((item) => item.id === agent.id)) ||
       resources.some((resource) => currentResources.some((item) => item.id === resource.id))
     )
-      throw new Error('ID импорта уже используется. Существующие данные не изменены.');
+      throw new Error(t('error.studioStore.thisImportIdIsAlready'));
     const catalog = parseSection('agentCatalog', {
       agents: [...previous.agents, ...agents],
       teams: [...previous.teams, team],
@@ -147,7 +150,7 @@ export class StudioStore {
       section === 'systemAgents' &&
       (validated as SystemAgent[]).some((item) => item.systemRole !== 'assistant')
     )
-      throw new Error('В системной группе остаётся только помощник настройки.');
+      throw new Error(t('error.studioStore.onlyTheSetupAssistantRemains'));
     if (section === 'systemAgents' && systems) {
       const next = validated as SystemAgent[];
       if (
@@ -156,14 +159,14 @@ export class StudioStore {
             !next.some((item) => item.systemRole === agent.systemRole && item.id === agent.id),
         )
       )
-        throw new Error('Системные профили нельзя удалять, заменять или создавать вручную.');
+        throw new Error(t('error.studioStore.systemProfilesCannotBeDeleted'));
     }
     if (
       section === 'agents' &&
       systems &&
       (validated as Agent[]).some((agent) => systems.some((system) => system.id === agent.id))
     )
-      throw new Error('Системные профили не являются шаблонами для проектов.');
+      throw new Error(t('error.studioStore.systemProfilesAreNotProject'));
     const sections =
       section === 'agentCatalog'
         ? {
@@ -183,7 +186,7 @@ export class StudioStore {
         systems.some((system) => system.id === agent.id),
       )
     )
-      throw new Error('Системный помощник не входит в команды.');
+      throw new Error(t('error.studioStore.theSystemAssistantIsExcluded2'));
     await atomicJson(await safePath(this.folder, '.pistudio/studio.json'), {
       schemaVersion: 1,
       sections,
@@ -197,7 +200,7 @@ export class StudioStore {
     edit: SectionEdit,
   ): Promise<SectionSaveResult> {
     if (!edit || edit.folder !== this.folder)
-      throw new Error('Папка студии изменилась. Правки не записаны в другую студию.');
+      throw new Error(t('error.studioStore.theStudioFolderChangedEdits'));
     const local = parseSection(section, value);
     const base = parseSection(section, edit.base);
     const current =
@@ -216,7 +219,7 @@ export class StudioStore {
           command.agents.map((agent) => snapshotAgent(agent).profile),
         )
       )
-        throw new Error('Состав команды изменился. Перечитайте настройки перед созданием проекта.');
+        throw new Error(t('error.studioStore.theTeamMembershipChangedReload'));
       command = { ...command, agents: current };
     }
     if (command.kind === 'update-agents') {
@@ -229,7 +232,7 @@ export class StudioStore {
             command.agents.map((agent) => snapshotAgent(agent).profile),
           )
         )
-          throw new Error('Состав исходной команды изменился. Откройте сравнение заново.');
+          throw new Error(t('error.studioStore.theSourceTeamMembershipChanged'));
         command = { ...command, agents: current };
       }
     }
@@ -239,7 +242,7 @@ export class StudioStore {
         (this.sections.systemAgents as SystemAgent[]).some((system) => system.id === agent.id),
       )
     )
-      throw new Error('Системные агенты не включаются в проектные снимки.');
+      throw new Error(t('error.studioStore.systemAgentsAreExcludedFrom'));
     const result = await this.projects.command(command);
     await this.accounting.reconcile(
       result.projects,
@@ -280,7 +283,7 @@ export class StudioService {
         !('folder' in saved) ||
         typeof saved.folder !== 'string'
       )
-        throw new Error('Некорректный путь последней студии.');
+        throw new Error(t('error.studioStore.invalidLastStudioPath'));
       folder = saved.folder;
     } catch (error) {
       if (!isMissing(error)) throw error;

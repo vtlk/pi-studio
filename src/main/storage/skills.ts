@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { lstat, realpath } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -9,36 +10,33 @@ import type { Resource, SkillDocument } from '../../shared/resources.ts';
 export function parseSkill(content: string) {
   const normalized = content.replace(/^\uFEFF/, '').replaceAll('\r\n', '\n');
   const match = /^---\n([\s\S]*?)\n---(?:\n|$)/.exec(normalized);
-  if (!match || match[1].length > 20_000)
-    throw new Error('SKILL.md должен начинаться с YAML-заголовка name/description (до 20 КБ).');
+  if (!match || match[1].length > 20_000) throw new Error(t('error.skills.skillMdMustStartWith'));
   const document = parseDocument(match[1], { uniqueKeys: true, logLevel: 'silent' });
   if (document.errors.length || document.warnings.length)
-    throw new Error('Некорректный YAML-заголовок SKILL.md.');
+    throw new Error(t('error.skills.invalidSkillMdYamlFront'));
   const metadata = record(document.toJS({ maxAliasCount: 50 }));
   if (
     typeof metadata.name !== 'string' ||
     metadata.name.length > 64 ||
     !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.name)
   )
-    throw new Error('Имя skill: до 64 строчных латинских букв, цифр и одиночных дефисов.');
+    throw new Error(t('error.skills.skillNameUpToLowercase'));
   if (
     typeof metadata.description !== 'string' ||
     !metadata.description.trim() ||
     metadata.description.length > 1024
   )
-    throw new Error('description навыка обязателен и не должен быть длиннее 1024 символов.');
+    throw new Error(t('error.skills.aSkillDescriptionIsRequired'));
   return { name: metadata.name, description: metadata.description.trim(), content };
 }
 export async function inspectSkill(source: string): Promise<SkillDocument> {
   if (typeof source !== 'string' || !isAbsolute(source) || source.includes('\0'))
-    throw new Error('Нужен полный путь к папке skill или SKILL.md.');
+    throw new Error(t('error.skills.aFullPathToThe'));
   const selected = await realpath(source);
   const file = (await lstat(selected)).isDirectory() ? join(selected, 'SKILL.md') : selected;
-  if (basename(file) !== 'SKILL.md')
-    throw new Error('Выберите SKILL.md или папку, содержащую этот файл.');
+  if (basename(file) !== 'SKILL.md') throw new Error(t('error.skills.selectSkillMdOrA'));
   const canonicalFile = await realpath(file);
-  if (basename(canonicalFile) !== 'SKILL.md')
-    throw new Error('Ссылка должна указывать на файл с именем SKILL.md.');
+  if (basename(canonicalFile) !== 'SKILL.md') throw new Error(t('error.skills.theLinkMustPointTo'));
   return { ...parseSkill(await readText(canonicalFile)), source: dirname(canonicalFile) };
 }
 export async function importSkill(source: string, existing: Resource[]): Promise<Resource> {
@@ -52,9 +50,7 @@ export async function importSkill(source: string, existing: Resource[]): Promise
         resource.kind === 'skills' && resource.name === skill.name && resource.id !== previous?.id,
     )
   )
-    throw new Error(
-      'Skill с таким именем уже есть в каталоге. Pi не может однозначно выбрать два навыка с одинаковым именем.',
-    );
+    throw new Error(t('error.skills.aSkillWithThisName'));
   return {
     id:
       previous?.id ??

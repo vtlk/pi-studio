@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import semver from 'semver';
 import type { UpdateManifest, UpdatePlatform } from '../../shared/updates.ts';
 
@@ -10,10 +11,10 @@ export interface UpdateTarget {
 /** OS APIs may omit a patch number or include a Windows revision; metadata uses three parts. */
 export function normalizeOsVersion(value: string) {
   if (!/^\d+(?:\.\d+){0,3}$/.test(value))
-    throw new Error('Не удалось определить версию операционной системы.');
+    throw new Error(t('error.releasePolicy.couldNotDetermineTheOperating'));
   const parts = value.split('.').map(Number);
   if (parts.some((part) => !Number.isSafeInteger(part)))
-    throw new Error('Недопустимая версия операционной системы.');
+    throw new Error(t('error.releasePolicy.invalidOperatingSystemVersion'));
   return [parts[0], parts[1] ?? 0, parts[2] ?? 0].join('.');
 }
 export function newerInChannel(current: string, candidate: string) {

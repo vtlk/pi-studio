@@ -1,3 +1,4 @@
+import { t } from '../../../shared/i18n/index.ts';
 import { isDeepStrictEqual } from 'node:util';
 import type { TerminalIdentity } from '../../../shared/runtime.ts';
 import { join } from 'node:path';
@@ -14,7 +15,7 @@ const profile = {
   closeOnExit: 'graceful',
 };
 function localData(root = process.env.LOCALAPPDATA) {
-  if (!root) throw new Error('Папка LocalAppData недоступна для профиля Windows Terminal.');
+  if (!root) throw new Error(t('error.windowsProfile.localappdataFolderUnavailableForThe'));
   return root;
 }
 export async function ensureWindowsProfile(root = localData()) {
@@ -22,9 +23,7 @@ export async function ensureWindowsProfile(root = localData()) {
   try {
     const current = JSON.parse(await readText(path, 65536));
     if (!isDeepStrictEqual(current, { profiles: [profile] }))
-      throw new Error(
-        'Профиль Pi Studio в Windows Terminal изменён. Он не перезаписывался; проверьте его настройки.',
-      );
+      throw new Error(t('error.windowsProfile.thePiStudioProfileIn'));
   } catch (error) {
     if (!isMissing(error)) throw error;
     await atomicJson(path, { profiles: [profile] });
@@ -35,11 +34,12 @@ export function checkWindowsProfileSettings(text: string) {
   const errors: ParseError[] = [];
   const value = parse(text.replace(/^\uFEFF/, ''), errors, { allowTrailingComma: true });
   if (errors.length || !value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error('Не удалось прочитать настройки Windows Terminal.');
+    throw new Error(t('error.windowsProfile.couldNotReadWindowsTerminal'));
   if (value.disabledProfileSources?.includes('PiStudio'))
-    throw new Error('Профиль Pi Studio отключён в Windows Terminal.');
+    throw new Error(t('error.windowsProfile.thePiStudioProfileIs'));
   const profiles = Array.isArray(value.profiles) ? value.profiles : (value.profiles?.list ?? []);
-  if (!Array.isArray(profiles)) throw new Error('Не удалось определить профили Windows Terminal.');
+  if (!Array.isArray(profiles))
+    throw new Error(t('error.windowsProfile.couldNotDetermineWindowsTerminal'));
   const settings = [
     value.profiles?.defaults,
     ...profiles.filter(
@@ -52,15 +52,13 @@ export function checkWindowsProfileSettings(text: string) {
       Object.hasOwn(setting, 'closeOnExit') &&
       !['graceful', 'automatic', 'always', true].includes(setting.closeOnExit)
     )
-      throw new Error(
-        'Windows Terminal настроен оставлять вкладку Pi открытой. Настройки пользователя не изменялись; автоматическая цепочка приостановлена.',
-      );
+      throw new Error(t('error.windowsProfile.windowsTerminalIsConfiguredTo'));
 }
 /** App-owned fragment only; never rewrite the user's settings.json or other profiles. */
 export async function verifyWindowsProfile(root = localData()) {
   const fragment = JSON.parse(await readText(await safePath(root, fragmentPath), 65536));
   if (!isDeepStrictEqual(fragment, { profiles: [profile] }))
-    throw new Error('Профиль Pi Studio изменён; автоматическое закрытие отменено.');
+    throw new Error(t('error.windowsProfile.thePiStudioProfileWas'));
   const candidates = [
     'Microsoft/Windows Terminal/settings.json',
     'Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json',

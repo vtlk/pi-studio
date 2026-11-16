@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -45,11 +46,11 @@ export function RefreshAgentsDialog({ onClose }: { onClose: () => void }) {
               if ((await refreshAgents(updateExisting)) === false) return;
               demo(
                 isDesktop
-                  ? t('RefreshAgentsDialog.agentListSynchronizedFilesAndPiHistory')
-                  : t('RefreshAgentsDialog.agentSnapshotUpdatedInPrototypeMemory'),
+                  ? uiText('RefreshAgentsDialog.agentListSynchronizedFilesAndPiHistory')
+                  : uiText('RefreshAgentsDialog.agentSnapshotUpdatedInPrototypeMemory'),
                 diff.missing.length
                   ? {
-                      label: t('RefreshAgentsDialog.restoreRemovedAgents'),
+                      label: uiText('RefreshAgentsDialog.restoreRemovedAgents'),
                       onClick: async () => {
                         for (const agent of diff.missing)
                           await restoreProjectAgent(selectedProject.id, agent.id);

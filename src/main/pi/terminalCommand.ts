@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { openWindowsShellCommand } from './windowsTerminal.ts';
@@ -41,18 +42,15 @@ end run`;
       'stderr' in error &&
       String(error.stderr).includes('-1743')
     )
-      throw new Error(
-        'Разрешите Pi Studio управлять Terminal: Системные настройки → Конфиденциальность и безопасность → Автоматизация.',
-        { cause: error },
-      );
-    throw new Error('Не удалось открыть диалог в Terminal. Повторите запуск.', { cause: error });
+      throw new Error(t('error.terminalCommand.allowPiStudioToControl'), { cause: error });
+    throw new Error(t('error.terminalCommand.couldNotOpenTheDialogue'), { cause: error });
   }
 }
 
 /** Focus only the Terminal tab which owns this live bridge's TTY; never launch or send input. */
 export async function activateTerminalProcess(pid: number, run: Execute = execute, title?: string) {
   if (!Number.isSafeInteger(pid) || pid < 2)
-    throw new Error('Не удалось определить окно выбранного диалога Pi.');
+    throw new Error(t('error.terminal.couldNotIdentifyTheSelected'));
   let tty: string;
   try {
     const result = await run('/bin/ps', ['-p', String(pid), '-o', 'tty='], {
@@ -68,9 +66,7 @@ export async function activateTerminalProcess(pid: number, run: Execute = execut
         : '';
     if (!/^(?:ttys\d+|tty\d+)$/.test(tty)) throw new Error('Missing Terminal TTY');
   } catch {
-    throw new Error(
-      'Окно выбранного диалога Pi больше недоступно. Повторите открытие после завершения запроса.',
-    );
+    throw new Error(t('error.terminalCommand.theSelectedPiDialogueS'));
   }
   const script = `on run argv
   set targetTTY to item 1 of argv
@@ -109,11 +105,8 @@ end run`;
       'stderr' in error &&
       String(error.stderr).includes('-1743')
     )
-      throw new Error(
-        'Разрешите Pi Studio управлять Terminal: Системные настройки → Конфиденциальность и безопасность → Автоматизация.',
-        { cause: error },
-      );
-    throw new Error('Не удалось найти окно выбранного диалога Pi. Другой диалог не открывался.', {
+      throw new Error(t('error.terminalCommand.allowPiStudioToControl'), { cause: error });
+    throw new Error(t('error.terminalCommand.couldNotFindTheSelected'), {
       cause: error,
     });
   }

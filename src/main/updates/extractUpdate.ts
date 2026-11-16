@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { mkdir, open, symlink, chmod } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { crc32 } from 'node:zlib';
@@ -52,13 +53,13 @@ export async function extractUpdate(
           const chunk = Buffer.from(input);
           length += chunk.length;
           if (length > entry.uncompressedSize || (link && length > 4096))
-            throw new Error('Распакованный файл превышает допустимый размер.');
+            throw new Error(t('error.extractUpdate.theUnpackedFileExceedsThe'));
           checksum = crc32(chunk, checksum);
           if (link) chunks.push(chunk);
           else await handle!.writeFile(chunk);
         }
         if (length !== entry.uncompressedSize || checksum !== entry.crc32)
-          throw new Error('Повреждён файл в архиве обновления (CRC).');
+          throw new Error(t('error.extractUpdate.damagedFileInTheUpdate'));
         if (handle) {
           await handle.chmod(mode & 0o777 || 0o644);
           await handle.sync();

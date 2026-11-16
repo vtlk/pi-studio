@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { ContinuationCancelled } from './RunTypes.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { RunHost } from './RunHost.ts';
@@ -69,7 +70,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)
-        : Promise.reject(new Error('Неизвестный инструмент проекта.')),
+        : Promise.reject(new Error(t('error.createStudioRunHost.unknownProjectTool'))),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,
@@ -85,22 +86,21 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           typeof request.autoContinue !== 'boolean' ||
           (request.firstMessage !== undefined && typeof request.firstMessage !== 'string')
         )
-          throw new Error('Некорректный запрос запуска.');
+          throw new Error(t('error.createStudioRunHost.invalidLaunchRequest'));
         const store = await service.load();
         let project = await store.projects.read(request.projectId);
         const savedAgent = project.agents.find((item) => item.profile.id === request.agentId);
-        if (!savedAgent) throw new Error('Агент отсутствует в проекте.');
-        if (!savedAgent.profile.enabled) throw new Error('Агент выключен.');
+        if (!savedAgent) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
+        if (!savedAgent.profile.enabled) throw new Error(t('session.agentDisabled'));
         const sections = store.bootstrap().sections;
         const current = (sections.agents as Agent[]).find((agent) => agent.id === request.agentId);
-        if (!current)
-          throw new Error('Профиль агента удалён из конструктора. Другой агент не подставляется.');
+        if (!current) throw new Error(t('error.createStudioRunHost.theAgentProfileWasDeleted'));
         const profile = current;
         if (
           project.agents.find((item) => item.profile.id === request.agentId)?.session &&
           request.attachments?.length
         )
-          throw new Error('Продолжение диалога не отправляет референсы повторно.');
+          throw new Error(t('error.createStudioRunHost.resumingADialogueDoesNot'));
         const piPath = String(sections.piPath ?? '') || options.piPath();
         const { model, selectedModel, modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
           profile.model,
@@ -108,7 +108,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           { ...options, folder: store.folder, piPath },
         );
         if (request.attachments?.length && !options.references)
-          throw new Error('Передача референсов недоступна.');
+          throw new Error(t('error.createStudioRunHost.referenceTransferUnavailable'));
         options.references?.validate(
           request.attachments ?? [],
           store.folder,
@@ -141,7 +141,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       service.serialize(async () => {
         const store = await service.load();
         if ((await store.projects.directory(run.project.id)) !== run.projectRoot)
-          throw new Error('Папка студии изменилась во время работы Pi.');
+          throw new Error(t('error.createStudioRunHost.theStudioFolderChangedWhile'));
         return store.accounting.enrich(
           await store.projects.updateRuntime(
             run.project.id,

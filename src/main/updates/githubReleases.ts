@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import semver from 'semver';
 import type { UpdateManifest, UpdateOffer } from '../../shared/updates.ts';
 import { manifestName, maxManifestBytes, verifyManifest } from './manifest.ts';
@@ -51,7 +52,8 @@ function release(value: unknown, target: UpdateTarget): value is Release {
 }
 function uniqueAsset(item: Release, name: string) {
   const matches = item.assets.filter((asset) => asset.name === name);
-  if (matches.length > 1) throw new Error('GitHub вернул неоднозначные файлы обновления.');
+  if (matches.length > 1)
+    throw new Error(t('error.githubReleases.githubReturnedAmbiguousUpdateFiles'));
   return matches[0];
 }
 export async function checkGitHubReleases(options: {
@@ -68,10 +70,11 @@ export async function checkGitHubReleases(options: {
       options.fetch,
     );
     const data: unknown = JSON.parse((await boundedBody(response, 4 * 1024 ** 2)).toString('utf8'));
-    if (!Array.isArray(data)) throw new Error('GitHub вернул неверный список релизов.');
+    if (!Array.isArray(data))
+      throw new Error(t('error.githubReleases.githubReturnedAnInvalidRelease'));
     releases.push(...data.filter((item) => release(item, options.target)));
     if (data.length < 100) break;
-    if (page === 10) throw new Error('Список релизов слишком велик; проверка не завершена.');
+    if (page === 10) throw new Error(t('error.githubReleases.theReleaseListIsToo'));
   }
   releases.sort((a, b) => semver.rcompare(a.tag_name.slice(1), b.tag_name.slice(1)));
   for (const item of releases) {
@@ -80,15 +83,15 @@ export async function checkGitHubReleases(options: {
     const metadata = uniqueAsset(item, name);
     if (!metadata) continue; // Old ZIP-only releases are not eligible for automatic installation.
     if (metadata.size < 1 || metadata.size > maxManifestBytes)
-      throw new Error('Недопустимый размер метаданных обновления.');
+      throw new Error(t('error.githubReleases.invalidUpdateMetadataSize'));
     const manifestUrl = releaseAssetUrl(item.tag_name, name);
     const response = await githubResponse(manifestUrl, options.signal, options.fetch);
     const bytes = await boundedBody(response, maxManifestBytes);
     if (bytes.length !== metadata.size)
-      throw new Error('Метаданные обновления изменились во время чтения.');
+      throw new Error(t('error.githubReleases.updateMetadataChangedWhileBeing'));
     const manifest = verifyManifest(bytes, options.publicKey);
     if (manifest.version !== version)
-      throw new Error('Версия подписанного пакета не соответствует релизу.');
+      throw new Error(t('error.githubReleases.theSignedPackageVersionDoes'));
     if (!compatible(options.target, manifest)) continue;
     const archive = uniqueAsset(item, manifest.archive.name);
     if (!archive) continue;
@@ -96,7 +99,7 @@ export async function checkGitHubReleases(options: {
       archive.size !== manifest.archive.bytes ||
       (archive.digest !== undefined && archive.digest !== `sha256:${manifest.archive.sha256}`)
     )
-      throw new Error('Файл GitHub не соответствует подписанным метаданным обновления.');
+      throw new Error(t('error.githubReleases.theGithubFileDoesNot'));
     return {
       manifest,
       manifestUrl,

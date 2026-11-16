@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 export function plainText(html: string) {
   return html
     .replace(/<[^>]*>/g, ' ')
@@ -57,7 +58,7 @@ export function parseSearchResults(html: string) {
 /** Free public search for every provider; never falls back to a paid API. */
 export async function searchWeb(value: unknown) {
   if (typeof value !== 'string' || !value.trim() || value.length > 600)
-    throw new Error('Поисковый запрос: 1–600 символов.');
+    throw new Error(t('error.webSearch.searchQueryCharacters'));
   const query = value.trim();
   const url = new URL('https://html.duckduckgo.com/html/');
   url.searchParams.set('q', query);
@@ -86,14 +87,9 @@ export async function searchWeb(value: unknown) {
     }
     html = Buffer.concat(chunks).toString('utf8');
   } catch {
-    throw new Error(
-      'Бесплатный веб-поиск временно недоступен. Повторите позже или подключите поисковый MCP. Платный API не вызывался.',
-    );
+    throw new Error(t('error.webSearch.freeWebSearchIsTemporarily'));
   }
   const results = parseSearchResults(html);
-  if (!results.length)
-    throw new Error(
-      'Поиск не вернул доступных результатов или запросил проверку. Используйте штатный поиск модели либо подключённый поисковый MCP; платного переключения нет.',
-    );
+  if (!results.length) throw new Error(t('error.webSearch.searchReturnedNoAccessibleResults'));
   return { provider: 'DuckDuckGo public HTML search', query, results };
 }

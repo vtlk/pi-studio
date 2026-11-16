@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
 import { mkdir, readdir } from 'node:fs/promises';
 import { atomicJson, isMissing, readJson, safePath } from '../storage/files.ts';
@@ -27,7 +28,7 @@ export class TeamJournal {
     return path;
   }
   private async file(id: string, create = false) {
-    if (!/^[a-f0-9]{64}$/.test(id)) throw new Error('Недопустимый message_id.');
+    if (!/^[a-f0-9]{64}$/.test(id)) throw new Error(t('error.teamJournal.invalidMessageId'));
     await this.directory(create);
     return safePath(this.root, `.pistudio/team/messages/${id}.json`, create);
   }
@@ -58,7 +59,7 @@ export class TeamJournal {
         !Array.isArray(message.lineage) ||
         typeof message.createdAt !== 'number'
       )
-        throw new Error('Журнал team повреждён или принадлежит другому проекту.');
+        throw new Error(t('error.teamJournal.theTeamJournalIsDamaged'));
       return message;
     } catch (error) {
       if (!isMissing(error)) throw error;
@@ -76,7 +77,7 @@ export class TeamJournal {
         if (isMissing(error)) return [];
         throw error;
       }
-      if (files.length > 10000) throw new Error('Журнал team содержит более 10000 записей.');
+      if (files.length > 10000) throw new Error(t('error.teamJournal.theTeamJournalContainsMore'));
       const messages = [];
       for (const name of files.filter((name) => /^[a-f0-9]{64}\.json$/.test(name))) {
         // A cloned project retains provenance but never inherits runnable delivery jobs.
@@ -101,12 +102,12 @@ export class TeamJournal {
           existing.senderId !== message.senderId ||
           existing.requestId !== message.requestId
         )
-          throw new Error('Этот request_id уже использован для другого сообщения.');
+          throw new Error(t('error.teamJournal.thisRequestIdWasAlready'));
         return existing;
       }
       const directory = await this.directory(true);
       const files = await readdir(directory);
-      if (files.length >= 10000) throw new Error('Журнал team заполнен.');
+      if (files.length >= 10000) throw new Error(t('error.teamJournal.theTeamJournalIsFull'));
       const edges: [string, string][] = [];
       let pending = 0,
         lastOrder = 0;
@@ -120,7 +121,7 @@ export class TeamJournal {
           edges.push([other.senderId, other.recipientId]);
         }
       }
-      if (pending >= 100) throw new Error('В проекте уже 100 незавершённых поручений team.');
+      if (pending >= 100) throw new Error(t('error.teamJournal.theProjectAlreadyHasUnfinished'));
       const reachable = new Set([message.recipientId]);
       for (let changed = true; changed;) {
         changed = false;
@@ -130,7 +131,8 @@ export class TeamJournal {
             changed = true;
           }
       }
-      if (reachable.has(message.senderId)) throw new Error('Поручение создаст цикл ожидания team.');
+      if (reachable.has(message.senderId))
+        throw new Error(t('error.teamJournal.theTaskWouldCreateA'));
       const ordered = { ...message, queueOrder: lastOrder + 1 };
       await atomicJson(await this.file(message.id, true), ordered);
       return ordered;
@@ -139,7 +141,7 @@ export class TeamJournal {
   update(id: string, action: (message: TeamMessage) => TeamMessage) {
     return this.serial(async () => {
       const previous = await this.load(id);
-      if (!previous) throw new Error('Сообщение отсутствует.');
+      if (!previous) throw new Error(t('error.teamJournal.messageMissing'));
       const next = { ...action(previous), updatedAt: Date.now() };
       if (next.state !== 'queued') delete next.text;
       await atomicJson(await this.file(id), next);

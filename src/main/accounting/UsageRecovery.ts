@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import type { StudioService, StudioStore } from '../storage/StudioStore.ts';
 import { safePath } from '../storage/files.ts';
@@ -60,7 +61,7 @@ export class UsageRecovery {
     this.abort.abort();
   }
   hold() {
-    if (this.held) throw new Error('Учёт уже приостановлен для обновления.');
+    if (this.held) throw new Error(t('error.usageRecovery.accountingIsAlreadyPausedFor'));
     this.held = true;
     let released = false;
     return {

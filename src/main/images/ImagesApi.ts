@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { validatePngBytes } from '../storage/png.ts';
 import type { ImageReference } from './imageReferences.ts';
 
@@ -5,7 +6,7 @@ import { ImagesApiError, imagesApiFailure } from './imageApiError.ts';
 export { ImagesApiError } from './imageApiError.ts';
 
 async function readBody(response: Response, limit: number) {
-  if (!response.body) throw new Error('Пустой ответ Images API.');
+  if (!response.body) throw new Error(t('error.imagesApi.emptyImagesApiResponse'));
   const reader = response.body.getReader(),
     chunks: Uint8Array[] = [];
   let length = 0;
@@ -14,7 +15,7 @@ async function readBody(response: Response, limit: number) {
       const item = await reader.read();
       if (item.done) break;
       length += item.value.length;
-      if (length > limit) throw new Error('Ответ Images API превышает допустимый размер.');
+      if (length > limit) throw new Error(t('error.imagesApi.theImagesApiResponseExceeds'));
       chunks.push(item.value);
     }
     return JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>;
@@ -42,11 +43,9 @@ export function imageParameters(value: Record<string, unknown>): ImageParameters
         ),
     )
   )
-    throw new Error(
-      'Инструмент не принимает модель, ключ, endpoint или путь назначения от агента.',
-    );
+    throw new Error(t('error.imagesApi.theToolDoesNotAccept'));
   if (typeof value.prompt !== 'string' || !value.prompt.trim() || value.prompt.length > 32000)
-    throw new Error('Нужно непустое описание изображения до 32000 символов.');
+    throw new Error(t('error.imagesApi.provideANonemptyImageDescription'));
   const result = {
     prompt: value.prompt.trim(),
     size: value.size ?? 'auto',
@@ -58,7 +57,7 @@ export function imageParameters(value: Record<string, unknown>): ImageParameters
     !['auto', 'low', 'medium', 'high'].includes(String(result.quality)) ||
     !['auto', 'opaque', 'transparent'].includes(String(result.background))
   )
-    throw new Error('Неподдерживаемые параметры изображения.');
+    throw new Error(t('error.imagesApi.unsupportedImageParameters'));
   return result as ImageParameters;
 }
 export class ImagesApi {
@@ -75,18 +74,16 @@ export class ImagesApi {
         redirect: 'error',
       });
     } catch {
-      throw new Error(
-        'Не удалось проверить Images API. Проверьте сеть и повторите проверку; генерация не запускалась.',
-      );
+      throw new Error(t('error.imagesApi.couldNotCheckTheImages'));
     }
     if (!response.ok) return apiError(response, true);
     let body: Record<string, unknown>;
     try {
       body = await readBody(response, 2 * 1024 ** 2);
     } catch {
-      throw new Error('Images API вернул некорректный каталог. Генерация не запускалась.');
+      throw new Error(t('error.imagesApi.theImagesApiReturnedAn'));
     }
-    if (!Array.isArray(body.data)) throw new Error('Images API вернул несовместимый каталог.');
+    if (!Array.isArray(body.data)) throw new Error(t('error.imagesApi.theImagesApiReturnedAn2'));
     return [
       ...new Set(
         body.data
@@ -106,7 +103,7 @@ export class ImagesApi {
     references: readonly ImageReference[] = [],
   ) {
     if (!/^gpt-image-[a-zA-Z0-9._-]{1,120}$/.test(model))
-      throw new Error('Выберите модель GPT Image в общих настройках инструмента.');
+      throw new Error(t('error.imageGeneration.selectAGptImageModel'));
     let response: Response;
     const payload = { ...parameters, model, n: 1, output_format: 'png' };
     const multipart = references.length ? new FormData() : undefined;
@@ -136,14 +133,8 @@ export class ImagesApi {
       );
     } catch {
       if (signal.aborted)
-        throw new ImagesApiError(
-          'cancelled',
-          'Запрос к Images API отменён. API мог успеть выполнить его; автоматического повтора нет.',
-        );
-      throw new ImagesApiError(
-        'uncertain',
-        'Не удалось получить результат Images API. Запрос мог выполниться; автоматического повтора нет.',
-      );
+        throw new ImagesApiError('cancelled', t('error.imagesApi.theImagesApiRequestWas'));
+      throw new ImagesApiError('uncertain', t('error.imagesApi.couldNotRetrieveTheImages'));
     }
     if (!response.ok) return apiError(response);
     try {
@@ -155,14 +146,14 @@ export class ImagesApi {
         typeof data[0]?.b64_json !== 'string' ||
         !/^[A-Za-z0-9+/]+={0,2}$/.test(data[0].b64_json)
       )
-        throw new Error('Некорректный ответ изображения.');
+        throw new Error(t('error.imagesApi.invalidImageResponse'));
       const bytes = Buffer.from(data[0].b64_json, 'base64');
       if (
         bytes.length > 32 * 1024 ** 2 ||
         bytes.length < 8 ||
         !bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
       )
-        throw new Error('Images API не вернул поддерживаемый PNG.');
+        throw new Error(t('error.imagesApi.theImagesApiDidNot'));
       validatePngBytes(bytes);
       const usage: Record<string, number> = {};
       if (body.usage && typeof body.usage === 'object')
@@ -174,14 +165,8 @@ export class ImagesApi {
       return { bytes, ...(Object.keys(usage).length ? { usage } : {}) };
     } catch {
       if (signal.aborted)
-        throw new ImagesApiError(
-          'cancelled',
-          'Получение изображения отменено. Результат API не определён; автоматического повтора нет.',
-        );
-      throw new ImagesApiError(
-        'uncertain',
-        'Images API ответил, но изображение не получено полностью. Повтор может создать новый расход.',
-      );
+        throw new ImagesApiError('cancelled', t('error.imagesApi.imageRetrievalCancelledTheApi'));
+      throw new ImagesApiError('uncertain', t('error.imagesApi.theImagesApiRespondedBut'));
     }
   }
 }

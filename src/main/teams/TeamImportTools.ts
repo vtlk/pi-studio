@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
@@ -24,7 +25,7 @@ export class TeamImportTools {
     const scope = await this.service.serialize(async () => {
       const store = await this.service.load();
       if (run.projectRoot !== join(store.folder, '.pistudio/setup-assistant'))
-        throw new Error('Импорт относится к другой студии.');
+        throw new Error(t('error.teamImportTools.theImportBelongsToAnother'));
       if (name === 'list_team_imports')
         return { folder: store.folder, reports: await listImports(store) };
       const imported = await readImport(store, stableId(args.packageId));
@@ -60,7 +61,7 @@ export class TeamImportTools {
     }
     if (name === 'read_team_import_file') {
       const file = scope.data.files.find((file) => file.path === args.path);
-      if (!file) throw new Error('Файл отсутствует в этом пакете.');
+      if (!file) throw new Error(t('error.teamImportTools.theFileIsMissingFrom'));
       const offset = args.offset ?? 0,
         limit = args.limit ?? 32768;
       if (
@@ -70,7 +71,7 @@ export class TeamImportTools {
         Number(limit) < 1 ||
         Number(limit) > 65536
       )
-        throw new Error('Неверный диапазон чтения пакета.');
+        throw new Error(t('error.teamImportTools.invalidPackageReadingRange'));
       const bytes = Buffer.from(file.data, 'base64'),
         part = bytes.subarray(Number(offset), Number(offset) + Number(limit));
       return {
@@ -89,29 +90,23 @@ export class TeamImportTools {
         );
       const current = scope.resources.find((resource) => resource.id === id);
       if (!portable || !current)
-        throw new Error('Ресурс не принадлежит этому импорту или уже удалён.');
+        throw new Error(t('error.teamImportTools.theResourceDoesNotBelong'));
       if (
         current.kind !== portable.kind ||
         (portable.filesRoot && current.source !== join(scope.root, portable.filesRoot)) ||
         (current.kind === 'plugins' && !portable.filesRoot && current.source !== portable.source)
       )
-        throw new Error(
-          'Настройки ресурса изменены после импорта. Сохранённый пакет не перезаписывает эти правки.',
-        );
+        throw new Error(t('error.teamImportTools.resourceSettingsChangedAfterImport'));
       if (current.kind === 'mcps') {
         const expected = `pi:studio_import_${id.replaceAll('-', '_')}`;
         if (current.source !== expected || !portable.mcp)
-          throw new Error(
-            'Ресурс изменён; настройте его явно без перезаписи пользовательских правок.',
-          );
+          throw new Error(t('error.teamImportTools.theResourceChangedConfigureIt'));
         if (
           (typeof portable.mcp.command === 'string' && isLocalMcpPath(portable.mcp.command)) ||
           (Array.isArray(portable.mcp.args) &&
             portable.mcp.args.some((arg) => typeof arg === 'string' && isLocalMcpPath(arg)))
         )
-          throw new Error(
-            'Сначала явно сопоставьте локальные пути MCP из пакета через configure_mcp.',
-          );
+          throw new Error(t('error.teamImportTools.explicitlyMapThePackageS'));
         return this.native.configureMcp(scope.folder, {
           name: expected.slice(3),
           displayName: current.name,
@@ -123,9 +118,7 @@ export class TeamImportTools {
           current.source.startsWith('npm:') &&
           !/@\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/.test(current.source)
         )
-          throw new Error(
-            'Версия пакета не закреплена. Уточните источник/версию и установите явно через install_package.',
-          );
+          throw new Error(t('error.teamImportTools.packageVersionNotPinnedConfirm'));
         return this.native.installPackage(scope.folder, current.source, current.name);
       }
       return this.native.check(id, scope.folder);
@@ -137,20 +130,30 @@ export class TeamImportTools {
         try {
           await this.service.serialize(async () => {
             const store = await this.service.load();
-            if (store.folder !== scope.folder) throw new Error('Папка студии изменилась.');
+            if (store.folder !== scope.folder)
+              throw new Error(t('registerTeamHandlers.studioFolderChanged'));
             await this.modelCheck(agent, store);
           });
         } catch (error) {
-          issues.push(error instanceof Error ? error.message : 'Не проверена модель.');
+          issues.push(
+            error instanceof Error ? error.message : t('error.teamImportTools.modelNotChecked'),
+          );
         }
         for (const kind of ['skills', 'mcps', 'plugins'] as const)
           for (const id of agent[kind]) {
             if (agent.capabilitySettings?.[`${kind}:${id}`]?.enabled === false) continue;
             try {
               const check = await this.native.check(id, scope.folder);
-              if (check.status !== 'available') issues.push(`Ресурс ${id}: ${check.status}.`);
+              if (check.status !== 'available')
+                issues.push(
+                  t('error.teamImportTools.resource', { value1: id, value2: check.status }),
+                );
             } catch (error) {
-              issues.push(error instanceof Error ? error.message : 'Не проверен ресурс.');
+              issues.push(
+                error instanceof Error
+                  ? error.message
+                  : t('error.teamImportTools.resourceNotChecked'),
+              );
             }
           }
         results.push({ agentId: agent.id, name: agent.name, issues });
@@ -160,7 +163,7 @@ export class TeamImportTools {
           results.push({
             agentId: previous.agentId,
             name: previous.name,
-            issues: ['Профиль удалён из импортированной команды; другой агент не подставляется.'],
+            issues: [t('error.teamImportTools.theProfileWasRemovedFrom')],
           });
       await this.service.serialize(async () => {
         const store = await this.service.load();
@@ -169,7 +172,7 @@ export class TeamImportTools {
           JSON.stringify(store.teamProfiles(scope.state.report.teamId)) !==
             JSON.stringify(scope.agents)
         )
-          throw new Error('Настройки команды изменились во время проверки. Повторите её.');
+          throw new Error(t('error.teamImportTools.teamSettingsChangedDuringVerificatio'));
       });
       scope.state.report.agents = results;
       await this.persist(scope.folder, scope.state);
@@ -180,15 +183,15 @@ export class TeamImportTools {
         resourcesLoadedInProductionSession: false,
       };
     }
-    throw new Error('Неизвестная операция импорта.');
+    throw new Error(t('error.teamImportTools.unknownImportOperation'));
   }
   private async persist(folder: string, state: ImportedTeamState) {
     await this.service.serialize(async () => {
       const store = await this.service.load();
-      if (store.folder !== folder) throw new Error('Папка студии изменилась.');
+      if (store.folder !== folder) throw new Error(t('registerTeamHandlers.studioFolderChanged'));
       const current = await readImport(store, state.report.id);
       if (current.state.report.teamId !== state.report.teamId)
-        throw new Error('Команда импорта изменилась.');
+        throw new Error(t('error.teamImportTools.theImportedTeamChanged'));
       await atomicJson(join(current.root, 'state.json'), {
         ...state,
         report: {

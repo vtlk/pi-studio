@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { checkRunLiveness } from './runLiveness.ts';
 import { RunUpdateGuard } from './RunUpdateGuard.ts';
 import { withRunProjectChange } from './runProjectChange.ts';
@@ -75,7 +76,7 @@ export class RunHost {
     beforeDispatch?: () => Promise<void>,
   ) {
     if (!this.dependencies.serviceAgent || !message.trim() || message.length > 200_000)
-      throw new Error('Недопустимое служебное задание.');
+      throw new Error(t('error.runHost.invalidServiceTask'));
     return this.open(request, message, undefined, beforeDispatch);
   }
   continuation(run: PreparedRun) {
@@ -128,7 +129,7 @@ export class RunHost {
         if (live.run.project.id === request.projectId && (chain || live === target))
           live.request.autoContinue = false;
     }
-    if (this.opening.has(key)) throw new Error('Этот агент уже открывается.');
+    if (this.opening.has(key)) throw new Error(t('error.runHost.thisAgentIsAlreadyOpening'));
     this.opening.add(key);
     let current: LiveRun | undefined, prepared: PreparedRun | undefined;
     try {
@@ -139,14 +140,11 @@ export class RunHost {
       const active = this.live.get(key);
       if (active?.pid && processAlive(active.pid)) {
         if (automaticMessage && !teamDelivery && active.chain !== chain)
-          throw new Error('Диалог следующего агента уже открыт вручную. Цепочка приостановлена.');
+          throw new Error(t('error.runHost.theNextAgentSDialogue'));
         if (request.firstMessage !== undefined)
-          throw new Error(
-            'У агента уже открыт диалог. Первое сообщение и референсы не отправлялись повторно.',
-          );
+          throw new Error(t('error.runHost.theAgentAlreadyHasAn'));
         if (active.status === 'running') {
-          if (automaticMessage)
-            throw new Error('Следующий агент уже работает. Автоматическая цепочка приостановлена.');
+          if (automaticMessage) throw new Error(t('error.runHost.theNextAgentIsAlready'));
           active.request.autoContinue = request.autoContinue;
           active.chain = chain;
           active.continueAfterSequence = active.sequence + 1;
@@ -170,20 +168,20 @@ export class RunHost {
       run.teamDelivery = teamDelivery;
       continuation?.check();
       if (run.agent.session && request.firstMessage !== undefined)
-        throw new Error('У агента уже есть диалог. Продолжение не отправляет сообщение.');
+        throw new Error(t('error.runHost.theAgentAlreadyHasA'));
       const message = automaticMessage ?? request.firstMessage;
       if (
         !this.dependencies.serviceAgent &&
         !run.agent.session &&
         (!message?.trim() || message.length > 200_000)
       )
-        throw new Error('Введите первое сообщение.');
+        throw new Error(t('error.runHost.enterTheFirstMessage'));
       const pi = await checkPi(piPath);
-      if (!pi.supported) throw new Error('Для запуска требуется поддерживаемый Pi 1.5.2.');
+      if (!pi.supported) throw new Error(t('error.runHost.launchingRequiresTheSupportedPi'));
       const sdk = await resolvePiSdk(await realpath(pi.path));
       const node = await piNode(pi.path);
       if (await hasLiveSessionLease(run.record.cwd))
-        throw new Error('Этот диалог ещё открыт в другом процессе Pi. Закройте его и повторите.');
+        throw new Error(t('error.runHost.thisDialogueIsStillOpen'));
       let sessionPath: string | undefined;
       if (run.agent.session) sessionPath = await safePath(run.projectRoot, run.agent.session.path);
       continuation?.check();
@@ -252,12 +250,7 @@ export class RunHost {
         terminalTitle,
       );
       const timer = setTimeout(
-        () =>
-          live.fail(
-            new Error(
-              'Pi не подтвердил открытие диалога. Проверьте окно Terminal и настройки ресурсов.',
-            ),
-          ),
+        () => live.fail(new Error(t('error.runHost.piDidNotConfirmOpening'))),
         45000,
       );
       try {
@@ -319,9 +312,8 @@ export class RunHost {
   }
   private assertUnchanged(projectId: string) {
     this.updates.assertOpen();
-    if (this.stopping) throw new Error('Studio закрывается. Новые запросы не отправляются.');
-    if (this.changing.has(projectId))
-      throw new Error('Файлы проекта переносятся или копируются. Повторите позже.');
+    if (this.stopping) throw new Error(t('error.runHost.studioIsClosingNoNew'));
+    if (this.changing.has(projectId)) throw new Error(t('error.runHost.projectFilesAreBeingMoved'));
   }
   async withProjectChange<T>(projectId: string, stopSessions: boolean, action: () => Promise<T>) {
     return withRunProjectChange(
@@ -336,7 +328,7 @@ export class RunHost {
   async stopAgent(projectId: string, agentId: string) {
     this.chains.delete(projectId);
     const key = runKey({ projectId, agentId });
-    if (this.opening.has(key)) throw new Error('Дождитесь открытия Pi перед удалением агента.');
+    if (this.opening.has(key)) throw new Error(t('error.runHost.waitForPiToOpen'));
     await this.retiring.get(key);
     const live = this.live.get(key);
     if (!live) return;

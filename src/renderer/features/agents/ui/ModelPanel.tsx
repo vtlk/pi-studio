@@ -1,3 +1,4 @@
+import { reasoningLabel } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { parseReasoning, reasoningLabels, type ThinkingLevel } from '../../../../shared/reasoning';
@@ -43,7 +44,7 @@ export function ModelPanel() {
     reasoningOptions.push({
       value: reasoning,
       label: model.reasoning
-        ? t('ModelPanel.unavailable', { value1: model.reasoning })
+        ? t('ModelPanel.unavailable', { value1: reasoningLabel(model.reasoning) })
         : t('ModelPanel.notSelected'),
       disabled: true,
     });

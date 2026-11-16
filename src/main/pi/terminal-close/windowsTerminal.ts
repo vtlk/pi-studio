@@ -1,3 +1,4 @@
+import { t } from '../../../shared/i18n/index.ts';
 import { basename } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -21,9 +22,7 @@ export async function captureWindowsTab(
     !/^[a-zA-Z0-9_-]+$/.test(runId) ||
     !validStudioTerminalIdentity(identity)
   )
-    throw new Error(
-      'Точный профиль/диалог Windows Terminal не подтверждён. Другие вкладки не закрывались.',
-    );
+    throw new Error(t('error.windowsTerminal.exactIdentityUnconfirmed'));
   const read = async () => {
     const result = await run(
       windowsPowershell(),
@@ -40,7 +39,7 @@ export async function captureWindowsTab(
       !process.CommandLine.includes(`${runId}.json`) ||
       !process.CreationDate
     )
-      throw new Error('Процесс Windows Pi изменился. Закрытие отменено.');
+      throw new Error(t('error.windowsTerminal.processChanged'));
     return JSON.stringify(process);
   };
   await verifyWindowsProfile(root);
@@ -48,7 +47,7 @@ export async function captureWindowsTab(
   return {
     verify: async () => {
       await verifyWindowsProfile(root);
-      if ((await read()) !== original) throw new Error('PID Windows Pi был переиспользован.');
+      if ((await read()) !== original) throw new Error(t('error.windowsTerminal.pidReused'));
     },
     // Only the owned process exits; Windows Terminal applies this profile's native graceful policy.
     // No window-wide close, keyboard injection or global profile changes.

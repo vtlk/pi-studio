@@ -29,7 +29,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "check:architecture": "node scripts/check-architecture.mjs",
-    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test": "node --experimental-strip-types --import ./tests/testLocale.ts --test tests/*.test.ts",
     "format": "prettier --write src electron.vite.config.ts vite.config.ts",
     "test:startup": "npm run build && electron scripts/smoke-startup.cjs",
     "test:fresh-startup": "node scripts/smoke-fresh-startup.cjs",

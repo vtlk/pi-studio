@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { safePath, withReadDeadline } from '../storage/files.ts';
@@ -16,14 +17,14 @@ export async function verifyReceipt(
   hash: string,
 ) {
   if (typeof entryId !== 'string' || !run.agent.session || message.runId !== run.record.runId)
-    throw new Error('Нет точной binding для подтверждения team.');
+    throw new Error(t('error.receipt.noExactBindingForTeam'));
   const path = await safePath(run.projectRoot, run.agent.session.path);
   return withReadDeadline(async () => {
     const input = createReadStream(path, { encoding: 'utf8' });
     const lines = createInterface({ input, crlfDelay: Infinity });
     try {
       for await (const line of lines) {
-        if (line.length > 4_000_000) throw new Error('Слишком большая запись Pi.');
+        if (line.length > 4_000_000) throw new Error(t('error.receipt.piRecordTooLarge'));
         const entry = JSON.parse(line);
         if (entry.id !== entryId) continue;
         const content = entry.message?.content;
@@ -41,10 +42,10 @@ export async function verifyReceipt(
           entry.message?.role !== 'user' ||
           messageHash(text) !== hash
         )
-          throw new Error('Запись Pi не подтверждает получение этого сообщения.');
+          throw new Error(t('error.receipt.thePiRecordDoesNot'));
         return;
       }
-      throw new Error('Сообщение ещё не записано в canonical Pi transcript.');
+      throw new Error(t('error.receipt.theMessageIsNotYet'));
     } finally {
       lines.close();
       input.destroy();

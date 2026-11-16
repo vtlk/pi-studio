@@ -1,3 +1,4 @@
+import { textOf, type UiText } from '../model/UiText';
 import { Trash2 } from 'lucide-react';
 import { useConfirm } from '../model/Confirm';
 import { Tooltip } from './Tooltip';
@@ -8,19 +9,19 @@ export function HoverDeleteButton({
   onDelete,
   disabled = false,
 }: {
-  label: string;
-  description?: string;
-  confirmationTitle?: string;
+  label: UiText;
+  description?: UiText;
+  confirmationTitle?: UiText;
   onDelete: () => void;
   disabled?: boolean;
 }) {
   const { confirm } = useConfirm();
   return (
-    <Tooltip label={label}>
+    <Tooltip label={textOf(label)}>
       <button
         type="button"
         className="hover-delete"
-        aria-label={label}
+        aria-label={textOf(label)}
         disabled={disabled}
         onClick={() =>
           confirm({ title: confirmationTitle ?? label, description, onConfirm: onDelete })

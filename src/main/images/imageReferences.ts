@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -24,9 +25,7 @@ function mimeType(bytes: Buffer): ImageReference['mimeType'] {
     bytes.toString('ascii', 8, 12) === 'WEBP'
   )
     return 'image/webp';
-  throw new Error(
-    'Референсы Images API должны быть изображениями PNG, JPEG или WebP. SVG/GIF сначала преобразуйте в PNG.',
-  );
+  throw new Error(t('error.imageReferences.imagesApiReferencesMustBe'));
 }
 /** Only files in the bound project. Exact bytes are held in memory for this one API call. */
 export async function readImageReferences(root: string, value: unknown): Promise<ImageReference[]> {
@@ -37,7 +36,7 @@ export async function readImageReferences(root: string, value: unknown): Promise
     value.some((path) => typeof path !== 'string' || !path || path.length > 2000) ||
     new Set(value).size !== value.length
   )
-    throw new Error('Укажите до 16 разных путей референсов относительно папки проекта.');
+    throw new Error(t('error.imageReferences.provideUpToDistinctReference'));
   const result: ImageReference[] = [];
   let total = 0;
   for (const path of value as string[]) {
@@ -48,9 +47,10 @@ export async function readImageReferences(root: string, value: unknown): Promise
     try {
       const before = await file.stat();
       if (!before.isFile() || !before.size || before.size > imageLimit)
-        throw new Error('Референс должен быть обычным изображением размером до 32 МБ.');
+        throw new Error(t('error.imageReferences.aReferenceMustBeA'));
       total += before.size;
-      if (total > totalLimit) throw new Error('Общий размер референсов Images API — до 64 МБ.');
+      if (total > totalLimit)
+        throw new Error(t('error.imageReferences.imagesApiReferencesMustTotal'));
       const bytes = Buffer.alloc(before.size);
       let offset = 0;
       while (offset < bytes.length) {
@@ -65,9 +65,7 @@ export async function readImageReferences(root: string, value: unknown): Promise
         before.mtimeMs !== after.mtimeMs ||
         before.ctimeMs !== after.ctimeMs
       )
-        throw new Error(
-          'Референс изменился во время чтения. Повторите запрос после сохранения файла.',
-        );
+        throw new Error(t('error.imageReferences.theReferenceChangedWhileBeing'));
       result.push({
         bytes,
         mimeType: mimeType(bytes),

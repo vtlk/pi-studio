@@ -1,4 +1,5 @@
-import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { uiText } from '@/shared/model/UiText';
+import { i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
 import { useAgentProfiles } from './AgentProfiles';
@@ -28,20 +29,20 @@ export function useResourceUnlink() {
       });
       if (isDesktop)
         void saveNow().then((saved) => {
-          if (!saved) demo(t('useResourceUnlink.theAssignmentWasNotSavedCheckThe'));
+          if (!saved) demo(uiText('useResourceUnlink.theAssignmentWasNotSavedCheckThe'));
         });
     };
     try {
       updateAgent((current) => ({ [field]: current[field].filter((item) => item !== id) }));
       if (isDesktop && !(await saveNow())) {
-        demo(t('useResourceUnlink.unlinkingWasNotSavedMcpAccessMay'), {
-          label: t('useResourceUnlink.restoreAssignment'),
+        demo(uiText('useResourceUnlink.unlinkingWasNotSavedMcpAccessMay'), {
+          label: uiText('useResourceUnlink.restoreAssignment'),
           onClick: restore,
         });
         return;
       }
-      demo(t('useResourceUnlink.resourceUnlinked'), {
-        label: t('useResourceUnlink.undo'),
+      demo(uiText('useResourceUnlink.resourceUnlinked'), {
+        label: uiText('useResourceUnlink.undo'),
         onClick: restore,
       });
     } finally {

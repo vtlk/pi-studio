@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { piEnvironment, piNode } from './platform.ts';
 import { execFile, spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
@@ -33,7 +34,7 @@ export async function nativeResourceOperation(
   request: NativeResourceRequest,
 ): Promise<NativeResourceResult> {
   const pi = await checkPi(piPath);
-  if (!pi.supported) throw new Error('Требуется поддерживаемый Pi 1.5.2.');
+  if (!pi.supported) throw new Error(t('error.nativeResources.theSupportedPiIsRequired'));
   const sdk = await resolvePiSdk(await realpath(pi.path));
   const node = await piNode(pi.path);
   return new Promise((resolve, reject) => {
@@ -75,11 +76,7 @@ export async function nativeResourceOperation(
     const timeout = setTimeout(
       () => {
         stop();
-        finish(
-          new Error(
-            'Pi не завершил операцию с ресурсом за отведённое время. Проверьте источник, сеть и вход.',
-          ),
-        );
+        finish(new Error(t('error.nativeResources.piDidNotFinishThe')));
       },
       request.action === 'install-package' ? 180000 : 45000,
     );
@@ -90,14 +87,12 @@ export async function nativeResourceOperation(
       if (error) reject(error);
       else resolve(value!);
     }
-    child.once('error', () =>
-      finish(new Error('Не удалось запустить штатный адаптер ресурсов Pi.')),
-    );
+    child.once('error', () => finish(new Error(t('error.nativeResources.couldNotStartPiS'))));
     child.stdio[3]!.on('data', (data: Buffer) => {
       output += data.toString('utf8');
       if (output.length > 500000) {
         stop();
-        finish(new Error('Pi вернул слишком большой ответ ресурса.'));
+        finish(new Error(t('error.nativeResources.piReturnedAResourceResponse')));
       }
     });
     child.once('close', (code) => {
@@ -107,11 +102,7 @@ export async function nativeResourceOperation(
         if (code !== 0 || !message.ok || !message.result) throw new Error();
         finish(undefined, message.result);
       } catch {
-        finish(
-          new Error(
-            'Pi не смог выполнить операцию. Проверьте параметры, имя и доступность ресурса; секреты в сообщении не выводятся.',
-          ),
-        );
+        finish(new Error(t('error.nativeResources.piCouldNotPerformThe')));
       }
     });
     child.stdin!.on('error', () => {});

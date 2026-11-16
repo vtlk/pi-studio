@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { realpath } from 'node:fs/promises';
 import type { StudioService } from '../storage/StudioStore.ts';
@@ -33,18 +34,19 @@ export class ModelConnections {
     this.browserAuth = browserAuth;
   }
   private async descriptor(request: ModelConnectionRequest) {
-    if (!request || typeof request.folder !== 'string') throw new Error('Выберите папку студии.');
+    if (!request || typeof request.folder !== 'string')
+      throw new Error(t('error.modelConnections.selectAStudioFolder'));
     stableId(request.connectionId);
     return this.service.serialize(async () => {
       const store = await this.service.load();
       if ((await realpath(request.folder)) !== store.folder)
-        throw new Error('Папка студии изменилась.');
+        throw new Error(t('registerTeamHandlers.studioFolderChanged'));
       const sections = store.bootstrap().sections;
       const connection = (sections.connections as Connection[]).find(
         (item) => item.id === request.connectionId,
       );
       if (!connection || connection.purpose === 'images')
-        throw new Error('Подключение модели отсутствует.');
+        throw new Error(t('error.modelConnections.modelConnectionMissing'));
       const path = String(sections.piPath ?? '') || this.piPath();
       return {
         cwd: store.folder,
@@ -67,12 +69,12 @@ export class ModelConnections {
       cwd: saved.cwd,
     });
     if ((await this.descriptor(request)).signature !== saved.signature)
-      throw new Error('Подключение изменилось во время проверки.');
+      throw new Error(t('error.modelConnections.theConnectionChangedDuringVerificati'));
     if (
       status.provider !== saved.connection.providerId ||
       !['ready', 'not_ready', 'invalid'].includes(status.status)
     )
-      throw new Error('Неподдерживаемый ответ авторизации Pi.');
+      throw new Error(t('error.modelConnections.unsupportedPiAuthenticationResponse'));
     return { ...status, connectionId: request.connectionId };
   }
   async catalog(request?: ModelConnectionRequest) {
@@ -94,16 +96,15 @@ export class ModelConnections {
       saved.scope,
     );
     if ((await this.descriptor(request)).signature !== saved.signature)
-      throw new Error('Подключение изменилось во время загрузки каталога.');
+      throw new Error(t('error.modelConnections.theConnectionChangedWhileThe'));
     return catalog;
   }
   async login(request: ModelLoginRequest) {
-    if (!['oauth', 'api_key'].includes(request.method)) throw new Error('Выберите способ входа.');
+    if (!['oauth', 'api_key'].includes(request.method))
+      throw new Error(t('error.modelConnections.selectASignInMethod'));
     const saved = await this.descriptor(request);
     if (saved.connection.providerId === 'claude-code')
-      throw new Error(
-        'Используйте штатный вход Claude Code. Авторизация Pi для него не применяется.',
-      );
+      throw new Error(t('error.modelConnections.useClaudeCodeSNative'));
     return this.browserAuth.startProvider(saved.path, {
       provider: saved.connection.providerId,
       method: request.method,
@@ -118,7 +119,8 @@ export class ModelConnections {
   }
   async discover(request: ModelConnectionRequest) {
     const saved = await this.descriptor(request);
-    if (!saved.scope?.endpoint) throw new Error('Выберите совместимый или локальный сервер.');
+    if (!saved.scope?.endpoint)
+      throw new Error(t('error.modelConnections.selectACompatibleOrLocal'));
     let models: string[];
     try {
       models = await modelAuthOperation<string[]>(
@@ -127,18 +129,16 @@ export class ModelConnections {
         { action: 'discover', scope: saved.scope, cwd: saved.cwd },
       );
     } catch {
-      throw new Error(
-        'Сервер не вернул список моделей. Проверьте адрес API и ключ или добавьте ID модели вручную.',
-      );
+      throw new Error(t('error.modelConnections.theServerDidNotReturn'));
     }
     if ((await this.descriptor(request)).signature !== saved.signature)
-      throw new Error('Подключение изменилось во время чтения моделей.');
+      throw new Error(t('error.modelConnections.theConnectionChangedWhileModels'));
     return models;
   }
   async logout(request: ModelConnectionRequest) {
     const saved = await this.descriptor(request);
     if (saved.connection.providerId === 'claude-code')
-      throw new Error('Общий вход принадлежит Claude Code. Используйте «Выйти из Claude Code».');
+      throw new Error(t('error.modelConnections.sharedSignInBelongsTo'));
     await modelAuthOperation(saved.path, join(this.scripts, 'model-auth.mjs'), {
       action: 'logout',
       provider: saved.connection.providerId,
@@ -149,14 +149,14 @@ export class ModelConnections {
   async claudeCode(request: ModelConnectionRequest & { action: ClaudeCodeAction }) {
     const saved = await this.descriptor(request);
     if (saved.connection.providerId !== 'claude-code')
-      throw new Error('Выберите подключение Claude Code.');
+      throw new Error(t('error.modelConnections.selectAClaudeCodeConnection'));
     const state = await modelAuthOperation<{ command?: string; status: string; detail?: string }>(
       saved.path,
       join(this.scripts, 'model-auth.mjs'),
       { action: 'claude-status' },
     );
     if ((await this.descriptor(request)).signature !== saved.signature)
-      throw new Error('Подключение изменилось во время проверки.');
+      throw new Error(t('error.modelConnections.theConnectionChangedDuringVerificati'));
     await openClaudeCodeAction(request.action, state, saved.cwd);
   }
 }

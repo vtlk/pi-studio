@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { piNode } from '../pi/platform.ts';
 import { execFile } from 'node:child_process';
 import { realpath } from 'node:fs/promises';
@@ -32,7 +33,7 @@ export async function readNativeUsage(
       },
       (error, stdout) => {
         if (error) {
-          reject(new Error('Не удалось восстановить доступную статистику Pi.'));
+          reject(new Error(t('error.readNativeUsage.couldNotRecoverAvailablePi')));
           return;
         }
         try {
@@ -45,7 +46,7 @@ export async function readNativeUsage(
             );
           resolve(records);
         } catch {
-          reject(new Error('Некорректная статистика Pi.'));
+          reject(new Error(t('error.readNativeUsage.invalidPiStatistics')));
         }
       },
     );

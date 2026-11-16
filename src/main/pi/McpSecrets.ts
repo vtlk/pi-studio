@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { StudioService, StudioStore } from '../storage/StudioStore.ts';
 import type { SecretVault } from '../storage/SecretVault.ts';
 import type { Resource } from '../../shared/resources.ts';
@@ -35,14 +36,14 @@ export class McpSecrets {
   }
   private async scope(store: StudioStore, request: McpSecretRequest) {
     if (!request || request.folder !== store.folder)
-      throw new Error('Папка студии изменилась. Откройте параметры MCP заново.');
+      throw new Error(t('error.mcpSecrets.theStudioFolderChangedReopen'));
     const id = stableId(request.resourceId);
     const sections = store.bootstrap().sections;
     const resource = (sections.resources as Resource[]).find(
       (item) => item.id === id && item.kind === 'mcps',
     );
     if (!resource?.source.startsWith('pi:'))
-      throw new Error('Настройте MCP через помощника как сервер Pi (pi:имя).');
+      throw new Error(t('error.mcpSecrets.configureMcpThroughTheAssistant'));
     const config = await nativeMcpConfig(resource.source.slice(3));
     const parser = await this.configValues(String(sections.piPath ?? '') || this.piPath());
     return {
@@ -73,9 +74,7 @@ export class McpSecrets {
         throw new Error();
       return saved;
     } catch {
-      throw new Error(
-        'Не удалось прочитать параметры MCP. Введите их заново или удалите сохранённые значения.',
-      );
+      throw new Error(t('error.mcpSecrets.couldNotReadMcpParameters'));
     }
   }
   private async describe(
@@ -121,7 +120,7 @@ export class McpSecrets {
   }
   private assertRevision(request: McpSecretEdit, revision: string) {
     if (request.revision !== revision)
-      throw new Error('Конфигурация MCP изменилась. Откройте окно заново перед сохранением.');
+      throw new Error(t('error.mcpSecrets.mcpConfigurationChangedReopenThe'));
   }
   async save(request: McpSecretEdit & { values: Record<string, string> }) {
     return this.service.serialize(async () => {
@@ -134,7 +133,7 @@ export class McpSecrets {
         Array.isArray(request.values) ||
         !Object.keys(request.values).length
       )
-        throw new Error('Введите хотя бы один параметр MCP.');
+        throw new Error(t('error.mcpSecrets.enterAtLeastOneMcp'));
       for (const [name, value] of Object.entries(request.values))
         if (
           !scope.fields.includes(name) ||
@@ -143,7 +142,7 @@ export class McpSecrets {
           value.length > 8192 ||
           /[\r\n\0]/.test(value)
         )
-          throw new Error('Нужны значения параметров MCP без переносов строки.');
+          throw new Error(t('error.mcpSecrets.mcpParameterValuesMustNot'));
       let previous: SavedValues | undefined;
       try {
         previous = await this.read(scope.folder, scope.resource.id);
@@ -162,18 +161,17 @@ export class McpSecrets {
             ? scope.fields
             : []);
       if (names.some((name) => scope.fields.includes(name) && !Object.hasOwn(values, name)))
-        throw new Error(
-          'Введите заново все ранее сохранённые секреты MCP. Глобальное окружение их не подменяет.',
-        );
+        throw new Error(t('error.mcpSecrets.reEnterAllPreviouslySaved'));
       const ownedNames = [...new Set([...names, ...Object.keys(values)])];
       if (ownedNames.length > 64)
-        throw new Error('Слишком много защищённых параметров одного MCP.');
+        throw new Error(t('error.mcpSecrets.tooManyProtectedParametersFor'));
       const encoded = JSON.stringify({ revision: scope.revision, values });
-      if (encoded.length > 16000) throw new Error('Защищённые параметры MCP слишком большие.');
+      if (encoded.length > 16000)
+        throw new Error(t('error.mcpSecrets.protectedMcpParametersAreToo'));
       if (
         mcpConfigRevision(await nativeMcpConfig(scope.resource.source.slice(3))) !== scope.revision
       )
-        throw new Error('Конфигурация MCP изменилась. Повторите ввод.');
+        throw new Error(t('error.mcpSecrets.mcpConfigurationChangedEnterValues'));
       await this.vault.save(scope.folder, scope.resource.id, encoded);
       const resource = {
         ...scope.resource,
@@ -230,14 +228,12 @@ export class McpSecrets {
       if (!fields.length) return config;
       const saved = await this.read(folder, resource.id);
       if (saved.revision !== mcpConfigRevision(config))
-        throw new Error('MCP изменён: сохраните параметры для новой конфигурации явно.');
+        throw new Error(t('error.mcpSecrets.mcpChangedExplicitlySaveParameters'));
       const names = resource.mcpSecretNames ?? Object.keys(saved.values);
       if (names.some((name) => fields.includes(name) && !Object.hasOwn(saved.values, name)))
-        throw new Error(
-          'Сначала сохраните защищённые параметры MCP в каталоге. Глобальное окружение их не подменяет.',
-        );
+        throw new Error(t('error.mcpSecrets.saveProtectedMcpParametersIn'));
       if (saved.revision !== mcpConfigRevision(await nativeMcpConfig(resource.source.slice(3))))
-        throw new Error('Конфигурация MCP изменилась во время открытия.');
+        throw new Error(t('error.mcpSecrets.mcpConfigurationChangedWhileOpening'));
       return withMcpSecrets(config, saved.values, parser);
     };
   }

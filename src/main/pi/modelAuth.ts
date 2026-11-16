@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { piEnvironment, piNode } from './platform.ts';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -29,9 +30,7 @@ export async function connectionAuthScope(
   const custom = connection.purpose === 'compatible' || connection.purpose === 'local';
   if (connection.providerId === 'claude-code') {
     if (connection.authScope === 'connection')
-      throw new Error(
-        'Claude Code использует общий вход своего CLI. Выберите эту область в настройках подключения.',
-      );
+      throw new Error(t('error.modelAuth.claudeCodeUsesItsCli'));
     return;
   }
   if (!custom && connection.authScope !== 'connection') return;
@@ -43,9 +42,7 @@ export async function connectionAuthScope(
       }
     : undefined;
   if (custom && connection.providerId !== endpointProviderId(connection.id))
-    throw new Error(
-      'Пересохраните настройки совместимого подключения и заново выберите его модель.',
-    );
+    throw new Error(t('error.modelAuth.saveCompatibleConnectionSettingsAgai'));
   const key = createHash('sha256')
     .update(await realpath(folder))
     .update('\0')
@@ -76,7 +73,7 @@ export async function modelAuthOperation<T>(
   },
 ): Promise<T> {
   const pi = await checkPi(piPath);
-  if (!pi.supported) throw new Error('Требуется поддерживаемый Pi 1.5.2.');
+  if (!pi.supported) throw new Error(t('error.nativeResources.theSupportedPiIsRequired'));
   const sdk = await resolvePiSdk(await realpath(pi.path));
   const node = await piNode(pi.path);
   return new Promise((resolve, reject) => {
@@ -101,20 +98,20 @@ export async function modelAuthOperation<T>(
       } else resolve(value!);
     };
     const timer = setTimeout(
-      () => finish(new Error('Pi не завершил проверку подключения.')),
+      () => finish(new Error(t('error.modelAuth.piDidNotFinishThe'))),
       20000,
     );
-    child.once('error', () => finish(new Error('Не удалось запустить проверку подключения Pi.')));
+    child.once('error', () => finish(new Error(t('error.modelAuth.couldNotStartThePi'))));
     child.stdio[3]!.on('data', (data: Buffer) => {
       output += data.toString('utf8');
-      if (output.length > 2000000) finish(new Error('Pi вернул слишком большой ответ.'));
+      if (output.length > 2000000) finish(new Error(t('error.modelAuth.piReturnedAResponseThat')));
     });
     child.once('close', (code) => {
       try {
         if (code !== 0) throw new Error();
         finish(undefined, JSON.parse(output) as T);
       } catch {
-        finish(new Error('Не удалось проверить выбранное подключение Pi.'));
+        finish(new Error(t('error.modelAuth.couldNotVerifyTheSelected')));
       }
     });
     child.stdin!.on('error', () => {});
@@ -136,6 +133,6 @@ export async function getModelProviderStatus(
     cwd,
   });
   if (result.provider !== provider || !['ready', 'not_ready', 'invalid'].includes(result.status))
-    throw new Error('Неподдерживаемый ответ авторизации Pi.');
+    throw new Error(t('error.modelConnections.unsupportedPiAuthenticationResponse'));
   return result;
 }

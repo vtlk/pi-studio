@@ -1,4 +1,6 @@
-import { resourceLabel } from '@/shared/model/localizedResources';
+import { uiText } from '@/shared/model/UiText';
+import { agentTabLabel, agentName } from '@/shared/model/localizedProfiles';
+import { resourceLabel, resourceVersion } from '@/shared/model/localizedResources';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -90,19 +92,19 @@ export function CapabilitiesPanel() {
                   <HoverDeleteButton
                     label={
                       field === 'mcps'
-                        ? t('CapabilitiesPanel.unlinkMcp')
-                        : t('CapabilitiesPanel.removeFromTheAgent', { value1: id })
+                        ? uiText('CapabilitiesPanel.unlinkMcp')
+                        : uiText('CapabilitiesPanel.removeFromTheAgent', { value1: id })
                     }
                     confirmationTitle={
                       field === 'mcps'
-                        ? t('CapabilitiesPanel.unlinkMcpFromAgent', {
+                        ? uiText('CapabilitiesPanel.unlinkMcpFromAgent', {
                             value1: resourceLabel(resource, 'name') ?? id,
-                            value2: selectedAgent.name,
+                            value2: agentName(selectedAgent),
                           })
                         : undefined
                     }
                     disabled={busy}
-                    description={t('CapabilitiesPanel.onlyThisAgentSAssignmentIsRemoved')}
+                    description={uiText('CapabilitiesPanel.onlyThisAgentSAssignmentIsRemoved')}
                     onDelete={() => void unlink(field, id)}
                   />
                 }
@@ -115,7 +117,7 @@ export function CapabilitiesPanel() {
                   {resource
                     ? resource.source.startsWith('builtin:')
                       ? t('CapabilitiesPanel.builtInConnectsTheNextTimePi')
-                      : `${resource.version ? `${resource.version} · ` : ''}${resourceStatus(resource, !!window.studio)}`
+                      : `${resource.version ? `${resourceVersion(resource)} · ` : ''}${resourceStatus(resource, !!window.studio)}`
                     : t('CapabilitiesPanel.unavailable')}
                 </p>
               </Disclosure>
@@ -124,13 +126,13 @@ export function CapabilitiesPanel() {
         })}
       </DisclosureList>
       <AddArea
-        label={t('CapabilitiesPanel.add', { value1: agentTab })}
+        label={t('CapabilitiesPanel.add', { value1: agentTabLabel(agentTab) })}
         onClick={() => setCatalog(true)}
       />
       {catalog && (
         <Modal
           size="wide"
-          title={t('CapabilitiesPanel.sharedCatalog', { value1: agentTab })}
+          title={t('CapabilitiesPanel.sharedCatalog', { value1: agentTabLabel(agentTab) })}
           onClose={() => setCatalog(false)}
           footer={<Button onClick={() => setCatalog(false)}>{t('CapabilitiesPanel.done')}</Button>}
         >

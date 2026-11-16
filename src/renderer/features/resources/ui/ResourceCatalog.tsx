@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { resourceLabel } from '@/shared/model/localizedResources';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
@@ -48,10 +49,12 @@ export function ResourceCatalog({
         const resource = await window.studio.chooseSkill();
         if (resource) {
           saveResource(resource);
-          demo(t('ResourceCatalog.localSkillAddedItHasNotBeen'));
+          demo(uiText('ResourceCatalog.localSkillAddedItHasNotBeen'));
         }
       } catch (error) {
-        demo(error instanceof Error ? error.message : t('ResourceCatalog.couldNotImportTheSkill'));
+        demo(
+          error instanceof Error ? error.message : uiText('ResourceCatalog.couldNotImportTheSkill'),
+        );
       } finally {
         importing.current = false;
       }
@@ -156,14 +159,14 @@ export function ResourceCatalog({
             )}
             {!onPick && !builtinResource(resource.id) && (
               <HoverDeleteButton
-                label={t('ResourceCatalog.deleteResource', {
+                label={uiText('ResourceCatalog.deleteResource', {
                   value1: resourceLabel(resource, 'name'),
                 })}
                 description={usage(resource)}
                 onDelete={() => {
                   removeResource(kind, resource.id);
-                  demo(t('ResourceCatalog.resourceRemovedFromCatalogSourceFilesPreserved'), {
-                    label: t('useResourceUnlink.undo'),
+                  demo(uiText('ResourceCatalog.resourceRemovedFromCatalogSourceFilesPreserved'), {
+                    label: uiText('useResourceUnlink.undo'),
                     onClick: () => saveResource(resource),
                   });
                 }}

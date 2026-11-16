@@ -1,3 +1,4 @@
+import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
@@ -58,7 +59,7 @@ export function StartAgentDialog({
       );
       if (!session) return;
       onClose();
-      if (!isDesktop) demo(t('StartAgentDialog.firstMessageAndDialogueBindingSavedIn'));
+      if (!isDesktop) demo(uiText('StartAgentDialog.firstMessageAndDialogueBindingSavedIn'));
     } finally {
       openingRef.current = false;
       setOpening(false);

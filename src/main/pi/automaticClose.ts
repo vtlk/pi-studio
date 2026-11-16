@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { terminalCloseDetail, type TerminalCloseDetail } from '../../shared/runFailure.ts';
 import { runTerminalTitle } from './terminalTitle.ts';
 import { captureWindowsTab } from './terminal-close/windowsTerminal.ts';
@@ -19,7 +20,11 @@ export interface TerminalCloseHandle {
 export class AutomaticCloseError extends Error {
   readonly failure: 'terminal_close' | 'outputs';
   readonly terminalDetail?: TerminalCloseDetail;
-  constructor(message: string, failure: AutomaticCloseError['failure'] = 'terminal_close', terminalDetail?: TerminalCloseDetail) {
+  constructor(
+    message: string,
+    failure: AutomaticCloseError['failure'] = 'terminal_close',
+    terminalDetail?: TerminalCloseDetail,
+  ) {
     super(message);
     this.failure = failure;
     this.terminalDetail = terminalDetail;
@@ -51,9 +56,7 @@ export function closeSuccessfulRun(
   const live = state.live.get(key);
   check();
   if (!live || live.run !== run)
-    throw new AutomaticCloseError(
-      'Связь с завершённым запуском Pi потеряна. Автоматического закрытия и повтора нет.',
-    );
+    throw new AutomaticCloseError(t('error.automaticClose.connectionToTheFinishedPi'));
   if (
     !live.request.autoContinue ||
     live.blocked ||
@@ -63,9 +66,7 @@ export function closeSuccessfulRun(
   )
     throw new ContinuationCancelled();
   if (!live.bound || !live.completion || state.retiring.has(key))
-    throw new AutomaticCloseError(
-      'История или окончание работы Pi ещё не подтверждены. Цепочка приостановлена.',
-    );
+    throw new AutomaticCloseError(t('error.automaticClose.piHistoryOrCompletionIs'));
   live.autoCloseSequence = sequence;
   const pid = live.pid;
   const cleanup = (async () => {
@@ -74,7 +75,7 @@ export function closeSuccessfulRun(
       check();
       const session = await safePath(run.projectRoot, live.bound!.path);
       if (!(await stat(session)).isFile())
-        throw new AutomaticCloseError('История Pi не сохранена; автоматическое закрытие отменено.');
+        throw new AutomaticCloseError(t('error.automaticClose.piHistoryWasNotSaved'));
       check();
       const capture = state.dependencies.captureTerminal ?? captureOwnedTab;
       const handle = state.dependencies.headless
@@ -89,14 +90,14 @@ export function closeSuccessfulRun(
             )
           : undefined;
       if (!state.dependencies.headless && !handle)
-        throw new AutomaticCloseError('Точное окно Pi недоступно; другие окна не закрывались.');
+        throw new AutomaticCloseError(t('error.automaticClose.theExactPiWindowIs'));
       const outputs = await validateCompletedOutputs(
         run.record.output,
         live.completion!.map((item) => item.path),
       );
       if (JSON.stringify(outputs) !== JSON.stringify(live.completion))
         throw new AutomaticCloseError(
-          'Результат изменился после завершения. Окно Pi не закрывалось.',
+          t('error.automaticClose.theResultChangedAfterCompletion'),
           'outputs',
         );
       check();
@@ -107,9 +108,7 @@ export function closeSuccessfulRun(
       for (let i = 0; pid && processAlive(pid) && i < 200; i++)
         await new Promise((resolve) => setTimeout(resolve, 50));
       if (pid && processAlive(pid))
-        throw new AutomaticCloseError(
-          'Pi ещё закрывается. Принудительного завершения и повторной передачи нет.',
-        );
+        throw new AutomaticCloseError(t('error.automaticClose.piIsStillClosingNo'));
       check();
       await handle?.close();
       check();
@@ -126,9 +125,11 @@ export function closeSuccessfulRun(
       check(); // A new request/cancellation takes priority over a stale close error.
       if (error instanceof AutomaticCloseError) throw error;
       throw new AutomaticCloseError(
-        error instanceof Error ? error.message : 'Не удалось подтвердить закрытие Pi.',
+        error instanceof Error ? error.message : t('error.automaticClose.couldNotConfirmPiClosing'),
         'terminal_close',
-        error && typeof error === 'object' && 'terminalDetail' in error ? terminalCloseDetail(error.terminalDetail) : undefined,
+        error && typeof error === 'object' && 'terminalDetail' in error
+          ? terminalCloseDetail(error.terminalDetail)
+          : undefined,
       );
     }
   })();
