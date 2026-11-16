@@ -59,7 +59,6 @@ await writeFile(
   join(licenses, 'README.txt'),
   [
     'Pi Studio bundled dependencies (unmodified upstream code):',
-    'Corresponding source: https://registry.npmjs.org/mediabunny/-/mediabunny-1.64.0.tgz (includes src/).',
     'jsonc-parser 3.3.1: MIT; see JSONC-parser-LICENSE.md. Source: https://github.com/microsoft/node-jsonc-parser',
     'semver 7.8.6: ISC; yauzl 3.4.0 and pend 1.2.0: MIT. See Semver-LICENSE.txt, Yauzl-LICENSE.txt, Pend-LICENSE.txt. Sources: https://github.com/npm/node-semver, https://github.com/thejoshwolfe/yauzl, https://github.com/andrewrk/node-pend',
     '@earendil-works/pi-claude-code 0.1.0: MIT, pinned d5b5e04c314d3452d357174d16d10dda34daa2d2. See bundled/pi-claude-code/LICENSE and UPSTREAM.json. Official Claude CLI is a separately installed, unmodified dependency; its credentials are not bundled.',

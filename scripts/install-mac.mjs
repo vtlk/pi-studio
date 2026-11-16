@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { browserCloneSnapshot, recordBrowserCloneAudit } from './mac-browser-clone-audit.mjs';
 
 if (process.platform !== 'darwin') throw new Error('Installation requires macOS.');
 const root = resolve(import.meta.dirname, '..');
@@ -26,6 +27,7 @@ if (sourceInfo.version !== version)
 await mkdir(join(homedir(), 'Applications'), { recursive: true });
 await mkdir(cache, { recursive: true });
 const stage = join(homedir(), 'Applications', `.PiStudio-update-${randomUUID()}.app`);
+const browserClonesBefore = await browserCloneSnapshot();
 try {
   await cp(source, stage, {
     recursive: true,
@@ -41,4 +43,5 @@ try {
   );
 } finally {
   await rm(stage, { recursive: true, force: true });
+  await recordBrowserCloneAudit(root, 'install', browserClonesBefore);
 }
