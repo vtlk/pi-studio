@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-11-16T20:25:48.034Z",
-  "nonce": "19df343e-c5c8-48f3-ae06-a8fa7f5d2631",
+  "checkedAt": "2026-11-16T20:51:33.199Z",
+  "nonce": "eb540be2-aa79-4de9-a2c7-024fe45f9737",
   "permissions": {
     "accessibility": true,
     "screenRecording": true
   },
-  "targetPid": 42037,
-  "windowId": 20342,
+  "targetPid": 52784,
+  "windowId": 20466,
   "captureIsError": false,
   "captureImageCount": 1,
   "actualActions": true,
@@ -16,9 +16,15 @@
   "hardwarePointerUnchanged": true,
   "userFrontmostApplicationUnchanged": true,
   "targetNeverKeyOrMain": true,
+  "actualNativeOverlaySurfaces": 1,
+  "actualRetinaCursorMatchesAppKitButtonCenter": true,
+  "overlayVisibleNonFocusableAndLabeled": true,
   "signedIdentityMatchesInstalled": true,
-  "noPromptsRequested": true,
   "ownTargetOnly": true,
   "actualModelLoop": false,
-  "installedApplicationOrUserDataChanged": false
+  "installedApplicationOrUserDataChanged": false,
+  "nativePermissionProbePrompt": false,
+  "overlayContentMatchesDisplayBounds": true,
+  "unattendedAcceptance": false,
+  "unattendedLimit": "User reported repeated OS permission dialogs during subsequent QA. Desktop/signing/account checks stopped; exact dialog source not established."
 }

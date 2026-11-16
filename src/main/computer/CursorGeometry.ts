@@ -71,7 +71,7 @@ export class CursorGeometry {
       elements.clear();
       for (const item of data.elements) {
         const element = object(item),
-          rect = object(element?.frame);
+          rect = object(element?.screenshot_frame);
         if (
           !element ||
           typeof element.element_token !== 'string' ||
@@ -84,7 +84,8 @@ export class CursorGeometry {
           rect.h <= 0
         )
           continue;
-        // Cua emits element frames in the delivered window screenshot's pixels.
+        // Native `frame` is global screen geometry; only `screenshot_frame`
+        // uses the delivered image's pixel coordinates (including Retina scaling).
         elements.set(element.element_token, {
           // Fractions survive screenshot-only rereads at a different max_image_dimension.
           x: (rect.x + rect.w / 2) / (data.screenshot_width as number),

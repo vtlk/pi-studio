@@ -5,12 +5,26 @@ final class TestPanel: NSPanel {
   override var canBecomeMain: Bool { false }
 }
 
+final class VisualCode: NSView {
+  let code: String
+  init(code: String) { self.code = code; super.init(frame:NSRect(x:24,y:174,width:512,height:42)); setAccessibilityElement(false) }
+  required init?(coder: NSCoder) { fatalError("not used") }
+  override func draw(_ dirtyRect: NSRect) {
+    NSColor.systemPurple.setFill()
+    NSBezierPath(roundedRect:bounds,xRadius:8,yRadius:8).fill()
+    let attributes: [NSAttributedString.Key:Any] = [.font:NSFont.monospacedSystemFont(ofSize:26,weight:.bold),.foregroundColor:NSColor.white]
+    let text = NSAttributedString(string:code,attributes:attributes)
+    text.draw(at:NSPoint(x:18,y:7))
+  }
+}
+
 final class Target: NSObject, NSApplicationDelegate {
   let root: URL
   let nonce: String
   let field = NSTextField(string: "PI_STUDIO_QA_NATIVE")
   var panel: TestPanel!
   var presses = 0
+  var button: NSButton!
   var timer: Timer?
 
   init(root: URL, nonce: String) { self.root = root; self.nonce = nonce }
@@ -29,15 +43,19 @@ final class Target: NSObject, NSApplicationDelegate {
     title.frame = NSRect(x: 24, y: 220, width: 512, height: 30)
     title.font = .systemFont(ofSize: 19, weight: .semibold)
     view.addSubview(title)
-    let detail = NSTextField(labelWithString: "Background input only. No personal documents.")
-    detail.frame = NSRect(x: 24, y: 184, width: 512, height: 25)
-    view.addSubview(detail)
+    if let code = try? String(contentsOf:root.appendingPathComponent("visual-code.txt"),encoding:.utf8) {
+      view.addSubview(VisualCode(code:code))
+    } else {
+      let detail = NSTextField(labelWithString: "Background input only. No personal documents.")
+      detail.frame = NSRect(x: 24, y: 184, width: 512, height: 25)
+      view.addSubview(detail)
+    }
     field.frame = NSRect(x: 24, y: 124, width: 512, height: 40)
     field.font = .systemFont(ofSize: 18)
     field.identifier = NSUserInterfaceItemIdentifier("qa-native-input")
     field.setAccessibilityLabel("QA native input")
     view.addSubview(field)
-    let button = NSButton(title: "QA increment", target: self, action: #selector(increment))
+    button = NSButton(title: "QA increment", target: self, action: #selector(increment))
     button.frame = NSRect(x: 24, y: 58, width: 190, height: 38)
     button.bezelStyle = .rounded
     button.identifier = NSUserInterfaceItemIdentifier("qa-native-button")
@@ -54,11 +72,14 @@ final class Target: NSObject, NSApplicationDelegate {
   @objc func increment() { presses += 1; writeState() }
 
   func writeState() {
+    let center = panel.convertPoint(toScreen: button.convert(NSPoint(x: button.bounds.midX, y: button.bounds.midY), to: nil))
+    let top = NSScreen.screens.first?.frame.maxY ?? 0
     let data: [String: Any] = [
       "nonce": nonce, "pid": ProcessInfo.processInfo.processIdentifier,
       "windowId": panel.windowNumber, "text": field.stringValue, "presses": presses,
       "frontmostPid": NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0,
       "key": panel.isKeyWindow, "main": panel.isMainWindow,
+      "buttonCenterX": center.x, "buttonCenterY": top - center.y,
     ]
     if let bytes = try? JSONSerialization.data(withJSONObject: data, options: [.sortedKeys]) {
       try? bytes.write(to: root.appendingPathComponent("target-state.json"), options: .atomic)

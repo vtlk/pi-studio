@@ -5,6 +5,6 @@
   },
   {
     "type": "text",
-    "text": "window_id=20342 pid=42037 size=1120x624\nScreenshot only: snapshot s00000002 keeps its rows, and its element_tokens (s00000002:N) stay valid."
+    "text": "window_id=20466 pid=52784 size=1120x624\nScreenshot only: snapshot s00000002 keeps its rows, and its element_tokens (s00000002:N) stay valid."
   }
 ]

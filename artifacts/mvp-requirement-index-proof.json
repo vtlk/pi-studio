@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-16T19:51:21.277095+00:00",
-  "headAtAudit": "257924be59002e3e45e9e30fe9d559f7542feeae",
-  "backlogUniqueIdCount": 216,
+  "checkedAt": "2026-11-16T21:01:03.022Z",
+  "headAtAudit": "34d50a64c2b5604bac9fe850984d57e10b4ba63c",
+  "backlogUniqueIdCount": 213,
   "backlogIds": [
     "AG-01",
     "AG-02",
@@ -68,7 +68,6 @@
     "FILE-04",
     "FILE-05",
     "FILE-06",
-    "GPT-5",
     "HIST-01",
     "HIST-02",
     "HIST-03",
@@ -156,7 +155,6 @@
     "SETUP-01",
     "SETUP-02",
     "SETUP-03",
-    "SHA-256",
     "SNAP-01",
     "SNAP-02",
     "SNAP-03",
@@ -212,7 +210,6 @@
     "UPD-02",
     "UPD-03",
     "UPD-04",
-    "UTF-8",
     "VO-01",
     "VO-02",
     "VO-03",
@@ -305,7 +302,9 @@
     "artifacts/alpha86-windows-package-proof.json": "bbcf8b17eb4cc2f62f06bd8ab9c1e98400dbb877c252bd50958b15e23cd34a4a",
     "artifacts/alpha86-windows-release-proof.json": "c75d9fbd26884742f3af4775d3c9961537e7560f786ecead1fb968e51a46144a",
     "artifacts/release-package-0.2.0-alpha.86-proof.json": "e8d95c374a4666980327d028fda59eb56f1547661fc5e1752cc7ba9d331f207c",
-    "artifacts/alpha86-cua-source-availability-proof.json": "3887ba57b99d995a4e7bb1639a015f5a7f96fe63fd3beaa701aa1f46ab44c258"
+    "artifacts/alpha86-cua-source-availability-proof.json": "3887ba57b99d995a4e7bb1639a015f5a7f96fe63fd3beaa701aa1f46ab44c258",
+    "artifacts/alpha86-mac-user-acceptance-proof.json": "00b6d2cfc8eca1ee413831b25faf5b9f16a9047153b23968075e54189c7de54e",
+    "artifacts/native-computer-desktop-proof.json": "8197a463fb457c4eb641ffe0450ba0387446a33baf1c069a7e1e4de3c9d19537"
   },
   "latestScopeReplacements": [
     "library retired",
@@ -317,13 +316,13 @@
     "public repository retained by owner"
   ],
   "backlogSha256": "78fccda31ac749ffc5360ed864ad75663d7d426cdcb54643735393ad7f727748",
-  "auditSha256": "5f36b8bc8cc2c5ea96c0dc5f9f7ce4c4a9209ff1d48ca20ff923a46fd086db39",
+  "auditSha256": "02f91f3a7f082fa89af755d01606eab969bf9905abf22b3fa7f94881e30a52db",
   "installedVersion": "0.2.0-alpha.86",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
   "scope": "Requirement-index and supersession reconciliation with explicitly bounded read evidence, not a new runtime test or completion proof. Full specification text stays local and ignored.",
   "remainingAcceptance": [
-    "real macOS desktop and Terminal",
+    "Mac full visual-model/Spaces/multidisplay and Terminal acceptance deferred: user requested no more system permission dialogs tonight",
     "native Windows",
     "real external-account OAuth",
     "Claude subscription deferred by user",
@@ -336,5 +335,13 @@
   "publishedWindowsVersion": "0.2.0-alpha.86",
   "nativeWindowsAcceptance": false,
   "nativeWindowsHostUnavailableByUserReply": true,
-  "nativeAcceptancePlanLocalOnly": true
+  "nativeAcceptancePlanLocalOnly": true,
+  "excludedNonTaskTokens": [
+    "GPT-5",
+    "SHA-256",
+    "UTF-8"
+  ],
+  "desktopQaDeferredByUser": true,
+  "nativePermissionProbePrompts": false,
+  "nativeModelLoopAccepted": false
 }

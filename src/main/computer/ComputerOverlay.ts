@@ -110,6 +110,16 @@ export class ComputerOverlay implements ComputerFeedback {
       [...this.surfaces.values()].map(async ({ window, ready, display }) => {
         await ready;
         if (window.isDestroyed() || this.active !== active || this.suspended || this.closed) return;
+        // A new AppKit panel can initially include an extra menu-bar strip.
+        // Normalize after loading so renderer pixels share the exact display origin.
+        const actual = window.getContentBounds();
+        if (
+          actual.x !== display.bounds.x ||
+          actual.y !== display.bounds.y ||
+          actual.width !== display.bounds.width ||
+          actual.height !== display.bounds.height
+        )
+          window.setContentBounds(display.bounds);
         const point = active.state.point;
         const inside =
           point &&

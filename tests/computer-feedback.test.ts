@@ -18,7 +18,13 @@ const snapshot = {
   window_bounds: { x: -1200, y: 80, width: 800, height: 600 },
   screenshot_width: 1600,
   screenshot_height: 1200,
-  elements: [{ element_token: 's00000001:2', frame: { x: 200, y: 100, w: 100, h: 40 } }],
+  elements: [
+    {
+      element_token: 's00000001:2',
+      frame: { x: -1100, y: 130, w: 50, h: 20 },
+      screenshot_frame: { x: 200, y: 100, w: 100, h: 40 },
+    },
+  ],
 };
 const live = {
   pid: 42,
@@ -28,6 +34,34 @@ const live = {
   bounds: snapshot.window_bounds,
 };
 const target = { pid: 42, window_id: 7 };
+
+test('real macOS AX screen frames are distinct from Retina screenshot frames', () => {
+  const geometry = new CursorGeometry();
+  const captured = {
+    ...snapshot,
+    window_bounds: { x: 90, y: 618, width: 560, height: 312 },
+    screenshot_width: 1120,
+    screenshot_height: 624,
+    elements: [
+      {
+        element_token: 's00000001:2',
+        frame: { x: 113, y: 833, w: 192, h: 40 },
+        screenshot_frame: { x: 46, y: 430, w: 384, h: 80 },
+      },
+    ],
+  };
+  geometry.observe('a', captured);
+  const window = { ...live, bounds: captured.window_bounds };
+  assert.deepEqual(geometry.point('a', { ...target, element_token: 's00000001:2' }, window), {
+    x: 209,
+    y: 853,
+  });
+  geometry.observe('a', {
+    ...captured,
+    elements: [{ element_token: 's00000001:2', frame: captured.elements[0].frame }],
+  });
+  assert.equal(geometry.point('a', { ...target, element_token: 's00000001:2' }, window), undefined);
+});
 
 test('cursor follows exact Retina capture, AX token, moved window and negative-origin display', () => {
   const geometry = new CursorGeometry();
