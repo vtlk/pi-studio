@@ -49,7 +49,8 @@ async function parent() {
     const proof = {
       checkedAt: new Date().toISOString(),
       nativeMainPreloadRenderer: true,
-      sourceWorkspace: true,
+      sourceWorkspace: !process.env.PI_STUDIO_QA_MAIN,
+      packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,
       shippedInAlpha81: false,
       phases,
       globalOsThemeChanged: false,
@@ -106,7 +107,7 @@ async function child() {
   }, 85000);
   let window;
   try {
-    require('./offscreen-main.cjs').loadOffscreenMain();
+    require('./offscreen-main.cjs').loadOffscreenMain(process.env.PI_STUDIO_QA_MAIN);
     window = await loaded;
     window.webContents.removeAllListeners('will-prevent-unload');
     window.webContents.on('will-prevent-unload', () => {
