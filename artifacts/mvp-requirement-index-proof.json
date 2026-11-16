@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T19:39:33.801785+00:00",
+  "checkedAt": "2026-11-16T19:51:21.277095+00:00",
   "headAtAudit": "257924be59002e3e45e9e30fe9d559f7542feeae",
   "backlogUniqueIdCount": 216,
   "backlogIds": [
@@ -304,7 +304,8 @@
     "artifacts/alpha86-installation-proof.json": "3b35d36754a4efb078d3b6b57f4ab5f6aafc76e33331ac318772e5a32b82834c",
     "artifacts/alpha86-windows-package-proof.json": "bbcf8b17eb4cc2f62f06bd8ab9c1e98400dbb877c252bd50958b15e23cd34a4a",
     "artifacts/alpha86-windows-release-proof.json": "c75d9fbd26884742f3af4775d3c9961537e7560f786ecead1fb968e51a46144a",
-    "artifacts/release-package-0.2.0-alpha.86-proof.json": "e8d95c374a4666980327d028fda59eb56f1547661fc5e1752cc7ba9d331f207c"
+    "artifacts/release-package-0.2.0-alpha.86-proof.json": "e8d95c374a4666980327d028fda59eb56f1547661fc5e1752cc7ba9d331f207c",
+    "artifacts/alpha86-cua-source-availability-proof.json": "3887ba57b99d995a4e7bb1639a015f5a7f96fe63fd3beaa701aa1f46ab44c258"
   },
   "latestScopeReplacements": [
     "library retired",
@@ -315,8 +316,8 @@
     "five required helper MCPs; ordinary Project only",
     "public repository retained by owner"
   ],
-  "backlogSha256": "35f82f500da771807e57417fcaac419d2ff9b0d84c7de284d8c9a30d59e62da3",
-  "auditSha256": "1d359662272ba46a17ce28ede8447140617fd907b53360e38d65b4391dd48c18",
+  "backlogSha256": "78fccda31ac749ffc5360ed864ad75663d7d426cdcb54643735393ad7f727748",
+  "auditSha256": "5f36b8bc8cc2c5ea96c0dc5f9f7ce4c4a9209ff1d48ca20ff923a46fd086db39",
   "installedVersion": "0.2.0-alpha.86",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
@@ -333,5 +334,7 @@
   "promptFitPublishedVersion": "0.2.0-alpha.86",
   "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
   "publishedWindowsVersion": "0.2.0-alpha.86",
-  "nativeWindowsAcceptance": false
+  "nativeWindowsAcceptance": false,
+  "nativeWindowsHostUnavailableByUserReply": true,
+  "nativeAcceptancePlanLocalOnly": true
 }

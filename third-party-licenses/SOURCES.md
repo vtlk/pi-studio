@@ -37,3 +37,21 @@ published tarball. Both versions declare MIT. Both advertised `gitHead` LICENSE
 URLs still return 404, so this narrows the content question without claiming an
 exact release-source license match. No downloaded code ran or archive was kept.
 Evidence: `artifacts/scrollbar-license-provenance-proof.json`.
+
+## Native Cua / UBRN source availability (2026-11-17)
+
+The source references in [Cua-SOURCES.md](Cua-SOURCES.md) cover the matching
+macOS and Windows native packages. The published alpha.86 ZIPs each contain
+167 SDK/JavaScript runtime files that match the SHA-512-verified npm archives
+of `@trycua/cua-driver@0.49.11`, `@ubjs/core@0.31.0-3` and
+`@ubjs/node@0.31.0-3` byte for byte.
+
+The linked `uniffi-bindgen-react-native@0.31.0-3` archive includes 12 N-API Rust
+source files and its MPL source notice. The pinned Cua commit's exact build
+transform and MPL trampoline-cache source are publicly retrievable. Both ZIPs
+retain the full MPL text, Cua MIT text, runtime notice and corresponding-source
+references. This checks the shipped notices and available source described by
+[MPL section 3.2](https://www.mozilla.org/en-US/MPL/2.0/);
+it does not reproduce the native binaries.
+
+Evidence: [alpha86-cua-source-availability-proof.json](../artifacts/alpha86-cua-source-availability-proof.json).
