@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-11-16T16:03:19.401Z",
+  "version": "0.2.0-alpha.84",
+  "sourceCommit": "f2e0e35fc5b7ae47806fcde7c5811704529d9b07",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.84",
+  "publishedAt": "2026-11-16T15:59:48Z",
+  "assets": [
+    {
+      "id": 755413144,
+      "name": "Pi-Studio-0.2.0-alpha.84-darwin-arm64.update.json",
+      "bytes": 622,
+      "digest": "sha256:3c7dbd47dce399b1e7802f59b399abddf5e3c8765e56b13b756840127884005f"
+    },
+    {
+      "id": 755407832,
+      "name": "Pi-Studio-0.2.0-alpha.84-mac-arm64.zip",
+      "bytes": 142782648,
+      "digest": "sha256:9f099ee7ab994abaf2d64623dfba7fc720d69715d1db5dbe88e1c667d8b49342"
+    },
+    {
+      "id": 755407822,
+      "name": "Pi-Studio-0.2.0-alpha.84-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "digest": "sha256:95c2da8268c106cdbadc5c06404595aab5380783e130c6f93f2031f197f5c7e8"
+    }
+  ],
+  "archive": {
+    "name": "Pi-Studio-0.2.0-alpha.84-mac-arm64.zip",
+    "bytes": 142782648,
+    "unpackedBytes": 323560045,
+    "sha256": "9f099ee7ab994abaf2d64623dfba7fc720d69715d1db5dbe88e1c667d8b49342"
+  },
+  "productionMetadataDownloadedAndEd25519Verified": true,
+  "downloadedMetadataSha256": "3c7dbd47dce399b1e7802f59b399abddf5e3c8765e56b13b756840127884005f",
+  "allPublishedAssetsMatchLocalDigestAndBytes": true,
+  "sourceChecks": {
+    "runtimeBaseCommit": "f0e8ee1f9492cbe147bd3972e2c6de42da1b7485",
+    "buildAndTypecheck": true,
+    "lint": true,
+    "architectureModules": 369,
+    "unitFsPassed": 325,
+    "packagingOnlyDelta": [
+      "scripts/package-mac.mjs",
+      "scripts/package-win.mjs"
+    ]
+  },
+  "packagedNativeFilePreviewsPassed": true,
+  "noBundledRemotion": true,
+  "localizationRuntimeIncluded": true,
+  "windowsBuilt": false,
+  "windowsDownloadRemains": "0.2.0-alpha.78",
+  "notarized": false,
+  "applicationInstalledOrClosed": false,
+  "installedVersion": "0.2.0-alpha.83",
+  "newPerUpdateConsentRequired": true,
+  "ownStagingRemoved": true
+}

@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-16T15:24:18.937Z",
+  "version": "0.2.0-alpha.84",
+  "sourceCommit": "f2e0e35fc5b7ae47806fcde7c5811704529d9b07",
+  "archive": {
+    "name": "Pi-Studio-0.2.0-alpha.84-mac-arm64.zip",
+    "bytes": 142782648,
+    "unpackedBytes": 323560045,
+    "sha256": "9f099ee7ab994abaf2d64623dfba7fc720d69715d1db5dbe88e1c667d8b49342"
+  },
+  "productionEd25519Verified": true,
+  "zipCrcAndInventoryVerified": true,
+  "stableTeamIdentifier": "2N3G6XT5H9",
+  "certificateDeepStrictVerified": true,
+  "zipPayloadMatchesCandidate": true,
+  "compiledMainMatchesBuild": true,
+  "byteVerifiedNoticePackages": 127,
+  "noBundledRemotion": true,
+  "localizationRuntimeIncluded": true,
+  "appInstalledOrClosed": false,
+  "notarized": false,
+  "extraApplicationCopiesCreated": 0
+}
