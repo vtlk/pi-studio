@@ -4,6 +4,8 @@ import { IconButton } from '@/shared/ui';
 import { useStorage } from '@/shared/storage/Storage';
 import {
   runFailureMessages,
+  terminalCloseMessages,
+  terminalCloseDetail,
   type RunFailureNotice as Failure,
 } from '../../../../shared/runFailure';
 
@@ -30,6 +32,8 @@ export function RunFailureNotice() {
     <div className="run-failure-notice error-message" role="alert">
       <span>
         «{notice.agentName}»: {runFailureMessages[notice.failure]}
+        {notice.failure === 'terminal_close' && terminalCloseDetail(notice.terminalDetail) &&
+          ' ' + terminalCloseMessages[notice.terminalDetail!]}
       </span>
       <IconButton title="Скрыть ошибку агента" onClick={() => setNotice(undefined)}>
         <X size={16} />

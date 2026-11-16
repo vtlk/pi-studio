@@ -184,7 +184,7 @@ export class RunLifecycle {
               live.status = 'error';
               await this.dependencies.update(live.run, 'error', undefined, failure).catch(() => {});
             }
-            this.dependencies.failureChanged?.(live.run, failure);
+            this.dependencies.failureChanged?.(live.run, failure, error instanceof AutomaticCloseError ? error.terminalDetail : undefined);
           });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {

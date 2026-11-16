@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Latest explicit user authorization (2026-11-16): implement ALL newly listed UI-17–23, TEAM-08 and MCP-ASSIGN-01 now («Да, реализовать все перечисленные задачи»). This supersedes their specification-only restriction below. Scope includes theme/system preference persistence, team menu with shared transfer flow, real live MCP revocation and the new agent/project geometry/action borders. Installation remains subject to separate per-update approval; Windows builds remain request-only. The reported AUTO-04 Terminal capture/chain bug is an active fix priority.
+
 - Latest user instruction (2026-11-16): ASK before EVERY reinstall/update and before closing Studio or its Pi dialogues for an update («спрашивай перед переустановкой»). Do not infer permission from a previous sleep-time authorization, a prepared build, saved state or a settled transcript; the earlier unattended-install permission is revoked. Keep the currently working app/processes running until the user explicitly approves that particular replacement. Prepare and verify the reviewable release first, then request approval as the final step.
 
 - Latest user instruction (2026-11-16): build Windows ONLY on explicit request («каждый раз не собирай windows сборку, только по требованию»). Routine releases/updates are Mac-only. Keep README Windows downloads/version pointing to the latest actually published Windows artifact; do not invent a matching Windows version or publish an unrequested build.

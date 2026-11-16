@@ -1,3 +1,4 @@
+import { terminalCloseDetail, type TerminalCloseDetail } from '../../shared/runFailure.ts';
 import { runTerminalTitle } from './terminalTitle.ts';
 import { captureWindowsTab } from './terminal-close/windowsTerminal.ts';
 import type { TerminalIdentity } from '../../shared/runtime.ts';
@@ -17,9 +18,11 @@ export interface TerminalCloseHandle {
 }
 export class AutomaticCloseError extends Error {
   readonly failure: 'terminal_close' | 'outputs';
-  constructor(message: string, failure: AutomaticCloseError['failure'] = 'terminal_close') {
+  readonly terminalDetail?: TerminalCloseDetail;
+  constructor(message: string, failure: AutomaticCloseError['failure'] = 'terminal_close', terminalDetail?: TerminalCloseDetail) {
     super(message);
     this.failure = failure;
+    this.terminalDetail = terminalDetail;
   }
 }
 export async function captureOwnedTab(
@@ -124,6 +127,8 @@ export function closeSuccessfulRun(
       if (error instanceof AutomaticCloseError) throw error;
       throw new AutomaticCloseError(
         error instanceof Error ? error.message : 'Не удалось подтвердить закрытие Pi.',
+        'terminal_close',
+        error && typeof error === 'object' && 'terminalDetail' in error ? terminalCloseDetail(error.terminalDetail) : undefined,
       );
     }
   })();

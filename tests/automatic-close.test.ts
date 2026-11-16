@@ -236,7 +236,7 @@ test('macOS capture verifies exact PID start/command and closes only original em
         '-e',
         args[1],
       ]);
-    return { stdout: args[1] === captureMacTabScript ? '55\t/dev/ttys042' : 'closed' };
+    return { stdout: args[1] === captureMacTabScript ? '55|/dev/ttys042' : 'closed' };
   };
   const handle = await captureMacTab(
     123,
@@ -357,4 +357,59 @@ test('manual mode, blocked state, stale sequence and unfinished own operations n
     else assert.throws(invoke, ContinuationCancelled);
     assert.deepEqual(f.counts(), { stops: 0, closes: 0, removes: 0 });
   }
+});
+
+test('macOS waits for explicit Terminal busy acknowledgements, closes once, and never retries an uncertain AppleEvent', async () => {
+  let pending = 2, probes = 0, uncertain = false, shared = false, terminalPid = '99';
+  const executor = async (file: string, args: string[]) => {
+    if (file === '/usr/bin/pgrep') return { stdout: terminalPid };
+    if (file === '/bin/ps' && args.includes('comm=')) return {
+      stdout: 'Sun Nov 15 01:00:00 2026 /System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal',
+    };
+    if (file === '/bin/ps') return {
+      stdout: 'ttys042 Sun Nov 15 01:00:00 2026 /node/session.mjs /boot/owned-run.json',
+    };
+    assert.equal(file, '/usr/bin/osascript');
+    if (args[1] === captureMacTabScript) return { stdout: '55|/dev/ttys042' };
+    assert.equal(args[1], closeMacTabScript);
+    probes++;
+    if (uncertain) throw Object.assign(new Error('private diagnostic'), { stderr: 'private diagnostic -1719' });
+    if (shared) return { stdout: 'shared' };
+    return { stdout: pending-- > 0 ? 'pending' : 'closed' };
+  };
+  const handle = await captureMacTab(123, 'owned-run', '/bridge/session.mjs', 'Agent · Project', executor);
+  await handle.close();
+  assert.equal(probes, 3, 'Only explicit non-destructive pending results were polled');
+  shared = true; const beforeShared = probes;
+  await assert.rejects(handle.close(), (error: Error & { terminalDetail?: string }) =>
+    error.terminalDetail === 'shared_window');
+  assert.equal(probes, beforeShared + 1, 'Shared window was not retried or closed');
+  shared = false; uncertain = true; const beforeUncertain = probes;
+  await assert.rejects(handle.close(), (error: Error & { terminalDetail?: string }) =>
+    error.terminalDetail === 'identity_changed' && !error.message.includes('private diagnostic'));
+  assert.equal(probes, beforeUncertain + 1, 'Uncertain AppleEvent was not repeated');
+  terminalPid = '100'; const beforeRestart = probes;
+  await assert.rejects(handle.close());
+  assert.equal(probes, beforeRestart, 'A restarted Terminal was never targeted');
+});
+
+test('macOS reports Automation denial separately without leaking process output', async () => {
+  await assert.rejects(captureMacTab(123, 'owned-run', '/bridge/session.mjs', 'Title', async () => {
+    throw Object.assign(new Error('private diagnostic'), { stderr: 'private diagnostic -1743' });
+  }), (error: Error & {terminalDetail?: string}) =>
+    error.terminalDetail === 'automation_denied' && !error.message.includes('private diagnostic'));
+});
+
+
+test('native AppleScript uses an unambiguous capture delimiter inside the real Terminal dictionary, without window events', { skip: process.platform !== 'darwin' }, async () => {
+  const expression = captureMacTabScript.split('\n').find(line =>
+    line.includes('return (id of terminalWindow as text)'));
+  assert.ok(expression);
+  // Evaluate the production return expression; substitute only the window ID read.
+  // Terminal's dictionary previously interpreted bare tab as its class, yielding "55tab/dev/...".
+  const script = 'set targetTTY to "/dev/ttys042"\ntell application "Terminal"\n' +
+    expression.replace('(id of terminalWindow as text)', '("55" as text)') + '\nend tell';
+  assert.doesNotMatch(script, /windows|activate|close|do script|keystroke/);
+  const { stdout } = await promisify(execFile)('/usr/bin/osascript', ['-e', script], {timeout:3000});
+  assert.deepEqual(stdout.trim().split('|'), ['55', '/dev/ttys042']);
 });

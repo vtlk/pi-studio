@@ -4,7 +4,7 @@ import type { PreparedRun } from './ContextBuilder.ts';
 import type { validateCompletedOutputs } from './completeStage.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import type { SessionTool, SessionMcpGroup, ChannelEvent } from './RunChannel.ts';
-import type { RunFailure } from '../../shared/runFailure.ts';
+import type { TerminalCloseDetail, RunFailure } from '../../shared/runFailure.ts';
 
 export interface RunDependencies {
   bootstraps: string;
@@ -34,7 +34,7 @@ export interface RunDependencies {
   tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
   observed?: (run: PreparedRun, event: ChannelEvent) => Promise<void>;
   serviceAgent?: boolean;
-  failureChanged?: (run: PreparedRun, failure?: RunFailure) => void;
+  failureChanged?: (run: PreparedRun, failure?: RunFailure, terminalDetail?: TerminalCloseDetail) => void;
   completed?: (
     run: PreparedRun,
     outputs: Awaited<ReturnType<typeof validateCompletedOutputs>>,

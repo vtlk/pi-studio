@@ -47,4 +47,18 @@ export interface RunFailureNotice {
   agentId: string;
   agentName: string;
   failure?: RunFailure;
+  terminalDetail?: TerminalCloseDetail;
+}
+
+export const terminalCloseMessages = {
+  automation_denied: 'macOS запретила Studio управлять Terminal. Разрешите доступ в настройках macOS → Конфиденциальность и безопасность → Автоматизация.',
+  terminal_busy: 'Terminal не подтвердил завершение процессов во вкладке Pi за отведённое время.',
+  shared_window: 'В этом окне Terminal есть другие вкладки. Studio сохранила всё окно, чтобы не закрыть их.',
+  identity_changed: 'Изменились процесс, окно или заголовок вкладки Pi. Закрытие отменено.',
+  terminal_unavailable: 'Не удалось найти точную вкладку Pi в Terminal.',
+} as const;
+export type TerminalCloseDetail = keyof typeof terminalCloseMessages;
+export function terminalCloseDetail(value: unknown): TerminalCloseDetail | undefined {
+  return typeof value === 'string' && Object.hasOwn(terminalCloseMessages, value)
+    ? value as TerminalCloseDetail : undefined;
 }

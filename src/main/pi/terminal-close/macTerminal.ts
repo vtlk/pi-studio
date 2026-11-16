@@ -1,3 +1,4 @@
+import { terminalCloseDetail, terminalCloseMessages, type TerminalCloseDetail } from '../../../shared/runFailure.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { basename } from 'node:path';
@@ -16,7 +17,7 @@ export const captureMacTabScript = `on run argv
       repeat with terminalTab in tabs of terminalWindow
         if tty of terminalTab is targetTTY then
           if custom title of terminalTab is not item 2 of argv then error "Owned terminal title changed" number -1719
-          return (id of terminalWindow as text) & tab & targetTTY
+          return (id of terminalWindow as text) & "|" & targetTTY
         end if
       end repeat
     end repeat
@@ -33,8 +34,8 @@ export const closeMacTabScript = `on run argv
           if tty of terminalTab is targetTTY then
             if id of terminalWindow is not targetWindow then error "Owned terminal moved" number -1719
             if custom title of terminalTab is not item 3 of argv then error "Owned terminal title changed" number -1719
-            if busy of terminalTab or (count of processes of terminalTab) is not 0 then error "Owned terminal is no longer empty" number -1719
-            if (count of tabs of terminalWindow) is not 1 then error "Window contains other tabs" number -1719
+            if busy of terminalTab or (count of processes of terminalTab) is not 0 then return "pending"
+            if (count of tabs of terminalWindow) is not 1 then return "shared"
             close terminalWindow
             return "closed"
           end if
@@ -44,10 +45,18 @@ export const closeMacTabScript = `on run argv
   return "closed"
 end run`;
 
-function terminalError() {
-  return new Error(
-    'Не удалось безопасно закрыть вкладку Pi. Проверьте доступ Pi Studio к Terminal в настройках macOS → Конфиденциальность и безопасность → Автоматизация. Другие вкладки не закрывались.',
-  );
+function terminalError(reason: TerminalCloseDetail = 'identity_changed') {
+  return Object.assign(new Error('Не удалось безопасно закрыть вкладку Pi. ' + terminalCloseMessages[reason]), {
+    terminalDetail: reason,
+  });
+}
+function closeError(error: unknown) {
+  const detail = error && typeof error === 'object' && 'terminalDetail' in error
+    ? terminalCloseDetail(error.terminalDetail) : undefined;
+  if (detail) return terminalError(detail);
+  if (error && typeof error === 'object' && 'stderr' in error && String(error.stderr).includes('-1743'))
+    return terminalError('automation_denied');
+  return terminalError();
 }
 /** Capture while the exact bridge is live; close its still-empty, single-tab window. Shared windows are preserved; never select by title/index. */
 export async function captureMacTab(
@@ -114,7 +123,7 @@ export async function captureMacTab(
       },
     );
     const handle = result.stdout?.trim() ?? '';
-    const fields = handle.split('\t');
+    const fields = handle.split('|');
     if (!/^\d+$/.test(fields[0]) || fields.length !== 2 || fields[1] !== original.tty)
       throw terminalError();
     return {
@@ -124,21 +133,33 @@ export async function captureMacTab(
       },
       close: async () => {
         try {
-          const current = await terminalIdentity();
-          if (!current) return;
-          if (current !== terminal) throw terminalError();
-          const closed = await run(
-            '/usr/bin/osascript',
-            ['-e', closeMacTabScript, fields[0], fields[1], title],
-            { timeout: 10000, maxBuffer: 10000 },
-          );
-          if (closed.stdout?.trim() !== 'closed') throw terminalError();
-        } catch {
-          throw terminalError();
+          // Only an explicit 'pending' result is polled: no close was performed in that branch.
+          // An AppleEvent error/timeout is uncertain and is never retried.
+          const deadline = Date.now() + 3000;
+          for (;;) {
+            const current = await terminalIdentity();
+            if (!current) return;
+            if (current !== terminal) throw terminalError();
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) throw terminalError('terminal_busy');
+            const result = await run(
+              '/usr/bin/osascript',
+              ['-e', closeMacTabScript, fields[0], fields[1], title],
+              { timeout: remaining, maxBuffer: 10000 },
+            );
+            const status = result.stdout?.trim();
+            if (status === 'closed') return;
+            if (status === 'shared') throw terminalError('shared_window');
+            if (status !== 'pending') throw terminalError();
+            if (Date.now() >= deadline) throw terminalError('terminal_busy');
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        } catch (error) {
+          throw closeError(error);
         }
       },
     };
-  } catch {
-    throw terminalError();
+  } catch (error) {
+    throw closeError(error);
   }
 }
