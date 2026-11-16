@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-11-16T16:33:21.088Z",
+  "version": "0.2.0-alpha.84",
+  "sourceCommit": "f2e0e35fc5b7ae47806fcde7c5811704529d9b07",
+  "separateUserConsent": true,
+  "previousApplicationQuitNormally": true,
+  "installedApplicationOpened": true,
+  "runningInstalledInstances": 1,
+  "pid": 24972,
+  "bundleIdentifier": "studio.pi.desktop",
+  "signingTeam": "2N3G6XT5H9",
+  "nativeWindowInspection": {
+    "windows": 1,
+    "dialogs": 0,
+    "saving": false,
+    "attention": false
+  },
+  "preservation": {
+    "verifiedFiles": 93,
+    "unchangedFiles": 93,
+    "missingFiles": 0,
+    "piHistories": 78,
+    "changedHistoryPrefixes": 0,
+    "secretsDecrypted": false
+  },
+  "piDialoguesOpenBeforeUpdate": 0,
+  "piDialoguesAutomaticallyOpened": 0,
+  "automaticUserMessages": 0,
+  "browserCloneAudit": {
+    "beforeCount": 2,
+    "afterCount": 2,
+    "newClones": 0,
+    "browserOrProfileModified": false
+  },
+  "applicationBackupsCreated": false,
+  "windowsBuilt": false,
+  "freeDiskGiBObserved": 11
+}
