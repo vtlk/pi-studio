@@ -1,0 +1,67 @@
+{
+  "checkedAt": "2026-11-16T17:12:21.211018+00:00",
+  "approvedPaths": 92,
+  "branches": 2,
+  "tags": 60,
+  "commitsCompared": 329,
+  "parentOrderAuthorCommitterAndMessagesPreserved": true,
+  "commitSignaturesPresent": 0,
+  "treesChangedOnlyByApprovedDeletions": 318,
+  "deletedPathOccurrencesAcrossTrees": 24578,
+  "currentMainTreeUnchanged": true,
+  "forbiddenPathsInFilteredHistory": 0,
+  "fsckPassed": true,
+  "remoteUpdated": true,
+  "oldMain": "ee6017b8a001b73230d4382a693beeee75f2d3ab",
+  "newMain": "e94d966d34c59930f112622ea0b0f60c676faae6",
+  "tool": {
+    "name": "git-filter-repo",
+    "version": "2.47.0",
+    "sha256": "2cd04929b9024e83e65db571cbe36aec65ead0cb5f9ec5abe42158654af5ad83",
+    "url": "https://files.pythonhosted.org/packages/60/60/d3943f0880ebcb7e0bdf79254d10dddd39c7b656eeecae32b8806ff66dec/git_filter_repo-2.47.0-py3-none-any.whl"
+  },
+  "userApprovedExactPlan": true,
+  "atomicForcePushWithExactOldRefLeases": true,
+  "all62RemoteRefsVerified": true,
+  "localUpdate": {
+    "head": "e94d966d34c59930f112622ea0b0f60c676faae6",
+    "mainTreeUnchanged": true,
+    "indexUnchanged": true,
+    "localSpecFilesUnchanged": 46,
+    "temporaryRefsRemoved": true,
+    "indexLockRemoved": true
+  },
+  "downloadedGitHubSourceArchives": [
+    {
+      "tag": "v0.2.0-alpha.22",
+      "commit": "eddbad9cf9d5fa0c4020576969a9dec08b86442f",
+      "files": 350,
+      "allBlobIdsMatchCleanTree": true,
+      "forbiddenFiles": 0
+    },
+    {
+      "tag": "v0.2.0-alpha.84",
+      "commit": "c8906d791f7d674241ce8af6654e0c306d026c57",
+      "files": 1033,
+      "allBlobIdsMatchCleanTree": true,
+      "forbiddenFiles": 0
+    }
+  ],
+  "publishedReleasesUnchanged": 60,
+  "publishedAssetsUnchanged": 44,
+  "assetIdentitySizesAndDigestsUnchanged": true,
+  "commitMap": "artifacts/history-cleanup-commit-map.json",
+  "commitMapSha256": "dc2d9d476fb79eb9faa83a6123664d8094e5fd75792ea4a66a99f065beba8fb3",
+  "originalWorktreeStatusEntriesRemoved": 0,
+  "concurrentWorktreeEditsPreserved": true,
+  "resetOrCheckoutUsed": false,
+  "applicationClosedOrUpdated": false,
+  "userStudioAccessed": false,
+  "githubCachedCommitCopiesPurged": false,
+  "repositoryMadePublic": false,
+  "remaining": [
+    "GitHub may retain cached old commits/source archives or hidden PR refs; private repository remains private.",
+    "Personal paths in historical QA reports and final redistribution/native acceptance remain open.",
+    "Post-rewrite security scan is running; its independent report must be checked."
+  ]
+}

@@ -3,7 +3,7 @@
   "finding": {
     "rule": "generic-api-key",
     "file": "artifacts/agent-constructor-proof.json",
-    "commit": "bbbbcb4e3e1a1f469f8d9f41f06735087a2543d9",
+    "commit": "7fc72a0df446cc8ae41394e485c31581c65819db",
     "line": 24,
     "jsonPointer": "/rendererSha256/index-BvZkEYSV.css"
   },
@@ -20,5 +20,18 @@
   "assetPresent": true,
   "rendererDigestMatched": true,
   "programExecuted": false,
-  "artifactSha256": "d96dd63449f7935933d028543b1f83d015fa39f01a377a5c09b43e422c63dd65"
+  "artifactSha256": "d96dd63449f7935933d028543b1f83d015fa39f01a377a5c09b43e422c63dd65",
+  "originalFinding": {
+    "rule": "generic-api-key",
+    "file": "artifacts/agent-constructor-proof.json",
+    "commit": "bbbbcb4e3e1a1f469f8d9f41f06735087a2543d9",
+    "line": 24,
+    "jsonPointer": "/rendererSha256/index-BvZkEYSV.css"
+  },
+  "historyRewrite": {
+    "checkedAt": "2026-11-16T17:06:19.817529+00:00",
+    "mapping": "artifacts/history-cleanup-commit-map.json",
+    "historicalArtifactBytesUnchanged": true,
+    "archiveBytesOrOriginalVerificationChanged": false
+  }
 }
