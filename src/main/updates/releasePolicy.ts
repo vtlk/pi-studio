@@ -7,6 +7,15 @@ export interface UpdateTarget {
   arch: string;
   osVersion: string;
 }
+/** OS APIs may omit a patch number or include a Windows revision; metadata uses three parts. */
+export function normalizeOsVersion(value: string) {
+  if (!/^\d+(?:\.\d+){0,3}$/.test(value))
+    throw new Error('Не удалось определить версию операционной системы.');
+  const parts = value.split('.').map(Number);
+  if (parts.some((part) => !Number.isSafeInteger(part)))
+    throw new Error('Недопустимая версия операционной системы.');
+  return [parts[0], parts[1] ?? 0, parts[2] ?? 0].join('.');
+}
 export function newerInChannel(current: string, candidate: string) {
   const from = semver.parse(current),
     to = semver.parse(candidate);

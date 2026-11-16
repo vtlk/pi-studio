@@ -5,6 +5,7 @@ import packageInfo from '../../../package.json';
 import publicKey from './publicKey.json';
 import { NativeUpdateInstaller } from './NativeUpdateInstaller.ts';
 import { UpdateCoordinator } from './UpdateCoordinator.ts';
+import { normalizeOsVersion } from './releasePolicy.ts';
 import { NativeUpdates } from './NativeUpdates.ts';
 import { registerUpdateHandlers } from './registerUpdateHandlers.ts';
 import { updateHelperNode } from './updateRuntime.ts';
@@ -63,7 +64,7 @@ export function registerNativeUpdates(o: Options) {
           version: packageInfo.version,
           platform: process.platform as 'darwin' | 'win32',
           arch: process.arch,
-          osVersion: process.getSystemVersion(),
+          osVersion: normalizeOsVersion(process.getSystemVersion()),
         },
         publicKey: publicKey.spki,
         cacheRoot: join(canonicalData, 'updates/downloads'),
