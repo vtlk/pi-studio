@@ -15,6 +15,7 @@
     "test:connections": "npm run build && electron scripts/smoke-connections.cjs",
     "test:connection-removal": "npm run build && electron scripts/smoke-connection-removal.cjs",
     "test:launch-configuration": "npm run build && electron scripts/smoke-launch-configuration.cjs",
+    "test:launch-progress": "npm run build && node scripts/smoke-launch-progress.cjs",
     "test:pi-current-model": "node --experimental-strip-types scripts/smoke-pi-current-model.ts",
     "test:pi-project-moves": "node --experimental-strip-types scripts/smoke-pi-project-moves.ts",
     "test:project-moves": "npm run build && electron scripts/smoke-project-moves.cjs",

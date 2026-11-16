@@ -130,7 +130,8 @@
   flex: 0 0 32px;
   color: inherit;
 }
-.agent-status-icon[data-status='running'] svg {
+.agent-status-icon[data-status='running'] svg,
+.project-launch-spinner {
   animation: agent-status-spin 1.2s linear infinite;
 }
 @keyframes agent-status-spin {
@@ -139,7 +140,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .agent-status-icon[data-status='running'] svg {
+  .agent-status-icon[data-status='running'] svg,
+  .project-launch-spinner {
     animation: none;
   }
 }
@@ -285,6 +287,9 @@
 }
 .project-agent-actions .split-button {
   margin-left: 0;
+}
+.app-shell .project-agent-actions .split-button[aria-busy='true'] .split-button-main {
+  opacity: 1;
 }
 .app-shell .project-agent-actions .split-button-main {
   border-radius: 6px 0 0 6px;

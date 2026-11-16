@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FolderOpen, MessageSquare, Play } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { FolderOpen, LoaderCircle, MessageSquare, Play } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
 import { SplitButton } from '@/shared/ui/SplitButton';
 import { useStorage } from '@/shared/storage/Storage';
@@ -32,8 +32,15 @@ export function AgentActions({
   const [configurationOpen, setConfigurationOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [continueAfterRun, setContinueAfterRun] = useState(false);
+  const [opening, setOpening] = useState(false);
+  const openingRef = useRef(false);
+  const updateOpening = (value: boolean) => {
+    openingRef.current = value;
+    setOpening(value);
+  };
   const hasSession = !!agent.session;
   const launch = async (autoContinue: boolean) => {
+    if (openingRef.current || busy) return;
     if (!getCurrentAgentInstructions(agent.profile.id, agents)) {
       demo('Профиль агента удалён. Текущие инструкции недоступны; другой агент не подставляется.');
       return;
@@ -55,6 +62,7 @@ export function AgentActions({
       return;
     }
     if (window.studio && selectedProject) {
+      updateOpening(true);
       try {
         if (!(await saveNow())) {
           demo('Сначала сохраните текущие изменения настроек.');
@@ -67,6 +75,8 @@ export function AgentActions({
         });
       } catch (error) {
         demo(error instanceof Error ? error.message : 'Не удалось продолжить диалог Pi.');
+      } finally {
+        updateOpening(false);
       }
       return;
     }
@@ -111,8 +121,19 @@ export function AgentActions({
           kind="secondary"
           menuLabel="Другие варианты запуска"
           label={hasSession ? 'Продолжить диалог' : 'Запустить'}
-          tooltipLabel={modelConfigured ? undefined : 'Подключение не настроено'}
-          icon={hasSession ? <MessageSquare size={18} /> : <Play size={18} />}
+          tooltipLabel={
+            opening ? 'Открываем Pi…' : modelConfigured ? undefined : 'Подключение не настроено'
+          }
+          icon={
+            opening ? (
+              <LoaderCircle size={18} className="project-launch-spinner" aria-hidden="true" />
+            ) : hasSession ? (
+              <MessageSquare size={18} />
+            ) : (
+              <Play size={18} />
+            )
+          }
+          busy={opening}
           disabled={busy || !agent.profile.enabled}
           onClick={() => void launch(false)}
           actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
@@ -122,6 +143,7 @@ export function AgentActions({
         <StartAgentDialog
           agent={agent}
           autoContinue={continueAfterRun}
+          onOpeningChange={updateOpening}
           onClose={() => setStartOpen(false)}
         />
       )}

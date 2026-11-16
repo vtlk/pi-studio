@@ -1,5 +1,5 @@
 import { Textarea } from '@/shared/ui/Textarea';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
 import { useNotice } from '@/shared/model/Notice';
@@ -15,14 +15,17 @@ import { AgentConfigurationDialog } from './AgentConfigurationDialog';
 export function StartAgentDialog({
   agent,
   autoContinue,
+  onOpeningChange,
   onClose,
 }: {
   agent: ProjectAgent;
   autoContinue: boolean;
+  onOpeningChange: (opening: boolean) => void;
   onClose: () => void;
 }) {
   const [message, setMessage] = useState('');
   const [opening, setOpening] = useState(false);
+  const openingRef = useRef(false);
   const [configurationOpen, setConfigurationOpen] = useState(false);
   const [references, setReferences] = useState<ReferenceAttachment[]>([]);
   const { isDesktop } = useStorage();
@@ -32,12 +35,15 @@ export function StartAgentDialog({
   const { connections } = useConnections();
 
   const start = async () => {
+    if (openingRef.current) return;
     const current = agents.find((profile) => profile.id === agent.profile.id);
     if (!validateAgentModel(current?.model, connections).ok) {
       setConfigurationOpen(true);
       return;
     }
+    openingRef.current = true;
     setOpening(true);
+    onOpeningChange(true);
     try {
       const session = await addSession(
         agent.profile.id,
@@ -52,7 +58,9 @@ export function StartAgentDialog({
           'Первое сообщение и привязка диалога сохранены в памяти прототипа. Pi пока не подключён.',
         );
     } finally {
+      openingRef.current = false;
       setOpening(false);
+      onOpeningChange(false);
     }
   };
 

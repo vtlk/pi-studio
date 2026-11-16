@@ -12,6 +12,7 @@ interface SplitButtonProps {
   iconOnly?: boolean;
   kind?: 'primary' | 'secondary';
   disabled?: boolean;
+  busy?: boolean;
   onClick: () => void;
   menuLabel: string;
   actions: { label: string; onSelect: () => void }[];
@@ -24,6 +25,7 @@ export function SplitButton({
   iconOnly = false,
   kind = 'primary',
   disabled,
+  busy = false,
   onClick,
   menuLabel,
   actions,
@@ -37,16 +39,17 @@ export function SplitButton({
       <div
         className={`split-button${iconOnly ? ' split-button-icon-only' : ''}`}
         data-menu-open={open || undefined}
-        data-disabled={disabled || undefined}
+        data-disabled={disabled || busy || undefined}
         role="group"
         aria-label={label}
+        aria-busy={busy || undefined}
       >
         {iconOnly ? (
           <Tooltip label={tooltipLabel}>
             <button
               type="button"
               className={`button ${kind} split-button-main`}
-              disabled={disabled}
+              disabled={disabled || busy}
               onClick={onClick}
               aria-label={label}
             >
@@ -54,7 +57,7 @@ export function SplitButton({
             </button>
           </Tooltip>
         ) : (
-          <Button kind={kind} disabled={disabled} onClick={onClick}>
+          <Button kind={kind} disabled={disabled || busy} onClick={onClick}>
             {icon}
             {label}
           </Button>
@@ -64,7 +67,7 @@ export function SplitButton({
             ref={triggerRef}
             className={`button ${kind} split-button-trigger`}
             aria-label={menuLabel}
-            disabled={disabled}
+            disabled={disabled || busy}
           >
             <ChevronDown size={17} aria-hidden="true" />
           </DropdownMenu.Trigger>
@@ -90,6 +93,7 @@ export function SplitButton({
             <DropdownMenu.Item
               className="ui-action-menu-item"
               key={action.label}
+              disabled={disabled || busy}
               onSelect={() => {
                 pendingAction.current = action.onSelect;
               }}
