@@ -22,7 +22,7 @@ test('portable inventory refuses changed, missing or added user files without de
   await assert.rejects(verifyInventory(root, 'win32'), /changed or additional/);
 });
 test(
-  'macOS inventory permits signature files generated after packaging but rejects new paths and changed links',
+  'macOS inventory tracks every signature path and rejects added files or changed links',
   { skip: process.platform === 'win32' },
   async (t) => {
     const root = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-inventory-mac-')));
@@ -30,9 +30,10 @@ test(
     await mkdir(join(root, 'Contents/Resources/app'), { recursive: true });
     await writeFile(join(root, 'Contents/original'), 'inert');
     await symlink('original', join(root, 'Contents/current'));
-    await writeInventory(root, 'darwin');
     await mkdir(join(root, 'Contents/_CodeSignature'));
-    await writeFile(join(root, 'Contents/_CodeSignature/CodeResources'), 'codesign-generated');
+    await writeFile(join(root, 'Contents/_CodeSignature/CodeResources'), 'first signature pass');
+    await writeInventory(root, 'darwin');
+    await writeFile(join(root, 'Contents/_CodeSignature/CodeResources'), 'outer seal refreshed');
     await verifyInventory(root, 'darwin');
     await writeFile(join(root, 'Contents/_CodeSignature/user-material.txt'), 'PRESERVE');
     await assert.rejects(verifyInventory(root, 'darwin'), /changed or additional/);

@@ -122,7 +122,6 @@ for (const [key, value] of Object.entries({
   NSAppleEventsUsageDescription: 'Pi Studio открывает диалоги Pi в одном окне Terminal.',
 }))
   execFileSync('/usr/bin/plutil', ['-replace', key, '-string', value, plist]);
-await writeInventory(bundle, 'darwin');
 // Source media can carry Finder metadata; strip it only from the generated distribution copy.
 execFileSync('/usr/bin/xattr', ['-cr', bundle]);
 for (const binary of cuaBinaries)
@@ -130,6 +129,12 @@ for (const binary of cuaBinaries)
     stdio: 'inherit',
   });
 execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', signingIdentity, bundle], {
+  stdio: 'inherit',
+});
+// The first pass creates nested framework/helper signature files. Track their exact paths,
+// then refresh only the outer resource seal so it authenticates the new inventory too.
+await writeInventory(bundle, 'darwin');
+execFileSync('/usr/bin/codesign', ['--force', '--sign', signingIdentity, bundle], {
   stdio: 'inherit',
 });
 execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', bundle], { stdio: 'inherit' });

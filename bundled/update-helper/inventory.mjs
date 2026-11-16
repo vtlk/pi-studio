@@ -19,18 +19,6 @@ async function entries(root, platform) {
       const path = join(directory, entry.name),
         name = relative(root, path).split('\\').join('/');
       if (path === index) continue;
-      // codesign may create this outer directory after inventory generation. Ignore only its
-      // authenticated CodeResources file, never arbitrary user files placed beside it.
-      if (platform === 'darwin' && name === 'Contents/_CodeSignature' && entry.isDirectory()) {
-        await walk(path);
-        continue;
-      }
-      if (
-        platform === 'darwin' &&
-        name === 'Contents/_CodeSignature/CodeResources' &&
-        entry.isFile()
-      )
-        continue;
       if (entry.isDirectory()) {
         result.push([name, 'directory']);
         await walk(path);
