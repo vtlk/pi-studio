@@ -12,6 +12,7 @@ import { readVideoProject } from '../video/readVideoProject.ts';
 import { listProjectFiles, readProjectFile } from './projectFiles.ts';
 import { closedRunStatus } from './closedRunStatus.ts';
 import { runFailure } from '../../shared/runFailure.ts';
+import { openingFailure, openingFailureText } from '../../shared/openingFailure.ts';
 
 export class RunLifecycle {
   outputsCleared(live: LiveRun) {
@@ -184,7 +185,11 @@ export class RunLifecycle {
               live.status = 'error';
               await this.dependencies.update(live.run, 'error', undefined, failure).catch(() => {});
             }
-            this.dependencies.failureChanged?.(live.run, failure, error instanceof AutomaticCloseError ? error.terminalDetail : undefined);
+            this.dependencies.failureChanged?.(
+              live.run,
+              failure,
+              error instanceof AutomaticCloseError ? error.terminalDetail : undefined,
+            );
           });
       }
     } else if (event.type === 'error' || event.type === 'stopped') {
@@ -197,9 +202,12 @@ export class RunLifecycle {
           : undefined;
       await this.dependencies.update(live.run, live.status, undefined, live.failure);
       if (event.type === 'error') this.dependencies.failureChanged?.(live.run, live.failure!);
+      const issue = openingFailure(event.openingIssue);
       live.fail(
         new Error(
-          'Pi не смог открыть или продолжить диалог. Подробности доступны в его окне; ресурсы не подменялись.',
+          issue
+            ? openingFailureText(issue)
+            : 'Pi не смог открыть или продолжить диалог. Проверьте выбранную модель, авторизацию и назначенные ресурсы.',
         ),
       );
     }

@@ -110,6 +110,11 @@ export const productionTools: SessionTool[] = [
   },
 ];
 function json(response: ServerResponse, status: number, value: unknown) {
+  if (response.destroyed || response.writableEnded) return;
+  if (response.getHeader('Content-Type') === 'text/event-stream') {
+    response.end(`event: message\ndata: ${JSON.stringify(value)}\n\n`);
+    return;
+  }
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
   response.end(JSON.stringify(value));
 }
@@ -177,7 +182,7 @@ export class RunChannel {
                   url: `${url}/mcp/${group.name}`,
                   headers: { Authorization: `Bearer ${token}` },
                   exposure: 'direct',
-                  timeout: group.name === 'team' ? 86400 : 120,
+                  timeout: 120,
                 },
               })),
             ],
@@ -277,14 +282,32 @@ export class RunChannel {
               if (!response.writableEnded) controller.abort();
             };
             response.once('close', disconnect);
+            const waiting =
+              group.name === 'team' && ['say_to', 'say_to_agent'].includes(params.name);
+            let keepAlive: ReturnType<typeof setInterval> | undefined;
+            if (waiting && request.headers.accept?.includes('text/event-stream')) {
+              response.setHeader('Content-Type', 'text/event-stream');
+              response.setHeader('Cache-Control', 'no-store');
+              response.writeHead(200);
+              response.write(': waiting for agent\n\n');
+              // Keep the native HTTP client's idle/header deadlines out of a live agent wait.
+              keepAlive = setInterval(() => {
+                if (!response.destroyed && !response.writableEnded)
+                  response.write(': waiting for agent\n\n');
+              }, 15000);
+              keepAlive.unref();
+            }
             try {
               result = await group.call(
                 params.name,
                 params.arguments ?? {},
-                AbortSignal.any([controller.signal, AbortSignal.timeout(120000)]),
+                waiting
+                  ? controller.signal
+                  : AbortSignal.any([controller.signal, AbortSignal.timeout(120000)]),
               );
             } finally {
               lease.calls.delete(key);
+              clearInterval(keepAlive);
               response.off('close', disconnect);
             }
           } else {

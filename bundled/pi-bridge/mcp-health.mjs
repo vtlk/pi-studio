@@ -1,4 +1,5 @@
 /** Observe Pi's own transport; do not establish a second client or reimplement OAuth. */
+import { StudioOpeningError } from './opening-failure.mjs';
 export function observeMcpTransport(createDefaultTransport, statuses) {
   return (entry, cwd, auth) => {
     const transport = createDefaultTransport(entry, cwd, auth);
@@ -36,14 +37,12 @@ export async function waitForMcp(statuses, names, timeout = 20_000) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
     const failed = names.find((name) => ['error', 'closed'].includes(statuses.get(name)));
-    if (failed)
-      throw new Error(
-        `MCP «${failed}» не подключён. Откройте /mcp в Pi и проверьте вход/настройки.`,
-      );
+    if (failed) throw new StudioOpeningError('mcp', [failed]);
     if (names.every((name) => statuses.get(name) === 'ready')) return;
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error(
-    `Не завершена загрузка MCP: ${names.filter((name) => statuses.get(name) !== 'ready').join(', ')}. Проверьте /mcp в Pi.`,
+  throw new StudioOpeningError(
+    'mcp',
+    names.filter((name) => statuses.get(name) !== 'ready'),
   );
 }

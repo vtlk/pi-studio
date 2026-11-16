@@ -1,5 +1,8 @@
 {
   "nativePi": "1.5.2",
+  "elapsedMilliseconds": 23132,
+  "waitBeyondPreviousTwoMinuteDeadline": false,
+  "recipientWaitMilliseconds": 600,
   "packagedBridge": false,
   "loopbackModel": true,
   "externalModelRequests": 0,

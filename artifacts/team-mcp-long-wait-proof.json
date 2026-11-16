@@ -1,0 +1,23 @@
+{
+  "nativePi": "1.5.2",
+  "elapsedMilliseconds": 147118,
+  "waitBeyondPreviousTwoMinuteDeadline": true,
+  "recipientWaitMilliseconds": 130000,
+  "packagedBridge": false,
+  "loopbackModel": true,
+  "externalModelRequests": 0,
+  "userStudioTouched": false,
+  "sourceTeamScoped": true,
+  "allToolsThroughNativeMcp": true,
+  "blockingWait": true,
+  "recipientTasks": 2,
+  "exactExistingBinding": true,
+  "duplicateReplay": false,
+  "cycleRejected": true,
+  "revokedOnExplicitOpen": true,
+  "revokedThroughExistingNativeTransport": true,
+  "reattachmentRestoresSameTransport": true,
+  "ordinaryResumeUserMessages": 0,
+  "windowsRuntimeAccepted": false,
+  "visibleTerminalAccepted": false
+}

@@ -14,6 +14,8 @@ import { checkPi } from '../src/main/pi/checkPi.ts';
 import type { Agent } from '../src/shared/studio.ts';
 
 // Real installed Pi SDK/bridge/MCP/files/sessions; deterministic loopback model, zero external requests.
+const longWait = process.argv.includes('--long-wait');
+const startedAt = Date.now();
 const root = await mkdtemp(join(tmpdir(), 'pistudio-team-native-'));
 const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
 process.env.PI_CODING_AGENT_DIR = join(root, 'Agent');
@@ -67,7 +69,7 @@ const server = createServer(async (req, res) => {
         args = { outputs: ['result.txt'] };
       }
       if (step === 3) {
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await new Promise((resolve) => setTimeout(resolve, longWait ? 130000 : 600));
         workerFinished = 1;
       }
       if (step === 4) {
@@ -334,7 +336,7 @@ try {
     firstMessage: 'TEAM_SENDER_ROOT',
     autoContinue: false,
   });
-  const deadline = Date.now() + 90000;
+  const deadline = Date.now() + (longWait ? 190000 : 90000);
   while (
     Date.now() < deadline &&
     !failure &&
@@ -379,6 +381,9 @@ try {
   assert.equal(workerStep, 7, 'Ordinary resume did not request model');
   const proof = {
     nativePi: pi.version,
+    elapsedMilliseconds: Date.now() - startedAt,
+    waitBeyondPreviousTwoMinuteDeadline: longWait,
+    recipientWaitMilliseconds: longWait ? 130000 : 600,
     packagedBridge: !!process.env.PI_STUDIO_QA_BRIDGE,
     loopbackModel: true,
     externalModelRequests: 0,
@@ -398,7 +403,10 @@ try {
     visibleTerminalAccepted: false,
   };
   await mkdir('artifacts', { recursive: true });
-  await writeFile('artifacts/team-mcp-native-proof.json', JSON.stringify(proof, null, 2) + '\n');
+  await writeFile(
+    longWait ? 'artifacts/team-mcp-long-wait-proof.json' : 'artifacts/team-mcp-native-proof.json',
+    JSON.stringify(proof, null, 2) + '\n',
+  );
   console.log(JSON.stringify(proof));
 } finally {
   team.close();

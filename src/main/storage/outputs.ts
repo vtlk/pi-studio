@@ -4,6 +4,11 @@ import type { OutputEntry, OutputFile } from '../../shared/project.ts';
 import { safePath, isMissing, readText } from './files.ts';
 import { compareOutputEntries } from '../../shared/outputOrder.ts';
 
+// Agent-owned work files/directories may disappear between readdir, safePath and lstat.
+// Only a vanished/replaced entry is skipped; permissions, symlinks and unsafe paths still fail.
+const disappeared = (error: unknown) =>
+  isMissing(error) || (error as NodeJS.ErrnoException).code === 'ENOTDIR';
+
 export function fileFormat(name: string): OutputFile['format'] {
   const extension = extname(name).toLowerCase();
   if (['.md', '.markdown'].includes(extension)) return 'markdown';
@@ -40,19 +45,27 @@ export async function scanOutputs(
 ): Promise<OutputEntry[]> {
   if (depth > 20) throw new Error('Папка результатов вложена глубже 20 уровней.');
   let directory: string;
+  let children;
   try {
     directory = await safePath(root, relative);
+    children = await readdir(directory, { withFileTypes: true });
   } catch (error) {
-    if (isMissing(error)) return [];
+    if (disappeared(error)) return [];
     throw error;
   }
   const entries: OutputEntry[] = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
+  for (const entry of children) {
     if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
     if (--budget.remaining < 0) throw new Error('В результатах больше 5000 файлов/папок.');
     const diskPath = `${relative}/${entry.name}`;
-    const path = await safePath(root, diskPath);
-    const stat = await lstat(path);
+    let stat;
+    try {
+      const path = await safePath(root, diskPath);
+      stat = await lstat(path);
+    } catch (error) {
+      if (disappeared(error)) continue;
+      throw error;
+    }
     const base = { id: diskPath, name: entry.name, createdAt: stat.birthtimeMs || stat.mtimeMs };
     if (stat.isDirectory())
       entries.push({

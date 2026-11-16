@@ -22,6 +22,7 @@ export interface ChannelEvent {
   sessionFile?: string;
   outcome?: string;
   failure?: unknown;
+  openingIssue?: unknown;
   message?: string;
   executableExtensions?: boolean;
   usage?: unknown;

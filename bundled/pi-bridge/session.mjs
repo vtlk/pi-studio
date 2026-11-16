@@ -10,6 +10,8 @@ import { resolveAssignedPackages } from './packages.mjs';
 import { loadThinkingApi } from './thinking.mjs';
 import { RuntimeAccounting } from './accounting/RuntimeAccounting.mjs';
 import { studioSessionTerminal } from './terminal-title.mjs';
+import { studioMcpDeadlines } from './mcp-deadlines.mjs';
+import { openingFailure, openingFailureText } from './opening-failure.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -108,33 +110,36 @@ export async function runSession(bootstrapPath) {
   if (resolve(sessions.getCwd()) !== resolve(envelope.record.cwd))
     throw new Error('Pi session cwd differs; a supported fork is required');
   const statuses = new Map();
-  const servers = [
-    ...envelope.resources.mcpServers.map((server) =>
-      server.name === 'pi_studio_browser'
-        ? {
-            ...server,
-            config: {
-              ...server.config,
-              env: {
-                ...server.config.env,
-                PI_STUDIO_BROWSER_SESSION: sessions.getSessionId(),
+  const servers = studioMcpDeadlines(
+    [
+      ...envelope.resources.mcpServers.map((server) =>
+        server.name === 'pi_studio_browser'
+          ? {
+              ...server,
+              config: {
+                ...server.config,
+                env: {
+                  ...server.config.env,
+                  PI_STUDIO_BROWSER_SESSION: sessions.getSessionId(),
+                },
               },
-            },
-          }
-        : server,
-    ),
-    {
-      name: 'pi_studio',
-      scope: 'extension',
-      source: 'Pi Studio internal',
-      config: {
-        url: `${bootstrap.url}/mcp`,
-        headers: { Authorization: `Bearer ${bootstrap.token}` },
-        exposure: 'direct',
-        timeout: 240,
+            }
+          : server,
+      ),
+      {
+        name: 'pi_studio',
+        scope: 'extension',
+        source: 'Pi Studio internal',
+        config: {
+          url: `${bootstrap.url}/mcp`,
+          headers: { Authorization: `Bearer ${bootstrap.token}` },
+          exposure: 'direct',
+          timeout: 240,
+        },
       },
-    },
-  ];
+    ],
+    bootstrap,
+  );
   const requiredServers = servers.map((server) => server.name);
   let runtime,
     accounting,
@@ -145,6 +150,7 @@ export async function runSession(bootstrapPath) {
     bound = false,
     binding = false;
   let failures = 0;
+  let openingStage = 'resources';
   let teamRequestAdmitted = false,
     teamReceiptSent = false;
   async function teamReceipt() {
@@ -217,7 +223,7 @@ export async function runSession(bootstrapPath) {
           await waitForMcp(statuses, requiredServers);
         } catch (error) {
           ctx.ui.notify(error.message, 'error');
-          await event({ type: 'error' });
+          await event({ type: 'error', openingIssue: openingFailure(error, 'mcp') });
           return { action: 'handled' };
         }
         try {
@@ -329,16 +335,20 @@ export async function runSession(bootstrapPath) {
         )
       )
         throw new Error('A selected skill could not load');
+      openingStage = 'model';
       const model = services.modelRuntime.getModel(
         envelope.record.model.provider,
         envelope.record.model.id,
       );
       if (!model) throw new Error('The explicitly selected model is unavailable');
+      openingStage = 'images';
       if (initialImages.length && !model.input?.includes('image'))
         throw new Error('Selected model does not support image input');
+      openingStage = 'thinking';
       const thinkingLevel = envelope.record.model.thinkingLevel;
       if (!thinking.getSupportedThinkingLevels(model).includes(thinkingLevel))
         throw new Error('The explicitly selected thinking level is unavailable');
+      openingStage = 'runtime';
       const result = await createAgentSessionFromServices({
         services,
         sessionManager,
@@ -386,12 +396,14 @@ export async function runSession(bootstrapPath) {
         .catch(() => {});
     }, 100);
     if (bootstrap.headless) {
+      openingStage = 'resources';
       await runtime.session.bindExtensions({});
       await waitForMcp(statuses, requiredServers);
       await event({ type: 'opened' });
       await bindWrittenSession();
       if (initialMessage) await runtime.session.prompt(initialMessage, { images: initialImages });
     } else {
+      openingStage = 'terminal';
       const mode = new InteractiveMode(runtime, {
         ...(envelope.terminalTitle === undefined
           ? {}
@@ -401,17 +413,17 @@ export async function runSession(bootstrapPath) {
         verbose: false,
       });
       await mode.init();
+      openingStage = 'mcp';
       await waitForMcp(statuses, requiredServers);
       await event({ type: 'opened' });
       await bindWrittenSession();
       await mode.run();
     }
     await bindWrittenSession();
-  } catch {
-    await event({ type: 'error' }).catch(() => {});
-    process.stderr.write(
-      'Pi Studio: не удалось продолжить работу. Проверьте выбранную модель, авторизацию и назначенные ресурсы.\n',
-    );
+  } catch (error) {
+    const issue = openingFailure(error, openingStage);
+    await event({ type: 'error', openingIssue: issue }).catch(() => {});
+    process.stderr.write(`Pi Studio: ${openingFailureText(issue)}\n`);
     process.exitCode = 1;
   } finally {
     await close();
