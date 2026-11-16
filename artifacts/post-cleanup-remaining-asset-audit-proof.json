@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-11-16T14:24:46.170Z",
+  "sourceReport": "artifacts/post-cleanup-security-audit-proof.json",
+  "sourceReportSha256": "c9ce45e374c82262f3d59b4637e3f28905345789f7c78784594674995f0f7ad5",
+  "scannerVersion": "8.30.1",
+  "configSha256": "27630a96d6c55755cc37620f3933d5cab94b1eb78a726a32e11212972525d76e",
+  "asset": {
+    "tag": "v0.2.0-alpha.79",
+    "id": 753956457,
+    "name": "Pi-Studio-0.2.0-alpha.79-mac-arm64.zip",
+    "bytes": 142911791,
+    "digest": "sha256:c68040617dd490c92c77dfab79850263de1f0bbe305c29a9c98a4e7bb8d766c7",
+    "sha256": "c68040617dd490c92c77dfab79850263de1f0bbe305c29a9c98a4e7bb8d766c7",
+    "scanned": true
+  },
+  "findings": [
+    {
+      "rule": "generic-api-key",
+      "file": "Pi-Studio-0.2.0-alpha.79-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-Cl-fGJo0.js",
+      "line": 101659,
+      "disposition": "verified-canonical-legacy-digest"
+    }
+  ],
+  "unreviewedFindings": 0,
+  "all41PublishedAssetsCoveredAcrossReports": true,
+  "rawReportsRetained": false,
+  "downloadedProgramExecuted": false,
+  "temporaryArchiveRemoved": true,
+  "fullRel02Accepted": false
+}

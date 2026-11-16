@@ -187,7 +187,7 @@
   "sourceOrTagsDeleted": false,
   "userDataOrInstalledApplicationTouched": false,
   "historyRewritten": false,
-  "completed": false,
+  "completed": true,
   "interruption": {
     "operation": "read remaining asset metadata before deletion",
     "reason": "GitHub GET unexpected EOF; prior six acknowledged deletions were verified absent before resuming",
@@ -208,5 +208,21 @@
     "remainingRemoteAssets": 41,
     "deletedRemoteBytes": 2474269444,
     "deletedLocalBytes": 567320
-  }
+  },
+  "postCleanupSecurityScan": {
+    "sourceReport": "artifacts/post-cleanup-security-audit-proof.json",
+    "sourceReportSha256": "c9ce45e374c82262f3d59b4637e3f28905345789f7c78784594674995f0f7ad5",
+    "supplementalReport": "artifacts/post-cleanup-remaining-asset-audit-proof.json",
+    "supplementalReportSha256": "d72e207651521359a7ab180864773e4125636351f1032570d57d0cbadf368a6a",
+    "all41RemainingReleaseAssetsScannedAcrossReports": true,
+    "unreviewedFindings": 0,
+    "initialSingleDownloadGapRetainedAndResolvedBySupplement": true,
+    "finalPublicRightsAcceptance": false
+  },
+  "checks": {
+    "typecheck": true,
+    "lint": true,
+    "architectureModules": 407
+  },
+  "finishedAt": "2026-11-16T14:54:39.008366+00:00"
 }
