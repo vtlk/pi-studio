@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-11-15T18:37:35.130Z",
+  "checkedAt": "2026-11-16T09:19:06.032Z",
   "nativeMain": true,
   "packagedEntry": false,
-  "version": "0.2.0-alpha.72",
+  "version": "0.2.0-alpha.80",
   "isolatedOffscreen": true,
   "emptyNoFallback": true,
   "twoIndependentTeams": true,
@@ -15,6 +15,21 @@
   "undoPreservesLaterEdits": true,
   "reloadPersistence": true,
   "nativeExportImportPicker": true,
+  "menuChecks": {
+    "duplicateNamesExportExactStableTeam": true,
+    "collapsedRowAndSelectionPreserved": true,
+    "cancelledRowPickersPreserveCatalogAndFile": true,
+    "invalidRowImportPreservesCatalog": true,
+    "globalBusyAcrossMenuAndSettings": true,
+    "saveRefusalPreventsPicker": true
+  },
+  "transferGuards": {
+    "rowImportCreatesNewTeamPreservesOriginals": true,
+    "sharedPendingReportsWithoutDuplicateHandoff": true,
+    "removedTeamDuringPickerRefused": true,
+    "studioChangeDuringPickerRefused": true,
+    "staleExportsNeverWriteFile": true
+  },
   "canceledImportPreservesCatalog": true,
   "missingAssistantModelKeepsPackageAndTargetsExactModelTab": true,
   "userStudioChanged": false

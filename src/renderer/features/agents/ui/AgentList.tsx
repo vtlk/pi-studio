@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { TeamIcon } from './TeamIcon';
 import { Disclosure } from '@/shared/ui/Disclosure';
-import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
+import { ActionMenu } from '@/shared/ui/ActionMenu';
+import { useConfirm } from '@/shared/model/Confirm';
+import { useTeamTransfers } from '../model/TeamTransfers';
 import { IconButton } from '@/shared/ui';
 import { TeamNameDialog } from './TeamNameDialog';
 import {
@@ -45,6 +47,8 @@ export function AgentList() {
     restoreAgent,
   } = useAgentProfiles();
   const { demo } = useNotice();
+  const { confirm } = useConfirm();
+  const transfer = useTeamTransfers();
   const [naming, setNaming] = useState<{ id?: string; name?: string } | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -75,16 +79,40 @@ export function AgentList() {
                   >
                     <Pencil size={16} />
                   </IconButton>
-                  <HoverDeleteButton
-                    label={`Удалить команду «${team.name}»`}
-                    description="Команда и её агенты будут удалены из конструктора. Проекты, результаты и диалоги сохранятся."
-                    onDelete={() => {
-                      removeTeam(team.id);
-                      demo(`Команда «${team.name}» удалена.`, {
-                        label: 'Вернуть',
-                        onClick: () => restoreTeam(team, profiles, teamIndex),
-                      });
-                    }}
+                  <ActionMenu
+                    label={`Действия команды «${team.name}»`}
+                    className="team-actions-menu"
+                    disabled={transfer.busy}
+                    actions={[
+                      {
+                        label: 'Импорт команды',
+                        disabled: !transfer.available,
+                        onSelect: () => void transfer.importTeam(true),
+                      },
+                      {
+                        label: 'Экспорт команды',
+                        disabled: !transfer.available,
+                        onSelect: () => void transfer.exportTeam(team.id, true),
+                      },
+                      {
+                        label: 'Удалить команду',
+                        separator: true,
+                        danger: true,
+                        onSelect: () =>
+                          confirm({
+                            title: `Удалить команду «${team.name}»`,
+                            description:
+                              'Команда и её агенты будут удалены из конструктора. Проекты, результаты и диалоги сохранятся.',
+                            onConfirm: () => {
+                              removeTeam(team.id);
+                              demo(`Команда «${team.name}» удалена.`, {
+                                label: 'Вернуть',
+                                onClick: () => restoreTeam(team, profiles, teamIndex),
+                              });
+                            },
+                          }),
+                      },
+                    ]}
                   />
                 </>
               }

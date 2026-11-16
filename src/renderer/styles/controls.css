@@ -645,3 +645,16 @@
   padding: 12px 20px 12px 12px;
   border-bottom: 1px solid var(--line);
 }
+
+.ui-action-menu-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--line);
+}
+.ui-action-menu-item.danger {
+  color: var(--danger, #b91c1c);
+}
+.ui-action-menu-item[data-disabled] {
+  opacity: 0.5;
+  cursor: default;
+}

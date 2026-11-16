@@ -296,12 +296,13 @@
   position: static;
   transform: none;
 }
-.agent-team .team-rename {
+.agent-team :is(.team-rename, .team-actions-menu) {
   opacity: 0;
   pointer-events: none;
 }
-.agent-team .ui-list-row:hover .team-rename,
-.agent-team .ui-list-row:focus-within .team-rename {
+.agent-team .ui-list-row:hover :is(.team-rename, .team-actions-menu),
+.agent-team .ui-list-row:focus-within :is(.team-rename, .team-actions-menu),
+.agent-team .team-actions-menu[data-state='open'] {
   opacity: 1;
   pointer-events: auto;
 }

@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-16T09:17:07.114731+00:00",
+  "installedVersion": "0.2.0-alpha.80",
+  "preparedSourceCommit": "293a3dfb89eb74de646fd7ce59ecf4092a7dacb7",
+  "explicitPerUpdateUserConsent": true,
+  "normalQuitAccepted": true,
+  "oldAppAndOwnedPiExitedBeforeReplacement": true,
+  "installedAppReopened": true,
+  "runningInstalledInstances": 1,
+  "runningPid": 54622,
+  "signedWithExistingAppleDevelopmentIdentity": true,
+  "teamIdentifier": "2N3G6XT5H9",
+  "settingsProjectHistoryFilesHashed": 81,
+  "immediatePostInstallAllComparedFilesUnchanged": true,
+  "laterUIProjectMetadataChanged": 1,
+  "allComparedCanonicalHistoriesStillUnchanged": true,
+  "originalAnimatorSessionBindingPreserved": true,
+  "applicationBackupsCreated": false,
+  "windowsBuilt": false,
+  "previousPiDialogueReopened": false
+}

@@ -84,7 +84,7 @@
     "test:cua-sdk": "electron scripts/smoke-cua-sdk.cjs",
     "test:computer-mcp": "node --experimental-strip-types scripts/smoke-computer-mcp.ts",
     "test:computer-ui": "npm run build && electron scripts/smoke-computer-ui.cjs",
-    "test:agent-teams": "npm run build && electron scripts/smoke-agent-teams.cjs",
+    "test:agent-teams": "npm run build && node scripts/run-team-ui.cjs",
     "test:pi-team-import": "node --experimental-strip-types scripts/smoke-pi-team-import.ts",
     "test:claude-code": "node --experimental-strip-types scripts/smoke-claude-code.ts",
     "test:claude-code-ui": "npm run build && electron scripts/smoke-claude-code-ui.cjs",

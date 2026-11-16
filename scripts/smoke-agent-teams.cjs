@@ -1,6 +1,6 @@
 const { app, ipcMain, dialog } = require('electron');
-const { mkdtempSync, mkdirSync, writeFileSync } = require('node:fs');
-const { mkdtemp, mkdir, writeFile, readFile, rm } = require('node:fs/promises');
+const { realpathSync, mkdirSync, writeFileSync } = require('node:fs');
+const { mkdir, writeFile, readFile } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
@@ -10,17 +10,23 @@ const timeout = setTimeout(() => {
   app.exit(1);
 }, 85000);
 (async () => {
-  root = mkdtempSync(join(tmpdir(), 'pistudio-teams-ui-'));
+  root = process.env.PI_STUDIO_TEAM_QA_ROOT;
+  assert.ok(root && root.startsWith(join(realpathSync(tmpdir()), 'pistudio-teams-ui-')));
+  assert.equal(root, realpathSync(root));
   const userData = join(root, 'UserData'),
     studio = join(root, 'Studio');
   mkdirSync(userData);
   writeFileSync(join(userData, 'workspace.json'), JSON.stringify({ folder: studio }));
   const packagePath = join(root, 'qa-export.pistudio-team');
-  let cancelPicker = false;
-  dialog.showSaveDialog = async () => ({
-    canceled: cancelPicker,
-    filePath: cancelPicker ? undefined : packagePath,
-  });
+  let cancelPicker = false,
+    refuseSaves = false,
+    saveGate,
+    saveCount = 0;
+  dialog.showSaveDialog = async () => {
+    saveCount++;
+    if (saveGate) await saveGate;
+    return { canceled: cancelPicker, filePath: cancelPicker ? undefined : packagePath };
+  };
   dialog.showOpenDialog = async () => ({
     canceled: cancelPicker,
     filePaths: cancelPicker ? [] : [packagePath],
@@ -29,7 +35,17 @@ const timeout = setTimeout(() => {
   app.setPath('videos', root);
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) =>
-    handle(name, name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action);
+    handle(
+      name,
+      name === 'studio:startup'
+        ? () => ({ phase: 'skipped', message: 'QA' })
+        : name === 'studio:save-section'
+          ? (...args) => {
+              if (refuseSaves) throw Error('QA save unavailable');
+              return action(...args);
+            }
+          : action,
+    );
   const loaded = new Promise((resolveWindow) =>
     app.once('browser-window-created', (_, window) =>
       window.webContents.once('did-finish-load', () => resolveWindow(window)),
@@ -123,6 +139,28 @@ const timeout = setTimeout(() => {
       });
     await js('new Promise(resolve=>requestAnimationFrame(resolve))');
   };
+  const openTeamMenu = async (id) => {
+    await js(
+      `document.querySelector('[data-team-id="'+${JSON.stringify(id)}+'"] .team-actions-menu').focus({preventScroll:true})`,
+    );
+    await key('Enter', 'Enter', 13);
+    await until(`!!document.querySelector('[role="menu"]')`);
+    assert.deepEqual(
+      await js(`Array.from(document.querySelectorAll('[role="menuitem"]')).map(e=>e.textContent)`),
+      ['Импорт команды', 'Экспорт команды', 'Удалить команду'],
+    );
+    assert.equal(
+      await js(`document.querySelectorAll('[role="menu"] [role="separator"]').length`),
+      1,
+    );
+  };
+  const chooseTeamAction = async (label) => {
+    await js(
+      `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent===${JSON.stringify(label)}).click()`,
+    );
+    await until(`!document.querySelector('[role="menu"]')`);
+    await js('new Promise(r=>setTimeout(r,50))');
+  };
   await js(`document.querySelector('.agent-team .agent-list-item').focus({preventScroll:true})`);
   await key(' ', 'Space', 32, ' ');
   await until(`!!document.querySelector('.agent-list-entry[data-dragging]')`);
@@ -191,10 +229,12 @@ const timeout = setTimeout(() => {
   );
   await writeFile(marker, 'Keep output');
   await click('Агенты');
-  await named('Удалить команду «Вторая»');
+  await openTeamMenu(state.sections.agentTeams[1].id);
+  await chooseTeamAction('Удалить команду');
   assert.equal((await load()).sections.agentTeams.length, 2, 'confirmation precedes mutation');
   await click('Отмена');
-  await named('Удалить команду «Вторая»');
+  await openTeamMenu(state.sections.agentTeams[1].id);
+  await chooseTeamAction('Удалить команду');
   await click('Удалить');
   await saved();
   assert.equal((await load()).sections.agentTeams.length, 1);
@@ -225,8 +265,34 @@ const timeout = setTimeout(() => {
     resolve('artifacts/agent-teams.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
-  await click('Настройки');
-  await click('Команды агентов');
+  const menuChecks = await require('./team-menu-checks.cjs')({
+    js,
+    until,
+    click,
+    field,
+    saved,
+    load,
+    openTeamMenu,
+    chooseTeamAction,
+    packagePath,
+    cancelPicker: (value) => {
+      cancelPicker = value;
+    },
+    refuseSaves: (value) => {
+      refuseSaves = value;
+    },
+    saveCalls: () => saveCount,
+    blockSave: () => {
+      let release;
+      saveGate = new Promise((done) => {
+        release = done;
+      });
+      return () => {
+        saveGate = undefined;
+        release();
+      };
+    },
+  });
   assert.equal(
     await js(
       `Array.from(document.querySelectorAll('button')).find(e=>e.textContent.trim()==='Экспорт команды агентов').disabled`,
@@ -274,6 +340,29 @@ const timeout = setTimeout(() => {
   );
   assert.equal(await readFile(marker, 'utf8'), 'Keep output');
   await saved();
+  const transferGuards = await require('./team-transfer-guard-checks.cjs')({
+    js,
+    until,
+    click,
+    saved,
+    load,
+    openTeamMenu,
+    chooseTeamAction,
+    packagePath,
+    studio,
+    root,
+    saveCalls: () => saveCount,
+    blockSave: () => {
+      let release;
+      saveGate = new Promise((done) => {
+        release = done;
+      });
+      return () => {
+        saveGate = undefined;
+        release();
+      };
+    },
+  });
   const proof = {
     checkedAt: new Date().toISOString(),
     nativeMain: true,
@@ -291,6 +380,8 @@ const timeout = setTimeout(() => {
     undoPreservesLaterEdits: true,
     reloadPersistence: true,
     nativeExportImportPicker: true,
+    menuChecks,
+    transferGuards,
     canceledImportPreservesCatalog: true,
     missingAssistantModelKeepsPackageAndTargetsExactModelTab: true,
     userStudioChanged: false,
@@ -305,11 +396,9 @@ const timeout = setTimeout(() => {
   );
   clearTimeout(timeout);
   window.destroy();
-  await rm(root, { recursive: true, force: true });
   app.exit(0);
 })().catch(async (error) => {
   console.error(error);
   clearTimeout(timeout);
-  if (root) await rm(root, { recursive: true, force: true }).catch(() => {});
   app.exit(1);
 });

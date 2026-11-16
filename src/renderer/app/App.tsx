@@ -4,6 +4,7 @@ import { ConfirmProvider } from '@/shared/model/Confirm';
 import { NavigationProvider, useNavigation } from '@/shared/model/Navigation';
 import { NoticeProvider } from '@/shared/model/Notice';
 import { LaunchProvider } from '@/features/launch/model/Launch';
+import { TeamTransfersProvider } from '@/features/agents/model/TeamTransfers';
 import { AgentProfilesProvider } from '@/features/agents/model/AgentProfiles';
 import { DialogView } from '@/features/launch/ui/DialogView';
 import { ProjectView } from '@/features/project/ui/ProjectView';
@@ -71,9 +72,11 @@ export default function App({ useWorkspaceState, ExtraProviders = Fragment, defa
                             <ExtraProviders>
                               <LaunchProvider>
                                 <UpdateWorkspace>
-                                  <StartupGate>
-                                    <StudioShell />
-                                  </StartupGate>
+                                  <TeamTransfersProvider>
+                                    <StartupGate>
+                                      <StudioShell />
+                                    </StartupGate>
+                                  </TeamTransfersProvider>
                                 </UpdateWorkspace>
                               </LaunchProvider>
                             </ExtraProviders>
