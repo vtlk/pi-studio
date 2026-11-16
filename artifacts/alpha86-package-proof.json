@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-11-16T19:09:05.316Z",
+  "version": "0.2.0-alpha.86",
+  "sourceCommit": "cc16a9735963d932e11e6996ede52ff4fd058008",
+  "assets": [
+    {
+      "platform": "darwin",
+      "arch": "arm64",
+      "name": "Pi-Studio-0.2.0-alpha.86-mac-arm64.zip",
+      "bytes": 142877313,
+      "unpackedBytes": 323954674,
+      "sha256": "958d4c5fae0df2e45a08990de0b3f31921ee115b0d8cc75b3a3863ab9b4076b7"
+    }
+  ],
+  "ed25519AndStreamedHashesVerified": true,
+  "macProductionExtractionAllCrcs": true,
+  "macDeepStrictSignaturePublisherIdArchitectureAndInventory": true,
+  "mainMatchesBuildOnAllVerifiedPlatforms": true,
+  "verifiedPlatforms": [
+    "darwin"
+  ],
+  "ownMitLicenseOnAllVerifiedPlatforms": true,
+  "rendererNoticePackages": 127,
+  "windowsComparedOnlyWhenExplicitlyRequested": false,
+  "macElectronAndChromiumNotices": true,
+  "windowsCrc": false,
+  "installedApplicationOrUserDataMutated": false,
+  "programsExecuted": false,
+  "buildsCreated": 0,
+  "nativeWindowsAcceptance": false,
+  "notarized": false,
+  "temporaryStagingRemoved": true,
+  "scope": "Actual signed archives and payload verification only; not real GitHub update/native Windows/final rights acceptance.",
+  "packagedFieldsAndEightPromptGeometryCases": true,
+  "packagedHelperModalAndMcpUiPassed": true,
+  "packagedFilePreviewsPassed": true,
+  "allCurrentSourceCommittedBeforePackaging": true
+}

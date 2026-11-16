@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-11-16T19:11:55.983113+00:00",
+  "version": "0.2.0-alpha.86",
+  "sourceCommit": "cc16a9735963d932e11e6996ede52ff4fd058008",
+  "checks": {
+    "unitFsPassed": 352,
+    "buildAndTypecheck": true,
+    "lint": true,
+    "architectureModules": 388,
+    "packagedPromptGeometryCases": 8,
+    "packagedFieldsFindAndResize": true,
+    "packagedFilePreviews": true,
+    "packagedHelperAssignmentsAndPreflight": true,
+    "productionSignatureInventoryArchiveAndMetadata": true,
+    "unreviewedSecretFindings": 0
+  },
+  "logsSha256": {
+    "package": "392ccfbbe15fd25dc07cfc31acef12df1248fe5b4eb34828bbe607e85ba5d7e8",
+    "tests": "078afbcfead7be0d9c9e8427f5b2b0089b8f123fb2684b257a0693dc9ef7e6d2",
+    "lint": "0567b30d4edefbe6a5be101acd63a17a438d6416d86627d0f28328b86b64e421",
+    "architecture": "3bd4f7dc2395ec81a0bd22377c9a43f4ee22dac95dca8828718a4f642ab08480",
+    "verify-package": "eff2a95456fdc51ccd67a60a857c6055cd61af59be73b64204f59180ec6a0923",
+    "packaged-fields": "ba1905e2f30eaa1211c5137bc1db49a49bb1deba9b04130413c3eb09db014205",
+    "packaged-previews": "16c863230bbd7e37a175b45098e6e7a2e411a2a4b82b1acf603e1c62bb2b5cff",
+    "packaged-builtin2": "986c5e46741064bbc29377c2c013bb9c3012e74816c88ade2a0682ad86f0d31a",
+    "audit": "5d50d4f0fbc976709e93409be2e75ac6b854f2223e8a04675eb9518a74510f33"
+  },
+  "installedApplicationOrUserDataMutated": false,
+  "windowsBuilt": false,
+  "fullMvpAccepted": false
+}

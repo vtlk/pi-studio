@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T19:05:12.654416+00:00",
+  "checkedAt": "2026-11-16T19:17:50.049253+00:00",
   "headAtAudit": "257924be59002e3e45e9e30fe9d559f7542feeae",
   "backlogUniqueIdCount": 216,
   "backlogIds": [
@@ -296,7 +296,11 @@
     "artifacts/update-foundation-proof.json": "e4610fadf431d19477c2abe7bed16058266bb52b7a707424647aefdb775bf273",
     "artifacts/update-ui-proof.json": "e64fb65d265a7900b81db4288ac9e24e9384f2919d3fd3ba5c25578388588b64",
     "docs/media/screenshots-proof.json": "8668d5ae8fe797a41c35614f1a0ce44ca656ec0d0e939eb7c83dce68035d383c",
-    "artifacts/public-github-prepare-proof.json": "42e6774c7e13851e486a52918a7d64a9259c3f2c4fa2c94c9f31bd720b8a2251"
+    "artifacts/public-github-prepare-proof.json": "42e6774c7e13851e486a52918a7d64a9259c3f2c4fa2c94c9f31bd720b8a2251",
+    "artifacts/alpha86-validation-proof.json": "1266992ed8db1ca616376ebea6dc91925db2a734c927ab27973995c9dc6fcb02",
+    "artifacts/alpha86-package-proof.json": "70f2a3d4b57fbe78148f829e9d8e8ff9fbe83d19ac533a3281e71e89310ca4c3",
+    "artifacts/alpha86-packaged-fields-proof.json": "efada6a41230d69e8f88e6749d43913b198cc9339075a6f83886079406ec85be",
+    "artifacts/alpha86-release-proof.json": "adffd0dcb978b4f5b20e3460dbfa89a5e2011acf530a34fe7dfdf007a96ed3d5"
   },
   "latestScopeReplacements": [
     "library retired",
@@ -307,10 +311,9 @@
     "five required helper MCPs; ordinary Project only",
     "public repository retained by owner"
   ],
-  "backlogSha256": "71cac8bbf1dc5cde3365f754135eb0846fc9e0dff9751734ea5493da69365965",
-  "auditSha256": "48e71e359e73c4343febf4a4d469fb884e8bbf98bc9eeb00d534b2e1d0f63033",
+  "backlogSha256": "c6a2eeb44fc5e48b1a9e17066747bcd4899a2a6ad8d3549ab8995d5302d092cc",
+  "auditSha256": "4e0bff4d9780891f2a349f3058f5c5c197268b58ddf1575c59a5b35d3599bf32",
   "installedVersion": "0.2.0-alpha.85",
-  "promptFitSourceOnlyCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
   "scope": "Requirement-index and supersession reconciliation with explicitly bounded read evidence, not a new runtime test or completion proof. Full specification text stays local and ignored.",
@@ -321,5 +324,8 @@
     "Claude subscription deferred by user",
     "end-to-end real GitHub installation/final accepted release",
     "final distribution rights review with known cache/provenance limitations"
-  ]
+  ],
+  "publishedVersion": "0.2.0-alpha.86",
+  "promptFitPublishedVersion": "0.2.0-alpha.86",
+  "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63"
 }
