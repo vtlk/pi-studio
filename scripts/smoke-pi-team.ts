@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
@@ -288,13 +289,14 @@ await writeFile(
   Buffer.from([0, 1, 2, 255, 0, 99, 4, 5]),
 );
 const team = new TeamSupport(service);
+const bridge =
+  process.env.PI_STUDIO_QA_BRIDGE ||
+  fileURLToPath(new URL('../bundled/pi-bridge/session.mjs', import.meta.url));
 const host = createStudioRunHost(service, {
   team,
   bootstraps: join(root, 'boots'),
-  bridge:
-    process.env.PI_STUDIO_QA_BRIDGE ||
-    new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
-  catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
+  bridge,
+  catalog: fileURLToPath(new URL('./catalog.mjs', pathToFileURL(bridge))),
   piPath: () => pi.path,
   headless: true,
   openTerminal: async (node, bridge, bootstrap) => {
