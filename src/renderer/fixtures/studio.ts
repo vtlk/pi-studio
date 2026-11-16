@@ -1,8 +1,6 @@
 import type { Asset } from '@/entities/studio/types';
 export type { Asset, Agent, Instruction } from '@/entities/studio/types';
-import library from '../../../public/assets/source.json';
-
-export const assets = library.items as Asset[];
+export const assets: Asset[] = [];
 export const characters = assets.filter((a) => a.type === 'characters');
 export const locations = assets.filter((a) => a.type === 'scenes');
 export const character = characters.find((a) => a.id === 'men-02-garage-guy')!;

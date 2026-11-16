@@ -883,7 +883,7 @@
   "builtin.computer.description": "Control macOS apps using window screenshots and coordinates. Requires a model that accepts images and macOS permissions for Pi Studio. Some actions require an active window.",
   "builtin.administration.name": "Pi Studio · Resources and agents",
   "builtin.administration.description": "Setup assistant administration tools: catalog, connections, skills, MCP servers, packages and agent settings. Pinned to the assistant; not granted to project agents.",
-  "builtin.team.name": "team",
+  "builtin.team.name": "Pi Studio Team",
   "builtin.team.description": "Agents of the same team in the current project: read settings and results, send messages to the exact dialogue. Assigned explicitly; unavailable outside a project.",
   "builtin.assistant.description": "Configure MCP, skills, plugins, instructions, connections and agent assignments.",
   "EditorPrototype.montageViewerPrototype": "Montage viewer prototype",

@@ -32,7 +32,7 @@ export const teamMcpId = 'pistudio-team';
 export const teamMcp: Resource = {
   ...builtinBase,
   id: teamMcpId,
-  name: 'team',
+  name: 'Pi Studio Team',
   source: 'builtin:team',
   description:
     'Агенты своей команды в текущем проекте: чтение настроек и результатов, передача сообщений в точный диалог. Назначается явно; вне проекта недоступен.',

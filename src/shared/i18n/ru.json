@@ -883,7 +883,7 @@
   "builtin.computer.description": "Управление приложениями macOS по снимкам окна и координатам. Нужны модель с поддержкой изображений и разрешения macOS для Pi Studio. Некоторые действия требуют активного окна.",
   "builtin.administration.name": "Pi Studio · Ресурсы и агенты",
   "builtin.administration.description": "Административные инструменты помощника настройки: каталог, подключения, навыки, MCP, пакеты и настройки агентов. Закреплён за помощником и не выдаётся проектным агентам.",
-  "builtin.team.name": "team",
+  "builtin.team.name": "Pi Studio Team",
   "builtin.team.description": "Агенты своей команды в текущем проекте: чтение настроек и результатов, передача сообщений в точный диалог. Назначается явно; вне проекта недоступен.",
   "builtin.assistant.description": "Настройка MCP, skills, plugins, инструкций, подключений и их назначений агентам.",
   "EditorPrototype.montageViewerPrototype": "Макет просмотра монтажа",
