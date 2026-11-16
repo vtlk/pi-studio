@@ -1,0 +1,10 @@
+[
+  {
+    "type": "text",
+    "text": "✅ Performed AXPress on [2] AXButton \"QA increment\"."
+  },
+  {
+    "type": "text",
+    "text": "window_id=20342 pid=42037 size=1120x624\nScreenshot only: snapshot s00000002 keeps its rows, and its element_tokens (s00000002:N) stay valid."
+  }
+]

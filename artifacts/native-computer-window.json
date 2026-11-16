@@ -1,0 +1,4 @@
+{
+  "text": "window_id=20342 pid=42037 size=1120x624 elements=6 snapshot_id=s00000001\n\n- [0] AXWindow \"Pi Studio QA Native Computer\" [actions=[raise]]\n  - AXStaticText = \"Pi Studio — owned native test window\"\n  - AXStaticText = \"Background input only. No personal documents.\"\n  - [1] AXTextField = \"PI_STUDIO_QA_NATIVE\" (QA native input) [id=qa-native-input actions=[confirm]]\n  - [2] AXButton \"QA increment\" [id=qa-native-button actions=[press]]\n  - [3] AXButton [actions=[press]]\n  - [4] AXButton [enabled=false actions=[press]]\n  - [5] AXButton [enabled=false actions=[press]]\n",
+  "imageCount": 1
+}

@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-11-16T20:07:44.818453+00:00",
+  "version": "0.2.0-alpha.86",
+  "observedBy": "user",
+  "observationMethod": "Installed Studio Computer MCP detail status reported in chat",
+  "reportedStatus": "Computer control access confirmed. Accessibility: allowed. Screen Recording: allowed.",
+  "accessibility": true,
+  "screenRecording": true,
+  "actualCaptureInputAndModelLoopAccepted": false,
+  "automatedDesktopControlUsed": false
+}

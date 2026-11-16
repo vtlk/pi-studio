@@ -1,0 +1,10 @@
+[
+  {
+    "type": "text",
+    "text": "✅ Set AXValue on [1] AXTextField."
+  },
+  {
+    "type": "text",
+    "text": "window_id=20342 pid=42037 size=1120x624\nScreenshot only: snapshot s00000001 keeps its rows, and its element_tokens (s00000001:N) stay valid."
+  }
+]

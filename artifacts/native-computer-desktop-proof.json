@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-16T20:25:48.034Z",
+  "nonce": "19df343e-c5c8-48f3-ae06-a8fa7f5d2631",
+  "permissions": {
+    "accessibility": true,
+    "screenRecording": true
+  },
+  "targetPid": 42037,
+  "windowId": 20342,
+  "captureIsError": false,
+  "captureImageCount": 1,
+  "actualActions": true,
+  "stage": "capture-input-capture",
+  "backgroundValueReadback": "PI_STUDIO_QA_NATIVE — проверка 86",
+  "exactButtonPresses": 1,
+  "hardwarePointerUnchanged": true,
+  "userFrontmostApplicationUnchanged": true,
+  "targetNeverKeyOrMain": true,
+  "signedIdentityMatchesInstalled": true,
+  "noPromptsRequested": true,
+  "ownTargetOnly": true,
+  "actualModelLoop": false,
+  "installedApplicationOrUserDataChanged": false
+}
