@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { access } from 'node:fs/promises';
 import type { PiCheck } from '../../shared/contracts.ts';
 import type { StartupState } from '../../shared/startup.ts';
@@ -13,7 +14,7 @@ interface Options {
   install?: typeof installPiRuntime;
 }
 export class Startup {
-  private state: StartupState = { phase: 'checking', message: 'Проверяем Pi…' };
+  private state: StartupState = { phase: 'checking', message: t('StartupGate.checkingPi') };
   private started = false;
   private controller = new AbortController();
   private generation = 0;
@@ -31,7 +32,7 @@ export class Startup {
     const update = (state: StartupState) => {
       if (generation === this.generation) this.state = state;
     };
-    update({ phase: 'checking', message: 'Проверяем Pi…' });
+    update({ phase: 'checking', message: t('StartupGate.checkingPi') });
     const signal = this.controller.signal;
     void (async () => {
       const probe = this.options.probe ?? checkPi;
@@ -64,10 +65,8 @@ export class Startup {
         }
       }
       if (!pi.supported || !pi.nativeMcp || !pi.exactSessions)
-        throw new Error(
-          `Найдена Pi ${pi.version}. Для этой версии Studio требуется Pi 1.5.2 с native MCP и точными сессиями. Существующая установка сохранена.`,
-        );
-      update({ phase: 'ready', message: 'Pi готов.', pi });
+        throw new Error(t('Startup.foundPiThisStudioVersionRequiresPi', { value1: pi.version }));
+      update({ phase: 'ready', message: t('Startup.piIsReady'), pi });
     })().catch((error: unknown) => {
       if (generation !== this.generation) return;
       update({
@@ -75,7 +74,7 @@ export class Startup {
         message:
           error instanceof Error
             ? error.message.slice(0, 700)
-            : 'Не удалось подготовить Pi. Проверьте интернет и повторите попытку.',
+            : t('Startup.couldNotPreparePiCheckYourInternet'),
       });
     });
   }
@@ -93,18 +92,18 @@ export class Startup {
   skip() {
     this.generation++;
     this.controller.abort();
-    this.state = { phase: 'skipped', message: 'Студия открыта без Pi.' };
+    this.state = { phase: 'skipped', message: t('Startup.studioOpenedWithoutPi') };
     this.started = true;
     return this.read();
   }
   async choose(path: string) {
     const pi = await (this.options.probe ?? checkPi)(path);
     if (!pi.supported || !pi.nativeMcp || !pi.exactSessions)
-      throw new Error('Выберите поддерживаемую Pi 1.5.2.');
+      throw new Error(t('Startup.selectTheSupportedPi'));
     this.generation++;
     this.controller.abort();
     this.started = true;
-    this.state = { phase: 'ready', message: 'Pi готов.', pi };
+    this.state = { phase: 'ready', message: t('Startup.piIsReady'), pi };
     return this.read();
   }
   get path() {
@@ -115,7 +114,7 @@ export class Startup {
       this.started &&
       ['checking', 'downloading', 'installing', 'verifying'].includes(this.state.phase)
     )
-      throw new Error('Дождитесь окончания установки Pi.');
+      throw new Error(t('Startup.waitForPiInstallationToFinish'));
   }
   close() {
     this.generation++;

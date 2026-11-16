@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
@@ -7,13 +9,14 @@ import type { Agent, Instruction } from '../../../../shared/studio';
 import { createSystemAgents, type SystemAgent } from '../../../../shared/systemAgents';
 
 function useProfilesState(initial: Agent[]) {
+  useTranslation(undefined, { i18n });
   const [catalog, writeCatalog] = useStoredState<AgentCatalog>('agentCatalog', () => ({
     agents: initial,
     teams: initial.length
       ? [
           {
             id: 'web-example-team',
-            name: 'Моя команда',
+            name: t('AgentProfiles.myTeam'),
             agentIds: initial.map((agent) => agent.id),
           },
         ]
@@ -75,7 +78,7 @@ function useProfilesState(initial: Agent[]) {
     if (!teams.some((team) => team.id === teamId)) return;
     const agent: Agent = {
       id: crypto.randomUUID(),
-      name: 'Новый агент',
+      name: t('AgentProfiles.newAgent'),
       enabled: true,
       instructions: [],
       skills: [],
@@ -191,6 +194,7 @@ export function AgentProfilesProvider({
   children: ReactNode;
   initial?: Agent[];
 }) {
+  useTranslation(undefined, { i18n });
   return (
     <ProfilesContext.Provider value={useProfilesState(initial)}>
       {children}
@@ -198,6 +202,7 @@ export function AgentProfilesProvider({
   );
 }
 export function useAgentProfiles() {
+  useTranslation(undefined, { i18n });
   const value = useContext(ProfilesContext);
   if (!value) throw new Error('AgentProfilesProvider is missing');
   return value;

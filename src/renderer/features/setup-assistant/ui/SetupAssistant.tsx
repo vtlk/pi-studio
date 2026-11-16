@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
@@ -5,6 +7,7 @@ import { useNavigation } from '@/shared/model/Navigation';
 import { useOpenSetupAssistant } from '../model/useOpenSetupAssistant';
 
 export function SetupAssistant() {
+  useTranslation(undefined, { i18n });
   const { systemAgents, setAgentId, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
   const { navigate } = useNavigation();
@@ -14,15 +17,18 @@ export function SetupAssistant() {
   const { open, opening, error } = useOpenSetupAssistant();
   return (
     <>
-      <h2>Помощник подключения</h2>
-      <p>
-        Подключение skills, MCP и пакетов Pi, а также выдача доступа агентам — в диалоге с
-        помощником в Pi.
-      </p>
-      <p aria-label="Модель помощника подключения">
-        Подключение: {connection?.name || (model?.connectionId ? 'недоступно' : 'не выбрано')}
-        {' · '}Модель: {model?.id || 'не выбрана'}
-        {' · '}Уровень рассуждения: {model?.reasoning || 'не выбран'}
+      <h2>{t('SettingsView.connectionAssistant')}</h2>
+      <p>{t('SetupAssistant.connectSkillsMcpServersAndPiPackages')}</p>
+      <p aria-label={t('SetupAssistant.connectionAssistantModel')}>
+        {t('SetupAssistant.connection')}
+        {connection?.name ||
+          (model?.connectionId ? t('SetupAssistant.unavailable') : t('SetupAssistant.notSelected'))}
+        {' · '}
+        {t('SetupAssistant.model')}
+        {model?.id || t('PromptDialog.notSelected')}
+        {' · '}
+        {t('SetupAssistant.reasoningLevel')}
+        {model?.reasoning || t('SetupAssistant.notSelected2')}
       </p>
       <div className="action-row">
         <Button
@@ -34,14 +40,14 @@ export function SetupAssistant() {
             navigate('agents');
           }}
         >
-          Настройки модели помощника
+          {t('SetupAssistant.assistantModelSettings')}
         </Button>
         <Button
           kind="primary"
           disabled={opening || !assistant?.enabled}
           onClick={() => void open()}
         >
-          {opening ? 'Открываем Pi…' : 'Открыть помощника в Pi'}
+          {opening ? t('AgentActions.openingPi') : t('SetupAssistantAction.openAssistantInPi')}
         </Button>
       </div>
       {error && <p role="alert">{error}</p>}

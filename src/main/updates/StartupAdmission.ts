@@ -1,8 +1,10 @@
+import { t } from '../../shared/i18n/index.ts';
 import { desktopChannels as c } from '../../shared/contracts.ts';
 
 // Hydration and passive reads work while the replacement is frozen. Launch/auth/edits do not.
 const reads = new Set<string>([
   c.getTheme,
+  c.getLanguage,
   c.getInfo,
   c.loadStudio,
   c.getStartup,
@@ -32,6 +34,6 @@ export class StartupAdmission {
   }
   assertAllowed(channel: string) {
     if (this.held && !reads.has(channel))
-      throw new Error('Studio проверяет обновление. Дождитесь завершения запуска.');
+      throw new Error(t('StartupAdmission.studioIsVerifyingTheUpdateWaitFor'));
   }
 }

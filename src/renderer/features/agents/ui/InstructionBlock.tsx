@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
@@ -10,6 +12,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useAgentProfiles } from '../model/AgentProfiles';
 
 export function InstructionBlock({ item }: { item: Instruction }) {
+  useTranslation(undefined, { i18n });
   const { selectedAgent, updateAgent, updateInstruction } = useAgentProfiles();
   const { demo } = useNotice();
   const {
@@ -30,17 +33,17 @@ export function InstructionBlock({ item }: { item: Instruction }) {
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
       <Disclosure
-        label={item.name || 'Без названия'}
+        label={item.name || t('AgentList.untitled')}
         dragHandle={
-          <Tooltip label="Перетащить инструкцию">
+          <Tooltip label={t('InstructionBlock.dragInstruction')}>
             <button
               ref={setActivatorNodeRef}
               type="button"
               className="instruction-drag-handle"
               {...attributes}
               {...listeners}
-              aria-label={`Перетащить инструкцию: ${item.name}`}
-              aria-roledescription="перетаскиваемая инструкция"
+              aria-label={t('InstructionBlock.dragInstruction2', { value1: item.name })}
+              aria-roledescription={t('InstructionBlock.draggedInstruction')}
             >
               <GripVertical size={18} />
             </button>
@@ -48,12 +51,12 @@ export function InstructionBlock({ item }: { item: Instruction }) {
         }
         toggle={{
           checked: item.enabled,
-          label: `Использовать инструкцию: ${item.name}`,
+          label: t('InstructionBlock.useInstruction', { value1: item.name }),
           onChange: (checked) => updateInstruction(item.id, { enabled: checked }),
         }}
         actions={
           <HoverDeleteButton
-            label={`Удалить инструкцию: ${item.name}`}
+            label={t('InstructionBlock.deleteInstruction', { value1: item.name })}
             onDelete={() => {
               const position = selectedAgent.instructions.findIndex(
                 (entry) => entry.id === item.id,
@@ -61,8 +64,8 @@ export function InstructionBlock({ item }: { item: Instruction }) {
               updateAgent((current) => ({
                 instructions: current.instructions.filter((entry) => entry.id !== item.id),
               }));
-              demo('Инструкция убрана из профиля.', {
-                label: 'Вернуть',
+              demo(t('InstructionBlock.instructionRemovedFromTheProfile'), {
+                label: t('useResourceUnlink.undo'),
                 onClick: () =>
                   updateAgent((current) => {
                     if (current.instructions.some((entry) => entry.id === item.id)) return {};
@@ -76,16 +79,16 @@ export function InstructionBlock({ item }: { item: Instruction }) {
         }
       >
         <input
-          aria-label={`Название инструкции: ${item.name}`}
+          aria-label={t('InstructionBlock.instructionName', { value1: item.name })}
           value={item.name}
           onChange={(event) => updateInstruction(item.id, { name: event.target.value })}
-          placeholder="Название инструкции"
+          placeholder={t('InstructionBlock.instructionName2')}
         />
         <Textarea
-          aria-label={`Текст инструкции: ${item.name}`}
+          aria-label={t('InstructionBlock.instructionText', { value1: item.name })}
           value={item.content}
           onChange={(event) => updateInstruction(item.id, { content: event.target.value })}
-          placeholder="Инструкция агенту…"
+          placeholder={t('InstructionBlock.instructionsForTheAgent')}
         />
       </Disclosure>
     </div>

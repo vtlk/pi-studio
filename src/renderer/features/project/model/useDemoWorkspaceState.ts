@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { teamAgents } from '../../../../shared/agentTeams';
 import type { AgentDataTarget } from '../../../../shared/storage';
 import { folderSlug } from '../../../../shared/folderSlug';
@@ -16,12 +18,13 @@ import {
 } from '../../../../shared/projectAgents';
 
 export function useDemoWorkspaceState() {
+  useTranslation(undefined, { i18n });
   const { agents, catalog } = useAgentProfiles();
   const [projects, setProjects] = useState<WorkspaceProject[]>(() => [
     {
       id: 'demo-project',
       sourceTeamId: 'web-example-team',
-      name: 'Посылка с характером',
+      name: t('useDemoWorkspaceState.aParcelWithCharacter'),
       createdAt: 1,
       agents: snapshotAgents(initialAgents).map((agent) => ({
         ...agent,
@@ -82,7 +85,7 @@ export function useDemoWorkspaceState() {
     const id = crypto.randomUUID();
     const session: SessionBinding = {
       id,
-      title: 'Диалог проекта',
+      title: t('useDemoWorkspaceState.projectDialogue'),
       path: `agents/${agentId}/sessions/${id}.jsonl`,
       createdAt: Date.now(),
       initialMessage,

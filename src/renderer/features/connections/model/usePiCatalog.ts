@@ -1,9 +1,12 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PiModelCatalog } from '../../../../shared/models';
 import type { Connection } from '../../../../shared/connections';
 import { useStorage } from '@/shared/storage/Storage';
 
 export function usePiCatalog(connection?: Connection) {
+  useTranslation(undefined, { i18n });
   const { bootstrap } = useStorage();
   const scope = JSON.stringify([bootstrap?.folder, bootstrap?.sections.piPath, connection]);
   const [result, setResult] = useState<{ scope: string; catalog?: PiModelCatalog }>();
@@ -30,7 +33,7 @@ export function usePiCatalog(connection?: Connection) {
       } catch (error) {
         if (sequence.current !== current || signal?.aborted) return;
         setResult({ scope });
-        setError(error instanceof Error ? error.message : 'Каталог Pi недоступен.');
+        setError(error instanceof Error ? error.message : t('usePiCatalog.piCatalogUnavailable'));
       } finally {
         if (sequence.current === current && !signal?.aborted) setLoading(false);
       }

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Maximize2, Minimize2, SkipBack, SkipForward } from 'lucide-react';
 import { Player, type PlayerRef, type CallbackListener } from '@remotion/player';
@@ -19,6 +21,7 @@ export function VideoViewer({
   documentKey: string;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const key = `${documentKey}:${document.revision}`;
   const [view, setView] = useState(() => readVideoView(key));
   const [fullscreen, setFullscreen] = useState(false);
@@ -75,20 +78,23 @@ export function VideoViewer({
   return (
     <section
       className={`editor-prototype native-video-viewer${fullscreen ? ' editor-fullscreen' : ''}`}
-      aria-label="Просмотр монтажа"
+      aria-label={t('VideoViewer.montageViewer')}
     >
       <header className="editor-toolbar">
         <div>
           <strong>{document.manifest.name}</strong>
           <small>
-            Remotion Player · {document.manifest.scope === 'scene' ? 'сцена' : 'общая сборка'}
+            Remotion Player ·{' '}
+            {document.manifest.scope === 'scene'
+              ? t('VideoViewer.scene')
+              : t('VideoViewer.fullAssembly')}
           </small>
         </div>
         <Button onClick={() => setFullscreen(!fullscreen)}>
           {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-          {fullscreen ? 'Вернуть в проект' : 'На весь экран'}
+          {fullscreen ? t('EditorPrototype.returnToProject') : t('EditorPrototype.fullScreen')}
         </Button>
-        <Button onClick={onClose}>Закрыть просмотр</Button>
+        <Button onClick={onClose}>{t('EditorPrototype.closeViewer')}</Button>
       </header>
       <div className="editor-body">
         <div className="editor-main">
@@ -116,14 +122,14 @@ export function VideoViewer({
                 <div className="remotion-frame-controls">
                   <IconButton
                     className="remotion-step-control"
-                    title="На кадр назад"
+                    title={t('EditorPrototype.previousFrame')}
                     onClick={() => seek((player.current?.getCurrentFrame() ?? 0) - 1)}
                   >
                     <SkipBack size={17} />
                   </IconButton>
                   <IconButton
                     className="remotion-step-control"
-                    title="На кадр вперёд"
+                    title={t('EditorPrototype.nextFrame')}
                     onClick={() => seek((player.current?.getCurrentFrame() ?? 0) + 1)}
                   >
                     <SkipForward size={17} />
@@ -132,23 +138,26 @@ export function VideoViewer({
               )}
               errorFallback={({ error }) => (
                 <p className="error-message" role="alert">
-                  Не удалось воспроизвести монтаж: {error.message}
+                  {t('VideoViewer.couldNotPlayTheMontage')}
+                  {error.message}
                 </p>
               )}
             />
           </div>
           <div className="native-montage-metadata">
             <span aria-live="off" data-video-frame={view.frame}>
-              {view.frame} / {total - 1} кадров
+              {view.frame} / {total - 1} {t('EditorPrototype.frames')}
             </span>
             <small>
               {timeline.width} × {timeline.height} · {timeline.fps} fps
             </small>
           </div>
-          <div className="editor-timeline" aria-label="Таймлайн монтажа">
+          <div className="editor-timeline" aria-label={t('VideoViewer.montageTimeline')}>
             <div className="editor-ruler">
               <span>00:00</span>
-              <span>{(total / timeline.fps).toFixed(2)} с</span>
+              <span>
+                {(total / timeline.fps).toFixed(2)} {t('NativeMontageCard.s')}
+              </span>
             </div>
             {timeline.tracks.map((track) => (
               <TimelineTrack

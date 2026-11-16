@@ -31,7 +31,7 @@ test('project metrics preserve units, rounded token thresholds, long duration an
   const usage = agentUsage(emptyAgentLedger(false));
   assert.match(
     usageAccessible(usage),
-    /0 секунд.*Входные токены: 0.*Выходные токены: 0.*Стоимость по данным Pi/,
+    /0 seconds.*Input tokens: 0.*Output tokens: 0.*Cost reported by Pi/,
   );
   usage.costs.push({ value: 1, currency: 'EUR', partial: false, estimated: true });
   assert.equal(costText(usage), '—', 'Different currencies never become a fabricated sum.');

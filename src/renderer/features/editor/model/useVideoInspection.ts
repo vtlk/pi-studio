@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import type { VideoProjectInspection } from '../../../../shared/video';
 
@@ -6,6 +8,7 @@ export function useVideoInspection(
   path: string | undefined,
   filesVersion: string,
 ) {
+  useTranslation(undefined, { i18n });
   const [result, setResult] = useState<{ key: string; value: VideoProjectInspection }>();
   const key = `${projectId}:${path}`;
   useEffect(() => {
@@ -31,7 +34,10 @@ export function useVideoInspection(
             key,
             value: {
               ok: false,
-              error: error instanceof Error ? error.message : 'Не удалось прочитать монтаж.',
+              error:
+                error instanceof Error
+                  ? error.message
+                  : t('useVideoInspection.couldNotReadTheMontage'),
             },
           });
       },

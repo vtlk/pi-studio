@@ -1,3 +1,6 @@
+import { resourceLabel } from '@/shared/model/localizedResources';
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
 import type { CapabilityKind } from '@/entities/studio/types';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
@@ -22,6 +25,7 @@ export function ResourceCatalog({
   onPick?: (id: string) => void;
   attached?: string[];
 }) {
+  useTranslation(undefined, { i18n });
   const { resources, removeResource, saveResource } = useResources();
   const { agents } = useAgentProfiles();
   const { projects } = useWorkspace();
@@ -44,10 +48,10 @@ export function ResourceCatalog({
         const resource = await window.studio.chooseSkill();
         if (resource) {
           saveResource(resource);
-          demo('Локальный skill добавлен. Подключение к Pi-сессии ещё не выполнялось.');
+          demo(t('ResourceCatalog.localSkillAddedItHasNotBeen'));
         }
       } catch (error) {
-        demo(error instanceof Error ? error.message : 'Не удалось импортировать skill.');
+        demo(error instanceof Error ? error.message : t('ResourceCatalog.couldNotImportTheSkill'));
       } finally {
         importing.current = false;
       }
@@ -76,23 +80,26 @@ export function ResourceCatalog({
         project.agents.some((agent) => agent.profile[kind].includes(resource.id)),
       )
       .map((project) => project.name);
-    return `Агенты: ${users.join(', ') || 'нет'}. Проекты: ${snapshots.join(', ') || 'нет'}. Их ссылки и результаты сохранятся, ресурс будет отмечен как недоступный. Исходные файлы не удаляются.`;
+    return t('ResourceCatalog.agentsProjectsTheirReferencesAndResultsAre', {
+      value1: users.join(', ') || t('ConnectionsPanel.none'),
+      value2: snapshots.join(', ') || t('ConnectionsPanel.none'),
+    });
   };
   const addArea = (
     <AddArea
       label={
         kind === 'skills'
-          ? 'Добавить навык'
+          ? t('ResourceCatalog.addSkill')
           : kind === 'mcps'
-            ? 'Добавить MCP-сервер'
-            : 'Добавить пакет Pi'
+            ? t('ResourceCatalog.addMcpServer')
+            : t('ResourceCatalog.addPiPackage')
       }
       onClick={window.studio && kind === 'skills' ? undefined : () => void add()}
       actions={
         window.studio && kind === 'skills'
           ? [
-              { label: 'Создать', onSelect: () => setCreatingSkill(true) },
-              { label: 'Импортировать', onSelect: () => void add() },
+              { label: t('TeamNameDialog.create'), onSelect: () => setCreatingSkill(true) },
+              { label: t('ResourceCatalog.import'), onSelect: () => void add() },
             ]
           : undefined
       }
@@ -102,12 +109,14 @@ export function ResourceCatalog({
     <div className="resource-catalog">
       {!onPick && addArea}
       <label className="field-label">
-        Поиск в каталоге
+        {t('ResourceCatalog.searchCatalog')}
         <input value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
       {catalog
         .filter(
-          (item) => item.kind === kind && item.name.toLowerCase().includes(query.toLowerCase()),
+          (item) =>
+            item.kind === kind &&
+            (resourceLabel(item, 'name') ?? '').toLowerCase().includes(query.toLowerCase()),
         )
         .map((resource) => (
           <div
@@ -117,24 +126,24 @@ export function ResourceCatalog({
           >
             <div>
               <div className="resource-heading">
-                <strong>{resource.name}</strong>
+                <strong>{resourceLabel(resource, 'name')}</strong>
                 <small>
                   {builtinResource(resource.id)
-                    ? 'Встроенный · поставляется с Pi Studio'
+                    ? t('ResourceCatalog.builtInIncludedWithPiStudio')
                     : resourceStatus(resource, !!window.studio)}
                 </small>
               </div>
-              <p>{resource.description}</p>
+              <p>{resourceLabel(resource, 'description')}</p>
               {!builtinResource(resource.id) && <ResourceActions resource={resource} />}
             </div>
             <Button onClick={() => setEdit(resource)}>
               {builtinResource(resource.id)
-                ? 'Сведения'
+                ? t('ResourceCatalog.details')
                 : kind === 'skills'
                   ? resource.managedSkill
-                    ? 'Редактировать'
-                    : 'Сведения'
-                  : 'Настроить'}
+                    ? t('ResourceCatalog.edit')
+                    : t('ResourceCatalog.details')
+                  : t('ConnectionsPanel.configure')}
             </Button>
             {onPick && (
               <Button
@@ -142,17 +151,19 @@ export function ResourceCatalog({
                 disabled={attached.includes(resource.id)}
                 onClick={() => onPick(resource.id)}
               >
-                {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
+                {attached.includes(resource.id) ? t('McpPicker.added') : t('McpPicker.addToAgent')}
               </Button>
             )}
             {!onPick && !builtinResource(resource.id) && (
               <HoverDeleteButton
-                label={`Удалить ресурс ${resource.name}`}
+                label={t('ResourceCatalog.deleteResource', {
+                  value1: resourceLabel(resource, 'name'),
+                })}
                 description={usage(resource)}
                 onDelete={() => {
                   removeResource(kind, resource.id);
-                  demo('Ресурс убран из каталога. Исходные файлы сохранены.', {
-                    label: 'Вернуть',
+                  demo(t('ResourceCatalog.resourceRemovedFromCatalogSourceFilesPreserved'), {
+                    label: t('useResourceUnlink.undo'),
                     onClick: () => saveResource(resource),
                   });
                 }}

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   closestCenter,
@@ -19,6 +21,7 @@ import { useAgentProfiles } from '../model/AgentProfiles';
 import { InstructionBlock } from './InstructionBlock';
 
 export function InstructionsPanel() {
+  useTranslation(undefined, { i18n });
   const { selectedAgent, updateAgent } = useAgentProfiles();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -43,8 +46,7 @@ export function InstructionsPanel() {
         onDragEnd={reorder}
         accessibility={{
           screenReaderInstructions: {
-            draggable:
-              'Нажмите пробел, чтобы взять инструкцию. Стрелки вверх и вниз меняют порядок. Пробел завершает перенос, Escape отменяет.',
+            draggable: t('InstructionsPanel.pressSpaceToPickUpAnInstruction'),
           },
         }}
       >
@@ -55,14 +57,14 @@ export function InstructionsPanel() {
             ))}
           </DisclosureList>
           <AddArea
-            label="Добавить инструкцию"
+            label={t('InstructionsPanel.addInstruction')}
             onClick={() =>
               updateAgent({
                 instructions: [
                   ...selectedAgent.instructions,
                   {
                     id: crypto.randomUUID(),
-                    name: 'Новая инструкция',
+                    name: t('InstructionsPanel.newInstruction'),
                     content: '',
                     enabled: true,
                   },

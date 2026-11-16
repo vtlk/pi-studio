@@ -1,9 +1,12 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
 import { useAgentProfiles } from './AgentProfiles';
 import { useStorage } from '@/shared/storage/Storage';
 import { useNotice } from '@/shared/model/Notice';
 
 export function useResourceUnlink() {
+  useTranslation(undefined, { i18n });
   const { selectedAgent, updateAgent } = useAgentProfiles();
   const { saveNow, isDesktop } = useStorage();
   const { demo } = useNotice();
@@ -25,22 +28,22 @@ export function useResourceUnlink() {
       });
       if (isDesktop)
         void saveNow().then((saved) => {
-          if (!saved) demo('Назначение не сохранено. Проверьте ошибку сохранения студии.');
+          if (!saved) demo(t('useResourceUnlink.theAssignmentWasNotSavedCheckThe'));
         });
     };
     try {
       updateAgent((current) => ({ [field]: current[field].filter((item) => item !== id) }));
       if (isDesktop && !(await saveNow())) {
-        demo(
-          'Открепление не сохранено. Доступ к MCP может сохраняться; исправьте ошибку сохранения.',
-          {
-            label: 'Вернуть назначение',
-            onClick: restore,
-          },
-        );
+        demo(t('useResourceUnlink.unlinkingWasNotSavedMcpAccessMay'), {
+          label: t('useResourceUnlink.restoreAssignment'),
+          onClick: restore,
+        });
         return;
       }
-      demo('Связь с ресурсом убрана.', { label: 'Вернуть', onClick: restore });
+      demo(t('useResourceUnlink.resourceUnlinked'), {
+        label: t('useResourceUnlink.undo'),
+        onClick: restore,
+      });
     } finally {
       active.current = false;
       setBusy(false);

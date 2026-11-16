@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight, Copy, Folder, LoaderCircle, Pencil } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
 import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
@@ -5,12 +7,6 @@ import { Tooltip } from '@/shared/ui/Tooltip';
 import type { WorkspaceProject } from '../model/workspace.types';
 import { UsageMetrics } from './UsageMetrics';
 import { durationText, usageText } from '../model/usageFormat';
-
-const dateFormat = new Intl.DateTimeFormat('ru-RU', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-});
 
 export function ProjectListRow({
   project,
@@ -31,15 +27,21 @@ export function ProjectListRow({
   onEdit: (mode: 'clone' | 'rename') => void;
   onDelete: () => void;
 }) {
+  useTranslation(undefined, { i18n });
+  const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
   const folder = project.folderName ?? project.id;
   const folderLabel = `${usageText(project.usage?.duration, durationText)} · ${folder}`;
   const created = new Date(project.createdAt);
   const activityLabel = activityUnavailable
-    ? 'Статус работы недоступен'
+    ? t('ProjectListRow.workStatusUnavailable')
     : runningAgents > 1
-      ? 'Агенты работают'
+      ? t('ProjectListRow.agentsWorking')
       : runningAgents === 1
-        ? 'Агент работает'
+        ? t('ProjectListRow.agentWorking')
         : '';
   return (
     <tr
@@ -52,7 +54,10 @@ export function ProjectListRow({
         <button
           type="button"
           className="project-list-row"
-          aria-label={`Открыть проект «${project.name}»${activityLabel ? `. ${activityLabel}` : ''}`}
+          aria-label={t('ProjectListRow.openProject', {
+            value1: project.name,
+            value2: activityLabel ? `. ${activityLabel}` : '',
+          })}
           aria-describedby={`project-folder-${project.id}`}
           disabled={busy}
           onClick={(event) => {
@@ -80,7 +85,18 @@ export function ProjectListRow({
               <span
                 className="project-list-folder"
                 id={`project-folder-${project.id}`}
-                aria-label={`Время работы: ${project.usage?.duration.value == null ? 'неизвестно' : `${Math.floor(project.usage.duration.value / 1000)} секунд${project.usage.duration.partial ? ', частичные данные' : ''}`}. Папка: ${folder}`}
+                aria-label={t('ProjectListRow.workingTimeFolder', {
+                  value1:
+                    project.usage?.duration.value == null
+                      ? t('usageFormat.unknown')
+                      : t('ProjectListRow.seconds', {
+                          value1: Math.floor(project.usage.duration.value / 1000),
+                          value2: project.usage.duration.partial
+                            ? t('usageFormat.partialData')
+                            : '',
+                        }),
+                  value2: folder,
+                })}
               >
                 {folderLabel}
               </span>
@@ -92,14 +108,12 @@ export function ProjectListRow({
         <UsageMetrics usage={project.usage} includeTime={false} />
       </td>
       <td className="project-created">
-        <time dateTime={created.toISOString()}>
-          {dateFormat.format(created).replace(/\s*г\.$/, '')}
-        </time>
+        <time dateTime={created.toISOString()}>{dateFormat.format(created)}</time>
       </td>
       <td className="project-number">{project.agents.length}</td>
       <td className="project-number">
         {fileCount === null ? (
-          <Tooltip label="Не удалось прочитать файлы проекта.">
+          <Tooltip label={t('ProjectListRow.couldNotReadProjectFiles')}>
             <span>—</span>
           </Tooltip>
         ) : (
@@ -115,23 +129,23 @@ export function ProjectListRow({
           }}
         >
           <IconButton
-            title={`Переименовать ${project.name}`}
+            title={t('ProjectListRow.rename', { value1: project.name })}
             disabled={busy}
             onClick={() => onEdit('rename')}
           >
             <Pencil size={19} />
           </IconButton>
           <IconButton
-            title={`Клонировать ${project.name}`}
+            title={t('ProjectListRow.clone', { value1: project.name })}
             disabled={busy}
             onClick={() => onEdit('clone')}
           >
             <Copy size={19} />
           </IconButton>
           <HoverDeleteButton
-            label={`Удалить проект «${project.name}»`}
+            label={t('ProjectListRow.deleteProject', { value1: project.name })}
             disabled={busy}
-            description="Проект и все его файлы будут перемещены в корзину студии. Его можно восстановить."
+            description={t('ProjectListRow.theProjectAndAllItsFilesWill')}
             onDelete={onDelete}
           />
         </div>

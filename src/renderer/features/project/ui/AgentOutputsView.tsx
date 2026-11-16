@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import type { ProjectAgent } from '../model/workspace.types';
 import { listOutputFiles } from '../model/outputTree';
@@ -32,6 +34,7 @@ export function AgentOutputsView({
   settingsAgentId: string | null;
   onCloseSettings: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { selectedProject } = useWorkspace();
   const { isDesktop } = useStorage();
   const { ref, width } = useElementWidth();
@@ -59,8 +62,8 @@ export function AgentOutputsView({
     >
       <aside className="output-files-pane">
         <div className="project-column-heading output-files-heading">
-          <Tooltip label="Файлы агента" onlyWhenTruncated>
-            <h2>Файлы агента</h2>
+          <Tooltip label={t('AgentOutputsView.agentFiles')} onlyWhenTruncated>
+            <h2>{t('AgentOutputsView.agentFiles')}</h2>
           </Tooltip>
           <DeleteAgentDataButton agent={agent} />
         </div>
@@ -71,7 +74,7 @@ export function AgentOutputsView({
         />
       </aside>
       <ResizeHandle
-        label="Ширина колонки файлов"
+        label={t('AgentOutputsView.fileColumnWidth')}
         value={actualWidth}
         min={140}
         max={max}
@@ -102,7 +105,7 @@ export function AgentOutputsView({
           >
             {loading ? (
               <p className="output-empty" role="status">
-                Читаем файл…
+                {t('AgentOutputsView.readingFile')}
               </p>
             ) : error ? (
               <p className="error-message" role="alert">
@@ -150,7 +153,7 @@ export function AgentOutputsView({
                 )}
               </div>
             ) : (
-              <p className="output-empty">Выходных файлов пока нет.</p>
+              <p className="output-empty">{t('AgentOutputsView.noOutputFilesYet')}</p>
             )}
           </SearchablePreview>
         </div>

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { parseReasoning, reasoningLabels, type ThinkingLevel } from '../../../../shared/reasoning';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui';
@@ -8,6 +10,7 @@ import { useAgentProfiles } from '../model/AgentProfiles';
 import { usePiCatalog } from '@/features/connections/model/usePiCatalog';
 
 export function ModelPanel() {
+  useTranslation(undefined, { i18n });
   const { selectedAgent, updateAgent } = useAgentProfiles();
   const { connections } = useConnections();
   const { catalog, loading, error, reload } = usePiCatalog(
@@ -33,13 +36,15 @@ export function ModelPanel() {
     ? (selectedModel?.reasoningLevels ?? [])
     : (Object.keys(reasoningLabels) as ThinkingLevel[]);
   const reasoningOptions: SelectOption[] = [
-    { value: 'default', label: 'По умолчанию' },
-    ...levels.map((value) => ({ value, label: reasoningLabels[value] })),
+    { value: 'default', label: t('ModelPanel.default') },
+    ...levels.map((value) => ({ value, label: t(`reasoning.${value}`) })),
   ];
   if (!reasoningOptions.some((option) => option.value === reasoning))
     reasoningOptions.push({
       value: reasoning,
-      label: model.reasoning ? `${model.reasoning} · недоступен` : 'Не выбрано',
+      label: model.reasoning
+        ? t('ModelPanel.unavailable', { value1: model.reasoning })
+        : t('ModelPanel.notSelected'),
       disabled: true,
     });
   const chooseModel = (id: string) => {
@@ -57,32 +62,32 @@ export function ModelPanel() {
     {
       value: 'none',
       label: !connection
-        ? 'Сначала подключение'
+        ? t('ModelPanel.chooseAConnectionFirst')
         : loading
-          ? 'Загружаем каталог Pi…'
-          : 'Выберите модель',
+          ? t('ModelPanel.loadingThePiCatalog')
+          : t('ModelPanel.selectAModel'),
     },
     ...availableModels.map((item) => ({ value: item.id, label: `${item.name} · ${item.id}` })),
     ...(model.id && !selectedModel
-      ? [{ value: model.id, label: `${model.id} · отсутствует в каталоге` }]
+      ? [{ value: model.id, label: t('ModelPanel.missingFromTheCatalog', { value1: model.id }) }]
       : []),
   ];
   const options = [
-    { value: 'none', label: 'Не выбрано' },
+    { value: 'none', label: t('ModelPanel.notSelected') },
     ...connections
       .filter((item) => item.purpose !== 'images')
       .map((item) => ({ value: item.id, label: item.name })),
     ...(model.connectionId && !connection
-      ? [{ value: model.connectionId, label: 'Подключение недоступно' }]
+      ? [{ value: model.connectionId, label: t('ModelPanel.connectionUnavailable') }]
       : []),
   ];
   return (
     <div className="agent-settings-content agent-model-panel">
       <div className="agent-model-fields">
         <label className="field-label">
-          <span>Подключение</span>
+          <span>{t('ModelPanel.connection')}</span>
           <Select
-            label="Подключение модели"
+            label={t('ModelPanel.modelConnection')}
             value={model.connectionId || 'none'}
             options={options}
             onValueChange={(id) => {
@@ -97,13 +102,13 @@ export function ModelPanel() {
           />
         </label>
         <label className="field-label">
-          <span>Модель</span>
+          <span>{t('AgentProfileEditor.model')}</span>
           {window.studio ? (
             <SearchableSelect
-              label="Модель агента"
-              placeholder="Выберите модель"
-              searchPlaceholder="Найти модель"
-              emptyMessage="Модели не найдены"
+              label={t('ModelPanel.agentModel')}
+              placeholder={t('ModelPanel.selectAModel')}
+              searchPlaceholder={t('ModelPanel.searchModels')}
+              emptyMessage={t('ModelPanel.noModelsFound')}
               value={model.id || 'none'}
               options={modelOptions}
               onValueChange={chooseModel}
@@ -111,16 +116,16 @@ export function ModelPanel() {
             />
           ) : (
             <input
-              placeholder="ID модели из каталога Pi"
+              placeholder={t('ModelPanel.modelIdFromThePiCatalog')}
               value={model.id}
               onChange={(event) => update({ id: event.target.value })}
             />
           )}
         </label>
         <label className="field-label">
-          <span>Уровень рассуждения</span>
+          <span>{t('ModelPanel.reasoningLevel')}</span>
           <Select
-            label="Уровень рассуждения (effort)"
+            label={t('ModelPanel.reasoningLevelEffort')}
             options={reasoningOptions}
             value={reasoning}
             disabled={
@@ -137,7 +142,7 @@ export function ModelPanel() {
         <div className="agent-model-actions">
           <Button disabled={loading || !connection} onClick={() => void reload()}>
             <RefreshCw size={15} aria-hidden="true" />
-            {loading ? 'Обновляем каталог…' : 'Обновить каталог Pi'}
+            {loading ? t('ModelPanel.refreshingCatalog') : t('ModelPanel.refreshPiCatalog')}
           </Button>
         </div>
       )}

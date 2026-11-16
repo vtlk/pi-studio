@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { StorageSection, StudioBootstrap } from '../../../shared/storage';
@@ -11,6 +13,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : St
 
 /** Hydration completes before feature providers mount, so defaults cannot overwrite saved data. */
 export function StorageProvider({ children }: { children: ReactNode }) {
+  useTranslation(undefined, { i18n });
   const [bootstrap, setBootstrap] = useState<StudioBootstrap | null>(null);
   const [ready, setReady] = useState(!window.studio);
   const [error, setError] = useState('');
@@ -73,11 +76,11 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           clearSaveConfirmation();
           setConflict({ key });
           setShowConflict(true);
-          setError('Настройки уже изменены в Pi. Ваш черновик не сохранён; перечитайте раздел.');
+          setError(t('Storage.settingsHaveAlreadyChangedInPiYour'));
         },
         error: (error) => {
           clearSaveConfirmation();
-          setError(`Не сохранено: ${message(error)}`);
+          setError(t('Storage.notSaved', { value1: message(error) }));
         },
         changed: (pending) => {
           clearSaveConfirmation();
@@ -153,9 +156,8 @@ export function StorageProvider({ children }: { children: ReactNode }) {
     try {
       const data = await window.studio.loadStudio();
       if (data.folder !== currentFolder.current || queue.get(key) !== draft)
-        throw new Error('Данные изменились во время перечитывания. Повторите действие.');
-      if (!queue.discard(key, draft))
-        throw new Error('Данные изменились во время перечитывания. Повторите действие.');
+        throw new Error(t('Storage.dataChangedDuringReloadTryAgain'));
+      if (!queue.discard(key, draft)) throw new Error(t('Storage.dataChangedDuringReloadTryAgain'));
       setBootstrap((previous) =>
         previous
           ? { ...previous, sections: { ...previous.sections, [key]: data.sections[key] } }
@@ -187,7 +189,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
     if (!window.studio) return;
     await flush();
     if (queue.size || queue.writing) {
-      setError('Дождитесь сохранения текущей студии перед сменой папки.');
+      setError(t('Storage.waitForTheCurrentStudioToFinish'));
       return;
     }
     try {
@@ -233,12 +235,12 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           {children}
         </div>
       ) : (
-        <StartupScreen message={error || 'Открываем студию…'} error={!!error}>
+        <StartupScreen message={error || t('Storage.openingStudio')} error={!!error}>
           {error && (
             <>
               <div className="settings-field-row">
                 <label className="field-label">
-                  Другая папка студии
+                  {t('Storage.anotherStudioFolder')}
                   <input
                     value={draftFolder}
                     onChange={(event) => setDraftFolder(event.target.value)}
@@ -249,11 +251,11 @@ export function StorageProvider({ children }: { children: ReactNode }) {
                   disabled={!draftFolder.trim()}
                   onClick={() => void changeStudio(draftFolder)}
                 >
-                  Открыть
+                  {t('Storage.open')}
                 </Button>
               </div>
-              <Button onClick={() => void load()}>Повторить</Button>
-              <Button onClick={() => void changeStudio()}>Выбрать папку</Button>
+              <Button onClick={() => void load()}>{t('StartupGate.retry')}</Button>
+              <Button onClick={() => void changeStudio()}>{t('SettingsView.chooseFolder')}</Button>
             </>
           )}
         </StartupScreen>
@@ -262,11 +264,11 @@ export function StorageProvider({ children }: { children: ReactNode }) {
         <div className="storage-error" role="alert">
           <span>{error}</span>
           {conflict ? (
-            <Button onClick={() => setShowConflict(true)}>Перечитать раздел</Button>
+            <Button onClick={() => setShowConflict(true)}>{t('Storage.reloadSection')}</Button>
           ) : queue.size ? (
-            <Button onClick={() => void flush()}>Повторить сохранение</Button>
+            <Button onClick={() => void flush()}>{t('Theme.retrySaving')}</Button>
           ) : (
-            <Button onClick={() => setError('')}>Закрыть</Button>
+            <Button onClick={() => setError('')}>{t('TeamTransfers.close')}</Button>
           )}
         </div>
       )}
@@ -280,7 +282,8 @@ export function StorageProvider({ children }: { children: ReactNode }) {
       )}
       {ready && bootstrap?.warnings.length ? (
         <div className="storage-warning" role="status">
-          Не прочитаны некоторые проекты: {bootstrap.warnings.join('; ')}
+          {t('Storage.someProjectsCouldNotBeRead')}
+          {bootstrap.warnings.join('; ')}
         </div>
       ) : null}
     </StorageContext.Provider>

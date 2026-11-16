@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { useState } from 'react';
 import { useNotice } from '@/shared/model/Notice';
@@ -15,20 +17,22 @@ import type { PiCheck } from '../../../../shared/contracts';
 import { TeamTransferPanel } from '@/features/agents/ui/TeamTransferPanel';
 
 function LegacyRules() {
+  useTranslation(undefined, { i18n });
   const { baseInstruction, setBaseInstruction } = useProject();
   return (
     <>
-      <h2>Общие инструкции</h2>
+      <h2>{t('SettingsView.sharedInstructions')}</h2>
       <Textarea
-        aria-label="Общие инструкции проекта"
+        aria-label={t('SettingsView.sharedProjectInstructions')}
         value={baseInstruction}
         onChange={(event) => setBaseInstruction(event.target.value)}
       />
-      <p>Изменения только в памяти веб-макета.</p>
+      <p>{t('SettingsView.changesStayInWebPreviewMemory')}</p>
     </>
   );
 }
 export function SettingsView() {
+  useTranslation(undefined, { i18n });
   const coreTools = useCoreTools();
   const { demo } = useNotice();
   const [section, setSection] = useState('workspace');
@@ -40,16 +44,16 @@ export function SettingsView() {
   return (
     <div className="page-body settings-layout">
       <SectionMenu
-        label="Настройки студии"
+        label={t('SettingsView.studioSettings')}
         items={[
-          { id: 'workspace', label: 'Рабочее пространство' },
-          { id: 'connections', label: 'Подключения' },
-          { id: 'assistant', label: 'Помощник подключения' },
-          { id: 'teams', label: 'Команды агентов' },
-          { id: 'skills', label: 'Каталог Skills' },
-          { id: 'mcps', label: 'MCP-серверы' },
-          { id: 'plugins', label: 'Пакеты Pi' },
-          ...(!isDesktop ? [{ id: 'rules', label: 'Общие инструкции' }] : []),
+          { id: 'workspace', label: t('SettingsView.workspace') },
+          { id: 'connections', label: t('ConnectionsPanel.connections') },
+          { id: 'assistant', label: t('SettingsView.connectionAssistant') },
+          { id: 'teams', label: t('TeamTransferPanel.agentTeams') },
+          { id: 'skills', label: t('SettingsView.skillsCatalog') },
+          { id: 'mcps', label: t('SettingsView.mcpServers') },
+          { id: 'plugins', label: t('SettingsView.piPackages') },
+          ...(!isDesktop ? [{ id: 'rules', label: t('SettingsView.sharedInstructions') }] : []),
         ]}
         selected={section}
         onSelect={setSection}
@@ -59,15 +63,15 @@ export function SettingsView() {
           <TeamTransferPanel />
         ) : section === 'workspace' ? (
           <>
-            <h2>Рабочее пространство</h2>
+            <h2>{t('SettingsView.workspace')}</h2>
             <p>
               {isDesktop
-                ? 'Настройки и проекты сохраняются в выбранной папке. Существующая студия открывается при выборе папки.'
-                : 'Веб-макет: настройки в памяти.'}
+                ? t('SettingsView.settingsAndProjectsAreSavedInThe')
+                : t('SettingsView.webPreviewSettingsInMemory')}
             </p>
             <div className="settings-field-row">
               <label className="field-label">
-                Папка студии
+                {t('SettingsView.studioFolder')}
                 <input
                   placeholder="/Users/…/Pi Studio"
                   value={folder}
@@ -83,30 +87,33 @@ export function SettingsView() {
                 onClick={() =>
                   isDesktop
                     ? void chooseStudio()
-                    : demo('Системный выбор папки доступен в приложении macOS.')
+                    : demo(t('SettingsView.systemFolderSelectionIsAvailableInThe'))
                 }
               >
-                Выбрать папку
+                {t('SettingsView.chooseFolder')}
               </Button>
             </div>
             <label className="field-label">
-              Путь к Pi
+              {t('SettingsView.piPath')}
               <input
                 value={pi}
                 onChange={(event) => setPi(event.target.value)}
-                placeholder="Исполняемый файл Pi"
+                placeholder={t('SettingsView.piExecutable')}
               />
             </label>
             <div className="settings-field-row">
               <label className="field-label">
-                Запуск агента
+                {t('SettingsView.agentLaunch')}
                 <Select
-                  label="Запуск агента"
+                  label={t('SettingsView.agentLaunch')}
                   options={[
-                    navigator.platform.startsWith('Win')
-                      ? 'Открыть Windows Terminal'
-                      : 'Открыть macOS Terminal',
-                    { value: 'rpc', label: 'Внутри приложения · RPC, позже', disabled: true },
+                    {
+                      value: 'terminal',
+                      label: navigator.platform.startsWith('Win')
+                        ? t('SettingsView.openWindowsTerminal')
+                        : t('SettingsView.openMacosTerminal'),
+                    },
+                    { value: 'rpc', label: t('SettingsView.insideTheAppRpcLater'), disabled: true },
                   ]}
                 />
               </label>
@@ -114,7 +121,7 @@ export function SettingsView() {
                 disabled={checking}
                 onClick={async () => {
                   if (!window.studio) {
-                    demo('Проверка Pi доступна в приложении macOS.');
+                    demo(t('SettingsView.piChecksAreAvailableInTheMacos'));
                     return;
                   }
                   setChecking(true);
@@ -124,30 +131,35 @@ export function SettingsView() {
                     setPiCheck(result);
                     setPi(result.path);
                   } catch (error) {
-                    demo(error instanceof Error ? error.message : 'Ошибка проверки Pi.');
+                    demo(error instanceof Error ? error.message : t('SettingsView.piCheckError'));
                   } finally {
                     setChecking(false);
                   }
                 }}
               >
-                {checking ? 'Проверяем…' : 'Проверить Pi'}
+                {checking ? t('ResourceActions.checking') : t('SettingsView.checkPi')}
               </Button>
             </div>
             {piCheck && (
               <p role="status">
                 Pi {piCheck.version} ·{' '}
-                {piCheck.supported ? 'поддерживаемая версия' : 'версия ещё не проверена со Studio'}{' '}
-                · MCP: {piCheck.nativeMcp ? 'встроенный' : 'не найден'} · точные сессии:{' '}
-                {piCheck.exactSessions ? 'поддерживаются' : 'не подтверждены'}. Проверка не
-                запускает генерацию.
+                {piCheck.supported
+                  ? t('SettingsView.supportedVersion')
+                  : t('SettingsView.versionNotYetVerifiedWithStudio')}{' '}
+                · MCP: {piCheck.nativeMcp ? t('SettingsView.builtIn') : t('SettingsView.notFound')}{' '}
+                {t('SettingsView.exactSessions')}{' '}
+                {piCheck.exactSessions
+                  ? t('SettingsView.supported')
+                  : t('SettingsView.unconfirmed')}
+                {t('SettingsView.theCheckDoesNotStartGeneration')}
               </p>
             )}
             <p className="section-space">
-              Общие инструменты:{' '}
+              {t('SettingsView.sharedTools')}{' '}
               {coreTools.map((tool) => `${tool.name} — ${tool.status.toLowerCase()}`).join(', ')}.
             </p>
             <EmptyIntegration>
-              Авторизация провайдеров и секреты — отдельно от файлов проектов.
+              {t('SettingsView.providerAuthenticationAndSecretsAreStoredSeparately')}
             </EmptyIntegration>
           </>
         ) : section === 'assistant' ? (
@@ -160,12 +172,12 @@ export function SettingsView() {
           <>
             <h2>
               {section === 'skills'
-                ? 'Каталог Skills'
+                ? t('SettingsView.skillsCatalog')
                 : section === 'mcps'
-                  ? 'MCP-серверы'
-                  : 'Пакеты и расширения Pi'}
+                  ? t('SettingsView.mcpServers')
+                  : t('SettingsView.piPackagesAndExtensions')}
             </h2>
-            <p>Общий каталог студии. У каждого агента — собственный набор ресурсов и включение.</p>
+            <p>{t('SettingsView.sharedStudioCatalogEachAgentHasIts')}</p>
             <ResourceCatalog key={section} kind={section as CapabilityKind} />
           </>
         )}

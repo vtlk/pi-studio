@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { FindBar } from '@/shared/ui/FindBar';
 import { isFindShortcut } from '@/shared/ui/literalSearch';
@@ -16,6 +18,7 @@ export function SearchablePreview({
   empty: boolean;
   documentKey: string;
 }) {
+  useTranslation(undefined, { i18n });
   const content = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
@@ -110,8 +113,8 @@ export function SearchablePreview({
             input.current?.focus({ preventScroll: true });
           }}
           onClose={close}
-          label="Поиск в предпросмотре"
-          inputLabel="Найти в файле"
+          label={t('SearchablePreview.searchPreview')}
+          inputLabel={t('SearchablePreview.findInFile')}
           className="preview-findbar"
         />
       )}
@@ -119,7 +122,7 @@ export function SearchablePreview({
         ref={content}
         className="output-browser-content"
         role="region"
-        aria-label="Предпросмотр файла"
+        aria-label={t('SearchablePreview.filePreview')}
         tabIndex={-1}
       >
         {children}

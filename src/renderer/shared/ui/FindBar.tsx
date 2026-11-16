@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { RefObject } from 'react';
 import { ArrowDown, ArrowUp, Search, X } from 'lucide-react';
 import { IconButton } from './index';
@@ -27,6 +29,7 @@ export function FindBar({
   className?: string;
   onCompositionChange?: (value: boolean) => void;
 }) {
+  useTranslation(undefined, { i18n });
   return (
     <div
       className={['find-bar', className].filter(Boolean).join(' ')}
@@ -56,13 +59,13 @@ export function FindBar({
       <span className="textarea-find-count" role="status" aria-live="polite">
         {index + 1} / {count}
       </span>
-      <IconButton title="Предыдущее совпадение" disabled={!count} onClick={() => onMove(-1)}>
+      <IconButton title={t('FindBar.previousMatch')} disabled={!count} onClick={() => onMove(-1)}>
         <ArrowUp size={16} />
       </IconButton>
-      <IconButton title="Следующее совпадение" disabled={!count} onClick={() => onMove(1)}>
+      <IconButton title={t('FindBar.nextMatch')} disabled={!count} onClick={() => onMove(1)}>
         <ArrowDown size={16} />
       </IconButton>
-      <IconButton title="Закрыть поиск" onClick={onClose}>
+      <IconButton title={t('FindBar.closeSearch')} onClick={onClose}>
         <X size={16} />
       </IconButton>
     </div>

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { FindBar } from './FindBar';
 import { literalMatches, isFindShortcut, type TextMatch } from './literalSearch';
@@ -9,6 +11,7 @@ function reveal(textarea: HTMLTextAreaElement, match: Match) {
 export const textareaMatches = literalMatches;
 
 export function useTextareaFind(field: RefObject<HTMLTextAreaElement | null>, value: unknown) {
+  useTranslation(undefined, { i18n });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [revision, setRevision] = useState(0);
@@ -83,6 +86,7 @@ export function useTextareaFind(field: RefObject<HTMLTextAreaElement | null>, va
 }
 
 export function TextareaFind({ find }: { find: ReturnType<typeof useTextareaFind> }) {
+  useTranslation(undefined, { i18n });
   return (
     <FindBar
       input={find.input}
@@ -92,8 +96,8 @@ export function TextareaFind({ find }: { find: ReturnType<typeof useTextareaFind
       index={find.result.index}
       onMove={find.move}
       onClose={find.close}
-      label="Поиск в поле"
-      inputLabel="Найти в поле"
+      label={t('TextareaFind.searchField')}
+      inputLabel={t('TextareaFind.findInField')}
       className="textarea-findbar"
       onCompositionChange={(value) => {
         find.composing.current = value;

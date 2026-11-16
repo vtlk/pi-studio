@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { FileInput, FileOutput, Pencil, Trash2 } from 'lucide-react';
 import { TeamIcon } from './TeamIcon';
@@ -31,6 +33,7 @@ import { AgentListLabel } from './AgentListLabel';
 import { SetupAssistantAction } from './SetupAssistantAction';
 
 export function AgentList() {
+  useTranslation(undefined, { i18n });
   const {
     agents,
     teams,
@@ -58,8 +61,8 @@ export function AgentList() {
     if (over) moveAgent(String(active.id), String(over.id));
   };
   return (
-    <nav className="section-menu" aria-label="Конструктор агентов">
-      <h2 className="agent-list-group-heading column-heading">Мои команды</h2>
+    <nav className="section-menu" aria-label={t('AgentList.agentBuilder')}>
+      <h2 className="agent-list-group-heading column-heading">{t('AgentList.myTeams')}</h2>
       {teams.map((team, teamIndex) => {
         const profiles = team.agentIds.flatMap(
           (id) => agents.find((agent) => agent.id === id) ?? [],
@@ -73,43 +76,42 @@ export function AgentList() {
               actions={
                 <>
                   <IconButton
-                    title={`Переименовать команду «${team.name}»`}
+                    title={t('AgentList.renameTeam', { value1: team.name })}
                     className="team-rename"
                     onClick={() => setNaming({ id: team.id, name: team.name })}
                   >
                     <Pencil size={16} />
                   </IconButton>
                   <ActionMenu
-                    label={`Действия команды «${team.name}»`}
+                    label={t('AgentList.actionsForTeam', { value1: team.name })}
                     className="team-actions-menu"
                     disabled={transfer.busy}
                     actions={[
                       {
-                        label: 'Импорт команды',
+                        label: t('AgentList.importTeam'),
                         icon: FileInput,
                         disabled: !transfer.available,
                         onSelect: () => void transfer.importTeam(true),
                       },
                       {
-                        label: 'Экспорт команды',
+                        label: t('AgentList.exportTeam'),
                         icon: FileOutput,
                         disabled: !transfer.available,
                         onSelect: () => void transfer.exportTeam(team.id, true),
                       },
                       {
-                        label: 'Удалить команду',
+                        label: t('AgentList.deleteTeam'),
                         icon: Trash2,
                         separator: true,
                         danger: true,
                         onSelect: () =>
                           confirm({
-                            title: `Удалить команду «${team.name}»`,
-                            description:
-                              'Команда и её агенты будут удалены из конструктора. Проекты, результаты и диалоги сохранятся.',
+                            title: t('AgentList.deleteTeam2', { value1: team.name }),
+                            description: t('AgentList.theTeamAndItsAgentsWillBe'),
                             onConfirm: () => {
                               removeTeam(team.id);
-                              demo(`Команда «${team.name}» удалена.`, {
-                                label: 'Вернуть',
+                              demo(t('AgentList.teamDeleted', { value1: team.name }), {
+                                label: t('useResourceUnlink.undo'),
                                 onClick: () => restoreTeam(team, profiles, teamIndex),
                               });
                             },
@@ -126,8 +128,7 @@ export function AgentList() {
                 onDragEnd={reorder}
                 accessibility={{
                   screenReaderInstructions: {
-                    draggable:
-                      'Пробел — взять агента. Стрелки меняют порядок в команде. Пробел завершает, Escape отменяет.',
+                    draggable: t('AgentList.spacePicksUpAnAgentArrowKeys'),
                   },
                 }}
               >
@@ -141,8 +142,8 @@ export function AgentList() {
                       onSelect={() => setAgentId(agent.id)}
                       onDelete={() => {
                         removeAgent(agent.id);
-                        demo(`Агент «${agent.name}» удалён из конструктора.`, {
-                          label: 'Вернуть',
+                        demo(t('AgentList.agentRemovedFromTheBuilder', { value1: agent.name }), {
+                          label: t('useResourceUnlink.undo'),
                           onClick: () => restoreAgent(agent, index, team.id),
                         });
                       }}
@@ -152,7 +153,7 @@ export function AgentList() {
               </DndContext>
               <AddArea
                 className="agent-team-add"
-                label={`Добавить агента в «${team.name}»`}
+                label={t('AgentList.addAnAgentTo', { value1: team.name })}
                 onClick={() => addAgent(team.id)}
               />
             </Disclosure>
@@ -160,7 +161,7 @@ export function AgentList() {
         );
       })}
       <AddArea
-        label="Создать команду"
+        label={t('AgentList.createTeam')}
         showLabel
         className="agent-team-create"
         onClick={() => setNaming({})}
@@ -175,11 +176,11 @@ export function AgentList() {
           }}
         />
       )}
-      <h2 className="agent-list-group-heading column-heading">Системные</h2>
+      <h2 className="agent-list-group-heading column-heading">{t('AgentList.system')}</h2>
       {systemAgents.map((agent, index) => (
         <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
           <Tooltip
-            label={agent.name || 'Без названия'}
+            label={agent.name || t('AgentList.untitled')}
             onlyWhenTruncated
             overflowSelector=".agent-list-name"
           >
@@ -191,7 +192,10 @@ export function AgentList() {
                 selectedAgent?.id === agent.id && 'active',
               )}
               data-enabled={agent.enabled}
-              aria-label={`${agent.name || 'Без названия'} · ${agent.enabled ? 'Включён' : 'Выключен'}`}
+              aria-label={t('AgentList.summary', {
+                value1: agent.name || t('AgentList.untitled'),
+                value2: agent.enabled ? t('AgentList.enabled') : t('reasoning.off'),
+              })}
               aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
               onClick={() => setAgentId(agent.id)}
             >

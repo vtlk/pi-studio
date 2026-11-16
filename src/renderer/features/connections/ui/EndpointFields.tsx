@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Cpu } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
@@ -18,6 +20,7 @@ export function EndpointFields({
   disabled: boolean;
   discover: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const config = connection.endpointConfig!;
   const changeModel = (index: number, change: Partial<EndpointModel>) =>
     update({
@@ -30,9 +33,9 @@ export function EndpointFields({
   return (
     <>
       <label className="field-label">
-        Адрес API
+        {t('EndpointFields.apiAddress')}
         <input
-          aria-label="Адрес API модели"
+          aria-label={t('EndpointFields.modelApiAddress')}
           disabled={disabled}
           value={connection.endpoint}
           placeholder="http://localhost:1234/v1"
@@ -40,9 +43,9 @@ export function EndpointFields({
         />
       </label>
       <label className="field-label">
-        Протокол
+        {t('EndpointFields.protocol')}
         <Select
-          label="Протокол модели"
+          label={t('EndpointFields.modelProtocol')}
           disabled={disabled}
           value={config.api}
           options={[
@@ -55,14 +58,14 @@ export function EndpointFields({
         />
       </label>
       <label className="field-label">
-        Авторизация сервера
+        {t('EndpointFields.serverAuthentication')}
         <Select
-          label="Авторизация сервера модели"
+          label={t('EndpointFields.modelServerAuthentication')}
           disabled={disabled}
           value={config.auth}
           options={[
-            { value: 'api_key', label: 'API-ключ этого подключения' },
-            { value: 'none', label: 'Без авторизации' },
+            { value: 'api_key', label: t('EndpointFields.thisConnectionSApiKey') },
+            { value: 'none', label: t('EndpointFields.noAuthentication') },
           ]}
           onValueChange={(auth) =>
             update({
@@ -76,15 +79,11 @@ export function EndpointFields({
         disabled={disabled || !window.studio || !connection.endpoint.trim()}
         onClick={discover}
       >
-        Прочитать модели сервера
+        {t('EndpointFields.readServerModels')}
       </Button>
-      <p className="subtle">
-        Перед чтением подключение сохраняется. Список сервера сообщает ID моделей. Возможности и
-        лимиты укажите по его документации; сохраните подключение перед выбором модели у агента.
-        Статус Pi подтверждает настройки авторизации; доступ к модели проверяется при запросе.
-      </p>
+      <p className="subtle">{t('EndpointFields.theConnectionIsSavedBeforeReadingThe')}</p>
       <AddArea
-        label="Добавить модель сервера"
+        label={t('EndpointFields.addServerModel')}
         disabled={disabled}
         onClick={() =>
           update({
@@ -110,13 +109,13 @@ export function EndpointFields({
         {config.models.map((model, index) => (
           <Disclosure
             key={index}
-            label={model.id || 'Новая модель'}
+            label={model.id || t('EndpointFields.newModel')}
             icon={Cpu}
             defaultOpen={!model.id}
             actions={
               <HoverDeleteButton
                 disabled={disabled}
-                label={`Удалить модель ${model.id || index + 1}`}
+                label={t('EndpointFields.deleteModel', { value1: model.id || index + 1 })}
                 onDelete={() =>
                   update({
                     ...connection,
@@ -130,16 +129,16 @@ export function EndpointFields({
             }
           >
             <label className="field-label">
-              ID модели
+              {t('EndpointFields.modelId')}
               <input
-                aria-label={`ID модели сервера ${index + 1}`}
+                aria-label={t('EndpointFields.serverModelId', { value1: index + 1 })}
                 disabled={disabled}
                 value={model.id}
                 onChange={(event) => changeModel(index, { id: event.target.value })}
               />
             </label>
             <label className="field-label">
-              Название
+              {t('ConnectionEditor.name')}
               <input
                 disabled={disabled}
                 value={model.name}
@@ -147,7 +146,7 @@ export function EndpointFields({
               />
             </label>
             <label className="field-label">
-              Контекст, токенов
+              {t('EndpointFields.contextTokens')}
               <input
                 type="number"
                 min={1}
@@ -159,7 +158,7 @@ export function EndpointFields({
               />
             </label>
             <label className="field-label">
-              Максимум ответа, токенов
+              {t('EndpointFields.maximumResponseTokens')}
               <input
                 type="number"
                 min={1}
@@ -169,18 +168,18 @@ export function EndpointFields({
               />
             </label>
             <ListRow
-              label="Принимает изображения"
+              label={t('EndpointFields.acceptsImages')}
               toggle={{
-                label: `Изображения модели ${index + 1}`,
+                label: t('EndpointFields.imagesForModel', { value1: index + 1 }),
                 disabled,
                 checked: model.imageInput,
                 onChange: (imageInput) => changeModel(index, { imageInput }),
               }}
             />
             <ListRow
-              label="Поддерживает рассуждение"
+              label={t('EndpointFields.supportsReasoning')}
               toggle={{
-                label: `Рассуждение модели ${index + 1}`,
+                label: t('EndpointFields.reasoningForModel', { value1: index + 1 }),
                 disabled,
                 checked: model.reasoning,
                 onChange: (reasoning) => changeModel(index, { reasoning }),

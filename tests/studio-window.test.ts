@@ -42,6 +42,7 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   const instance = new Module(filename);
+  instance.filename = filename;
   const originalLoad = Module._load;
   Module._load = function (id: string, ...rest: unknown[]) {
     if (id === 'electron')

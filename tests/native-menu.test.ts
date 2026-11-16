@@ -23,7 +23,7 @@ for (const platform of ['darwin', 'win32'] as const) {
     const parent = template.find(
       (item) => Array.isArray(item.submenu) && item.submenu.includes(matches[0]),
     );
-    assert.equal(parent?.label, platform === 'darwin' ? 'Pi Studio' : 'Справка');
+    assert.equal(parent?.label, platform === 'darwin' ? 'Pi Studio' : 'Help');
     (matches[0].click as () => void)();
     assert.equal(checks, 1);
     for (const role of [

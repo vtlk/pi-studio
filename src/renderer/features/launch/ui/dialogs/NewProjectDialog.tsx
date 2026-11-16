@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
@@ -8,6 +10,7 @@ import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { Select } from '@/shared/ui/Select';
 
 export function NewProjectDialog() {
+  useTranslation(undefined, { i18n });
   const [name, setName] = useState('');
   const [teamId, setTeamId] = useState('');
   const { teams } = useAgentProfiles();
@@ -16,14 +19,14 @@ export function NewProjectDialog() {
   const { navigate } = useNavigation();
   return (
     <Modal
-      title="Создать проект"
+      title={t('NewProjectDialog.createProject')}
       onClose={() => {
         if (!busy) setDialog(null);
       }}
       footer={
         <>
           <Button disabled={busy} onClick={() => setDialog(null)}>
-            Отмена
+            {t('TeamNameDialog.cancel')}
           </Button>
           <Button
             kind="primary"
@@ -34,41 +37,41 @@ export function NewProjectDialog() {
               navigate('project');
             }}
           >
-            Создать
+            {t('TeamNameDialog.create')}
           </Button>
         </>
       }
     >
       <label className="field-label">
-        Название проекта
+        {t('NewProjectDialog.projectName')}
         <input
           autoFocus
-          aria-label="Название проекта"
+          aria-label={t('NewProjectDialog.projectName')}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Название"
+          placeholder={t('ConnectionEditor.name')}
         />
       </label>
       <label className="field-label">
-        Команда агентов
+        {t('NewProjectDialog.agentTeam')}
         <Select
-          label="Команда агентов"
+          label={t('NewProjectDialog.agentTeam')}
           value={teamId}
           onValueChange={setTeamId}
-          placeholder="Выберите команду"
+          placeholder={t('TeamTransferPanel.selectATeam')}
           options={teams.map((team) => ({ value: team.id, label: team.name }))}
         />
       </label>
       {!teams.length && (
         <p>
-          Сначала создайте команду агентов.{' '}
+          {t('NewProjectDialog.createAnAgentTeamFirst')}{' '}
           <Button
             onClick={() => {
               setDialog(null);
               navigate('agents');
             }}
           >
-            Перейти к агентам
+            {t('NewProjectDialog.goToAgents')}
           </Button>
         </p>
       )}

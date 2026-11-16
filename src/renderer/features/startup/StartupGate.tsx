@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { StartupState } from '../../../shared/startup';
@@ -5,14 +7,18 @@ import { StartupScreen } from '@/shared/ui/StartupScreen';
 import { Button } from '@/shared/ui';
 
 export function StartupGate({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<StartupState>({ phase: 'checking', message: 'Проверяем Pi…' });
+  useTranslation(undefined, { i18n });
+  const [state, setState] = useState<StartupState>({
+    phase: 'checking',
+    message: t('StartupGate.checkingPi'),
+  });
   const [error, setError] = useState('');
   const settled = ['ready', 'skipped', 'error'].includes(state.phase) || !!error;
   const refresh = useCallback(async () => {
     try {
       setState(await getStudioApi().getStartup());
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Не удалось проверить Pi.');
+      setError(error instanceof Error ? error.message : t('StartupGate.couldNotCheckPi'));
     }
   }, []);
   useEffect(() => {
@@ -34,11 +40,11 @@ export function StartupGate({ children }: { children: ReactNode }) {
                 setError('');
                 setState(await getStudioApi().retryStartup());
               } catch {
-                setError('Не удалось повторить подготовку Pi.');
+                setError(t('StartupGate.couldNotRetryPiPreparation'));
               }
             }}
           >
-            Повторить
+            {t('StartupGate.retry')}
           </Button>
           <Button
             onClick={async () => {
@@ -49,11 +55,13 @@ export function StartupGate({ children }: { children: ReactNode }) {
                   setState(next);
                 }
               } catch (error) {
-                setError(error instanceof Error ? error.message : 'Не удалось выбрать Pi.');
+                setError(
+                  error instanceof Error ? error.message : t('StartupGate.couldNotSelectPi'),
+                );
               }
             }}
           >
-            Выбрать установленный Pi
+            {t('StartupGate.chooseInstalledPi')}
           </Button>
         </>
       )}
@@ -63,11 +71,11 @@ export function StartupGate({ children }: { children: ReactNode }) {
             setError('');
             setState(await getStudioApi().skipStartup());
           } catch {
-            setError('Не удалось открыть студию. Повторите попытку.');
+            setError(t('StartupGate.couldNotOpenTheStudioTryAgain'));
           }
         }}
       >
-        Открыть без Pi
+        {t('StartupGate.openWithoutPi')}
       </Button>
     </StartupScreen>
   );

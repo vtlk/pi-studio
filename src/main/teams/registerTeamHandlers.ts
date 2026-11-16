@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { dialog, type BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { lstat, readFile } from 'node:fs/promises';
@@ -21,7 +22,7 @@ export function registerTeamHandlers(
 ) {
   const scoped = async (folder: string) => {
     const store = await service.load();
-    if (store.folder !== folder) throw new Error('Папка студии изменилась.');
+    if (store.folder !== folder) throw new Error(t('registerTeamHandlers.studioFolderChanged'));
     return store;
   };
   handleDesktopInvoke(
@@ -31,13 +32,13 @@ export function registerTeamHandlers(
       const name = await service.serialize(async () => {
         const store = await scoped(request.folder);
         const team = store.agentCatalog().teams.find((team) => team.id === request.teamId);
-        if (!team) throw new Error('Команда отсутствует.');
+        if (!team) throw new Error(t('TeamTransfers.theTeamIsUnavailable'));
         return team.name.replace(/[/\\:]/g, '-');
       });
       const result = await dialog.showSaveDialog(window, {
-        title: 'Экспорт команды агентов',
+        title: t('TeamTransferPanel.exportAgentTeam'),
         defaultPath: `${name}.pistudio-team`,
-        filters: [{ name: 'Команда Pi Studio', extensions: ['pistudio-team'] }],
+        filters: [{ name: t('registerTeamHandlers.piStudioTeam'), extensions: ['pistudio-team'] }],
       });
       if (result.canceled || !result.filePath) return null;
       const data = await service.serialize(async () => {
@@ -63,13 +64,13 @@ export function registerTeamHandlers(
     const window = caller(event);
     await service.serialize(() => scoped(folder));
     const result = await dialog.showOpenDialog(window, {
-      title: 'Импорт команды агентов',
+      title: t('TeamTransferPanel.importAgentTeam'),
       properties: ['openFile'],
-      filters: [{ name: 'Команда Pi Studio', extensions: ['pistudio-team'] }],
+      filters: [{ name: t('registerTeamHandlers.piStudioTeam'), extensions: ['pistudio-team'] }],
     });
     if (result.canceled || !result.filePaths[0]) return null;
     if ((await lstat(result.filePaths[0])).size > packageLimit)
-      throw new Error('Архив команды превышает 64 МБ.');
+      throw new Error(t('registerTeamHandlers.theTeamArchiveExceedsMb'));
     const bytes = await readFile(result.filePaths[0]);
     const report = await service.serialize(async () => importTeam(await scoped(folder), bytes));
     return handoffTeamImport(service, setup, folder, report.id);

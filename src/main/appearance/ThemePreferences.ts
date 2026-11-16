@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { readJson, atomicJson } from '../storage/files.ts';
 import { themeChoice, type ThemeChoice, type ThemeState } from '../../shared/appearance.ts';
 
@@ -33,7 +34,7 @@ export class ThemePreferences {
       settings.preference = (data as { theme: ThemeChoice }).theme;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
-        settings.error = 'Не удалось прочитать выбор темы. Пока используется тема системы.';
+        settings.error = t('ThemePreferences.couldNotReadTheThemePreferenceUsing');
     }
     native.themeSource = settings.preference;
     native.on('updated', settings.updated);
@@ -61,7 +62,7 @@ export class ThemePreferences {
     this.emit();
   };
   async set(value: unknown): Promise<ThemeState> {
-    if (!themeChoice(value)) throw new Error('Выберите светлую или тёмную тему.');
+    if (!themeChoice(value)) throw new Error(t('ThemePreferences.chooseALightOrDarkTheme'));
     this.preference = value;
     this.error = undefined;
     this.native.themeSource = value;
@@ -75,8 +76,7 @@ export class ThemePreferences {
     } catch {
       // A later explicit choice owns the visible error, even if an older write fails late.
       if (this.choiceGeneration === requested)
-        this.error =
-          'Выбор темы не сохранён. При следующем запуске будет использована прежняя настройка.';
+        this.error = t('Theme.themePreferenceNotSavedThePreviousSetting');
     }
     this.revision++;
     this.emit();

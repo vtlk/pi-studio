@@ -1,3 +1,6 @@
+import { resourceLabel } from '@/shared/model/localizedResources';
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { optionalBuiltinMcps } from '../../../../shared/builtinResources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
@@ -10,34 +13,35 @@ export function McpPicker({
   attached: string[];
   onPick: (id: string) => void;
 }) {
-  const [mode, setMode] = useState('Встроенные');
+  useTranslation(undefined, { i18n });
+  const [mode, setMode] = useState('builtin');
   return (
     <>
-      <nav className="segmented" aria-label="Источник MCP">
-        {['Встроенные', 'Свой MCP'].map((item) => (
+      <nav className="segmented" aria-label={t('McpPicker.mcpSource')}>
+        {['builtin', 'custom'].map((item) => (
           <button
-            key={item}
+            key={item === 'builtin' ? t('McpPicker.builtIn') : t('McpPicker.customMcp')}
             className={mode === item ? 'active' : ''}
             aria-pressed={mode === item}
             onClick={() => setMode(item)}
           >
-            {item}
+            {item === 'builtin' ? t('McpPicker.builtIn') : t('McpPicker.customMcp')}
           </button>
         ))}
       </nav>
-      {mode === 'Встроенные' ? (
+      {mode === 'builtin' ? (
         optionalBuiltinMcps.map((resource) => (
           <div className="resource-row" key={resource.id}>
             <div>
-              <strong>{resource.name}</strong>
-              <p>{resource.description}</p>
+              <strong>{resourceLabel(resource, 'name')}</strong>
+              <p>{resourceLabel(resource, 'description')}</p>
             </div>
             <Button
               kind="primary"
               disabled={attached.includes(resource.id)}
               onClick={() => onPick(resource.id)}
             >
-              {attached.includes(resource.id) ? 'Добавлен' : 'Добавить агенту'}
+              {attached.includes(resource.id) ? t('McpPicker.added') : t('McpPicker.addToAgent')}
             </Button>
           </div>
         ))

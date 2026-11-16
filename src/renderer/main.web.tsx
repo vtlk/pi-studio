@@ -1,3 +1,6 @@
+import { i18n } from '../shared/i18n/index.ts';
+import webEn from '../shared/i18n/web.en.json';
+import webRu from '../shared/i18n/web.ru.json';
 import React, { type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
@@ -9,6 +12,7 @@ import { useDemoWorkspaceState } from './features/project/model/useDemoWorkspace
 import { ProjectProvider } from './features/project/model/Project';
 import { PlaybackProvider } from './features/preview/model/Playback';
 import { EditorProvider } from './features/editor/model/Editor';
+import { LanguageProvider, initialLanguage } from './shared/model/Language';
 import { ThemeProvider, initialTheme } from './shared/model/Theme';
 
 const appearance = initialTheme(false);
@@ -26,18 +30,23 @@ function useWorkspaceState() {
   return { ...useDemoWorkspaceState(), trashProjects: [], busy: false };
 }
 
+i18n.addResourceBundle('en', 'translation', webEn, true);
+i18n.addResourceBundle('ru', 'translation', webRu, true);
+const language = await initialLanguage(false);
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider initial={appearance} native={false}>
-      <App
-        useWorkspaceState={useWorkspaceState}
-        ExtraProviders={DemoProviders}
-        defaults={{
-          agents: initialAgents,
-          connections: exampleConnections,
-          resources: exampleResources,
-        }}
-      />
-    </ThemeProvider>
+    <LanguageProvider initial={language} native={false}>
+      <ThemeProvider initial={appearance} native={false}>
+        <App
+          useWorkspaceState={useWorkspaceState}
+          ExtraProviders={DemoProviders}
+          defaults={{
+            agents: initialAgents,
+            connections: exampleConnections,
+            resources: exampleResources,
+          }}
+        />
+      </ThemeProvider>
+    </LanguageProvider>
   </React.StrictMode>,
 );

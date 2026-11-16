@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useControlScope } from './ControlScope.context';
 import { useContext, useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { X } from 'lucide-react';
@@ -24,6 +26,7 @@ export function Modal({
   dismissible = true,
   size,
 }: ModalProps) {
+  useTranslation(undefined, { i18n });
   const controlsScope = useControlScope();
   const inheritedSize = useContext(ModalSizeContext);
   const currentSize = size ?? inheritedSize;
@@ -85,7 +88,7 @@ export function Modal({
           <header className="dialog-header">
             <h2>{title}</h2>
             {dismissible && (
-              <IconButton title="Закрыть окно" onClick={onClose}>
+              <IconButton title={t('Modal.closeWindow')} onClick={onClose}>
                 <X size={20} />
               </IconButton>
             )}

@@ -1,3 +1,6 @@
+import { resourceLabel } from '@/shared/model/localizedResources';
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { Resource } from '../../../../shared/resources';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -11,14 +14,15 @@ export function BuiltinResourceInfo({
   resource: Resource;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   return (
     <Modal
-      title={resource.name}
+      title={resourceLabel(resource, 'name')}
       onClose={onClose}
-      footer={<Button onClick={onClose}>Закрыть</Button>}
+      footer={<Button onClick={onClose}>{t('TeamTransfers.close')}</Button>}
     >
-      <p>{resource.description}</p>
-      <p>Поставляется с Pi Studio. Встроенный ресурс не удаляется из общего каталога.</p>
+      <p>{resourceLabel(resource, 'description')}</p>
+      <p>{t('BuiltinResourceInfo.includedWithPiStudioBuiltInResources')}</p>
       {resource.source === 'builtin:browser' && <BrowserResourceStatus />}
       {resource.source === 'builtin:computer' && <ComputerResourceStatus />}
     </Modal>

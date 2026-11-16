@@ -1,3 +1,5 @@
+import { changeLanguage } from '../src/shared/i18n/index.ts';
+await changeLanguage('ru');
 import nativeTest from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, rename, readFile } from 'node:fs/promises';

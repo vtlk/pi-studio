@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
@@ -12,6 +14,7 @@ export function ManagedSkillEditor({
   resource?: Resource;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { bootstrap, saveNow } = useStorage();
   const { saveResource } = useResources();
   const [name, setName] = useState(resource?.name ?? '');
@@ -37,7 +40,9 @@ export function ManagedSkillEditor({
       },
       (error: unknown) => {
         if (active)
-          setError(error instanceof Error ? error.message : 'Не удалось прочитать навык.');
+          setError(
+            error instanceof Error ? error.message : t('ManagedSkillEditor.couldNotReadTheSkill'),
+          );
       },
     );
     return () => {
@@ -49,7 +54,7 @@ export function ManagedSkillEditor({
     setSaving(true);
     setError('');
     try {
-      if (!(await saveNow())) throw new Error('Сначала сохраните текущие настройки.');
+      if (!(await saveNow())) throw new Error(t('ManagedSkillEditor.saveCurrentSettingsFirst'));
       const result = await window.studio.saveSkill({
         folder: bootstrap.folder,
         id: resource?.id,
@@ -61,32 +66,34 @@ export function ManagedSkillEditor({
       saveResource(result);
       onClose();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Не удалось сохранить навык.');
+      setError(
+        error instanceof Error ? error.message : t('ManagedSkillEditor.couldNotSaveTheSkill'),
+      );
     } finally {
       setSaving(false);
     }
   };
   return (
     <Modal
-      title={resource ? 'Редактировать навык' : 'Новый навык'}
+      title={resource ? t('ManagedSkillEditor.editSkill') : t('ManagedSkillEditor.newSkill')}
       onClose={() => !saving && onClose()}
       footer={
         <>
           <Button disabled={saving} onClick={onClose}>
-            Отмена
+            {t('TeamNameDialog.cancel')}
           </Button>
           <Button
             kind="primary"
             disabled={loading || saving || !name.trim() || !description.trim() || !content.trim()}
             onClick={() => void save()}
           >
-            {saving ? 'Сохраняем…' : 'Сохранить'}
+            {saving ? t('Topbar.saving') : t('TeamNameDialog.save')}
           </Button>
         </>
       }
     >
       <label className="field-label">
-        Имя навыка
+        {t('ManagedSkillEditor.skillName')}
         <input
           value={name}
           placeholder="create-character"
@@ -95,7 +102,7 @@ export function ManagedSkillEditor({
         />
       </label>
       <label className="field-label">
-        Описание
+        {t('ManagedSkillEditor.description')}
         <input
           value={description}
           disabled={loading || saving}
@@ -103,15 +110,13 @@ export function ManagedSkillEditor({
         />
       </label>
       <Textarea
-        label="Инструкции"
+        label={t('AgentProfileEditor.instructions')}
         className="skill-instructions-input"
         value={content}
         disabled={loading || saving}
         onChange={(event) => setContent(event.target.value)}
       />
-      <p className="subtle">
-        Общий SKILL.md применяется при следующем запуске назначенных агентов.
-      </p>
+      <p className="subtle">{t('ManagedSkillEditor.theSharedSkillMdAppliesTheNext')}</p>
       {error && (
         <p className="error-message" role="alert">
           {error}

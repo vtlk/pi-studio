@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { useRef, useState } from 'react';
 import { Button } from '@/shared/ui';
@@ -25,6 +27,7 @@ export function StartAgentDialog({
   onOpenSettings: (agentId: string, tab?: string) => void;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const [message, setMessage] = useState('');
   const [opening, setOpening] = useState(false);
   const openingRef = useRef(false);
@@ -55,10 +58,7 @@ export function StartAgentDialog({
       );
       if (!session) return;
       onClose();
-      if (!isDesktop)
-        demo(
-          'Первое сообщение и привязка диалога сохранены в памяти прототипа. Pi пока не подключён.',
-        );
+      if (!isDesktop) demo(t('StartAgentDialog.firstMessageAndDialogueBindingSavedIn'));
     } finally {
       openingRef.current = false;
       setOpening(false);
@@ -70,38 +70,43 @@ export function StartAgentDialog({
     <>
       <Modal
         inert={configurationOpen}
-        title={`Запустить · ${agent.profile.name || 'Без названия'}`}
+        title={t('StartAgentDialog.launch', {
+          value1: agent.profile.name || t('AgentList.untitled'),
+        })}
         onClose={() => {
           if (!opening) onClose();
         }}
         footer={
           <>
             <Button disabled={opening} onClick={onClose}>
-              Отмена
+              {t('TeamNameDialog.cancel')}
             </Button>
             <Button
               kind="primary"
               disabled={opening || !agent.profile.enabled || !message.trim()}
               onClick={() => void start()}
             >
-              {opening ? 'Открываем Pi…' : autoContinue ? 'Запустить и продолжить' : 'Запустить'}
+              {opening
+                ? t('AgentActions.openingPi')
+                : autoContinue
+                  ? t('AgentActions.launchAndContinue')
+                  : t('AgentActions.launch')}
             </Button>
           </>
         }
       >
         <Textarea
-          label="Первое сообщение"
+          label={t('StartAgentDialog.firstMessage')}
           autoFocus
           className="agent-first-message"
           value={message}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="Опишите, что должен сделать агент"
+          placeholder={t('StartAgentDialog.describeWhatTheAgentShouldDo')}
           aria-describedby="agent-first-message-help"
         />
         <ReferenceAttachments value={references} onChange={setReferences} disabled={opening} />
         <p id="agent-first-message-help" className="subtle">
-          Будет отправлено первым сообщением в новый диалог Pi. Используем текущие инструкции из
-          конструктора и инструменты проектного агента.
+          {t('StartAgentDialog.sentAsTheFirstMessageOfA')}
         </p>
       </Modal>
       {configurationOpen && (

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import {
   useId,
   useImperativeHandle,
@@ -27,6 +29,7 @@ export function Textarea({
   fieldClassName,
   ...props
 }: TextareaProps) {
+  useTranslation(undefined, { i18n });
   const generatedId = useId();
   const field = useRef<HTMLTextAreaElement>(null);
   const drag = useRef<{ pointerId: number; y: number; height: number } | null>(null);
@@ -78,18 +81,18 @@ export function Textarea({
         {find.open && find.result.index >= 0 && (
           <TextareaHighlight field={field} result={find.result} />
         )}
-        <Tooltip label="Изменить высоту поля">
+        <Tooltip label={t('Textarea.resizeFieldHeight')}>
           <div
             className="textarea-resize-handle"
             role="separator"
             tabIndex={disabled ? -1 : 0}
-            aria-label="Изменить высоту поля"
+            aria-label={t('Textarea.resizeFieldHeight')}
             aria-controls={fieldId}
             aria-orientation="horizontal"
             aria-valuemin={size.minimum}
             aria-valuemax={maximum}
             aria-valuenow={size.height}
-            aria-valuetext={`${size.height} пикселей`}
+            aria-valuetext={t('Textarea.pixels', { value1: size.height })}
             aria-disabled={disabled || undefined}
             data-dragging={dragging || undefined}
             onPointerDown={(event) => {

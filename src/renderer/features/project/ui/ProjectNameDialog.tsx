@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import type { WorkspaceProject } from '../model/workspace.types';
 import { useWorkspace } from '../model/Workspace';
@@ -15,20 +17,27 @@ export function ProjectNameDialog({
   mode: 'clone' | 'rename';
   onClose: () => void;
 }) {
-  const [name, setName] = useState(mode === 'clone' ? `${project.name} — копия` : project.name);
+  useTranslation(undefined, { i18n });
+  const [name, setName] = useState(
+    mode === 'clone' ? t('ProjectNameDialog.copy', { value1: project.name }) : project.name,
+  );
   const { cloneProject, renameProject, busy } = useWorkspace();
   const { isDesktop } = useStorage();
   const { demo } = useNotice();
   return (
     <Modal
-      title={mode === 'clone' ? 'Клонировать проект' : 'Переименовать проект'}
+      title={
+        mode === 'clone'
+          ? t('ProjectNameDialog.cloneProject')
+          : t('ProjectNameDialog.renameProject')
+      }
       onClose={() => {
         if (!busy) onClose();
       }}
       footer={
         <>
           <Button disabled={busy} onClick={onClose}>
-            Отмена
+            {t('TeamNameDialog.cancel')}
           </Button>
           <Button
             kind="primary"
@@ -42,36 +51,35 @@ export function ProjectNameDialog({
               demo(
                 isDesktop
                   ? mode === 'clone'
-                    ? 'Проект и все его файлы скопированы в отдельную папку.'
-                    : 'Название проекта и его папка изменены.'
+                    ? t('ProjectNameDialog.theProjectAndAllItsFilesWere')
+                    : t('ProjectNameDialog.projectNameAndFolderChanged')
                   : mode === 'clone'
-                    ? 'Создана независимая копия снимка и примеров файлов в памяти. Папка на диске не копировалась.'
-                    : 'Название и пример пути изменены в памяти. Физическая папка не переименовывалась.',
+                    ? t('ProjectNameDialog.anIndependentCopyOfTheSnapshotAnd')
+                    : t('ProjectNameDialog.theNameAndExamplePathChangedIn'),
               );
               onClose();
             }}
           >
-            {mode === 'clone' ? 'Клонировать' : 'Переименовать'}
+            {mode === 'clone' ? t('ProjectNameDialog.clone') : t('ProjectNameDialog.rename')}
           </Button>
         </>
       }
     >
       <label className="field-label">
-        Название проекта
+        {t('NewProjectDialog.projectName')}
         <input autoFocus value={name} onChange={(event) => setName(event.target.value)} />
       </label>
       <p>
         {mode === 'clone'
-          ? 'Копия получает новый ID и собственные снимок агентов и файлы. Текущие глобальные агенты не подмешиваются.'
-          : 'ID проекта, ID агентов и относительные пути результатов сохраняются.'}
+          ? t('ProjectNameDialog.theCopyGetsANewIdAnd')
+          : t('ProjectNameDialog.projectIdAgentIdsAndRelativeOutput')}
       </p>
       {isDesktop && mode === 'rename' && (
-        <p className="subtle">
-          Открытые диалоги Pi этого проекта закроются. История сохранится; продолжение откроет её в
-          новой папке.
-        </p>
+        <p className="subtle">{t('ProjectNameDialog.thisProjectSOpenPiDialoguesWill')}</p>
       )}
-      {!isDesktop && <p className="subtle">Операция показана на данных веб-макета.</p>}
+      {!isDesktop && (
+        <p className="subtle">{t('ProjectNameDialog.theOperationUsesWebPrototypeData')}</p>
+      )}
     </Modal>
   );
 }

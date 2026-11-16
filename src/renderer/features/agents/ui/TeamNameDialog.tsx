@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -11,14 +13,15 @@ export function TeamNameDialog({
   onSave: (name: string) => void;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const [value, setValue] = useState(name);
   return (
     <Modal
-      title={name ? 'Переименовать команду' : 'Создать команду'}
+      title={name ? t('TeamNameDialog.renameTeam') : t('AgentList.createTeam')}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button onClick={onClose}>{t('TeamNameDialog.cancel')}</Button>
           <Button
             kind="primary"
             disabled={!value.trim()}
@@ -27,16 +30,16 @@ export function TeamNameDialog({
               onClose();
             }}
           >
-            {name ? 'Сохранить' : 'Создать'}
+            {name ? t('TeamNameDialog.save') : t('TeamNameDialog.create')}
           </Button>
         </>
       }
     >
       <label className="field-label">
-        Название команды
+        {t('TeamNameDialog.teamName')}
         <input
           autoFocus
-          aria-label="Название команды"
+          aria-label={t('TeamNameDialog.teamName')}
           maxLength={500}
           value={value}
           onChange={(event) => setValue(event.target.value)}

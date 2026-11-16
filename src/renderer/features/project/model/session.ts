@@ -1,3 +1,4 @@
+import { t } from '../../../../shared/i18n/index.ts';
 import type { ProjectAgent, SessionBinding } from './workspace.types';
 
 export type AgentLaunchAction =
@@ -6,12 +7,12 @@ export type AgentLaunchAction =
   | { kind: 'blocked'; reason: string };
 
 export function getAgentLaunchAction(agent: ProjectAgent): AgentLaunchAction {
-  if (!agent.profile.enabled) return { kind: 'blocked', reason: 'Агент выключен.' };
+  if (!agent.profile.enabled) return { kind: 'blocked', reason: t('session.agentDisabled') };
   if (!agent.session) return { kind: 'start' };
   if (agent.session.missing || !agent.session.path.trim())
     return {
       kind: 'blocked',
-      reason: 'Сессия агента недоступна. Восстановите её файл; новый диалог не создаётся.',
+      reason: t('session.theAgentSessionIsUnavailableRestoreIts'),
     };
   return { kind: 'resume', session: agent.session };
 }

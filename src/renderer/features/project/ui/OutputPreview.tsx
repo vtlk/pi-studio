@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { OutputFile } from '../model/workspace.types';
 import { getPreviewKind } from '../model/previewCapabilities';
 import { MarkdownPreview } from './MarkdownPreview';
@@ -11,6 +13,7 @@ export function OutputPreview({
   file: OutputFile;
   markdownFiles?: MarkdownFiles;
 }) {
+  useTranslation(undefined, { i18n });
   const [mediaError, setMediaError] = useState('');
   const error = mediaError && (
     <p className="error-message" role="alert">
@@ -26,11 +29,7 @@ export function OutputPreview({
           <img
             src={file.src}
             alt={file.name}
-            onError={() =>
-              setMediaError(
-                'Не удалось открыть изображение. Файл повреждён, недоступен или имеет неподдерживаемый формат.',
-              )
-            }
+            onError={() => setMediaError(t('OutputPreview.couldNotOpenTheImageTheFile'))}
           />
           {error}
         </div>
@@ -42,20 +41,16 @@ export function OutputPreview({
             controls
             src={file.src}
             aria-label={file.name}
-            onError={() =>
-              setMediaError(
-                'Не удалось воспроизвести аудио. Проверьте доступность файла и поддержку кодека в macOS.',
-              )
-            }
+            onError={() => setMediaError(t('OutputPreview.couldNotPlayTheAudioCheckFile'))}
           />
           {error}
-          {!file.src && <p>Пример аудиофайла · звук не сгенерирован.</p>}
+          {!file.src && <p>{t('OutputPreview.exampleAudioFileNoAudioGenerated')}</p>}
         </div>
       );
     case 'unsupported':
       return (
         <div className="media-example">
-          <p>Для этого типа файла нет встроенного предпросмотра.</p>
+          <p>{t('OutputPreview.noBuiltInPreviewForThisFile')}</p>
         </div>
       );
     case 'video':
@@ -65,21 +60,17 @@ export function OutputPreview({
             controls
             src={file.src}
             aria-label={file.name}
-            onError={() =>
-              setMediaError(
-                'Не удалось воспроизвести видео. Проверьте доступность файла и поддержку кодека в macOS.',
-              )
-            }
+            onError={() => setMediaError(t('OutputPreview.couldNotPlayTheVideoCheckFile'))}
           />
           {error}
-          {!file.src && <p>Пример видеофайла · видео не сгенерировано.</p>}
+          {!file.src && <p>{t('OutputPreview.exampleVideoFileNoVideoGenerated')}</p>}
         </div>
       );
     default:
       return (
         <>
           <pre className={`output-text${file.format === 'json' ? ' output-code' : ''}`}>
-            {file.content || 'Файл пуст.'}
+            {file.content || t('MarkdownPreview.theFileIsEmpty')}
           </pre>
         </>
       );

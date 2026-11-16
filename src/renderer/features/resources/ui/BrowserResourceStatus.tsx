@@ -1,12 +1,15 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { getStudioApi } from '@/shared/desktopApi';
 import { Button } from '@/shared/ui';
 import { browserMcp } from '../../../../shared/builtinResources';
 
 export function BrowserResourceStatus() {
+  useTranslation(undefined, { i18n });
   const [busy, setBusy] = useState(false);
   const [installed, setInstalled] = useState(false);
-  const [message, setMessage] = useState('Проверяем компоненты…');
+  const [message, setMessage] = useState(t('BrowserResourceStatus.checkingComponents'));
   useEffect(() => {
     if (!window.studio) return;
     let active = true;
@@ -17,13 +20,17 @@ export function BrowserResourceStatus() {
         setInstalled(check.status === 'available');
         setMessage(
           check.status === 'available'
-            ? 'Компоненты установлены.'
-            : 'Компоненты ещё не установлены.',
+            ? t('BrowserResourceStatus.componentsInstalled')
+            : t('BrowserResourceStatus.componentsAreNotInstalledYet'),
         );
       })
       .catch((error: unknown) => {
         if (active)
-          setMessage(error instanceof Error ? error.message : 'Не удалось проверить компоненты.');
+          setMessage(
+            error instanceof Error
+              ? error.message
+              : t('BrowserResourceStatus.couldNotCheckComponents'),
+          );
       });
     return () => {
       active = false;
@@ -31,13 +38,17 @@ export function BrowserResourceStatus() {
   }, []);
   const install = async () => {
     setBusy(true);
-    setMessage('Загружаем agent-browser и Chromium…');
+    setMessage(t('BrowserResourceStatus.downloadingAgentBrowserAndChromium'));
     try {
       await getStudioApi().installResource(browserMcp.id);
       setInstalled(true);
-      setMessage('Компоненты установлены. Браузер откроется при обращении агента к инструменту.');
+      setMessage(t('BrowserResourceStatus.componentsInstalledTheBrowserOpensWhenAn'));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Не удалось установить компоненты.');
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : t('BrowserResourceStatus.couldNotInstallComponents'),
+      );
     } finally {
       setBusy(false);
     }
@@ -55,7 +66,9 @@ export function BrowserResourceStatus() {
             void install();
           }}
         >
-          {busy ? 'Устанавливаем…' : 'Установить компоненты браузера'}
+          {busy
+            ? t('BrowserResourceStatus.installing')
+            : t('BrowserResourceStatus.installBrowserComponents')}
         </Button>
       )}
     </div>

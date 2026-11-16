@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Files, MessagesSquare, Trash2 } from 'lucide-react';
@@ -10,6 +12,7 @@ import { List, ListRow } from '@/shared/ui/ListRow';
 import { Modal } from '@/shared/ui/Modal';
 
 export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
+  useTranslation(undefined, { i18n });
   const { selectedProject, deleteAgentData, busy } = useWorkspace();
   const { isDesktop } = useStorage();
   const [targetProject, setTargetProject] = useState<string>();
@@ -28,7 +31,7 @@ export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
     <>
       <IconButton
         className="clear-agent-outputs"
-        title="Удаление файлов или диалогов с агентом"
+        title={t('DeleteAgentDataButton.deleteAgentFilesOrDialogues')}
         disabled={disabled}
         onClick={() => setTargetProject(selectedProject?.id)}
       >
@@ -38,29 +41,32 @@ export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
         createPortal(
           <Modal
             alert
-            title={`Что удалить у агента «${agent.profile.name}»?`}
+            title={t('DeleteAgentDataButton.whatShouldBeDeletedForAgent', {
+              value1: agent.profile.name,
+            })}
             onClose={() => setTargetProject(undefined)}
-            footer={<Button onClick={() => setTargetProject(undefined)}>Отмена</Button>}
+            footer={
+              <Button onClick={() => setTargetProject(undefined)}>
+                {t('TeamNameDialog.cancel')}
+              </Button>
+            }
           >
-            <p>
-              Удалённые данные переместятся в Корзину macOS. При удалении диалога открытый Pi этого
-              агента закроется; следующий запуск начнёт новый диалог.
-            </p>
+            <p>{t('DeleteAgentDataButton.deletedDataMovesToMacosTrashDeleting')}</p>
             <List>
               <ListRow
-                label="Диалог с агентом"
+                label={t('DeleteAgentDataButton.agentDialogue')}
                 icon={MessagesSquare}
                 disabled={disabled}
                 onClick={() => remove('dialogue')}
               />
               <ListRow
-                label="Файлы агента"
+                label={t('AgentOutputsView.agentFiles')}
                 icon={Files}
                 disabled={disabled}
                 onClick={() => remove('files')}
               />
               <ListRow
-                label="Всё"
+                label={t('DeleteAgentDataButton.everything')}
                 icon={Trash2}
                 disabled={disabled}
                 onClick={() => remove('all')}

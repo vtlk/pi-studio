@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { enabledResources, useResources } from '@/features/resources/model/Resources';
 import { useCoreTools } from '@/features/connections/model/useCoreTools';
@@ -10,6 +12,7 @@ import { useProject } from '@/features/project/model/projectHooks';
 import { useStorage } from '@/shared/storage/Storage';
 import { builtinResource, browserMcp, computerMcp } from '../../../../../shared/builtinResources';
 function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {
+  useTranslation(undefined, { i18n });
   const coreTools = useCoreTools();
   const { setDialog } = useLaunch();
   const { selectedAgent, selectedSystemRole } = useAgentProfiles();
@@ -26,42 +29,47 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
   const internalMcp = selectedSystemRole
     ? systemAgentDefinitions[selectedSystemRole].mcp
     : isDesktop
-      ? 'Pi Studio · Проект'
+      ? t('CapabilitiesPanel.piStudioProject')
       : undefined;
   const mcps = [
-    ...(internalMcp ? [`${internalMcp} (встроенный, закреплён)`] : []),
+    ...(internalMcp ? [t('PromptDialog.builtInPinned', { value1: internalMcp })] : []),
     ...(isDesktop
-      ? [browserMcp, computerMcp].map((resource) => `${resource.name} (встроенный, закреплён)`)
+      ? [browserMcp, computerMcp].map((resource) =>
+          t('PromptDialog.builtInPinned', { value1: resource.name }),
+        )
       : []),
     ...names('mcps'),
   ];
   const text = [
     baseInstruction,
-    `ОБЩИЕ ИНСТРУМЕНТЫ: ${coreTools
-      .filter((tool) => selectedSystemRole !== 'assistant' || tool.id === 'web-search')
-      .map((tool) => `${tool.name} · ${tool.status}`)
-      .join(', ')}`,
+    t('PromptDialog.sharedTools', {
+      value1: coreTools
+        .filter((tool) => selectedSystemRole !== 'assistant' || tool.id === 'web-search')
+        .map((tool) => `${tool.name} · ${tool.status}`)
+        .join(', '),
+    }),
     selectedAgent?.mainInstruction ?? '',
     ...(selectedAgent?.instructions ?? [])
       .filter((item) => item.enabled)
       .map((item) => `${item.name}\n${item.content}`),
-    `SKILLS: ${names('skills').join(', ') || 'нет'}\nMCP: ${mcps.join(', ') || 'нет'}\nПАКЕТЫ: ${names('plugins').join(', ') || 'нет'}\nМОДЕЛЬ: ${selectedAgent?.model?.id || 'не выбрана'}\nEFFORT: ${selectedAgent?.model?.reasoning || 'по умолчанию'}`,
+    t('PromptDialog.skillsMcpPackagesModelEffort', {
+      value1: names('skills').join(', ') || t('ConnectionsPanel.none'),
+      value2: mcps.join(', ') || t('ConnectionsPanel.none'),
+      value3: names('plugins').join(', ') || t('ConnectionsPanel.none'),
+      value4: selectedAgent?.model?.id || t('PromptDialog.notSelected'),
+      value5: selectedAgent?.model?.reasoning || t('PromptDialog.default'),
+    }),
   ].join('\n\n');
   return (
     <Modal
-      title="Итоговые инструкции"
+      title={t('PromptDialog.finalInstructions')}
       onClose={() => setDialog(null)}
-      footer={<Button onClick={() => setDialog(null)}>Закрыть</Button>}
+      footer={<Button onClick={() => setDialog(null)}>{t('TeamTransfers.close')}</Button>}
     >
-      {isDesktop && (
-        <p>
-          Текущие инструкции и назначения профиля. Пути, входные файлы и контекст будут собраны при
-          запуске; тексты skills читаются из текущих файлов.
-        </p>
-      )}
+      {isDesktop && <p>{t('PromptDialog.currentProfileInstructionsAndAssignmentsPathsInputs')}</p>}
       <Textarea
         className="compiled-prompt"
-        aria-label="Итоговые инструкции"
+        aria-label={t('PromptDialog.finalInstructions')}
         readOnly
         value={text}
       />
@@ -69,10 +77,12 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
   );
 }
 function LegacyPrompt() {
+  useTranslation(undefined, { i18n });
   const { baseInstruction } = useProject();
   return <CompiledPrompt baseInstruction={baseInstruction} />;
 }
 export function PromptDialog() {
+  useTranslation(undefined, { i18n });
   const { isDesktop } = useStorage();
   return isDesktop ? <CompiledPrompt /> : <LegacyPrompt />;
 }

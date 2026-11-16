@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { VideoTrack } from '../../../../shared/video';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { timelineLanes } from '../model/timelineLanes';
@@ -15,6 +17,7 @@ export function TimelineTrack({
   selected?: string;
   onSelect: (id: string) => void;
 }) {
+  useTranslation(undefined, { i18n });
   const layout = timelineLanes(track.items);
   return (
     <div className="editor-track">
@@ -28,7 +31,7 @@ export function TimelineTrack({
           <Tooltip key={item.id} label={item.name} onlyWhenTruncated>
             <button
               className={`editor-clip${selected === item.id ? ' selected' : ''}`}
-              aria-label={`Клип ${item.name}`}
+              aria-label={t('TimelineTrack.clip', { value1: item.name })}
               aria-pressed={selected === item.id}
               onClick={() => onSelect(item.id)}
               style={{

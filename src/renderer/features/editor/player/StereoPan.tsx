@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useContext, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { Internals } from 'remotion';
 
@@ -13,6 +15,7 @@ interface Routing {
  * This internal boundary must pass the real Electron channel/lifecycle smoke before upgrades.
  */
 export function StereoPan({ pan, children }: { pan: number; children: ReactNode }) {
+  useTranslation(undefined, { i18n });
   const shared = useContext(Internals.SharedAudioContext);
   const context = shared?.audioContext;
   const destination = shared?.gainNode;
@@ -34,7 +37,7 @@ export function StereoPan({ pan, children }: { pan: number; children: ReactNode 
     () => (shared && routing ? { ...shared, gainNode: routing.input } : null),
     [shared, routing],
   );
-  if (!shared) throw new Error('Для стереопанорамы нужен аудиоконтекст Remotion Player.');
+  if (!shared) throw new Error(t('StereoPan.stereoPanRequiresTheRemotionPlayerAudio'));
   // No unpanned playback while the native context or per-clip routing is preparing.
   if (
     !routing ||

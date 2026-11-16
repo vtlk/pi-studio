@@ -1,13 +1,16 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Disclosure } from '@/shared/ui/Disclosure';
 import { browserMcp } from '../../../../shared/builtinResources';
 import { BrowserResourceStatus } from './BrowserResourceStatus';
 
 export function BrowserResourceRow() {
+  useTranslation(undefined, { i18n });
   return (
     <div className="resource-binding" data-builtin-mcp>
       <Disclosure
         label={browserMcp.name}
-        locked="Обязательный MCP — нельзя отключить или удалить"
+        locked={t('CapabilitiesPanel.requiredMcpCannotBeDisabledOrRemoved')}
         reserveActions
       >
         <p>{browserMcp.description}</p>

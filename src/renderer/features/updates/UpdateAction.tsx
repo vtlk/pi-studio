@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 import { Button, IconButton } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -5,6 +7,7 @@ import { useUpdates } from './Updates';
 import './updates.css';
 
 export function UpdateAction() {
+  useTranslation(undefined, { i18n });
   const { state, show } = useUpdates();
   const startupProblem =
     state?.startup && ['restored', 'recovery-required'].includes(state.startup.phase);
@@ -13,10 +16,10 @@ export function UpdateAction() {
     <IconButton
       title={
         state?.maintenanceError
-          ? 'Временные файлы обновления сохранены — сведения'
+          ? t('UpdateAction.temporaryUpdateFilesRetainedDetails')
           : state?.offer
-            ? `Доступна версия ${state.offer.version} — обновить`
-            : 'Обновление не завершено — сведения'
+            ? t('UpdateAction.versionAvailableUpdate', { value1: state.offer.version })
+            : t('UpdateAction.updateIncompleteDetails')
       }
       onClick={show}
     >
@@ -25,6 +28,7 @@ export function UpdateAction() {
   );
 }
 export function UpdateDialog() {
+  useTranslation(undefined, { i18n });
   const { state, open, frozen, hide, request, manual, check } = useUpdates();
   if (!open || !state) return null;
   if (!state.offer || state.maintenanceError) {
@@ -33,25 +37,29 @@ export function UpdateDialog() {
       state.startup?.message ??
       (manual
         ? state.phase === 'checking'
-          ? 'Проверяем обновления…'
+          ? t('UpdateAction.checkingForUpdates')
           : state.phase === 'error'
-            ? (state.message ?? 'Не удалось проверить обновления.')
-            : `Установлена актуальная версия ${state.currentVersion}`
+            ? (state.message ?? t('UpdateAction.couldNotCheckForUpdates'))
+            : t('UpdateAction.versionIsUpToDate', { value1: state.currentVersion })
         : undefined);
     if (!message) return null;
     return (
       <div data-update-dialog>
         <Modal
-          title="Обновление Pi Studio"
+          title={t('UpdateAction.piStudioUpdate')}
           onClose={hide}
           dismissible={!frozen}
           footer={
             !frozen ? (
               <>
-                <Button onClick={hide}>{state.phase === 'checking' ? 'Скрыть' : 'Понятно'}</Button>
-                {state.maintenanceError && <Button onClick={request}>Повторить очистку</Button>}
+                <Button onClick={hide}>
+                  {state.phase === 'checking' ? t('UpdateAction.hide') : t('UpdateAction.ok')}
+                </Button>
+                {state.maintenanceError && (
+                  <Button onClick={request}>{t('UpdateAction.retryCleanup')}</Button>
+                )}
                 {manual && !state.maintenanceError && state.phase === 'error' && (
-                  <Button onClick={check}>Повторить</Button>
+                  <Button onClick={check}>{t('StartupGate.retry')}</Button>
                 )}
               </>
             ) : undefined
@@ -79,43 +87,49 @@ export function UpdateDialog() {
   const message =
     state.message ??
     (state.phase === 'downloading'
-      ? 'Скачиваем обновление…'
+      ? t('UpdateAction.downloadingUpdate')
       : state.phase === 'verifying'
-        ? 'Проверяем пакет…'
+        ? t('UpdateAction.verifyingPackage')
         : state.phase === 'checking'
-          ? 'Проверяем обновления…'
+          ? t('UpdateAction.checkingForUpdates')
           : '');
-  const size = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(
+  const size = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 1 }).format(
     state.offer.bytes / 1024 ** 2,
   );
   return (
     <div data-update-dialog>
       <Modal
-        title="Обновление Pi Studio"
+        title={t('UpdateAction.piStudioUpdate')}
         onClose={hide}
         dismissible={!frozen}
         footer={
           <>
-            {!frozen && <Button onClick={hide}>{busy ? 'Скрыть' : 'Позже'}</Button>}
+            {!frozen && (
+              <Button onClick={hide}>
+                {busy ? t('UpdateAction.hide') : t('UpdateAction.later')}
+              </Button>
+            )}
             {!busy && (
               <Button kind="primary" onClick={manual && state.phase === 'error' ? check : request}>
                 {state.phase === 'error'
                   ? manual
-                    ? 'Повторить проверку'
-                    : 'Повторить'
-                  : 'Обновить'}
+                    ? t('UpdateAction.checkAgain')
+                    : t('StartupGate.retry')
+                  : t('UpdateAction.update')}
               </Button>
             )}
           </>
         }
       >
         <p>
-          Версия {state.currentVersion} → <strong>{state.offer.version}</strong> · {size} МБ
+          {t('UpdateAction.version')}
+          {state.currentVersion} → <strong>{state.offer.version}</strong> · {size}{' '}
+          {t('UpdateAction.mb')}
         </p>
         {state.offer.notes && <div className="update-release-notes">{state.offer.notes}</div>}
         {state.phase === 'downloading' && (
           <progress
-            aria-label="Загрузка обновления"
+            aria-label={t('UpdateAction.updateDownload')}
             value={state.downloaded ?? 0}
             max={state.offer.bytes}
           />

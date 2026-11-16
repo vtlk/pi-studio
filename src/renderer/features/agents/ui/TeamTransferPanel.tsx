@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Select } from '@/shared/ui/Select';
@@ -5,6 +7,7 @@ import { useAgentProfiles } from '../model/AgentProfiles';
 import { useTeamTransfers } from '../model/TeamTransfers';
 import { TeamTransferFeedback } from './TeamTransferFeedback';
 export function TeamTransferPanel() {
+  useTranslation(undefined, { i18n });
   const { teams } = useAgentProfiles();
   const transfer = useTeamTransfers();
   const [teamId, setTeamId] = useState('');
@@ -14,18 +17,15 @@ export function TeamTransferPanel() {
   }, [refreshReports]);
   return (
     <>
-      <h2>Команды агентов</h2>
-      <p>
-        Перенос текущих настроек и файлов ресурсов. Ключи, истории Pi и результаты проектов в пакет
-        не входят.
-      </p>
+      <h2>{t('TeamTransferPanel.agentTeams')}</h2>
+      <p>{t('TeamTransferPanel.transferCurrentSettingsAndResourceFilesKeys')}</p>
       <label className="field-label">
-        Команда для экспорта
+        {t('TeamTransferPanel.teamToExport')}
         <Select
-          label="Команда для экспорта"
+          label={t('TeamTransferPanel.teamToExport')}
           value={teamId}
           onValueChange={setTeamId}
-          placeholder="Выберите команду"
+          placeholder={t('TeamTransferPanel.selectATeam')}
           options={teams.map((team) => ({ value: team.id, label: team.name }))}
         />
       </label>
@@ -36,14 +36,14 @@ export function TeamTransferPanel() {
           }
           onClick={() => void transfer.exportTeam(teamId)}
         >
-          Экспорт команды агентов
+          {t('TeamTransferPanel.exportAgentTeam')}
         </Button>
         <Button
           kind="primary"
           disabled={transfer.busy || !transfer.available}
           onClick={() => void transfer.importTeam()}
         >
-          Импорт команды агентов
+          {t('TeamTransferPanel.importAgentTeam')}
         </Button>
       </div>
       <TeamTransferFeedback {...transfer} />

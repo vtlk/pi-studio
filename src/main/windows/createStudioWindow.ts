@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { BrowserWindow, dialog, session, shell, nativeTheme } from 'electron';
 import { join } from 'node:path';
 
@@ -55,9 +56,9 @@ export function createStudioWindow(): BrowserWindow {
     if (updateQuitGuard?.()) return;
     const choice = dialog.showMessageBoxSync(window, {
       type: 'warning',
-      message: 'Изменения ещё не сохранены',
-      detail: 'Дождитесь сохранения или выберите выход без сохранения.',
-      buttons: ['Остаться', 'Выйти без сохранения'],
+      message: t('createStudioWindow.changesHaveNotBeenSaved'),
+      detail: t('createStudioWindow.waitForSavingToCompleteOrChoose'),
+      buttons: [t('createStudioWindow.stay'), t('createStudioWindow.quitWithoutSaving')],
       defaultId: 0,
       cancelId: 0,
     });

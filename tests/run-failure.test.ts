@@ -1,3 +1,5 @@
+import { changeLanguage } from '../src/shared/i18n/index.ts';
+await changeLanguage('ru');
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';

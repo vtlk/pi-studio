@@ -1,3 +1,6 @@
+import { resourceLabel } from '@/shared/model/localizedResources';
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { AddArea } from '@/shared/ui/AddArea';
 import { Modal } from '@/shared/ui/Modal';
@@ -9,13 +12,13 @@ import { useResources } from '@/features/resources/model/Resources';
 import { ResourceCatalog } from '@/features/resources/ui/ResourceCatalog';
 import { useAgentProfiles } from '../model/AgentProfiles';
 import { resourceStatus } from '@/features/resources/model/resourceStatus';
-import { systemAgentDefinitions } from '../../../../shared/systemAgents';
 import { builtinResource } from '../../../../shared/builtinResources';
 import { McpPicker } from './McpPicker';
 import { BrowserResourceRow } from '@/features/resources/ui/BrowserResourceRow';
 import { ComputerResourceRow } from '@/features/resources/ui/ComputerResourceRow';
 
 export function CapabilitiesPanel() {
+  useTranslation(undefined, { i18n });
   const { agentTab, selectedAgent, selectedSystemRole, updateAgent } = useAgentProfiles();
   const { resources } = useResources();
   const { busy, unlink } = useResourceUnlink();
@@ -25,7 +28,7 @@ export function CapabilitiesPanel() {
   return (
     <div className="agent-settings-content">
       {!selectedAgent[field].length && field !== 'mcps' && (
-        <p>Ресурсы не добавлены. Выберите их из общего каталога.</p>
+        <p>{t('CapabilitiesPanel.noResourcesAssignedChooseThemFromThe')}</p>
       )}
       <DisclosureList>
         {field === 'mcps' && (
@@ -33,31 +36,27 @@ export function CapabilitiesPanel() {
             <Disclosure
               label={
                 selectedSystemRole
-                  ? systemAgentDefinitions[selectedSystemRole].mcp
-                  : 'Pi Studio · Проект'
+                  ? t('builtin.administration.name')
+                  : t('CapabilitiesPanel.piStudioProject')
               }
-              locked="Обязательный MCP — нельзя отключить или удалить"
+              locked={t('CapabilitiesPanel.requiredMcpCannotBeDisabledOrRemoved')}
               reserveActions
             >
               <p>
                 {selectedSystemRole
-                  ? systemAgentDefinitions[selectedSystemRole].description
-                  : 'Контекст и чтение файлов текущего проекта, веб-поиск и проверка результата.'}
+                  ? t('builtin.assistant.description')
+                  : t('CapabilitiesPanel.currentProjectContextFileReadingWebSearch')}
               </p>
               <p className="subtle">
-                Встроенный обязательный MCP. Отключение и удаление недоступны.
+                {t('CapabilitiesPanel.requiredBuiltInMcpDisablingAndRemoval')}
               </p>
               <p className="subtle">
                 {selectedSystemRole === 'assistant'
-                  ? 'Подключается при запуске помощника.'
-                  : 'Подключается при запуске проектного агента.'}
+                  ? t('CapabilitiesPanel.connectsWhenTheAssistantStarts')
+                  : t('CapabilitiesPanel.connectsWhenAProjectAgentStarts')}
               </p>
               {selectedSystemRole !== 'assistant' && (
-                <p className="subtle">
-                  Общий инструмент изображений использует API-подключение из настроек студии. Его
-                  доступность проверяется при открытии Pi; ключ и вторая модель в профиль агента не
-                  добавляются.
-                </p>
+                <p className="subtle">{t('CapabilitiesPanel.theSharedImageToolUsesTheApi')}</p>
               )}
             </Disclosure>
           </div>
@@ -81,49 +80,59 @@ export function CapabilitiesPanel() {
           return (
             <div className="resource-binding" key={id} data-removable>
               <Disclosure
-                label={resource?.name ?? id}
+                label={resourceLabel(resource, 'name') ?? id}
                 toggle={{
                   checked: binding.enabled,
-                  label: `Использовать: ${id}`,
+                  label: t('CapabilitiesPanel.use', { value1: id }),
                   onChange: (enabled) => updateBinding({ enabled }),
                 }}
                 actions={
                   <HoverDeleteButton
-                    label={field === 'mcps' ? 'Открепить MCP' : `Убрать ${id} у агента`}
+                    label={
+                      field === 'mcps'
+                        ? t('CapabilitiesPanel.unlinkMcp')
+                        : t('CapabilitiesPanel.removeFromTheAgent', { value1: id })
+                    }
                     confirmationTitle={
                       field === 'mcps'
-                        ? `Открепить MCP «${resource?.name ?? id}» от агента «${selectedAgent.name}»`
+                        ? t('CapabilitiesPanel.unlinkMcpFromAgent', {
+                            value1: resourceLabel(resource, 'name') ?? id,
+                            value2: selectedAgent.name,
+                          })
                         : undefined
                     }
                     disabled={busy}
-                    description="Убирается только связь с этим агентом. Ресурс и настройки других агентов сохраняются."
+                    description={t('CapabilitiesPanel.onlyThisAgentSAssignmentIsRemoved')}
                     onDelete={() => void unlink(field, id)}
                   />
                 }
               >
                 <p>
-                  {resource?.description ??
-                    'Ресурс отсутствует в общем каталоге. Восстановите его перед запуском.'}
+                  {resourceLabel(resource, 'description') ??
+                    t('CapabilitiesPanel.thisResourceIsMissingFromTheShared')}
                 </p>
                 <p className="subtle">
                   {resource
                     ? resource.source.startsWith('builtin:')
-                      ? 'Встроенный · подключается при следующем запуске Pi'
+                      ? t('CapabilitiesPanel.builtInConnectsTheNextTimePi')
                       : `${resource.version ? `${resource.version} · ` : ''}${resourceStatus(resource, !!window.studio)}`
-                    : 'Недоступен'}
+                    : t('CapabilitiesPanel.unavailable')}
                 </p>
               </Disclosure>
             </div>
           );
         })}
       </DisclosureList>
-      <AddArea label={`Добавить ${agentTab}`} onClick={() => setCatalog(true)} />
+      <AddArea
+        label={t('CapabilitiesPanel.add', { value1: agentTab })}
+        onClick={() => setCatalog(true)}
+      />
       {catalog && (
         <Modal
           size="wide"
-          title={`Общий каталог · ${agentTab}`}
+          title={t('CapabilitiesPanel.sharedCatalog', { value1: agentTab })}
           onClose={() => setCatalog(false)}
-          footer={<Button onClick={() => setCatalog(false)}>Готово</Button>}
+          footer={<Button onClick={() => setCatalog(false)}>{t('CapabilitiesPanel.done')}</Button>}
         >
           {field === 'mcps' ? (
             <McpPicker

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { HoverDeleteButton } from './HoverDeleteButton';
 import { Tooltip } from './Tooltip';
 import { useState, type ReactNode } from 'react';
@@ -31,6 +33,7 @@ export function SectionMenu<T extends string | number>({
   children,
   leading,
 }: SectionMenuProps<T>) {
+  useTranslation(undefined, { i18n });
   const [focused, setFocused] = useState<T | null>(null);
   const [iconFocused, setIconFocused] = useState<T | null>(null);
   return (
@@ -98,7 +101,10 @@ export function SectionMenu<T extends string | number>({
             {control}
             {item.actions}
             {item.onRemove && (
-              <HoverDeleteButton label={`Удалить ${item.label}`} onDelete={item.onRemove} />
+              <HoverDeleteButton
+                label={t('SectionMenu.delete', { value1: item.label })}
+                onDelete={item.onRemove}
+              />
             )}
           </div>
         );

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import type { PlayerRef, RenderPlayPauseButton, RenderMuteButton } from '@remotion/player';
@@ -6,9 +8,14 @@ import { Tooltip } from '@/shared/ui/Tooltip';
 
 /** Remotion owns the control and playback logic; this adapter supplies Studio's Lucide/Tooltip. */
 function PlayGlyph({ playing, isBuffering }: { playing: boolean; isBuffering: boolean }) {
+  useTranslation(undefined, { i18n });
   const ref = useRef<HTMLSpanElement>(null);
   const [focused, setFocused] = useState(false);
-  const label = isBuffering ? 'Загрузка видео' : playing ? 'Пауза' : 'Воспроизвести';
+  const label = isBuffering
+    ? t('RemotionControls.loadingVideo')
+    : playing
+      ? t('RemotionControls.pause')
+      : t('RemotionControls.play');
   useEffect(() => {
     const button = ref.current?.closest('button');
     if (!button) return;
@@ -46,7 +53,7 @@ export const renderRemotionPlay: RenderPlayPauseButton = (props) => <PlayGlyph {
 export function remotionMuteControl(player: React.RefObject<PlayerRef | null>): RenderMuteButton {
   return ({ muted, volume }) => (
     <IconButton
-      title={muted || !volume ? 'Включить звук' : 'Выключить звук'}
+      title={muted || !volume ? t('RemotionControls.unmute') : t('RemotionControls.mute')}
       className="remotion-mute-control"
       onClick={() => {
         if (muted) player.current?.unmute();

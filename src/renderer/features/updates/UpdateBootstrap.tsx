@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { UpdateState } from '../../../shared/updates';
 import { StartupScreen } from '@/shared/ui/StartupScreen';
@@ -5,6 +7,7 @@ import { Button } from '@/shared/ui';
 
 /** Read the native startup lock before any editable application frame is mounted. */
 export function UpdateBootstrap({ children }: { children: (initial?: UpdateState) => ReactNode }) {
+  useTranslation(undefined, { i18n });
   const [initial, setInitial] = useState<UpdateState>();
   const [error, setError] = useState(''),
     [busy, setBusy] = useState(false);
@@ -14,7 +17,9 @@ export function UpdateBootstrap({ children }: { children: (initial?: UpdateState
       setInitial(await window.studio.getUpdateState());
       setError('');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Не удалось проверить запуск Studio.');
+      setError(
+        error instanceof Error ? error.message : t('UpdateBootstrap.couldNotVerifyStudioStartup'),
+      );
     }
   }, []);
   useEffect(() => {
@@ -26,7 +31,7 @@ export function UpdateBootstrap({ children }: { children: (initial?: UpdateState
     return (
       <StartupScreen
         error={!!error || cancellationFailed}
-        message={error || initial?.message || 'Открываем Pi Studio…'}
+        message={error || initial?.message || t('UpdateBootstrap.openingPiStudio')}
       >
         {(!!error || cancellationFailed) && (
           <Button
@@ -38,14 +43,16 @@ export function UpdateBootstrap({ children }: { children: (initial?: UpdateState
                 await refresh();
               } catch (error) {
                 setError(
-                  error instanceof Error ? error.message : 'Не удалось повторить завершение.',
+                  error instanceof Error
+                    ? error.message
+                    : t('UpdateBootstrap.couldNotRetryCompletion'),
                 );
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Повторить
+            {t('StartupGate.retry')}
           </Button>
         )}
       </StartupScreen>

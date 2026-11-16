@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { realpath } from 'node:fs/promises';
 import {
@@ -42,10 +43,10 @@ export class UpdateStartup {
     this.quit = quit;
     this.state =
       phase === 'restored'
-        ? { phase: 'restored', message: 'Обновление не запустилось. Восстановлена прежняя версия.' }
+        ? { phase: 'restored', message: t('UpdateStartup.theUpdateDidNotLaunchThePrevious') }
         : phase === 'committed'
           ? { phase }
-          : { phase, message: 'Проверяем запуск обновлённой Studio…' };
+          : { phase, message: t('UpdateStartup.verifyingUpdatedStudioStartup') };
   }
   read() {
     return { ...this.state };
@@ -74,7 +75,7 @@ export class UpdateStartup {
     await this.poll();
     if (this.state.phase !== 'starting') return;
     if (!sameIdentity(await identity(this.job.target), this.job.newIdentity))
-      throw new Error('Папка обновлённой программы изменилась до проверки запуска.');
+      throw new Error(t('UpdateStartup.theUpdatedAppFolderChangedBeforeStartup'));
     this.acknowledged = true;
     try {
       await atomicJson(paths(this.job).health, {
@@ -104,13 +105,13 @@ export class UpdateStartup {
           !this.acknowledged ||
           !sameIdentity(await identity(this.job.target), this.job.newIdentity)
         )
-          throw new Error('Не подтверждён запуск установленной версии.');
+          throw new Error(t('UpdateStartup.theInstalledVersionSStartupWasNot'));
         this.state = { phase: 'committed' };
         this.close();
       } else if (result.status === 'recovery-required') {
         this.state = {
           phase: 'recovery-required',
-          message: 'Обновление не завершено. Прежняя программа сохранена для восстановления.',
+          message: t('UpdateStartup.updateIncompleteThePreviousAppIsPreserved'),
         };
         this.close();
       } else this.abort();
@@ -121,7 +122,7 @@ export class UpdateStartup {
   private abort() {
     this.state = {
       phase: 'aborting',
-      message: 'Запуск обновления отменён. Возвращаем прежнюю версию…',
+      message: t('UpdateStartup.updateStartupCancelledRestoringThePreviousVersion'),
     };
     this.close();
     if (!this.quitting) {
@@ -140,7 +141,7 @@ export async function resolveUpdateStartup(options: Options) {
   const explicit = options.argv.filter((value) => /^--pistudio-update(?:-failed)?=/.test(value));
   const overrides = options.argv.filter((value) => value.startsWith('--pistudio-user-data='));
   if (explicit.length > 1 || overrides.length > 1 || (!!overrides.length && !explicit.length))
-    throw new Error('Неоднозначный запуск установщика.');
+    throw new Error(t('UpdateStartup.ambiguousInstallerStartup'));
   if (!explicit.length && !overrides.length && !(await exists(options.userData)))
     return { userData: options.userData };
   const restored = explicit[0]?.startsWith('--pistudio-update-failed=') ?? false;
@@ -153,10 +154,10 @@ export async function resolveUpdateStartup(options: Options) {
     if (!(await exists(active))) return { userData };
     const pointer = await readJson(active);
     if (pointer.target !== options.appRoot || typeof pointer.id !== 'string')
-      throw new Error('Не совпадает путь незавершённого обновления.');
+      throw new Error(t('UpdateStartup.incompleteUpdatePathMismatch'));
     id = pointer.id;
   }
-  if (!uuid.test(id)) throw new Error('Некорректный идентификатор обновления.');
+  if (!uuid.test(id)) throw new Error(t('UpdateStartup.invalidUpdateIdentifier'));
   const job = await loadJob(join(userData, 'updates/transactions', `${id}.json`));
   const p = paths(job);
   const pointer = await readJson(p.active);
@@ -167,7 +168,7 @@ export async function resolveUpdateStartup(options: Options) {
     pointer.id !== id ||
     pointer.target !== job.target
   )
-    throw new Error('Установщик не относится к запущенной программе.');
+    throw new Error(t('UpdateStartup.theInstallerDoesNotBelongToThe'));
   const current = await identity(job.target);
   const result = await authenticated(p.result, job);
   let phase: 'starting' | 'restored' | 'committed' = 'starting';
@@ -177,12 +178,12 @@ export async function resolveUpdateStartup(options: Options) {
       options.version !== job.oldVersion ||
       !['rolled-back', 'failed'].includes(String(result?.status))
     )
-      throw new Error('Не подтверждено восстановление прежней программы.');
+      throw new Error(t('UpdateStartup.recoveryOfThePreviousAppWasNot'));
     phase = 'restored';
   } else if (!sameIdentity(current, job.newIdentity) || options.version !== job.version)
-    throw new Error('Установщик ещё заменяет программу. Дождитесь автоматического запуска.');
+    throw new Error(t('UpdateStartup.theInstallerIsStillReplacingTheApp'));
   else if (result?.status === 'committed') phase = 'committed';
   if (phase === 'starting' && !explicit.length)
-    throw new Error('Установщик ещё запускает Studio. Она откроется автоматически.');
+    throw new Error(t('UpdateStartup.theInstallerIsStillStartingStudioIt'));
   return { userData, startup: new UpdateStartup(job, phase, options.quit) };
 }

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
@@ -13,6 +15,7 @@ export function McpSecretsDialog({
   resource: Resource;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { bootstrap, saveNow } = useStorage();
   const { confirm } = useConfirm();
   const [status, setStatus] = useState<McpSecretStatus>();
@@ -30,7 +33,11 @@ export function McpSecretsDialog({
       },
       (error) => {
         if (current)
-          setError(error instanceof Error ? error.message : 'Не удалось прочитать параметры MCP.');
+          setError(
+            error instanceof Error
+              ? error.message
+              : t('McpSecretsDialog.couldNotReadMcpParameters'),
+          );
       },
     );
     return () => {
@@ -44,7 +51,7 @@ export function McpSecretsDialog({
     setError('');
     setMessage('');
     try {
-      if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
+      if (!(await saveNow())) throw new Error(t('TeamTransfers.waitForSettingsToFinishSaving'));
       const request = { folder, resourceId: resource.id, revision: status.revision };
       setStatus(
         remove
@@ -54,84 +61,73 @@ export function McpSecretsDialog({
       setValues({});
       setMessage(
         remove
-          ? 'Сохранённые значения удалены. Перед использованием введите параметры заново.'
-          : 'Параметры сохранены. Проверьте подключение; агент получит их при следующем открытии Pi.',
+          ? t('McpSecretsDialog.savedValuesDeletedEnterParametersAgainBefore')
+          : t('McpSecretsDialog.parametersSavedCheckTheConnectionTheAgent'),
       );
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Не удалось сохранить параметры MCP.');
+      setError(
+        error instanceof Error ? error.message : t('McpSecretsDialog.couldNotSaveMcpParameters'),
+      );
     } finally {
       setBusy(false);
     }
   };
   return (
     <Modal
-      title={`Защищённые параметры · ${resource.name}`}
+      title={t('McpSecretsDialog.protectedParameters', { value1: resource.name })}
       onClose={() => {
         if (!busy) onClose();
       }}
       footer={
         <>
           <Button disabled={busy} onClick={onClose}>
-            Закрыть
+            {t('TeamTransfers.close')}
           </Button>
           <Button
             kind="primary"
             disabled={busy || !status?.secureStorageAvailable || !Object.keys(changed).length}
             onClick={() => void apply()}
           >
-            Сохранить параметры
+            {t('McpSecretsDialog.saveParameters')}
           </Button>
         </>
       }
     >
-      <p>
-        Ключи хранятся защищёнными средствами macOS вне студии и проектов. Сохранённые значения не
-        показываются и не передаются помощнику. Изменения применяются при следующем открытии Pi.
-        Заполните только секреты. Остальные переменные (например PATH и HOME) читает штатный Pi из
-        своего окружения. Ранее сохранённые секреты всегда нужно вводить через эту форму.
-      </p>
+      <p>{t('McpSecretsDialog.keysUseProtectedMacosStorageOutsideStudios')}</p>
       {status && (
         <>
           <p>{status.destination}</p>
           {!status.secureStorageAvailable && (
-            <p role="alert">Защищённое хранилище macOS недоступно. Сохранение ключей отключено.</p>
+            <p role="alert">{t('McpSecretsDialog.protectedMacosStorageUnavailableKeySavingIs')}</p>
           )}
           {status.configurationChanged && (
             <p role="alert">
-              Конфигурация сервера изменилась. Введите параметры для нового подключения; прежние
-              ключи ему не передаются.
+              {t('McpSecretsDialog.serverConfigurationChangedEnterParametersForThe')}
             </p>
           )}
           {status.unreadable && (
-            <p role="alert">
-              Сохранённые параметры не удалось прочитать. Введите их заново или удалите сохранённые
-              значения.
-            </p>
+            <p role="alert">{t('McpSecretsDialog.couldNotReadSavedParametersEnterThem')}</p>
           )}
           {!status.fields.length && (
-            <p>
-              В настройках Pi нет переменных для защищённого ввода. Помощник может настроить
-              HTTP-заголовки, окружение stdio или OAuth clientSecret со ссылками на параметры. Для
-              OAuth используйте «Войти через Pi».
-            </p>
+            <p>{t('McpSecretsDialog.piSettingsHaveNoVariablesForProtected')}</p>
           )}
           {status.fields.map((field) => (
             <label className="field-label" key={field.name}>
               <span>
                 {field.name}
-                {field.stored ? ' · сохранён' : ''}
+                {field.stored ? t('McpSecretsDialog.saved') : ''}
               </span>
               <input
                 type="password"
-                aria-label={`Значение ${field.name}`}
+                aria-label={t('McpSecretsDialog.value', { value1: field.name })}
                 autoComplete="new-password"
                 spellCheck={false}
                 disabled={busy || !status.secureStorageAvailable}
                 value={values[field.name] ?? ''}
                 placeholder={
                   field.stored
-                    ? 'Оставьте пустым, чтобы сохранить прежнее значение'
-                    : 'Введите значение'
+                    ? t('McpSecretsDialog.leaveEmptyToKeepThePreviousValue')
+                    : t('McpSecretsDialog.enterAValue')
                 }
                 onChange={(event) =>
                   setValues((previous) => ({ ...previous, [field.name]: event.target.value }))
@@ -144,14 +140,16 @@ export function McpSecretsDialog({
               disabled={busy}
               onClick={() =>
                 confirm({
-                  title: 'Удалить защищённые параметры?',
-                  description: `Удалить все сохранённые ключи MCP «${resource.name}» из приложения? Ключи на стороне сервиса не отзываются.`,
-                  confirmLabel: 'Удалить',
+                  title: t('McpSecretsDialog.deleteProtectedParameters'),
+                  description: t('McpSecretsDialog.deleteAllSavedKeysForMcpFrom', {
+                    value1: resource.name,
+                  }),
+                  confirmLabel: t('McpSecretsDialog.delete'),
                   onConfirm: () => apply(true),
                 })
               }
             >
-              Удалить сохранённые параметры
+              {t('McpSecretsDialog.deleteSavedParameters')}
             </Button>
           )}
         </>

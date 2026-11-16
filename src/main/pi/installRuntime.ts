@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, open, readFile, rename, rm, symlink, access, writeFile } from 'node:fs/promises';
@@ -19,7 +20,7 @@ export { command as runtimeCommand, downloadNode as downloadNodeRuntime };
 export function validateRuntimeLock(manifest: unknown, lock: unknown) {
   const object = (value: unknown): Record<string, unknown> => {
     if (!value || typeof value !== 'object' || Array.isArray(value))
-      throw new Error('Повреждён комплект установки Pi.');
+      throw new Error(t('installRuntime.piInstallationBundleIsDamaged'));
     return value as Record<string, unknown>;
   };
   const pkg = object(manifest),
@@ -33,10 +34,10 @@ export function validateRuntimeLock(manifest: unknown, lock: unknown) {
     object(object(packages['']).dependencies)[PI_PACKAGE] !== PI_VERSION ||
     object(packages[`node_modules/${PI_PACKAGE}`]).version !== PI_VERSION
   )
-    throw new Error('Комплект установки не соответствует поддерживаемой версии Pi.');
+    throw new Error(t('installRuntime.theInstallationBundleDoesNotMatchThe'));
   for (const item of Object.values(packages)) {
     const entry = object(item);
-    if (entry.link) throw new Error('В комплекте установки Pi недопустима внешняя ссылка.');
+    if (entry.link) throw new Error(t('installRuntime.externalLinksAreNotAllowedInThe'));
     if (entry.resolved !== undefined) {
       const url = new URL(String(entry.resolved));
       if (
@@ -47,7 +48,7 @@ export function validateRuntimeLock(manifest: unknown, lock: unknown) {
         typeof entry.integrity !== 'string' ||
         !entry.integrity.startsWith('sha512-')
       )
-        throw new Error('В комплекте установки Pi неподдерживаемый источник пакета.');
+        throw new Error(t('installRuntime.unsupportedPackageSourceInThePiInstallation'));
     }
   }
 }
@@ -68,16 +69,13 @@ async function command(
     });
     const timer = setTimeout(() => {
       child.kill();
-      reject(new Error('Установка Pi не завершилась вовремя. Повторите попытку.'));
+      reject(new Error(t('installRuntime.piInstallationTimedOutTryAgain')));
     }, options.timeout ?? 180_000);
     child.once('error', reject);
     child.once('close', (code) => {
       clearTimeout(timer);
       if (code === 0) resolve();
-      else
-        reject(
-          new Error('Не удалось установить компоненты Pi. Проверьте интернет и свободное место.'),
-        );
+      else reject(new Error(t('installRuntime.couldNotInstallPiComponentsCheckYour')));
     });
   });
 }
@@ -92,7 +90,7 @@ async function downloadNode(
     { redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(120_000)]) },
   );
   if (!response.ok || !response.body)
-    throw new Error('Не удалось загрузить компоненты Pi. Проверьте интернет.');
+    throw new Error(t('installRuntime.couldNotDownloadPiComponentsCheckYour'));
   const total = Number(response.headers.get('content-length'));
   const handle = await open(archive, 'wx', 0o600);
   const hash = createHash('sha256');
@@ -105,12 +103,13 @@ async function downloadNode(
       const chunk = result.value;
       signal.throwIfAborted();
       received += chunk.length;
-      if (received > 150 * 1024 * 1024) throw new Error('Неожиданный размер компонентов Pi.');
+      if (received > 150 * 1024 * 1024)
+        throw new Error(t('installRuntime.unexpectedPiComponentSize'));
       hash.update(chunk);
       await handle.writeFile(chunk);
       update({
         phase: 'downloading',
-        message: 'Загружаем компоненты Pi…',
+        message: t('installRuntime.downloadingPiComponents'),
         ...(total > 0 ? { progress: Math.min(1, received / total) } : {}),
       });
     }
@@ -123,7 +122,7 @@ async function downloadNode(
     hash.digest('hex') !==
     (process.platform === 'win32' ? windowsNodeX64Sha256 : nodeArchives[arch])
   )
-    throw new Error('Не совпала контрольная сумма загрузки. Установка остановлена.');
+    throw new Error(t('installRuntime.downloadChecksumMismatchInstallationStopped'));
 }
 /** A private, pinned installation. No sudo, global npm install, shell profile changes or model calls. */
 export async function installPiRuntime(
@@ -134,15 +133,13 @@ export async function installPiRuntime(
   arch: string = process.arch,
 ) {
   if ((arch !== 'arm64' && arch !== 'x64') || (process.platform === 'win32' && arch !== 'x64'))
-    throw new Error('Архитектура установки Pi не поддерживается.');
+    throw new Error(t('installRuntime.unsupportedPiInstallationArchitecture'));
   const manifest = JSON.parse(await readFile(join(bundled, 'package.json'), 'utf8'));
   const lock = JSON.parse(await readFile(join(bundled, 'package-lock.json'), 'utf8'));
   validateRuntimeLock(manifest, lock);
   try {
     await access(root);
-    throw new Error(
-      'Каталог установки Pi уже существует. Выберите установленный Pi или проверьте папку компонентов.',
-    );
+    throw new Error(t('installRuntime.thePiInstallationDirectoryAlreadyExistsSelect'));
   } catch (error) {
     if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT'))
       throw error;
@@ -153,9 +150,9 @@ export async function installPiRuntime(
   try {
     const windows = process.platform === 'win32';
     const archive = join(stage, windows ? 'node.zip' : 'node.tar.gz');
-    update({ phase: 'downloading', message: 'Загружаем компоненты Pi…' });
+    update({ phase: 'downloading', message: t('installRuntime.downloadingPiComponents') });
     await downloadNode(archive, arch, signal, update);
-    update({ phase: 'installing', message: 'Подготавливаем компоненты Pi…' });
+    update({ phase: 'installing', message: t('installRuntime.preparingPiComponents') });
     if (windows) {
       const unpacked = join(stage, 'unpacked');
       await command(
@@ -182,7 +179,10 @@ export async function installPiRuntime(
     await writeFile(join(packages, 'package-lock.json'), JSON.stringify(lock), { mode: 0o600 });
     await writeFile(join(stage, 'user.npmrc'), '', { mode: 0o600 });
     await writeFile(join(stage, 'global.npmrc'), '', { mode: 0o600 });
-    update({ phase: 'installing', message: `Устанавливаем Pi ${PI_VERSION}…` });
+    update({
+      phase: 'installing',
+      message: t('installRuntime.installingPi', { value1: PI_VERSION }),
+    });
     await command(
       join(stage, windows ? 'node/node.exe' : 'node/bin/node'),
       [
@@ -228,10 +228,10 @@ export async function installPiRuntime(
         join(stage, 'bin/pi'),
       );
     }
-    update({ phase: 'verifying', message: 'Проверяем установленный Pi…' });
+    update({ phase: 'verifying', message: t('installRuntime.verifyingInstalledPi') });
     const verified = await checkPi(managedPiPath(stage));
     if (!verified.supported || !verified.nativeMcp || !verified.exactSessions)
-      throw new Error('Установленный Pi не прошёл проверку.');
+      throw new Error(t('installRuntime.installedPiFailedVerification'));
     signal.throwIfAborted();
     await rename(stage, root);
     return { ...verified, path: managedPiPath(root) };

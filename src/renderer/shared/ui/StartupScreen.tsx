@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 
 export function StartupScreen({
@@ -11,6 +13,7 @@ export function StartupScreen({
   error?: boolean;
   children?: ReactNode;
 }) {
+  useTranslation(undefined, { i18n });
   const value =
     progress === undefined ? undefined : Math.round(Math.min(1, Math.max(0, progress)) * 100);
   return (
@@ -26,7 +29,7 @@ export function StartupScreen({
           <div
             className={`startup-progress${value === undefined ? ' indeterminate' : ''}`}
             role="progressbar"
-            aria-label="Подготовка Pi Studio"
+            aria-label={t('StartupScreen.preparingPiStudio')}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={value}

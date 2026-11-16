@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useNotice } from '@/shared/model/Notice';
 import { useProject } from '@/features/project/model/Project';
 import { usePlayback } from '@/features/preview/model/Playback';
@@ -5,6 +7,7 @@ import { AudioLines, ExternalLink, Eye, Image, Layers3, Mic, UserRound } from 'l
 import { cx, timecode, Badge } from '@/shared/ui';
 
 export function Timeline({ full = false }: { full?: boolean }) {
+  useTranslation(undefined, { i18n });
   const { demo } = useNotice();
   const { currentScene, selectedLocation, totalDuration } = useProject();
   const { scrub, layers, setLayers } = usePlayback();
@@ -13,19 +16,19 @@ export function Timeline({ full = false }: { full?: boolean }) {
       <div className="timeline-head">
         <div className="inline">
           <Layers3 size={14} />
-          <strong>{full ? 'Монтаж' : 'Слои сцены'}</strong>
-          <Badge>Макет</Badge>
+          <strong>{full ? t('Timeline.montage') : t('Timeline.sceneLayers')}</strong>
+          <Badge>{t('Timeline.prototype')}</Badge>
         </div>
         <button
           className="text-button"
-          onClick={() => demo('Откроется Remotion Studio с выбранной композицией. Пока это макет.')}
+          onClick={() => demo(t('Timeline.remotionStudioWillOpenWithTheSelected'))}
         >
           <ExternalLink size={13} />
-          Открыть Studio
+          {t('Timeline.openStudio')}
         </button>
       </div>
       <div className="ruler">
-        <span>СЛОИ</span>
+        <span>{t('Timeline.layers')}</span>
         <div>
           {[
             '00:00',
@@ -60,7 +63,21 @@ export function Timeline({ full = false }: { full?: boolean }) {
             ) : (
               <AudioLines size={12} />
             )}
-            <span>{label}</span>
+            <span>
+              {t(
+                (
+                  {
+                    Сцены: 'Timeline.scenes',
+                    Речь: 'Playback.speech',
+                    Атмосфера: 'Playback.ambience',
+                    Музыка: 'Timeline.music',
+                    Персонажи: 'Playback.characters',
+                    Окружение: 'Playback.environment',
+                    Эффекты: 'Playback.effects',
+                  } as const
+                )[label as 'Сцены'],
+              )}
+            </span>
             <Eye size={12} className={cx(!layers.includes(label) && 'faded')} />
           </button>
           <div className={cx('track-content', !layers.includes(label) && 'track-muted')}>
@@ -80,18 +97,18 @@ export function Timeline({ full = false }: { full?: boolean }) {
                   </span>
                   <span>
                     {i === 2
-                      ? '«Это ещё что такое?»'
+                      ? t('Timeline.whatIsThis')
                       : i === 3
-                        ? 'Двор · ветер и далёкий город'
-                        : 'Стук в ящике'}
+                        ? t('Timeline.courtyardWindAndDistantCity')
+                        : t('Timeline.knockingInsideTheCrate')}
                   </span>
                 </>
               ) : (
                 <>
                   {full
-                    ? 'Находка  /  Странный стук  /  Нежданный совет'
+                    ? t('Timeline.discoveryStrangeKnockingUnexpectedAdvice')
                     : i === 0
-                      ? 'Механик · спокойствие → удивление'
+                      ? t('Timeline.mechanicCalmSurprise')
                       : selectedLocation.title}
                 </>
               )}

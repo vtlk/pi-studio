@@ -1,37 +1,40 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { coreTools } from '@/entities/studio/tools';
 import { useStorage } from '@/shared/storage/Storage';
 import { useConnections } from './Connections';
 
 /** Describe current configuration without a paid API probe or reading a saved secret. */
 export function useCoreTools() {
+  useTranslation(undefined, { i18n });
   const { isDesktop } = useStorage();
   const { connections, imageTool, imageStatuses } = useConnections();
   const connection = connections.find(
     (item) => item.id === imageTool.connectionId && item.purpose === 'images',
   );
   const image = imageStatuses[imageTool.connectionId];
-  let imageStatus = 'Не настроен';
+  let imageStatus = t('useCoreTools.notConfigured');
   if (connection && imageTool.modelId) {
     imageStatus = !image
-      ? 'Настроен · состояние не проверено'
+      ? t('useCoreTools.configuredStatusUnchecked')
       : !image.keyStored
-        ? 'Не сохранён API-ключ'
+        ? t('useCoreTools.noSavedApiKey')
         : image.authentication === 'invalid'
-          ? 'Ключ не принят'
+          ? t('useCoreTools.keyRejected')
           : image.authentication === 'restricted'
-            ? 'Доступ ограничен'
+            ? t('useCoreTools.accessRestricted')
             : image.authentication === 'unchecked'
-              ? 'Настроен · авторизация не проверена'
+              ? t('useCoreTools.configuredAuthenticationUnchecked')
               : !image.modelIds.includes(imageTool.modelId)
-                ? 'Выбранная модель отсутствует в каталоге'
-                : 'Подключение проверено';
+                ? t('useCoreTools.theSelectedModelIsMissingFromThe')
+                : t('useCoreTools.connectionVerified');
   }
-  return coreTools.map((tool) => ({
+  return coreTools().map((tool) => ({
     ...tool,
     status: !isDesktop
-      ? 'Не подключён'
+      ? t('useCoreTools.notConnected')
       : tool.id === 'web-search'
-        ? 'Доступен через MCP'
+        ? t('useCoreTools.availableThroughMcp')
         : imageStatus,
   }));
 }

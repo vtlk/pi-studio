@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Maximize2, Minimize2, Pause, Play, SkipBack, SkipForward } from 'lucide-react';
 import { Button, IconButton } from '@/shared/ui';
@@ -16,6 +18,7 @@ export function EditorPrototype({
   initial: DemoTimeline;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { document, update } = useEditorDocument(documentKey, initial);
   const [fullscreen, setFullscreen] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -54,18 +57,21 @@ export function EditorPrototype({
   return (
     <section
       className={`editor-prototype${fullscreen ? ' editor-fullscreen' : ''}`}
-      aria-label="Макет просмотра монтажа"
+      aria-label={t('EditorPrototype.montageViewerPrototype')}
     >
       <header className="editor-toolbar">
         <div>
           <strong>{name}</strong>
-          <small>Просмотр монтажа · макет · v{document.revision}</small>
+          <small>
+            {t('EditorPrototype.montageViewerPrototypeV')}
+            {document.revision}
+          </small>
         </div>
         <Button onClick={() => setFullscreen(!fullscreen)}>
           {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-          {fullscreen ? 'Вернуть в проект' : 'На весь экран'}
+          {fullscreen ? t('EditorPrototype.returnToProject') : t('EditorPrototype.fullScreen')}
         </Button>
-        <Button onClick={onClose}>Закрыть просмотр</Button>
+        <Button onClick={onClose}>{t('EditorPrototype.closeViewer')}</Button>
       </header>
       <div className="editor-body">
         <div className="editor-main">
@@ -74,30 +80,35 @@ export function EditorPrototype({
               {preview?.src ? (
                 <img src={preview.src} alt={preview.label} />
               ) : (
-                <p>Кадр без изображения</p>
+                <p>{t('EditorPrototype.frameWithoutAnImage')}</p>
               )}
               <span className="editor-subtitles">{timeline.subtitles.toUpperCase()}</span>
             </div>
           </div>
           <div className="editor-playback">
-            <IconButton title="На кадр назад" onClick={() => setFrame(frame - 1)}>
+            <IconButton
+              title={t('EditorPrototype.previousFrame')}
+              onClick={() => setFrame(frame - 1)}
+            >
               <SkipBack size={17} />
             </IconButton>
             <IconButton
-              title={playing ? 'Пауза макета' : 'Воспроизвести макет'}
+              title={
+                playing ? t('EditorPrototype.pausePrototype') : t('EditorPrototype.playPrototype')
+              }
               onClick={() => setPlaying(!playing)}
             >
               {playing ? <Pause size={17} /> : <Play size={17} />}
             </IconButton>
-            <IconButton title="На кадр вперёд" onClick={() => setFrame(frame + 1)}>
+            <IconButton title={t('EditorPrototype.nextFrame')} onClick={() => setFrame(frame + 1)}>
               <SkipForward size={17} />
             </IconButton>
             <label className="editor-scrubber">
               <span>
-                {frame} / {total - 1} кадров
+                {frame} / {total - 1} {t('EditorPrototype.frames')}
               </span>
               <input
-                aria-label="Позиция монтажного просмотра"
+                aria-label={t('EditorPrototype.montageViewerPosition')}
                 type="range"
                 min="0"
                 max={total - 1}
@@ -115,32 +126,31 @@ export function EditorPrototype({
           />
         </div>
         <aside className="editor-inspector">
-          <h3>Свойства клипа</h3>
+          <h3>{t('ClipProperties.clipProperties')}</h3>
           {selected && (
             <>
               <p>{selected.label}</p>
               <dl className="data-list">
-                <dt>Начало, кадры</dt>
+                <dt>{t('ClipProperties.startFrames')}</dt>
                 <dd>{selected.start}</dd>
-                <dt>Длительность, кадры</dt>
+                <dt>{t('ClipProperties.durationFrames')}</dt>
                 <dd>{selected.duration}</dd>
               </dl>
             </>
           )}
           {track && (
             <dl className="data-list">
-              <dt>Громкость дорожки</dt>
+              <dt>{t('EditorPrototype.trackVolume')}</dt>
               <dd>{track.gain}%</dd>
-              <dt>Панорама</dt>
+              <dt>{t('ClipProperties.pan')}</dt>
               <dd>{track.pan}</dd>
             </dl>
           )}
-          <h3>Субтитры</h3>
+          <h3>{t('ClipProperties.subtitles')}</h3>
           <p>{timeline.subtitles}</p>
-          <p className="subtle">Правки монтажа выполняются через диалог агента в Pi.</p>
+          <p className="subtle">{t('EditorPrototype.editTheMontageThroughTheAgentS')}</p>
           <p className="subtle">
-            Просмотр статичных примеров. Воспроизведение видео, звука и ключевые кадры не
-            подключены.
+            {t('EditorPrototype.staticExamplesVideoAudioAndKeyframePlayback')}
           </p>
         </aside>
       </div>

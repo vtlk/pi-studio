@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useNavigation } from '@/shared/model/Navigation';
 import { useNotice } from '@/shared/model/Notice';
@@ -13,36 +15,37 @@ export function AgentConfigurationDialog({
   onClose: () => void;
   onConfigure?: (agentId: string, tab?: string) => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { agents, systemAgents, setAgentId, setAgentTab } = useAgentProfiles();
   const { navigate } = useNavigation();
   const { demo } = useNotice();
   return (
     <Modal
-      title="Настройка агента"
+      title={t('AgentConfigurationDialog.agentConfiguration')}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button onClick={onClose}>{t('TeamNameDialog.cancel')}</Button>
           <Button
             kind="primary"
             onClick={() => {
               if (![...agents, ...systemAgents].some((agent) => agent.id === agentId)) {
-                demo('Этот агент удалён из конструктора. Другой профиль не подставляется.');
+                demo(t('AgentActions.thisAgentWasRemovedFromTheBuilder'));
                 return;
               }
               setAgentId(agentId);
               setAgentTab('Модель');
               onClose();
-              if (onConfigure) onConfigure(agentId, 'Модель');
+              if (onConfigure) onConfigure(agentId, t('AgentProfileEditor.model'));
               else navigate('agents');
             }}
           >
-            Перейти
+            {t('AgentConfigurationDialog.goToSettings')}
           </Button>
         </>
       }
     >
-      <p>Сначала настройте подключение Агента в настройках агента</p>
+      <p>{t('AgentConfigurationDialog.configureTheAgentSConnectionInAgent')}</p>
     </Modal>
   );
 }

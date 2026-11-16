@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Agent } from '@/entities/studio/types';
@@ -19,6 +21,7 @@ export function AgentListItem({
   onSelect: () => void;
   onDelete: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: agent.id,
   });
@@ -31,7 +34,7 @@ export function AgentListItem({
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
       <Tooltip
-        label={agent.name || 'Без названия'}
+        label={agent.name || t('AgentList.untitled')}
         onlyWhenTruncated
         overflowSelector=".agent-list-name"
       >
@@ -40,7 +43,11 @@ export function AgentListItem({
           className={cx('section-menu-item', 'agent-list-item', selected && 'active')}
           {...attributes}
           {...listeners}
-          aria-label={`${position}. ${agent.name || 'Без названия'} · ${agent.enabled ? 'Включён' : 'Выключен'}`}
+          aria-label={t('AgentListItem.summary', {
+            value1: position,
+            value2: agent.name || t('AgentList.untitled'),
+            value3: agent.enabled ? t('AgentList.enabled') : t('AgentList.disabled'),
+          })}
           aria-current={selected ? 'true' : undefined}
           data-enabled={agent.enabled}
           onClick={onSelect}
@@ -49,7 +56,7 @@ export function AgentListItem({
         </button>
       </Tooltip>
       <HoverDeleteButton
-        label={`Удалить агента «${agent.name || 'Без названия'}»`}
+        label={t('AgentListItem.deleteAgent', { value1: agent.name || t('AgentList.untitled') })}
         onDelete={onDelete}
       />
     </div>

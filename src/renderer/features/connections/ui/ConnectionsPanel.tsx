@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { AddArea } from '@/shared/ui/AddArea';
 import { Button } from '@/shared/ui';
@@ -9,6 +11,7 @@ import { useConnections, type Connection } from '../model/Connections';
 import { ConnectionEditor } from './ConnectionEditor';
 import { ImageToolSettings } from './ImageToolSettings';
 export function ConnectionsPanel() {
+  useTranslation(undefined, { i18n });
   const {
     connections,
     saveConnection,
@@ -23,14 +26,11 @@ export function ConnectionsPanel() {
   const [edit, setEdit] = useState<Connection | null>(null);
   return (
     <>
-      <h2>Подключения</h2>
-      <p>
-        У каждого агента одна модель и одно подключение. Здесь настраиваются доступные подключения
-        для выбора модели и общих инструментов студии.
-      </p>
+      <h2>{t('ConnectionsPanel.connections')}</h2>
+      <p>{t('ConnectionsPanel.eachAgentHasOneModelAndOne')}</p>
       <div className="resource-catalog">
         <AddArea
-          label="Добавить подключение"
+          label={t('ConnectionEditor.addConnection')}
           onClick={() =>
             setEdit({
               id: crypto.randomUUID(),
@@ -61,45 +61,57 @@ export function ConnectionsPanel() {
                     : connection.providerId}{' '}
                   ·{' '}
                   {connection.purpose === 'codex'
-                    ? 'Подписка'
+                    ? t('ConnectionsPanel.subscription')
                     : connection.purpose === 'images'
-                      ? 'Оплачиваемый API'
-                      : 'Способ входа из Pi'}
+                      ? t('ConnectionsPanel.paidApi')
+                      : t('ConnectionsPanel.piSignInMethod')}
                   {connection.purpose !== 'images' &&
-                    ` · ${connection.authScope === 'connection' ? 'Отдельный вход' : 'Общий вход Pi'}`}
+                    t('ConnectionsPanel.summary', {
+                      value1:
+                        connection.authScope === 'connection'
+                          ? t('ConnectionsPanel.separateLogin')
+                          : t('ConnectionEditor.sharedPiLogin'),
+                    })}
                 </p>
                 <small>
                   {connection.purpose === 'images'
                     ? imageStatuses[connection.id]?.authentication === 'ready'
-                      ? 'Ключ принят API'
+                      ? t('ConnectionsPanel.keyAcceptedByTheApi')
                       : imageStatuses[connection.id]?.authentication === 'invalid'
-                        ? 'Ошибка авторизации API'
+                        ? t('ConnectionsPanel.apiAuthenticationError')
                         : imageStatuses[connection.id]?.authentication === 'restricted'
-                          ? 'Доступ API ограничен · проверьте разрешения'
+                          ? t('ConnectionsPanel.apiAccessRestrictedCheckPermissions')
                           : imageStatuses[connection.id]?.keyStored
-                            ? 'Ключ сохранён · авторизация не проверена'
-                            : 'API-ключ не сохранён'
+                            ? t('ConnectionsPanel.keySavedAuthenticationUnchecked')
+                            : t('ConnectionsPanel.noSavedApiKey')
                     : providerStatuses[connection.id] === 'ready'
-                      ? 'Подключено'
+                      ? t('ConnectionsPanel.connected')
                       : providerStatuses[connection.id] === 'not_ready'
-                        ? 'Pi: требуется вход'
+                        ? t('ConnectionsPanel.piSignInRequired')
                         : providerStatuses[connection.id] === 'invalid'
-                          ? 'Pi: ошибка авторизации'
+                          ? t('ConnectionsPanel.piAuthenticationError')
                           : providerStatuses[connection.id] === 'checking'
-                            ? 'Проверяем подключение…'
+                            ? t('ConnectionsPanel.checkingConnection')
                             : providerStatuses[connection.id] === 'unavailable'
-                              ? 'Не удалось проверить подключение'
-                              : 'Авторизация не проверена'}
+                              ? t('ConnectionsPanel.couldNotCheckTheConnection')
+                              : t('ConnectionsPanel.authenticationUnchecked')}
                 </small>
               </div>
-              <Button onClick={() => setEdit(connection)}>Настроить</Button>
+              <Button onClick={() => setEdit(connection)}>{t('ConnectionsPanel.configure')}</Button>
               <HoverDeleteButton
-                label={`Удалить подключение ${connection.name}`}
-                description={`Агенты: ${users.join(', ') || 'нет'}. Проекты: ${projectUsers.join(', ') || 'нет'}. Инструмент генерации изображений: ${imageTool.connectionId === connection.id ? 'использует подключение' : 'не использует'}. Ссылки сохранятся как недоступные. Удаляется запись подключения. Сохранённый ключ удаляется отдельной кнопкой в его настройках; отзыв доступа у провайдера — отдельное действие.`}
+                label={t('ConnectionsPanel.deleteConnection', { value1: connection.name })}
+                description={t('ConnectionsPanel.agentsProjectsImageGenerationToolReferencesWill', {
+                  value1: users.join(', ') || t('ConnectionsPanel.none'),
+                  value2: projectUsers.join(', ') || t('ConnectionsPanel.none'),
+                  value3:
+                    imageTool.connectionId === connection.id
+                      ? t('ConnectionsPanel.usesThisConnection')
+                      : t('ConnectionsPanel.doesNotUseIt'),
+                })}
                 onDelete={() => {
                   removeConnection(connection.id);
-                  demo('Запись подключения удалена.', {
-                    label: 'Вернуть',
+                  demo(t('ConnectionsPanel.connectionRecordDeleted'), {
+                    label: t('useResourceUnlink.undo'),
                     onClick: () => saveConnection(connection),
                   });
                 }}

@@ -1,9 +1,19 @@
+import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 import { runFailure } from '../shared/runFailure';
 import { themeState, type ThemeState } from '../shared/appearance';
 
 const desktopApi: DesktopApi = {
+  getLanguage: () => ipcRenderer.invoke(desktopChannels.getLanguage),
+  setLanguage: (language) => ipcRenderer.invoke(desktopChannels.setLanguage, language),
+  onLanguageChanged: (listener) => {
+    const receive = (_event: unknown, state: LanguageState) => {
+      if (isLanguageState(state)) listener(state);
+    };
+    ipcRenderer.on(desktopChannels.languageChanged, receive);
+    return () => ipcRenderer.removeListener(desktopChannels.languageChanged, receive);
+  },
   getTheme: () => ipcRenderer.invoke(desktopChannels.getTheme),
   setTheme: (theme) => ipcRenderer.invoke(desktopChannels.setTheme, theme),
   onThemeChanged: (listener) => {

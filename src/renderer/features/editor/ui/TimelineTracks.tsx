@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { DemoTimeline } from '../model/timeline';
 import { durationFrames } from '../model/timeline';
 export function TimelineTracks({
@@ -11,12 +13,15 @@ export function TimelineTracks({
   frame: number;
   onSelect: (id: string) => void;
 }) {
+  useTranslation(undefined, { i18n });
   const total = durationFrames(timeline);
   return (
-    <div className="editor-timeline" aria-label="Таймлайн макета">
+    <div className="editor-timeline" aria-label={t('TimelineTracks.prototypeTimeline')}>
       <div className="editor-ruler">
         <span>00:00</span>
-        <span>{(total / timeline.fps).toFixed(1)} с</span>
+        <span>
+          {(total / timeline.fps).toFixed(1)} {t('NativeMontageCard.s')}
+        </span>
       </div>
       {timeline.tracks.map((track) => (
         <div className="editor-track" key={track.id}>
@@ -33,7 +38,7 @@ export function TimelineTracks({
                   left: `${(clip.start / total) * 100}%`,
                   width: `${(clip.duration / total) * 100}%`,
                 }}
-                aria-label={`Клип ${clip.label}`}
+                aria-label={t('TimelineTrack.clip', { value1: clip.label })}
               >
                 <span>{clip.label}</span>
               </button>

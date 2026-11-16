@@ -1,3 +1,4 @@
+import { t } from '../../../../shared/i18n/index.ts';
 import type { OutputFile, OutputEntry } from '@/features/project/model/workspace.types';
 import { listOutputFiles } from '../../project/model/outputTree.ts';
 import type { DemoTimeline, DemoTrack } from './timeline';
@@ -44,27 +45,25 @@ export function inspectManifest(file: OutputFile, entries: OutputEntry[]): Manif
   try {
     const manifest: unknown = JSON.parse(file.content ?? '');
     if (!object(manifest) || manifest.type !== 'pi-studio.video-project')
-      throw new Error('Неверный type манифеста');
-    if (manifest.schemaVersion !== 1) throw new Error('Версия манифеста не поддерживается');
-    if (manifest.editor !== 'remotion-editor-starter') throw new Error('Неизвестный редактор');
+      throw new Error(t('manifest.invalidManifestType'));
+    if (manifest.schemaVersion !== 1) throw new Error(t('manifest.unsupportedManifestVersion'));
+    if (manifest.editor !== 'remotion-editor-starter') throw new Error(t('manifest.unknownEditor'));
     if (
       typeof manifest.name !== 'string' ||
       !manifest.name.trim() ||
       typeof manifest.state !== 'string'
     )
-      throw new Error('Отсутствуют name или state');
+      throw new Error(t('manifest.missingNameOrState'));
     const files = listOutputFiles(entries);
     const current = files.find((item) => item.file.id === file.id);
-    if (!current) throw new Error('Манифест отсутствует в результатах');
+    if (!current) throw new Error(t('manifest.manifestMissingFromResults'));
     const statePath = resolveOutputPath(current.path.slice(0, -1), manifest.state);
-    if (!statePath) throw new Error('Путь состояния выходит за output-папку');
+    if (!statePath) throw new Error(t('manifest.statePathLeavesTheOutputFolder'));
     const stateFile = files.find((item) => item.path.join('/') === statePath);
-    if (!stateFile) throw new Error(`Не найден файл состояния: ${manifest.state}`);
+    if (!stateFile) throw new Error(t('manifest.stateFileNotFound', { value1: manifest.state }));
     const state: unknown = JSON.parse(stateFile.file.content ?? '');
     if (!object(state) || state.type !== 'pi-studio.prototype-timeline')
-      throw new Error(
-        'Состояние несовместимо с макетом. Адаптер реального Editor Starter ещё не подключён',
-      );
+      throw new Error(t('manifest.stateIsIncompatibleWithThePreviewThe'));
     if (
       state.fps !== 30 ||
       state.width !== 1080 ||
@@ -73,9 +72,9 @@ export function inspectManifest(file: OutputFile, entries: OutputEntry[]): Manif
       !state.tracks.every(isTrack) ||
       typeof state.subtitles !== 'string'
     )
-      throw new Error('Повреждена структура состояния макета');
+      throw new Error(t('manifest.invalidPreviewStateStructure'));
     const ids = state.tracks.flatMap((track) => [track.id, ...track.clips.map((clip) => clip.id)]);
-    if (new Set(ids).size !== ids.length) throw new Error('Повторяются ID дорожек или клипов');
+    if (new Set(ids).size !== ids.length) throw new Error(t('manifest.duplicateTrackOrClipIds'));
     const timeline: DemoTimeline = {
       type: 'pi-studio.prototype-timeline',
       fps: 30,
@@ -89,11 +88,11 @@ export function inspectManifest(file: OutputFile, entries: OutputEntry[]): Manif
         if (!clip.src) continue;
         const assetPath = resolveOutputPath(current.path.slice(0, -1), clip.src);
         const asset = files.find((item) => item.path.join('/') === assetPath);
-        if (!asset) throw new Error(`Не найден материал: ${clip.src}`);
+        if (!asset) throw new Error(t('manifest.assetNotFound', { value1: clip.src }));
         clip.src = asset.file.src;
       }
     return { ok: true, name: manifest.name, timeline };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Повреждённый JSON' };
+    return { ok: false, error: error instanceof Error ? error.message : t('manifest.invalidJson') };
   }
 }

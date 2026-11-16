@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { File } from 'lucide-react';
 import { AddArea } from './AddArea';
@@ -16,6 +18,7 @@ function releaseReferences(attachments: readonly ReferenceAttachment[]) {
 }
 
 function AttachmentThumbnail({ attachment }: { attachment: ReferenceAttachment }) {
+  useTranslation(undefined, { i18n });
   const { file } = attachment;
   const [source, setSource] = useState('');
   const [failed, setFailed] = useState(false);
@@ -33,9 +36,9 @@ function AttachmentThumbnail({ attachment }: { attachment: ReferenceAttachment }
 }
 
 function fileSize(size: number) {
-  if (size < 1024) return `${size} Б`;
-  if (size < 1024 * 1024) return `${Math.ceil(size / 1024)} КБ`;
-  return `${(size / (1024 * 1024)).toFixed(1)} МБ`;
+  if (size < 1024) return t('ReferenceAttachments.b', { value1: size });
+  if (size < 1024 * 1024) return t('ReferenceAttachments.kb', { value1: Math.ceil(size / 1024) });
+  return t('ReferenceAttachments.mb', { value1: (size / (1024 * 1024)).toFixed(1) });
 }
 
 export function ReferenceAttachments({
@@ -47,6 +50,7 @@ export function ReferenceAttachments({
   onChange: (attachments: ReferenceAttachment[]) => void;
   disabled?: boolean;
 }) {
+  useTranslation(undefined, { i18n });
   const input = useRef<HTMLInputElement>(null);
   const current = useRef(value);
   const mounted = useRef(true);
@@ -84,26 +88,32 @@ export function ReferenceAttachments({
       }
       if (selected.length + current.current.length > 32) {
         releaseReferences(selected);
-        setError('Можно приложить не больше 32 референсов к одному запросу.');
+        setError(t('ReferenceAttachments.youCanAttachUpToReferencesPer'));
         return;
       }
       update([...selected, ...current.current]);
     } catch (error) {
       if (mounted.current)
-        setError(error instanceof Error ? error.message : 'Не удалось выбрать файлы.');
+        setError(
+          error instanceof Error ? error.message : t('ReferenceAttachments.couldNotSelectFiles'),
+        );
     } finally {
       if (mounted.current) setChoosing(false);
     }
   };
   return (
-    <div className="reference-attachments" role="group" aria-label="Референсы">
-      <span className="reference-attachments-label">Референсы</span>
+    <div
+      className="reference-attachments"
+      role="group"
+      aria-label={t('ReferenceAttachments.references')}
+    >
+      <span className="reference-attachments-label">{t('ReferenceAttachments.references')}</span>
       <input
         ref={input}
         type="file"
         multiple
         hidden
-        aria-label="Файлы референса"
+        aria-label={t('ReferenceAttachments.referenceFiles')}
         onChange={(event) => {
           const files = Array.from(event.target.files ?? []);
           update([
@@ -120,7 +130,7 @@ export function ReferenceAttachments({
         }}
       />
       <AddArea
-        label="Прикрепить файлы референса"
+        label={t('ReferenceAttachments.attachReferenceFiles')}
         disabled={disabled || choosing}
         onClick={() => void choose()}
       />
@@ -141,13 +151,13 @@ export function ReferenceAttachments({
                   <span className="reference-file-name">{attachment.name}</span>
                 </Tooltip>
                 <small>
-                  {fileSize(attachment.size)} · {attachment.type || 'файл'}
+                  {fileSize(attachment.size)} · {attachment.type || t('ReferenceAttachments.file')}
                 </small>
               </div>
               <HoverDeleteButton
-                label={`Убрать референс «${attachment.name}»`}
+                label={t('ReferenceAttachments.removeReference', { value1: attachment.name })}
                 disabled={disabled}
-                description="Убрать вложение из запроса? Исходный файл останется на месте."
+                description={t('ReferenceAttachments.removeThisAttachmentFromTheRequestThe')}
                 onDelete={() => {
                   update(current.current.filter((item) => item.id !== attachment.id));
                   releaseReferences([attachment]);

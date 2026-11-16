@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import {
   ChevronRight,
@@ -33,6 +35,7 @@ function TreeItem({
   selectedFileId,
   onSelectFile,
 }: Omit<TreeProps, 'entries'> & { entry: OutputEntry }) {
+  useTranslation(undefined, { i18n });
   const selectedInside =
     entry.kind === 'folder' &&
     listOutputFiles(entry.children).some(({ file }) => file.id === selectedFileId);
@@ -87,8 +90,9 @@ function TreeItem({
   );
 }
 export function OutputFileTree({ entries, selectedFileId, onSelectFile }: TreeProps) {
+  useTranslation(undefined, { i18n });
   return (
-    <nav className="output-file-tree" aria-label="Файлы и папки агента">
+    <nav className="output-file-tree" aria-label={t('OutputFileTree.agentFilesAndFolders')}>
       <ul>
         {sortOutputEntries(entries).map((entry) => (
           <TreeItem

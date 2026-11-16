@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { UpdateState } from '../../../shared/updates';
 import { useStorage } from '@/shared/storage/Storage';
@@ -23,6 +25,7 @@ export function UpdatesProvider({
   children: ReactNode;
   initial?: UpdateState;
 }) {
+  useTranslation(undefined, { i18n });
   const { saving, error, saveNow, bootstrap } = useStorage();
   const { page, navigate } = useNavigation();
   const { selectedProject, projects, setProjectId } = useWorkspace();
@@ -184,7 +187,7 @@ export function UpdatesProvider({
                       ? {
                           ...previous,
                           phase: 'error',
-                          message: 'Не удалось проверить обновления. Повторите попытку.',
+                          message: t('Updates.couldNotCheckForUpdatesTryAgain'),
                         }
                       : previous,
                   );
@@ -212,6 +215,7 @@ export function UpdatesProvider({
   );
 }
 export function useUpdates() {
+  useTranslation(undefined, { i18n });
   const value = useContext(UpdatesContext);
   if (!value) throw new Error('UpdatesProvider is missing');
   return value;

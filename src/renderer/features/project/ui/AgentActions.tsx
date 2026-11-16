@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
 import {
   FolderOpen,
@@ -36,6 +38,7 @@ export function AgentActions({
   autoContinue: boolean;
   onOpenSettings: (agentId: string, tab?: string) => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { demo } = useNotice();
   const { saveNow } = useStorage();
   const { setAutoContinue, selectedProject, busy } = useWorkspace();
@@ -53,14 +56,14 @@ export function AgentActions({
   };
   const hasSession = !!agent.session;
   const launchLabel = autoContinue
-    ? 'Запустить и продолжить'
+    ? t('AgentActions.launchAndContinue')
     : hasSession
-      ? 'Продолжить диалог'
-      : 'Запустить';
+      ? t('AgentActions.continueDialogue')
+      : t('AgentActions.launch');
   const launch = async (autoContinue: boolean) => {
     if (openingRef.current || busy) return;
     if (!getCurrentAgentInstructions(agent.profile.id, agents)) {
-      demo('Профиль агента удалён. Текущие инструкции недоступны; другой агент не подставляется.');
+      demo(t('AgentActions.agentProfileDeletedCurrentInstructionsAreUnavailable'));
       return;
     }
     const action = getAgentLaunchAction(agent);
@@ -83,7 +86,7 @@ export function AgentActions({
       updateOpening(true);
       try {
         if (!(await saveNow())) {
-          demo('Сначала сохраните текущие изменения настроек.');
+          demo(t('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
           return;
         }
         await window.studio.launchAgent({
@@ -92,7 +95,9 @@ export function AgentActions({
           autoContinue,
         });
       } catch (error) {
-        demo(error instanceof Error ? error.message : 'Не удалось продолжить диалог Pi.');
+        demo(
+          error instanceof Error ? error.message : t('AgentActions.couldNotResumeThePiDialogue'),
+        );
       } finally {
         updateOpening(false);
       }
@@ -100,7 +105,13 @@ export function AgentActions({
     }
     setAutoContinue(autoContinue);
     demo(
-      `Pi не подключён. Будет открыт диалог ${action.session.path} без отправки сообщения${action.session.needsFork ? '; перед открытием требуется штатное ветвление в текущую папку проекта' : ''}.${autoContinue ? ' Цепочка ожидает нового запроса в Pi и подтверждённого завершения этапа.' : ''}`,
+      t('AgentActions.piIsNotConnectedDialogueWillOpen', {
+        value1: action.session.path,
+        value2: action.session.needsFork
+          ? t('AgentActions.aStandardForkIntoTheCurrentProject')
+          : '',
+        value3: autoContinue ? t('AgentActions.theChainAwaitsANewPiRequest') : '',
+      }),
     );
   };
   return (
@@ -108,13 +119,17 @@ export function AgentActions({
       <div
         className="project-agent-actions"
         role="toolbar"
-        aria-label={`Действия агента «${agent.profile.name}»`}
+        aria-label={t('AgentActions.actionsForAgent', { value1: agent.profile.name })}
         aria-busy={opening || undefined}
       >
         <IconButton
           label={launchLabel}
           title={
-            opening ? 'Открываем Pi…' : modelConfigured ? launchLabel : 'Подключение не настроено'
+            opening
+              ? t('AgentActions.openingPi')
+              : modelConfigured
+                ? launchLabel
+                : t('AgentActions.connectionNotConfigured')
           }
           className="project-agent-launch"
           busy={opening}
@@ -132,25 +147,25 @@ export function AgentActions({
           )}
         </IconButton>
         <ActionMenu
-          label={`Действия агента «${agent.profile.name}»`}
+          label={t('AgentActions.actionsForAgent', { value1: agent.profile.name })}
           className="project-agent-menu-trigger"
           disabled={busy || opening}
           actions={[
             {
-              label: 'Запустить и продолжить',
+              label: t('AgentActions.launchAndContinue'),
               icon: ListStart,
               disabled: !agent.profile.enabled,
               onSelect: () => void launch(true),
             },
             {
               label: navigator.platform.startsWith('Win')
-                ? 'Показать в Проводнике'
-                : 'Показать в Finder',
+                ? t('AgentActions.showInExplorer')
+                : t('AgentActions.showInFinder'),
               icon: FolderOpen,
               onSelect: () =>
                 void (async () => {
                   if (!window.studio || !selectedProject) {
-                    demo('Finder доступен в приложении macOS.');
+                    demo(t('AgentActions.finderIsAvailableInTheMacosApp'));
                     return;
                   }
                   try {
@@ -160,24 +175,26 @@ export function AgentActions({
                     });
                   } catch (error) {
                     demo(
-                      error instanceof Error ? error.message : 'Не удалось показать папку агента.',
+                      error instanceof Error
+                        ? error.message
+                        : t('AgentActions.couldNotRevealTheAgentFolder'),
                     );
                   }
                 })(),
             },
             {
-              label: 'Настройки агента',
+              label: t('AgentProfileEditor.agentSettings'),
               icon: Settings2,
               onSelect: () => {
                 if (!agents.some((profile) => profile.id === agent.profile.id)) {
-                  demo('Этот агент удалён из конструктора. Другой профиль не подставляется.');
+                  demo(t('AgentActions.thisAgentWasRemovedFromTheBuilder'));
                   return;
                 }
                 onOpenSettings(agent.profile.id);
               },
             },
             {
-              label: 'Удалить агента из проекта',
+              label: t('AgentActions.removeAgentFromProject'),
               icon: Trash2,
               separator: true,
               danger: true,

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { NoticeContext } from './Notice.context';
 import { useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { CircleHelp, X } from 'lucide-react';
@@ -15,12 +17,11 @@ export type NoticeContextValue = {
   demo: (message?: string, action?: NoticeAction) => void;
 } | null;
 export function NoticeProvider({ children }: { children: ReactNode }) {
+  useTranslation(undefined, { i18n });
   const [toast, setToast] = useState<Notice | null>(null);
   const demo = useCallback(
-    (
-      message = 'Это интерфейсный прототип. Рабочая интеграция появится после утверждения интерфейса.',
-      action?: NoticeAction,
-    ) => setToast({ message, action }),
+    (message = t('Notice.thisIsAnInterfacePrototypeWorkingIntegration'), action?: NoticeAction) =>
+      setToast({ message, action }),
     [],
   );
   useEffect(() => {
@@ -46,7 +47,7 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
               {toast.action.label}
             </button>
           )}
-          <IconButton title="Скрыть уведомление" onClick={() => setToast(null)}>
+          <IconButton title={t('Notice.dismissNotification')} onClick={() => setToast(null)}>
             <X size={15} />
           </IconButton>
         </div>
@@ -55,6 +56,7 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
   );
 }
 export function useNotice() {
+  useTranslation(undefined, { i18n });
   const value = useContext(NoticeContext);
   if (!value) throw new Error('NoticeProvider is missing');
   return value;

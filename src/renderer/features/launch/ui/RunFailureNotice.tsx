@@ -1,15 +1,18 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
 import { useStorage } from '@/shared/storage/Storage';
 import {
-  runFailureMessages,
-  terminalCloseMessages,
   terminalCloseDetail,
   type RunFailureNotice as Failure,
 } from '../../../../shared/runFailure';
 
+import { failureMessage, terminalMessage } from '@/shared/model/localizedFailures';
+
 export function RunFailureNotice() {
+  useTranslation(undefined, { i18n });
   const { bootstrap } = useStorage();
   const [notice, setNotice] = useState<Failure>();
   const folder = bootstrap?.folder;
@@ -31,11 +34,15 @@ export function RunFailureNotice() {
   return (
     <div className="run-failure-notice error-message" role="alert">
       <span>
-        «{notice.agentName}»: {runFailureMessages[notice.failure]}
-        {notice.failure === 'terminal_close' && terminalCloseDetail(notice.terminalDetail) &&
-          ' ' + terminalCloseMessages[notice.terminalDetail!]}
+        «{notice.agentName}»: {failureMessage(notice.failure)}
+        {notice.failure === 'terminal_close' &&
+          terminalCloseDetail(notice.terminalDetail) &&
+          ' ' + terminalMessage(notice.terminalDetail!)}
       </span>
-      <IconButton title="Скрыть ошибку агента" onClick={() => setNotice(undefined)}>
+      <IconButton
+        title={t('RunFailureNotice.dismissAgentError')}
+        onClick={() => setNotice(undefined)}
+      >
         <X size={16} />
       </IconButton>
     </div>

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useControlScope } from './ControlScope.context';
 import * as Popover from '@radix-ui/react-popover';
 import { Check, ChevronDown, Search } from 'lucide-react';
@@ -23,12 +25,13 @@ export function SearchableSelect({
   options,
   disabled,
   loading = false,
-  placeholder = 'Выберите вариант',
-  searchPlaceholder = 'Найти вариант',
-  emptyMessage = 'Варианты не найдены',
-  loadingMessage = 'Загружаем варианты…',
+  placeholder = t('NativeConnectionAuth.selectAnOption'),
+  searchPlaceholder = t('SearchableSelect.searchOptions'),
+  emptyMessage = t('SearchableSelect.noOptionsFound'),
+  loadingMessage = t('SearchableSelect.loadingOptions'),
   onValueChange,
 }: SearchableSelectProps) {
+  useTranslation(undefined, { i18n });
   const controlsScope = useControlScope();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -100,7 +103,7 @@ export function SearchableSelect({
             <input
               ref={input}
               role="combobox"
-              aria-label={`Поиск: ${label.toLocaleLowerCase()}`}
+              aria-label={t('SearchableSelect.search', { value1: label.toLocaleLowerCase() })}
               aria-expanded="true"
               aria-controls={listId}
               aria-autocomplete="list"

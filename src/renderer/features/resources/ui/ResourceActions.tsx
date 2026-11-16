@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useState } from 'react';
 import type { Resource } from '../../../../shared/resources';
@@ -7,6 +9,7 @@ import { McpSecretsDialog } from './McpSecretsDialog';
 import { ResourceAuthDialog } from './ResourceAuthDialog';
 
 export function ResourceActions({ resource }: { resource: Resource }) {
+  useTranslation(undefined, { i18n });
   const { saveNow } = useStorage();
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
@@ -20,28 +23,30 @@ export function ResourceActions({ resource }: { resource: Resource }) {
     setError('');
     setMessage('');
     try {
-      if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
+      if (!(await saveNow())) throw new Error(t('TeamTransfers.waitForSettingsToFinishSaving'));
       if (kind === 'login') {
         const result = await getStudioApi().openResourceLogin(resource.id);
         setLoginId(result.loginId);
         setMessage(result.loginId ? '' : result.next);
       } else if (kind === 'install') {
         await getStudioApi().installResource(resource.id);
-        setMessage('Пакет доступен в Pi. Назначенные агенты загрузят его при следующем открытии.');
+        setMessage(t('ResourceActions.packageAvailableInPiAssignedAgentsLoad'));
       } else {
         const checked = await getStudioApi().checkResource(resource.id);
         setMessage(
           {
-            available: 'Ресурс доступен. Назначенный агент загрузит его при следующем открытии.',
-            needs_auth: 'Сервер требует входа через Pi.',
-            unavailable: 'Ресурс недоступен. Проверьте настройки через помощника.',
-            disabled: 'Сервер выключен в Pi.',
+            available: t('ResourceActions.resourceAvailableAssignedAgentsLoadItThe'),
+            needs_auth: t('ResourceActions.theServerRequiresSignInThroughPi'),
+            unavailable: t('ResourceActions.resourceUnavailableCheckSettingsThroughTheAssistant'),
+            disabled: t('ResourceActions.serverDisabledInPi'),
           }[checked.status],
         );
       }
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : 'Не удалось выполнить операцию с ресурсом.',
+        error instanceof Error
+          ? error.message
+          : t('ResourceActions.couldNotPerformTheResourceOperation'),
       );
     } finally {
       setBusy('');
@@ -56,7 +61,7 @@ export function ResourceActions({ resource }: { resource: Resource }) {
             void action('check');
           }}
         >
-          {busy === 'check' ? 'Проверяем…' : 'Проверить'}
+          {busy === 'check' ? t('ResourceActions.checking') : t('ResourceActions.check')}
         </Button>
         {resource.kind === 'plugins' && (
           <Button
@@ -65,7 +70,9 @@ export function ResourceActions({ resource }: { resource: Resource }) {
               void action('install');
             }}
           >
-            {busy === 'install' ? 'Устанавливаем…' : 'Установить пакет'}
+            {busy === 'install'
+              ? t('BrowserResourceStatus.installing')
+              : t('ResourceActions.installPackage')}
           </Button>
         )}
         {resource.kind === 'mcps' && resource.source.startsWith('pi:') && (
@@ -77,7 +84,7 @@ export function ResourceActions({ resource }: { resource: Resource }) {
               setSecretsOpen(true);
             }}
           >
-            Защищённые параметры
+            {t('ResourceActions.protectedParameters')}
           </Button>
         )}
         {resource.kind === 'mcps' && resource.source.startsWith('pi:') && (
@@ -87,7 +94,7 @@ export function ResourceActions({ resource }: { resource: Resource }) {
               void action('login');
             }}
           >
-            Войти через Pi
+            {t('NativeConnectionAuth.signInThroughPi')}
           </Button>
         )}
       </div>

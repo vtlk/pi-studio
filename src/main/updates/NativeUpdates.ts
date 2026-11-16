@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { randomUUID } from 'node:crypto';
 import type { UpdateReadiness, UpdateState, UpdateView } from '../../shared/updates.ts';
 import type { UpdateCoordinator } from './UpdateCoordinator.ts';
@@ -76,7 +77,7 @@ export class NativeUpdates {
     if (['downloading', 'verifying', 'waiting', 'installing'].includes(this.read().phase))
       return Promise.resolve(this.read());
     if (!this.options.coordinator)
-      this.manualError = 'Проверка обновлений доступна в установленной версии Pi Studio.';
+      this.manualError = t('NativeUpdates.updateChecksAreAvailableInTheInstalled');
     return (
       this.options.coordinator?.check().then(() => this.read()) ?? Promise.resolve(this.read())
     );
@@ -91,7 +92,7 @@ export class NativeUpdates {
     }
     const phase = this.read().startup?.phase;
     if (phase && !['committed', 'restored'].includes(phase))
-      return Promise.reject(new Error('Дождитесь завершения запуска Studio.'));
+      return Promise.reject(new Error(t('NativeUpdates.waitForStudioStartupToFinish')));
     return this.options.coordinator?.request() ?? Promise.resolve();
   }
   report(ready: UpdateReadiness) {
@@ -149,7 +150,7 @@ export class NativeUpdates {
             this.maintenanceError =
               error instanceof Error
                 ? error.message.slice(0, 500)
-                : 'Не удалось удалить временные файлы обновления. Они сохранены.';
+                : t('NativeUpdates.couldNotDeleteTemporaryUpdateFilesThey');
           },
         )
         .finally(() => {

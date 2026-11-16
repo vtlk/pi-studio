@@ -1,3 +1,4 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
 import type { AgentUsage, UsageValue } from '../../../../shared/projectUsage';
 
 export function durationText(milliseconds: number) {
@@ -26,7 +27,7 @@ export function usageText(value: UsageValue | undefined, formatter: (value: numb
   return `${formatter(value.value)}${value.partial ? '*' : ''}`;
 }
 export function moneyText(value: number, currency: string) {
-  const format = new Intl.NumberFormat('en-US', {
+  const format = new Intl.NumberFormat(i18n.resolvedLanguage, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
@@ -43,21 +44,36 @@ export function costText(usage: AgentUsage | undefined) {
   );
 }
 export function usageAccessible(usage: AgentUsage | undefined, includeTime = true) {
-  if (!usage) return 'Расход загружается';
+  if (!usage) return t('usageFormat.loadingUsage');
   const metric = (value: UsageValue, unit: string) =>
-    `${unit}: ${value.value === null ? 'неизвестно' : `${value.value}${value.partial ? ', частичные данные' : ''}`}`;
+    t('usageFormat.summary', {
+      value1: unit,
+      value2:
+        value.value === null
+          ? t('usageFormat.unknown')
+          : t('usageFormat.summary2', {
+              value1: value.value,
+              value2: value.partial ? t('usageFormat.partialData') : '',
+            }),
+    });
   const time =
     usage.duration.value === null
-      ? 'Время работы неизвестно'
-      : `Время работы: ${Math.floor(usage.duration.value / 1000)} секунд${usage.duration.partial ? ', частичные данные' : ''}`;
+      ? t('usageFormat.workingTimeUnknown')
+      : t('usageFormat.workingTimeSeconds', {
+          value1: Math.floor(usage.duration.value / 1000),
+          value2: usage.duration.partial ? t('usageFormat.partialData') : '',
+        });
   const costs = usage.costs.length
     ? usage.costs.map((cost) => `${cost.value} ${cost.currency}`).join('; ')
-    : 'неизвестно';
+    : t('usageFormat.unknown');
   return [
     includeTime ? time : '',
-    metric(usage.tokens.input, 'Входные токены'),
-    metric(usage.tokens.output, 'Выходные токены'),
-    `Стоимость по данным Pi: ${costs}${usage.costPartial ? ', частичные данные' : ''}`,
+    metric(usage.tokens.input, t('usageFormat.inputTokens')),
+    metric(usage.tokens.output, t('usageFormat.outputTokens')),
+    t('usageFormat.costReportedByPi', {
+      value1: costs,
+      value2: usage.costPartial ? t('usageFormat.partialData') : '',
+    }),
   ]
     .filter(Boolean)
     .join('. ');

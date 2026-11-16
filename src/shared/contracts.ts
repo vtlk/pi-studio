@@ -36,6 +36,11 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getLanguage(): Promise<import('./i18n/locale').LanguageState>;
+  setLanguage(
+    language: import('./i18n/locale').Language,
+  ): Promise<import('./i18n/locale').LanguageState>;
+  onLanguageChanged(listener: (state: import('./i18n/locale').LanguageState) => void): () => void;
   getTheme(): Promise<import('./appearance').ThemeState>;
   setTheme(theme: import('./appearance').ThemeChoice): Promise<import('./appearance').ThemeState>;
   onThemeChanged(listener: (state: import('./appearance').ThemeState) => void): () => void;
@@ -134,6 +139,9 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getLanguage: 'studio:language',
+  setLanguage: 'studio:language-set',
+  languageChanged: 'studio:language-changed',
   getTheme: 'studio:theme',
   setTheme: 'studio:theme-set',
   themeChanged: 'studio:theme-changed',

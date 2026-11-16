@@ -1,20 +1,23 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Settings2 } from 'lucide-react';
 import { useNavigation, type Page } from '@/shared/model/Navigation';
-import { Button } from '@/shared/ui';
 import { useStorage } from '@/shared/storage/Storage';
 import { UpdateAction } from '@/features/updates/UpdateAction';
+import { LanguageSelect } from '@/shared/ui/LanguageSelect';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
-const sections: { page: Page; label: string }[] = [
-  { page: 'projects', label: 'Проекты' },
-  { page: 'agents', label: 'Агенты' },
+const sections: { page: Page; label: import('../../../shared/i18n').MessageKey }[] = [
+  { page: 'projects', label: 'Topbar.projects' },
+  { page: 'agents', label: 'Topbar.agents' },
 ];
 export function Topbar() {
+  useTranslation(undefined, { i18n });
   const { page, navigate } = useNavigation();
   const { isDesktop, saving, recentlySaved, error } = useStorage();
   return (
     <header className="topbar">
-      <nav aria-label="Главное меню">
+      <nav aria-label={t('Topbar.mainMenu')}>
         {sections.map((section) => (
           <button
             key={section.page}
@@ -25,7 +28,7 @@ export function Topbar() {
             }
             onClick={() => navigate(section.page)}
           >
-            {section.label}
+            {t(section.label)}
           </button>
         ))}
       </nav>
@@ -36,20 +39,25 @@ export function Topbar() {
       >
         {isDesktop
           ? error
-            ? 'Требуется внимание'
+            ? t('Topbar.attentionRequired')
             : saving
-              ? 'Сохраняем…'
+              ? t('Topbar.saving')
               : recentlySaved
-                ? 'Сохранено'
+                ? t('Topbar.saved')
                 : ''
-          : 'Веб-макет · без сохранения'}
+          : t('Topbar.webPreviewChangesAreNotSaved')}
       </span>
       <UpdateAction />
+      <LanguageSelect />
       <ThemeToggle />
-      <Button kind="primary" className="settings-button" onClick={() => navigate('settings')}>
+      <button
+        className="button settings-button"
+        aria-current={page === 'settings' ? 'page' : undefined}
+        onClick={() => navigate('settings')}
+      >
         <Settings2 size={17} aria-hidden="true" />
-        Настройки
-      </Button>
+        {t('Topbar.settings')}
+      </button>
     </header>
   );
 }

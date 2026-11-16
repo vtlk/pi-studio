@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ThemeContext } from './Theme.context';
 import {
@@ -20,7 +22,7 @@ export function initialTheme(native: boolean): ThemeState {
       const saved = localStorage.getItem('pistudio-theme');
       if (themeChoice(saved)) preference = saved;
     } catch {
-      error = 'Выбор темы недоступен в хранилище браузера.';
+      error = t('Theme.themePreferenceUnavailableInBrowserStorage');
     }
   }
   const theme =
@@ -41,6 +43,7 @@ export function ThemeProvider({
   initial: ThemeState;
   native: boolean;
 }) {
+  useTranslation(undefined, { i18n });
   const [state, setState] = useState(initial);
   const current = useRef(state),
     epoch = useRef(0),
@@ -66,7 +69,7 @@ export function ThemeProvider({
       const readEpoch = epoch.current;
       void window.studio.getTheme().then(receive, () => {
         if (!disposed && !pending.current && epoch.current === readEpoch)
-          setState((previous) => ({ ...previous, error: 'Не удалось прочитать настройки темы.' }));
+          setState((previous) => ({ ...previous, error: t('Theme.couldNotReadThemeSettings') }));
       });
       return () => {
         disposed = true;
@@ -104,8 +107,7 @@ export function ThemeProvider({
       if (requested === epoch.current)
         put({
           ...current.current,
-          error:
-            'Выбор темы не сохранён. При следующем запуске будет использована прежняя настройка.',
+          error: t('Theme.themePreferenceNotSavedThePreviousSetting'),
         });
     } finally {
       if (requested === epoch.current) pending.current = false;
@@ -124,7 +126,7 @@ export function ThemeProvider({
         <aside className="theme-error" role="alert">
           <span>{state.error}</span>
           <button className="button" onClick={() => void choose(state.theme)}>
-            Повторить сохранение
+            {t('Theme.retrySaving')}
           </button>
         </aside>
       )}
@@ -132,6 +134,7 @@ export function ThemeProvider({
   );
 }
 export function useTheme() {
+  useTranslation(undefined, { i18n });
   const value = useContext(ThemeContext);
   if (!value) throw Error('ThemeProvider is missing');
   return value;

@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import type { VideoItem, ResolvedVideoAsset } from '../../../../shared/video';
 
 export function ClipProperties({
@@ -7,41 +9,46 @@ export function ClipProperties({
   selected?: VideoItem;
   assets: ResolvedVideoAsset[];
 }) {
+  useTranslation(undefined, { i18n });
   return (
     <aside className="editor-inspector">
-      <h3>Свойства клипа</h3>
+      <h3>{t('ClipProperties.clipProperties')}</h3>
       {selected ? (
         <>
           <p>{selected.name}</p>
           <dl className="data-list">
-            <dt>Начало, кадры</dt>
+            <dt>{t('ClipProperties.startFrames')}</dt>
             <dd>{selected.from}</dd>
-            <dt>Длительность, кадры</dt>
+            <dt>{t('ClipProperties.durationFrames')}</dt>
             <dd>{selected.duration}</dd>
-            <dt>Громкость</dt>
+            <dt>{t('ClipProperties.volume')}</dt>
             <dd>{Math.round((selected.volume ?? 1) * 100)}%</dd>
             {assets.some((asset) => asset.id === selected.assetId && asset.type !== 'image') && (
               <>
-                <dt>Панорама</dt>
+                <dt>{t('ClipProperties.pan')}</dt>
                 <dd>
                   {!selected.pan
-                    ? 'Центр'
-                    : `${selected.pan < 0 ? 'Влево' : 'Вправо'} ${Math.round(Math.abs(selected.pan) * 100)}%`}
+                    ? t('ClipProperties.center')
+                    : t('ClipProperties.summary', {
+                        value1:
+                          selected.pan < 0 ? t('ClipProperties.left') : t('ClipProperties.right'),
+                        value2: Math.round(Math.abs(selected.pan) * 100),
+                      })}
                 </dd>
               </>
             )}
           </dl>
           {selected.text && (
             <>
-              <h3>Субтитры</h3>
+              <h3>{t('ClipProperties.subtitles')}</h3>
               <p>{selected.text.toUpperCase()}</p>
             </>
           )}
         </>
       ) : (
-        <p>Выберите клип на таймлайне.</p>
+        <p>{t('ClipProperties.selectAClipOnTheTimeline')}</p>
       )}
-      <p className="subtle">Правки монтажа выполняются в диалоге агента в Pi.</p>
+      <p className="subtle">{t('ClipProperties.editTheMontageInTheAgentS')}</p>
     </aside>
   );
 }

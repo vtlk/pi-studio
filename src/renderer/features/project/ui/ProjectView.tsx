@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { TeamMessages } from './TeamMessages';
 import { useState } from 'react';
 import { Pause, Play, RefreshCw } from 'lucide-react';
@@ -22,6 +24,7 @@ import { Switch } from '@/shared/ui/SelectionControls';
 import { Tooltip } from '@/shared/ui/Tooltip';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
+  useTranslation(undefined, { i18n });
   const { confirm } = useConfirm();
   const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
@@ -56,16 +59,15 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
           kind="primary"
           onClick={() =>
             confirm({
-              title: 'Перечитать агентов?',
-              description:
-                'Сравнить проект с вкладкой «Агенты»? Отсутствующие в общем списке будут убраны из проекта, новые добавятся. Файлы и история Pi сохранятся. Изменения можно проверить перед применением.',
-              confirmLabel: 'Перечитать',
+              title: t('ProjectView.refreshAgents'),
+              description: t('ProjectView.compareTheProjectWithTheAgentsPage'),
+              confirmLabel: t('ProjectView.refresh'),
               onConfirm: () => setRefreshOpen(true),
             })
           }
         >
           <RefreshCw size={17} />
-          Перечитать агентов
+          {t('ProjectView.refreshAgents2')}
         </Button>
       </div>
       <div
@@ -75,21 +77,21 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
       >
         <aside className="project-agent-menu">
           <div className="project-column-heading project-agent-heading">
-            <Tooltip label="Агенты проекта" onlyWhenTruncated>
-              <h2>Агенты проекта</h2>
+            <Tooltip label={t('ProjectView.projectAgents')} onlyWhenTruncated>
+              <h2>{t('ProjectView.projectAgents')}</h2>
             </Tooltip>
             <Tooltip
               label={
                 autoContinue
-                  ? 'Выключить автоматическое продолжение'
-                  : 'Включить автоматическое продолжение'
+                  ? t('ProjectView.turnOffAutomaticContinuation')
+                  : t('ProjectView.turnOnAutomaticContinuation')
               }
             >
               <span className="project-auto-continue">
                 <Switch
                   checked={autoContinue}
                   onChange={setAutoContinue}
-                  label="Автоматическое продолжение при запуске диалога"
+                  label={t('ProjectView.automaticContinuationWhenLaunchingADialogue')}
                   trackIcon={
                     autoContinue ? (
                       <Play size={11} aria-hidden="true" />
@@ -102,7 +104,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
             </Tooltip>
           </div>
           <SectionMenu
-            label="Агенты проекта"
+            label={t('ProjectView.projectAgents')}
             items={project.agents.map((agent, index) => {
               const modelConfigured = validateAgentModel(
                 profiles.find((profile) => profile.id === agent.profile.id)?.model,
@@ -110,14 +112,22 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
               ).ok;
               const statusLabel = modelConfigured
                 ? getAgentStatusLabel(agent)
-                : 'Не подключена модель';
+                : t('ProjectView.noModelConnected');
               return {
                 id: agent.profile.id,
-                label: `${index + 1}. ${agent.profile.name || 'Без названия'}`,
+                label: t('ProjectView.summary', {
+                  value1: index + 1,
+                  value2: agent.profile.name || t('AgentList.untitled'),
+                }),
                 muted: !agent.profile.enabled,
                 icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
                 iconTooltip: statusLabel,
-                ariaLabel: `${index + 1}. ${agent.profile.name || 'Без названия'}. ${statusLabel}. ${usageAccessible(agent.usage)}`,
+                ariaLabel: t('ProjectView.summary2', {
+                  value1: index + 1,
+                  value2: agent.profile.name || t('AgentList.untitled'),
+                  value3: statusLabel,
+                  value4: usageAccessible(agent.usage),
+                }),
                 description: <UsageMetrics usage={agent.usage} />,
                 actions: (
                   <AgentActions
@@ -141,13 +151,13 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
           />
         </aside>
         <ResizeHandle
-          label="Ширина колонки агентов"
+          label={t('ProjectView.agentColumnWidth')}
           value={actualAgentWidth}
           min={200}
           max={maxAgentWidth}
           onChange={setAgentWidth}
         />
-        <section className="project-output-content" aria-label="Результаты агента">
+        <section className="project-output-content" aria-label={t('ProjectView.agentResults')}>
           {selectedAgent ? (
             <AgentOutputsView
               key={`${project.id}:${selectedAgent.profile.id}`}
@@ -160,10 +170,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
               onTreeWidthChange={setTreeWidth}
             />
           ) : (
-            <p>
-              В снимке проекта нет агентов. Добавьте их на странице «Агенты» и нажмите «Перечитать
-              агентов».
-            </p>
+            <p>{t('ProjectView.theProjectSnapshotHasNoAgentsAdd')}</p>
           )}
         </section>
       </div>
@@ -172,10 +179,11 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   );
 }
 export function ProjectView() {
+  useTranslation(undefined, { i18n });
   const { selectedProject } = useWorkspace();
   return selectedProject ? (
     <ProjectWorkspace key={selectedProject.id} project={selectedProject} />
   ) : (
-    <div className="page-body">Выберите проект из списка.</div>
+    <div className="page-body">{t('ProjectView.selectAProjectFromTheList')}</div>
   );
 }

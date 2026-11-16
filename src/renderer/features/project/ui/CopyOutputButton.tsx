@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Copy } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
@@ -5,6 +7,7 @@ import { useNotice } from '@/shared/model/Notice';
 import type { OutputFile } from '../model/workspace.types';
 
 export function CopyOutputButton({ file, projectId }: { file: OutputFile; projectId?: string }) {
+  useTranslation(undefined, { i18n });
   const [busy, setBusy] = useState(false);
   const { demo } = useNotice();
   const copy = async () => {
@@ -19,16 +22,16 @@ export function CopyOutputButton({ file, projectId }: { file: OutputFile; projec
           fingerprint: file.fingerprint,
         });
       } else await navigator.clipboard.writeText(file.content);
-      demo(`Содержимое «${file.name}» скопировано.`);
+      demo(t('CopyOutputButton.contentsOfCopied', { value1: file.name }));
     } catch {
-      demo(`Не удалось скопировать «${file.name}». Выберите файл заново и повторите.`);
+      demo(t('CopyOutputButton.couldNotCopySelectTheFileAgain', { value1: file.name }));
     } finally {
       setBusy(false);
     }
   };
   return (
     <IconButton
-      title="Копировать"
+      title={t('CopyOutputButton.copy')}
       className="copy-output-button"
       disabled={busy || typeof file.content !== 'string'}
       onClick={() => void copy()}

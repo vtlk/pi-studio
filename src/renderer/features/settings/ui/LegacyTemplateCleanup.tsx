@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
 import { useStorage } from '@/shared/storage/Storage';
 import { useConfirm } from '@/shared/model/Confirm';
@@ -8,6 +10,7 @@ import { useResources } from '@/features/resources/model/Resources';
 import { matchesLegacyTemplate } from '../model/legacyTemplates';
 
 export function LegacyTemplateCleanup() {
+  useTranslation(undefined, { i18n });
   const { isDesktop } = useStorage();
   const { agents, teams, removeAgent, restoreAgent } = useAgentProfiles();
   const { connections, removeConnection, saveConnection } = useConnections();
@@ -40,15 +43,18 @@ export function LegacyTemplateCleanup() {
       const oldResources = resources.filter((_, index) => resourceMatches[index]);
       if (!oldAgents.length && !oldConnections.length && !oldResources.length) return;
       confirm({
-        title: 'Убрать сохранённые шаблоны макета?',
-        description: `Найдены неизменённые примеры: агенты — ${oldAgents.length}, подключения — ${oldConnections.length}, ресурсы — ${oldResources.length}. Убрать их из общих настроек? Пользовательские правки, проекты, их снимки агентов и исходные файлы сохранятся.`,
-        confirmLabel: 'Убрать шаблоны',
+        title: t('LegacyTemplateCleanup.removeSavedPrototypeTemplates'),
+        description: t(
+          'LegacyTemplateCleanup.unchangedExamplesFoundAgentsConnectionsResourcesRemove',
+          { value1: oldAgents.length, value2: oldConnections.length, value3: oldResources.length },
+        ),
+        confirmLabel: t('LegacyTemplateCleanup.removeTemplates'),
         onConfirm: () => {
           oldAgents.forEach(({ agent }) => removeAgent(agent.id));
           oldConnections.forEach((connection) => removeConnection(connection.id));
           oldResources.forEach((resource) => removeResource(resource.kind, resource.id));
-          demo('Шаблоны макета убраны из общих настроек.', {
-            label: 'Вернуть',
+          demo(t('LegacyTemplateCleanup.prototypeTemplatesRemovedFromSharedSettings'), {
+            label: t('useResourceUnlink.undo'),
             onClick: () => {
               oldAgents.forEach(({ agent, index, teamId }) => restoreAgent(agent, index, teamId));
               oldConnections.forEach(saveConnection);
@@ -61,7 +67,7 @@ export function LegacyTemplateCleanup() {
     void review().catch(() => {
       if (!disposed) {
         reviewed.current = true;
-        demo('Не удалось проверить прежние шаблоны. Сохранённые данные не изменены.');
+        demo(t('LegacyTemplateCleanup.couldNotCheckPreviousTemplatesSavedData'));
       }
     });
     return () => {

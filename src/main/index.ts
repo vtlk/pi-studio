@@ -1,4 +1,5 @@
 import { app, protocol, nativeTheme } from 'electron';
+import { LanguagePreferences } from './appearance/LanguagePreferences';
 import { ThemePreferences } from './appearance/ThemePreferences';
 import { join } from 'node:path';
 import { realpath } from 'node:fs/promises';
@@ -55,6 +56,10 @@ async function startStudio() {
     nativeTheme,
   );
   await app.whenReady();
+  const language = await LanguagePreferences.load(
+    join(app.getPath('userData'), 'language.json'),
+    app.getPreferredSystemLanguages()[0] ?? app.getLocale(),
+  );
   if (process.platform === 'win32') app.setAppUserModelId('studio.pi.desktop');
   app.setAboutPanelOptions({
     applicationName: 'Pi Studio',
@@ -71,16 +76,20 @@ async function startStudio() {
   );
   const service = registerDesktopHandlers({
     appearance,
+    language,
     startup: boot.startup,
     updates: (value) => {
       updates = value;
     },
   });
   await updates?.initialize();
-  registerNativeMenu(() => {
-    createStudioWindow().focus();
-    void updates?.check();
-  });
+  const rebuildMenu = () =>
+    registerNativeMenu(() => {
+      createStudioWindow().focus();
+      void updates?.check();
+    });
+  rebuildMenu();
+  language.subscribe(rebuildMenu);
   protocol.handle('studio-media', async (request) => {
     try {
       const url = new URL(request.url);

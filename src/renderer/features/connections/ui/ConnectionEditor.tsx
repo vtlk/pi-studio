@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useState } from 'react';
 import { Button } from '@/shared/ui';
@@ -21,6 +23,7 @@ export function ConnectionEditor({
   connection: Connection;
   onClose: () => void;
 }) {
+  useTranslation(undefined, { i18n });
   const [draft, setDraft] = useState(() =>
     connection.purpose === 'compatible' || connection.purpose === 'local'
       ? {
@@ -53,27 +56,27 @@ export function ConnectionEditor({
         isolatedAuth: true,
         loginMethods:
           draft.endpointConfig?.auth === 'api_key'
-            ? [{ id: 'api_key' as const, label: 'API-ключ' }]
+            ? [{ id: 'api_key' as const, label: t('ConnectionEditor.apiKey') }]
             : [],
       }
     : catalog?.providers.find((item) => item.id === draft.providerId);
   const save = async () => {
     if (!draft.name.trim() || !draft.providerId.trim())
-      throw new Error('Укажите название и провайдера подключения.');
+      throw new Error(t('ConnectionEditor.enterAConnectionNameAndProvider'));
     saveConnection(claudeCode ? { ...draft, authScope: 'native' } : draft);
-    if (!(await saveNow())) throw new Error('Сначала сохраните настройки подключения.');
+    if (!(await saveNow())) throw new Error(t('ConnectionEditor.saveConnectionSettingsFirst'));
   };
   const close = () => {
     if (!busy) onClose();
   };
   return (
     <Modal
-      title={connection.name || 'Добавить подключение'}
+      title={connection.name || t('ConnectionEditor.addConnection')}
       onClose={close}
       footer={
         <>
           <Button disabled={busy} onClick={close}>
-            Отмена
+            {t('TeamNameDialog.cancel')}
           </Button>
           <Button
             kind="primary"
@@ -93,19 +96,23 @@ export function ConnectionEditor({
                 }
                 onClose();
               } catch (error) {
-                demo(error instanceof Error ? error.message : 'Не удалось сохранить подключение.');
+                demo(
+                  error instanceof Error
+                    ? error.message
+                    : t('ConnectionEditor.couldNotSaveTheConnection'),
+                );
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Сохранить
+            {t('TeamNameDialog.save')}
           </Button>
         </>
       }
     >
       <label className="field-label">
-        Название
+        {t('ConnectionEditor.name')}
         <input
           disabled={busy || authActive}
           value={draft.name}
@@ -113,17 +120,17 @@ export function ConnectionEditor({
         />
       </label>
       <label className="field-label">
-        Назначение
+        {t('ConnectionEditor.purpose')}
         <Select
-          label="Назначение подключения"
+          label={t('ConnectionEditor.connectionPurpose')}
           value={draft.purpose}
           disabled={busy || authActive}
           options={[
-            { value: 'codex', label: 'Codex — подписка' },
+            { value: 'codex', label: t('ConnectionEditor.codexSubscription') },
             { value: 'images', label: 'OpenAI Images API' },
-            { value: 'pi', label: 'Провайдер Pi' },
-            { value: 'compatible', label: 'Совместимый endpoint' },
-            { value: 'local', label: 'Локальная модель' },
+            { value: 'pi', label: t('ConnectionEditor.piProvider') },
+            { value: 'compatible', label: t('ConnectionEditor.compatibleEndpoint') },
+            { value: 'local', label: t('ConnectionEditor.localModel') },
           ]}
           onValueChange={(purpose) => {
             setImageKey('');
@@ -155,20 +162,20 @@ export function ConnectionEditor({
       </label>
       {!custom && (
         <label className="field-label">
-          ID провайдера
+          {t('ConnectionEditor.providerId')}
           {window.studio && draft.purpose === 'pi' ? (
             <SearchableSelect
-              label="ID провайдера"
-              placeholder="Выберите провайдера"
-              searchPlaceholder="Найти провайдера"
-              emptyMessage="Провайдеры не найдены"
-              loadingMessage="Загружаем провайдеров…"
+              label={t('ConnectionEditor.providerId')}
+              placeholder={t('ConnectionEditor.selectAProvider')}
+              searchPlaceholder={t('ConnectionEditor.searchProviders')}
+              emptyMessage={t('ConnectionEditor.noProvidersFound')}
+              loadingMessage={t('ConnectionEditor.loadingProviders')}
               loading={loading}
               value={draft.providerId || 'none'}
               disabled={busy || authActive}
               options={[
                 ...(catalog?.providers.length
-                  ? [{ value: 'none', label: 'Выберите провайдера' }]
+                  ? [{ value: 'none', label: t('ConnectionEditor.selectAProvider') }]
                   : []),
                 ...(catalog?.providers.map((item) => ({
                   value: item.id,
@@ -179,7 +186,7 @@ export function ConnectionEditor({
                   ? [
                       {
                         value: draft.providerId,
-                        label: `${draft.providerId} · недоступен`,
+                        label: t('ModelPanel.unavailable', { value1: draft.providerId }),
                         disabled: true,
                       },
                     ]
@@ -225,30 +232,35 @@ export function ConnectionEditor({
                 await refreshImageConnection(draft.id);
               } catch (error) {
                 await refreshImageConnection(draft.id).catch(() => {});
-                demo(error instanceof Error ? error.message : 'Проверка не выполнена.');
+                demo(
+                  error instanceof Error ? error.message : t('ConnectionEditor.checkNotPerformed'),
+                );
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Проверить подключение
+            {t('ClaudeCodeAuth.checkConnection')}
           </Button>
         </>
       ) : (
         <>
           {!custom && (
             <label className="field-label">
-              Авторизация
+              {t('ConnectionEditor.authentication')}
               <Select
-                label="Область авторизации Pi"
+                label={t('ConnectionEditor.piAuthenticationScope')}
                 disabled={busy || authActive || claudeCode}
                 value={claudeCode ? 'native' : (draft.authScope ?? 'native')}
                 options={
                   claudeCode
-                    ? [{ value: 'native', label: 'Общий вход Claude Code CLI' }]
+                    ? [{ value: 'native', label: t('ConnectionEditor.sharedClaudeCodeCliLogin') }]
                     : [
-                        { value: 'connection', label: 'Отдельный вход для этого подключения' },
-                        { value: 'native', label: 'Общий вход Pi' },
+                        {
+                          value: 'connection',
+                          label: t('ConnectionEditor.separateLoginForThisConnection'),
+                        },
+                        { value: 'native', label: t('ConnectionEditor.sharedPiLogin') },
                       ]
                 }
                 onValueChange={(value) =>
@@ -297,7 +309,7 @@ export function ConnectionEditor({
                     demo(
                       error instanceof Error
                         ? error.message
-                        : 'Не удалось прочитать модели сервера.',
+                        : t('ConnectionEditor.couldNotReadTheServerSModels'),
                     );
                   } finally {
                     setBusy(false);
@@ -325,13 +337,12 @@ export function ConnectionEditor({
             />
           )}
           <Button disabled={loading || busy || authActive} onClick={() => void reload()}>
-            Загрузить каталог Pi
+            {t('ConnectionEditor.loadPiCatalog')}
           </Button>
         </>
       )}
       <p className="subtle">
-        При отказе или исчерпании лимита подключение не меняется автоматически. Секреты не входят в
-        проект и его снимки.
+        {t('ConnectionEditor.theConnectionNeverSwitchesAutomaticallyAfterA')}
       </p>
     </Modal>
   );

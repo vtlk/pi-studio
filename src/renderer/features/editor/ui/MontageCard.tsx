@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import type { OutputFile, ProjectAgent } from '@/features/project/model/workspace.types';
 import { inspectManifest } from '../model/manifest';
@@ -15,6 +17,7 @@ export function MontageCard({
   projectId: string;
   path: string[];
 }) {
+  useTranslation(undefined, { i18n });
   const [open, setOpen] = useState(false);
   const result = inspectManifest(file, agent.entries);
   if (open && result.ok)
@@ -28,19 +31,17 @@ export function MontageCard({
     );
   return (
     <section className="montage-card">
-      <h2>Монтажный проект</h2>
+      <h2>{t('MontageCard.montageProject')}</h2>
       <p>{result.ok ? result.name : file.name}</p>
-      <p className="prototype-note">
-        Пример документа · просмотр без ручных правок; реальный плеер и рендер не подключены
-      </p>
+      <p className="prototype-note">{t('MontageCard.exampleDocumentViewOnlyRealPlaybackAnd')}</p>
       {result.ok ? (
         <dl className="data-list">
-          <dt>Размер</dt>
+          <dt>{t('MontageCard.size')}</dt>
           <dd>1080 × 1920</dd>
-          <dt>Частота</dt>
+          <dt>{t('MontageCard.frameRate')}</dt>
           <dd>30 fps</dd>
-          <dt>Состояние</dt>
-          <dd>Совместимо с макетом интерфейса</dd>
+          <dt>{t('MontageCard.state')}</dt>
+          <dd>{t('MontageCard.compatibleWithTheUiPrototype')}</dd>
         </dl>
       ) : (
         <p role="alert" className="error-message">
@@ -48,10 +49,10 @@ export function MontageCard({
         </p>
       )}
       <Button kind="primary" disabled={!result.ok} onClick={() => setOpen(true)}>
-        Открыть монтаж
+        {t('MontageCard.openMontage')}
       </Button>
       <DisclosureList>
-        <Disclosure label="Манифест">
+        <Disclosure label={t('MontageCard.manifest')}>
           <pre className="output-text output-code">{file.content}</pre>
         </Disclosure>
       </DisclosureList>

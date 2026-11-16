@@ -1,3 +1,5 @@
+import { changeLanguage } from '../src/shared/i18n/index.ts';
+await changeLanguage('ru');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';

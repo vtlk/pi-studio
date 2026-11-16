@@ -1,3 +1,5 @@
+import { t, i18n, type MessageKey } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Inbox } from 'lucide-react';
 import { Button } from '@/shared/ui';
@@ -7,16 +9,17 @@ import { useConfirm } from '@/shared/model/Confirm';
 import type { WorkspaceProject } from '../../../../shared/project';
 import type { TeamMessageInfo } from '../../../../shared/teamMessages';
 
-const labels: Record<TeamMessageInfo['state'], string> = {
-  queued: 'В очереди',
-  dispatching: 'Отправляется',
-  received: 'Получатель выполняет поручение',
-  completed: 'Выполнено',
-  failed: 'Остановлено',
-  uncertain: 'Доставка не подтверждена',
-  cancelled: 'Отменено',
+const labels: Record<TeamMessageInfo['state'], MessageKey> = {
+  queued: 'TeamMessages.queued',
+  dispatching: 'TeamMessages.sending',
+  received: 'TeamMessages.recipientIsWorkingOnTheTask',
+  completed: 'MarkdownPreview.completed',
+  failed: 'TeamMessages.stopped',
+  uncertain: 'TeamMessages.deliveryUnconfirmed',
+  cancelled: 'TeamMessages.cancelled',
 };
 export function TeamMessages({ project }: { project: WorkspaceProject }) {
+  useTranslation(undefined, { i18n });
   const [messages, setMessages] = useState<TeamMessageInfo[]>([]);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
@@ -47,7 +50,7 @@ export function TeamMessages({ project }: { project: WorkspaceProject }) {
       await window.studio!.manageTeamMessage({ projectId: project.id, messageId: item.id, action });
       setMessages(await window.studio!.listTeamMessages(project.id));
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Не удалось изменить поручение.');
+      setError(error instanceof Error ? error.message : t('TeamMessages.couldNotChangeTheTask'));
     }
   };
   if (!pending.length && !open) return null;
@@ -55,45 +58,47 @@ export function TeamMessages({ project }: { project: WorkspaceProject }) {
     <>
       <Button kind="primary" onClick={() => setOpen(true)}>
         <Inbox size={17} />
-        Поручения · {pending.length}
+        {t('TeamMessages.tasks')}
+        {pending.length}
       </Button>
       {open && (
         <Modal
-          title="Поручения команды"
+          title={t('TeamMessages.teamTasks')}
           onClose={() => setOpen(false)}
-          footer={<Button onClick={() => setOpen(false)}>Закрыть</Button>}
+          footer={<Button onClick={() => setOpen(false)}>{t('TeamTransfers.close')}</Button>}
         >
           {error && <p role="alert">{error}</p>}
           <DisclosureList>
             {messages.map((item) => (
               <Disclosure
                 key={item.id}
-                label={`${name(item.senderId)} → ${name(item.recipientId)} · ${labels[item.state]}`}
+                label={`${name(item.senderId)} → ${name(item.recipientId)} · ${t(labels[item.state])}`}
               >
                 {item.reason && <p>{item.reason}</p>}
                 {item.requiresExplicitResume && (
-                  <p>После перезапуска доставка не продолжалась автоматически.</p>
+                  <p>{t('TeamMessages.deliveryDidNotResumeAutomaticallyAfterRestart')}</p>
                 )}
-                <p className="subtle">{new Date(item.createdAt).toLocaleString('ru-RU')}</p>
+                <p className="subtle">
+                  {new Date(item.createdAt).toLocaleString(i18n.resolvedLanguage)}
+                </p>
                 {item.preview && <p>{item.preview}</p>}
                 {item.state === 'queued' && item.requiresExplicitResume && (
                   <Button kind="primary" onClick={() => void act(item, 'resume')}>
-                    Продолжить поручение
+                    {t('TeamMessages.resumeTask')}
                   </Button>
                 )}
                 {['queued', 'uncertain', 'failed'].includes(item.state) && (
                   <Button
                     onClick={() =>
                       confirm({
-                        title: 'Отменить поручение?',
-                        description:
-                          'Убрать поручение из очереди без повторной отправки? Уже полученное задание и диалог Pi сохранятся; работающий агент не прерывается.',
-                        confirmLabel: 'Отменить поручение',
+                        title: t('TeamMessages.cancelTask'),
+                        description: t('TeamMessages.removeThisTaskFromTheQueueWithout'),
+                        confirmLabel: t('TeamMessages.cancelTask2'),
                         onConfirm: () => act(item, 'cancel'),
                       })
                     }
                   >
-                    Отменить поручение
+                    {t('TeamMessages.cancelTask2')}
                   </Button>
                 )}
               </Disclosure>

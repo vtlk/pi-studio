@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
 import { getStudioApi } from '@/shared/desktopApi';
 import { Button } from '@/shared/ui';
@@ -18,6 +20,7 @@ export function ClaudeCodeAuth({
   setBusy: (value: boolean) => void;
   beforeAuth: () => Promise<void>;
 }) {
+  useTranslation(undefined, { i18n });
   const { bootstrap } = useStorage();
   const { setProviderStatus } = useConnections();
   const { confirm } = useConfirm();
@@ -44,48 +47,44 @@ export function ClaudeCodeAuth({
       await beforeAuth();
       if (action && folder) {
         await getStudioApi().manageClaudeCode({ folder, connectionId, action });
-        demo('Завершите действие в Terminal и нажмите «Проверить подключение».');
+        demo(t('ClaudeCodeAuth.finishTheActionInTerminalAndClick'));
       } else await check();
     } catch (error) {
-      demo(error instanceof Error ? error.message : 'Не удалось проверить Claude Code.');
+      demo(error instanceof Error ? error.message : t('ClaudeCodeAuth.couldNotCheckClaudeCode'));
     } finally {
       setBusy(false);
     }
   };
   return (
     <>
-      <p>
-        Общий вход официального Claude Code CLI. Он используется всеми подключениями Claude Code на
-        этом Mac.
-      </p>
+      <p>{t('ClaudeCodeAuth.sharedLoginThroughTheOfficialClaudeCode')}</p>
       <p role="status">
         {status?.status === 'ready'
-          ? 'Подключено через Claude Code.'
-          : (status?.detail ?? 'Сохраните подключение и проверьте Claude Code.')}
+          ? t('ClaudeCodeAuth.connectedThroughClaudeCode')
+          : (status?.detail ?? t('ClaudeCodeAuth.saveTheConnectionAndCheckClaudeCode'))}
       </p>
       {status?.status === 'ready' && <p className="subtle">{status.detail}</p>}
       <div className="action-row">
         <Button kind="primary" disabled={busy || !folder} onClick={() => void perform('login')}>
-          Войти через Claude Code
+          {t('ClaudeCodeAuth.signInThroughClaudeCode')}
         </Button>
         <Button disabled={busy || !folder} onClick={() => void perform()}>
-          Проверить подключение
+          {t('ClaudeCodeAuth.checkConnection')}
         </Button>
         <Button disabled={busy || !folder} onClick={() => void perform('install')}>
-          Установить Claude Code
+          {t('ClaudeCodeAuth.installClaudeCode')}
         </Button>
         <Button
           disabled={busy || !folder}
           onClick={() =>
             confirm({
-              title: 'Выйти из общего аккаунта Claude Code?',
-              description:
-                'Штатный выход CLI затронет все подключения Claude Code на этом Mac. Проекты и диалоги сохранятся.',
+              title: t('ClaudeCodeAuth.signOutOfTheSharedClaudeCode'),
+              description: t('ClaudeCodeAuth.theCliSignOutAffectsAllClaude'),
               onConfirm: () => void perform('logout'),
             })
           }
         >
-          Выйти из Claude Code
+          {t('ClaudeCodeAuth.signOutOfClaudeCode')}
         </Button>
       </div>
     </>

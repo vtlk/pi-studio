@@ -1,3 +1,6 @@
+import type { LanguagePreferences } from '../appearance/LanguagePreferences';
+import { registerLanguage } from '../appearance/registerLanguage';
+import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from './desktopInvoke.ts';
 import { registerTeamMessageHandlers } from '../team-mcp/registerTeamMessageHandlers';
 import { TeamSupport } from '../team-mcp/TeamSupport';
@@ -13,7 +16,7 @@ import { registerProjectActions } from '../storage/registerProjectActions';
 import { registerProjectQueries } from '../storage/registerProjectQueries';
 import { UsageRecovery } from '../accounting/UsageRecovery';
 import { withReadDeadline } from '../storage/files';
-import { checkPi } from '../pi/checkPi';
+import { registerStartupHandlers } from '../pi/registerStartupHandlers';
 import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
 import { BrowserAuth } from '../pi/BrowserAuth';
@@ -52,10 +55,12 @@ import { registerAppearance } from '../appearance/registerAppearance';
 export function registerDesktopHandlers(
   options: {
     appearance?: ThemePreferences;
+    language?: LanguagePreferences;
     startup?: UpdateStartup;
     updates?: (updates: NativeUpdates) => void;
   } = {},
 ): StudioService {
+  if (options.language) registerLanguage(options.language, caller);
   if (options.appearance) registerAppearance(options.appearance, caller);
   const service = new StudioService(
     join(app.getPath('userData'), 'workspace.json'),
@@ -178,6 +183,7 @@ export function registerDesktopHandlers(
       browser,
       usageRecovery,
       team,
+      ...(options.language ? [options.language] : []),
       ...(options.appearance ? [options.appearance] : []),
     ],
     {
@@ -231,34 +237,10 @@ export function registerDesktopHandlers(
         runtimeConnected: runs.connected,
       }) satisfies DesktopInfo,
   );
-  handleDesktopInvoke(desktopChannels.getStartup, (event) => {
-    caller(event);
-    return startup.read();
-  });
-  handleDesktopInvoke(desktopChannels.retryStartup, (event) => {
-    caller(event);
-    return startup.retry();
-  });
-  handleDesktopInvoke(desktopChannels.skipStartup, (event) => {
-    caller(event);
-    return startup.skip();
-  });
-  handleDesktopInvoke(desktopChannels.chooseStartupPi, async (event) => {
-    const result = await dialog.showOpenDialog(caller(event), {
-      title: 'Выберите установленный Pi',
-      properties: ['openFile'],
-    });
-    if (result.canceled || !result.filePaths[0]) return null;
-    const state = await startup.choose(result.filePaths[0]);
-    await service.serialize(async () =>
-      (await service.load()).saveSection('piPath', state.pi!.path),
-    );
-    return state;
-  });
-  handle(desktopChannels.checkPi, (_event, path: string) => checkPi(path || startup.path));
+  registerStartupHandlers(service, startup, caller);
   handle(desktopChannels.chooseSkill, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
-      title: 'Папка skill или SKILL.md',
+      title: t('registerDesktopHandlers.skillFolderOrSkillMd'),
       properties: ['openDirectory', 'openFile'],
     });
     if (result.canceled || !result.filePaths[0]) return null;
@@ -277,7 +259,7 @@ export function registerDesktopHandlers(
     const resource = resources?.find(
       (item) => item.id === id && item.kind === 'skills' && item.localSkill,
     );
-    if (!resource) throw new Error('Локальный skill не найден в каталоге.');
+    if (!resource) throw new Error(t('registerDesktopHandlers.localSkillNotFoundInTheCatalog'));
     return inspectSkill(resource.source);
   });
   handle(desktopChannels.saveSkill, async (_event, request: SkillWriteRequest) =>
@@ -298,7 +280,7 @@ export function registerDesktopHandlers(
       /* Let the user recover by explicitly choosing another studio. */
     }
     const result = await dialog.showOpenDialog(caller(event), {
-      title: 'Папка Pi Studio',
+      title: t('registerDesktopHandlers.piStudioFolder'),
       properties: ['openDirectory', 'createDirectory'],
       defaultPath,
     });
@@ -334,7 +316,8 @@ export function registerDesktopHandlers(
     } catch (error) {
       return {
         ok: false,
-        error: error instanceof Error ? error.message : 'Не удалось прочитать монтаж.',
+        error:
+          error instanceof Error ? error.message : t('useVideoInspection.couldNotReadTheMontage'),
       };
     }
   });

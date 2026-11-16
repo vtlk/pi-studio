@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { dialog, nativeImage, type BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
@@ -16,7 +17,7 @@ export function registerReferenceHandlers(
   });
   handleDesktopInvoke(desktopChannels.chooseReferenceFiles, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
-      title: 'Файлы референса',
+      title: t('ReferenceAttachments.referenceFiles'),
       properties: ['openFile', 'multiSelections'],
     });
     if (result.canceled) return [];

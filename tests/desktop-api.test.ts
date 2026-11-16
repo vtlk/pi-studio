@@ -9,7 +9,7 @@ test('native access returns the exact preload bridge and reports a missing bridg
     else Reflect.deleteProperty(globalThis, 'window');
   });
   Object.defineProperty(globalThis, 'window', { value: {}, configurable: true });
-  assert.throws(getStudioApi, /Нативное подключение Pi Studio недоступно/);
+  assert.throws(getStudioApi, /native Pi Studio connection is unavailable/);
   const api = Object.freeze({ marker: 'isolated preload fixture' });
   Object.defineProperty(globalThis, 'window', { value: { studio: api }, configurable: true });
   assert.equal(getStudioApi(), api);

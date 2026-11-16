@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui';
 import { useConfirm } from '@/shared/model/Confirm';
 import { useNotice } from '@/shared/model/Notice';
@@ -19,6 +21,7 @@ export function ImageKeyFields({
   busy: boolean;
   setBusy: (value: boolean) => void;
 }) {
+  useTranslation(undefined, { i18n });
   const { bootstrap } = useStorage();
   const { imageStatuses, refreshImageConnection } = useConnections();
   const status = imageStatuses[id];
@@ -26,38 +29,35 @@ export function ImageKeyFields({
     { demo } = useNotice();
   return (
     <>
-      <p>
-        Images API оплачивается отдельно от подписки. Сохранение ключа и проверка каталога не
-        генерируют изображения.
-      </p>
+      <p>{t('ImageKeyFields.theImagesApiIsBilledSeparatelyFrom')}</p>
       <label className="field-label">
-        API-ключ
+        {t('ConnectionEditor.apiKey')}
         <input
           type="password"
-          aria-label="API-ключ изображений"
+          aria-label={t('ImageKeyFields.imagesApiKey')}
           autoComplete="off"
           spellCheck={false}
           value={value}
           disabled={!window.studio || busy}
           placeholder={
-            status?.keyStored ? 'Ключ сохранён · введите новый для замены' : 'Введите API-ключ'
+            status?.keyStored
+              ? t('ImageKeyFields.keySavedEnterANewKeyTo')
+              : t('ImageKeyFields.enterAnApiKey')
           }
           onChange={(event) => setValue(event.target.value)}
         />
       </label>
-      <p className="subtle">
-        Ключ защищён хранилищем macOS, сохраняется на этом Mac и не возвращается в окно приложения.
-        Новое значение применяется кнопкой «Сохранить».
-      </p>
+      <p className="subtle">{t('ImageKeyFields.theKeyIsProtectedByMacosStorage')}</p>
       {status?.keyStored && (
         <Button
           disabled={busy}
           onClick={() =>
             confirm({
-              title: `Удалить API-ключ подключения «${name.trim() || id}»?`,
-              description:
-                'Ключ будет удалён с этого Mac. Подключение и ссылки агентов останутся; для генерации понадобится ввести ключ заново.',
-              confirmLabel: 'Удалить ключ',
+              title: t('ImageKeyFields.deleteTheApiKeyForConnection', {
+                value1: name.trim() || id,
+              }),
+              description: t('ImageKeyFields.theKeyWillBeRemovedFromThis'),
+              confirmLabel: t('ImageKeyFields.deleteKey'),
               onConfirm: () => {
                 if (!window.studio || !bootstrap) return;
                 setBusy(true);
@@ -68,27 +68,31 @@ export function ImageKeyFields({
                     await refreshImageConnection(id);
                   })
                   .catch((error) =>
-                    demo(error instanceof Error ? error.message : 'Не удалось удалить ключ.'),
+                    demo(
+                      error instanceof Error
+                        ? error.message
+                        : t('ImageKeyFields.couldNotDeleteTheKey'),
+                    ),
                   )
                   .finally(() => setBusy(false));
               },
             })
           }
         >
-          Удалить сохранённый ключ
+          {t('ImageKeyFields.deleteSavedKey')}
         </Button>
       )}
       {status && (
         <p role="status">
           {!status.keyStored
-            ? 'Ключ не сохранён.'
+            ? t('ImageKeyFields.keyNotSaved')
             : status.authentication === 'ready'
-              ? 'Ключ принят API. Доступ к генерации проверяется только при её вызове.'
+              ? t('ImageKeyFields.keyAcceptedByTheApiGenerationAccess')
               : status.authentication === 'invalid'
-                ? 'API не принял ключ.'
+                ? t('ImageKeyFields.theApiRejectedTheKey')
                 : status.authentication === 'restricted'
-                  ? 'API ограничил доступ. Проверьте разрешения ключа и проекта OpenAI.'
-                  : 'Ключ сохранён. Авторизация ещё не проверена.'}
+                  ? t('ImageKeyFields.theApiRestrictedAccessCheckTheKey')
+                  : t('ImageKeyFields.keySavedAuthenticationHasNotBeenChecked')}
         </p>
       )}
     </>

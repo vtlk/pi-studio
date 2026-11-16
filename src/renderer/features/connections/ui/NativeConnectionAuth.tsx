@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui';
@@ -25,6 +27,7 @@ export function NativeConnectionAuth({
   onActiveChange: (value: boolean) => void;
   beforeAuth: () => Promise<void>;
 }) {
+  useTranslation(undefined, { i18n });
   const { bootstrap } = useStorage();
   const { confirm } = useConfirm();
   const { demo } = useNotice();
@@ -73,7 +76,11 @@ export function NativeConnectionAuth({
           },
           () => {
             if (current)
-              setAuth({ id, phase: 'error', message: 'Не удалось проверить состояние входа.' });
+              setAuth({
+                id,
+                phase: 'error',
+                message: t('NativeConnectionAuth.couldNotCheckSignInStatus'),
+              });
           },
         );
     }, 500);
@@ -94,19 +101,25 @@ export function NativeConnectionAuth({
       await beforeAuth();
       await action();
     } catch (error) {
-      demo(error instanceof Error ? error.message : 'Не удалось настроить подключение.');
+      demo(
+        error instanceof Error
+          ? error.message
+          : t('NativeConnectionAuth.couldNotConfigureTheConnection'),
+      );
     } finally {
       setBusy(false);
     }
   };
   return (
     <>
-      {connection.purpose === 'codex' && <p>Вход через ChatGPT · лимиты подписки</p>}
+      {connection.purpose === 'codex' && (
+        <p>{t('NativeConnectionAuth.signInThroughChatgptSubscriptionLimits')}</p>
+      )}
       {methods.length > 1 && (
         <label className="field-label">
-          Способ входа
+          {t('NativeConnectionAuth.signInMethod')}
           <Select
-            label="Способ входа Pi"
+            label={t('NativeConnectionAuth.piSignInMethod')}
             value={selectedMethod!}
             disabled={busy || active}
             options={methods.map((item) => ({ value: item.id, label: item.label }))}
@@ -116,15 +129,14 @@ export function NativeConnectionAuth({
       )}
       {!isolatedSupported && (
         <p role="status">
-          Для этого провайдера требуется конфигурация Pi. Отдельный вход пока недоступен; общий вход
-          Pi выбирается явно.
+          {t('NativeConnectionAuth.thisProviderRequiresPiConfigurationSeparateSign')}
         </p>
       )}
       {methods.length === 0 && (
         <p className="subtle">
           {keyless
-            ? 'Сервер выбран без авторизации; ключи других подключений не используются.'
-            : 'У этого провайдера нет формы входа. Используйте его штатное окружение или конфигурацию Pi и проверьте подключение.'}
+            ? t('NativeConnectionAuth.theServerUsesNoAuthenticationKeysFrom')
+            : t('NativeConnectionAuth.thisProviderHasNoSignInForm')}
         </p>
       )}
       {!keyless && (
@@ -148,14 +160,13 @@ export function NativeConnectionAuth({
             })
           }
         >
-          {connection.purpose === 'codex' ? 'Войти через ChatGPT' : 'Войти через Pi'}
+          {connection.purpose === 'codex'
+            ? t('NativeConnectionAuth.signInThroughChatgpt')
+            : t('NativeConnectionAuth.signInThroughPi')}
         </Button>
       )}
       {!keyless && (
-        <p className="subtle">
-          Перед входом запись подключения сохраняется. Авторизацию и обновление токенов выполняет
-          Pi.
-        </p>
+        <p className="subtle">{t('NativeConnectionAuth.theConnectionRecordIsSavedBeforeSign')}</p>
       )}
       {auth && (
         <p
@@ -167,20 +178,20 @@ export function NativeConnectionAuth({
       )}
       {auth?.prompt && (
         <label className="field-label">
-          {auth.prompt.message ?? 'Ответ для входа Pi'}
+          {auth.prompt.message ?? t('NativeConnectionAuth.piSignInResponse')}
           {auth.prompt.options ? (
             <Select
-              label="Ответ для входа Pi"
+              label={t('NativeConnectionAuth.piSignInResponse')}
               value={answer || 'none'}
               options={[
-                { value: 'none', label: 'Выберите вариант' },
+                { value: 'none', label: t('NativeConnectionAuth.selectAnOption') },
                 ...auth.prompt.options.map((item) => ({ value: item.id, label: item.label })),
               ]}
               onValueChange={(value) => setAnswer(value === 'none' ? '' : value)}
             />
           ) : (
             <input
-              aria-label="Ответ для входа Pi"
+              aria-label={t('NativeConnectionAuth.piSignInResponse')}
               type={auth.prompt.secret ? 'password' : 'text'}
               autoComplete="off"
               value={answer}
@@ -197,17 +208,19 @@ export function NativeConnectionAuth({
                 setAuth({
                   id: auth.id,
                   phase: 'error',
-                  message: 'Ответ не принят. Повторите вход.',
+                  message: t('NativeConnectionAuth.responseRejectedSignInAgain'),
                 });
               }
             }}
           >
-            Продолжить вход
+            {t('NativeConnectionAuth.continueSignIn')}
           </Button>
         </label>
       )}
       {active && auth && (
-        <Button onClick={() => void window.studio?.cancelAuthLogin(auth.id)}>Отменить вход</Button>
+        <Button onClick={() => void window.studio?.cancelAuthLogin(auth.id)}>
+          {t('NativeConnectionAuth.cancelSignIn')}
+        </Button>
       )}
       <div className="action-row">
         <Button
@@ -225,18 +238,20 @@ export function NativeConnectionAuth({
             })
           }
         >
-          Проверить подключение
+          {t('ClaudeCodeAuth.checkConnection')}
         </Button>
         {!keyless && (
           <Button
             disabled={!window.studio || !request || busy || active || !matches}
             onClick={() =>
               confirm({
-                title: `Удалить сохранённый вход подключения «${connection.name.trim() || connection.id}»?`,
+                title: t('NativeConnectionAuth.deleteTheSavedLoginForConnection', {
+                  value1: connection.name.trim() || connection.id,
+                }),
                 description:
                   connection.authScope === 'connection'
-                    ? 'Pi удалит локальную авторизацию только этого подключения. Проекты и диалоги сохранятся. Это не отзыв доступа на стороне сервиса.'
-                    : 'Удалится общий вход этого провайдера в Pi. Другие подключения с общим входом тоже потребуют авторизацию. Проекты и диалоги сохранятся.',
+                    ? t('NativeConnectionAuth.piWillRemoveLocalAuthenticationForThis')
+                    : t('NativeConnectionAuth.theSharedPiLoginForThisProvider'),
                 onConfirm: () =>
                   void perform(async () => {
                     await getStudioApi().removeConnectionLogin(request!);
@@ -245,22 +260,22 @@ export function NativeConnectionAuth({
               })
             }
           >
-            Удалить сохранённый вход
+            {t('NativeConnectionAuth.deleteSavedLogin')}
           </Button>
         )}
       </div>
       <p role="status">
         {status === 'ready'
-          ? 'Подключено через Pi.'
+          ? t('NativeConnectionAuth.connectedThroughPi')
           : status === 'not_ready'
-            ? 'Pi: требуется вход.'
+            ? t('NativeConnectionAuth.piSignInRequired')
             : status === 'invalid'
-              ? 'Pi: ошибка авторизации.'
+              ? t('NativeConnectionAuth.piAuthenticationError')
               : status === 'checking'
-                ? 'Проверяем подключение…'
+                ? t('ConnectionsPanel.checkingConnection')
                 : status === 'unavailable'
-                  ? 'Не удалось проверить подключение.'
-                  : 'Авторизация ещё не проверена.'}
+                  ? t('NativeConnectionAuth.couldNotCheckTheConnection')
+                  : t('NativeConnectionAuth.authenticationHasNotBeenChecked')}
       </p>
     </>
   );

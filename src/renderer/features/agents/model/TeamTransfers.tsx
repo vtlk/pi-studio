@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { TeamTransfersContext } from './TeamTransfers.context';
 import { useStorage } from '@/shared/storage/Storage';
@@ -20,6 +22,7 @@ export interface TeamTransfersValue {
   continueImport(id: string): Promise<void>;
 }
 export function TeamTransfersProvider({ children }: { children: ReactNode }) {
+  useTranslation(undefined, { i18n });
   const { bootstrap, saveNow } = useStorage();
   const { teams } = useAgentProfiles();
   const { demo } = useNotice();
@@ -40,7 +43,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
       if (mounted.current && !active.current && epoch.current === readEpoch) setReports(value);
     } catch (error) {
       if (mounted.current && epoch.current === readEpoch)
-        setMessage(error instanceof Error ? error.message : 'Не прочитаны импорты.');
+        setMessage(error instanceof Error ? error.message : t('TeamTransfers.couldNotReadImports'));
     }
   }, [folder]);
   useEffect(() => {
@@ -62,10 +65,10 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     return (
       result.message ??
       (result.outcome === 'opened'
-        ? 'Пакет сохранён. Помощник открыт для настройки команды.'
+        ? t('TeamTransfers.packageSavedTheAssistantIsOpenTo')
         : result.outcome === 'needs_configuration'
-          ? 'Пакет сохранён. Сначала настройте модель помощника.'
-          : 'Пакет сохранён. Передача задания не подтверждена; автоматического повтора нет. Продолжите в открытом диалоге помощника.')
+          ? t('TeamTransfers.packageSavedConfigureTheAssistantSModel')
+          : t('TeamTransfers.packageSavedTaskDeliveryIsUnconfirmedIt'))
     );
   };
   const action = async (task: () => Promise<string | undefined>, notify = false) => {
@@ -76,14 +79,14 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     setMessage('');
     let text: string | undefined;
     try {
-      if (!(await saveNow())) throw new Error('Дождитесь сохранения настроек.');
+      if (!(await saveNow())) throw new Error(t('TeamTransfers.waitForSettingsToFinishSaving'));
       if (!mounted.current) return;
       text = await task();
     } catch (error) {
       text =
         error instanceof Error
           ? error.message.replace(/^Error invoking remote method '[^']+': (?:Error: )?/, '')
-          : 'Операция не завершена.';
+          : t('TeamTransfers.theOperationDidNotComplete');
     } finally {
       active.current = false;
       if (mounted.current) {
@@ -95,7 +98,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     setMessage(text);
     if (notify)
       demo(text, {
-        label: 'Отчёт',
+        label: t('TeamTransfers.report'),
         onClick: () => {
           setDetails(true);
           void refreshReports();
@@ -111,10 +114,16 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     exportTeam: (id, notify) =>
       action(async () => {
         // The stable ID is captured by the row, not inferred from a label or selected profile.
-        if (!teams.some((team) => team.id === id)) throw new Error('Команда отсутствует.');
+        if (!teams.some((team) => team.id === id))
+          throw new Error(t('TeamTransfers.theTeamIsUnavailable'));
         const result = await window.studio!.exportAgentTeam({ folder: folder!, teamId: id });
         return result
-          ? `Пакет сохранён.${result.requirements.length ? ' Внешние зависимости перечислены в manifest: ' + result.requirements.join(' ') : ''}`
+          ? t('TeamTransfers.packageSaved', {
+              value1: result.requirements.length
+                ? t('TeamTransfers.externalDependenciesAreListedInTheManifest') +
+                  result.requirements.join(' ')
+                : '',
+            })
           : undefined;
       }, notify),
     importTeam: (notify) =>
@@ -133,9 +142,9 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
       {children}
       {details && !configure && (
         <Modal
-          title="Перенос команд"
+          title={t('TeamTransfers.transferTeams')}
           onClose={() => setDetails(false)}
-          footer={<Button onClick={() => setDetails(false)}>Закрыть</Button>}
+          footer={<Button onClick={() => setDetails(false)}>{t('TeamTransfers.close')}</Button>}
         >
           <TeamTransferFeedback {...value} />
         </Modal>
@@ -147,6 +156,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   );
 }
 export function useTeamTransfers() {
+  useTranslation(undefined, { i18n });
   const value = useContext(TeamTransfersContext);
   if (!value) throw new Error('TeamTransfersProvider is missing');
   return value;

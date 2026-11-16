@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-16T13:28:35.792Z",
+  "nativeMainPreloadRenderer": true,
+  "phases": [
+    {
+      "phase": "system-ru",
+      "initialLanguage": "ru",
+      "explicitChoiceSurvivesRestart": false,
+      "launches": 0,
+      "errors": []
+    },
+    {
+      "phase": "fallback",
+      "initialLanguage": "en",
+      "explicitChoiceSurvivesRestart": false,
+      "launches": 0,
+      "errors": []
+    },
+    {
+      "phase": "saved",
+      "initialLanguage": "ru",
+      "explicitChoiceSurvivesRestart": true,
+      "launches": 0,
+      "errors": []
+    }
+  ],
+  "installedAppChanged": false,
+  "userDataChanged": false,
+  "osLanguageChanged": false,
+  "nativeWindowsAccepted": false,
+  "isolatedSourceTree": "60486e03480bceee36689d64eec2398872f95e73",
+  "isolatedSourceChecks": {
+    "unitTestsPassed": 329,
+    "typecheck": true,
+    "lint": true,
+    "architecture": true,
+    "nativeBuildGuard": true
+  },
+  "workspaceUnitTestsPassed": 348
+}

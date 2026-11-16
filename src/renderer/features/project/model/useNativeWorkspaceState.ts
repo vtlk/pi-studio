@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { teamAgents } from '../../../../shared/agentTeams';
 import { getStudioApi } from '@/shared/desktopApi';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -9,6 +11,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { useProjectUsage } from './useProjectUsage';
 
 export function useNativeWorkspaceState() {
+  useTranslation(undefined, { i18n });
   const { bootstrap, isDesktop, saveNow } = useStorage();
   const { catalog } = useAgentProfiles();
   const { demo } = useNotice();
@@ -33,7 +36,7 @@ export function useNativeWorkspaceState() {
   ) => {
     if (!window.studio || mutating.current) return undefined;
     if (!(await saveNow())) {
-      demo('Сначала сохраните текущие изменения настроек.');
+      demo(t('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
       return undefined;
     }
     if (mutating.current) return undefined;
@@ -53,7 +56,7 @@ export function useNativeWorkspaceState() {
       );
       return result.project.agents.find((agent) => agent.profile.id === agentId)?.session;
     } catch (error) {
-      demo(error instanceof Error ? error.message : 'Не удалось открыть Pi.');
+      demo(error instanceof Error ? error.message : t('useNativeWorkspaceState.couldNotOpenPi'));
       return undefined;
     } finally {
       mutating.current = false;
@@ -80,7 +83,9 @@ export function useNativeWorkspaceState() {
         );
       return true;
     } catch (error) {
-      demo(error instanceof Error ? error.message : 'Ошибка файловой операции.');
+      demo(
+        error instanceof Error ? error.message : t('useNativeWorkspaceState.fileOperationError'),
+      );
       return false;
     } finally {
       mutating.current = false;
@@ -106,7 +111,9 @@ export function useNativeWorkspaceState() {
       );
     } catch (error) {
       if (version !== generation.current) return;
-      const message = `Не удалось прочитать результаты: ${error instanceof Error ? error.message : 'ошибка'}`;
+      const message = t('useNativeWorkspaceState.couldNotReadResults', {
+        value1: error instanceof Error ? error.message : t('useNativeWorkspaceState.error'),
+      });
       if (lastReadError.current !== message) demo(message);
       lastReadError.current = message;
     } finally {
@@ -128,14 +135,18 @@ export function useNativeWorkspaceState() {
       setProjects((previous) => previous.map((item) => (item.id === project.id ? project : item)));
       demo(
         target === 'dialogue'
-          ? 'Диалог удалён. Можно запустить новый.'
+          ? t('useNativeWorkspaceState.dialogueDeletedYouCanStartANew')
           : target === 'files'
-            ? 'Файлы агента перемещены в Корзину macOS. Диалог сохранён.'
-            : 'Диалог и файлы агента удалены. Можно запустить заново.',
+            ? t('useNativeWorkspaceState.agentFilesMovedToMacosTrashDialogue')
+            : t('useNativeWorkspaceState.agentDialogueAndFilesDeletedYouCan'),
       );
       return true;
     } catch (error) {
-      demo(error instanceof Error ? error.message : 'Не удалось удалить данные агента.');
+      demo(
+        error instanceof Error
+          ? error.message
+          : t('useNativeWorkspaceState.couldNotDeleteAgentData'),
+      );
       return false;
     } finally {
       mutating.current = false;

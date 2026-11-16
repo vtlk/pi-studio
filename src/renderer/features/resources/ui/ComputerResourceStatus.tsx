@@ -1,9 +1,12 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getStudioApi } from '@/shared/desktopApi';
 import { Button } from '@/shared/ui';
 import type { ComputerState } from '../../../../shared/computer';
 
 export function ComputerResourceStatus() {
+  useTranslation(undefined, { i18n });
   const mac = !navigator.platform.startsWith('Win');
   const [state, setState] = useState<ComputerState>();
   const [busy, setBusy] = useState(false);
@@ -21,7 +24,8 @@ export function ComputerResourceStatus() {
         setError('');
       }
     } catch {
-      if (request === counter.value) setError('Не удалось проверить разрешения macOS.');
+      if (request === counter.value)
+        setError(t('ComputerResourceStatus.couldNotCheckMacosPermissions'));
     }
   }, []);
   useEffect(() => {
@@ -44,7 +48,7 @@ export function ComputerResourceStatus() {
       setRestart(true);
       await refresh();
     } catch {
-      setError('Не удалось открыть разрешения системы.');
+      setError(t('ComputerResourceStatus.couldNotOpenSystemPermissions'));
     } finally {
       setBusy(false);
     }
@@ -55,19 +59,26 @@ export function ComputerResourceStatus() {
         {error ||
           state?.message ||
           (!window.studio
-            ? 'Разрешения доступны в приложении macOS.'
+            ? t('ComputerResourceStatus.permissionsAreAvailableInTheMacosApp')
             : state?.phase === 'ready'
-              ? 'Доступ к управлению компьютером подтверждён.'
+              ? t('ComputerResourceStatus.computerControlAccessConfirmed')
               : state
                 ? mac
-                  ? 'Для управления компьютером разрешите доступ Pi Studio в macOS.'
-                  : 'Доступ Computer Use на Windows не подтверждён.'
-                : 'Проверяем разрешения…')}
+                  ? t('ComputerResourceStatus.allowPiStudioAccessInMacosTo')
+                  : t('ComputerResourceStatus.computerUseAccessOnWindowsIsUnverified')
+                : t('ComputerResourceStatus.checkingPermissions'))}
       </p>
       {mac && state?.permissions && (
         <p className="subtle">
-          Универсальный доступ: {state.permissions.accessibility ? 'разрешён' : 'не разрешён'}.{' '}
-          Запись экрана: {state.permissions.screenRecording ? 'разрешена' : 'не разрешена'}.
+          {t('ComputerResourceStatus.accessibility')}
+          {state.permissions.accessibility
+            ? t('ComputerResourceStatus.allowed')
+            : t('ComputerResourceStatus.notAllowed')}
+          . {t('ComputerResourceStatus.screenRecording')}
+          {state.permissions.screenRecording
+            ? t('ComputerResourceStatus.allowed2')
+            : t('ComputerResourceStatus.notAllowed2')}
+          .
         </p>
       )}
       {mac && window.studio && state?.phase === 'permissions_required' && (
@@ -79,7 +90,7 @@ export function ComputerResourceStatus() {
               void action();
             }}
           >
-            Разрешить доступ
+            {t('ComputerResourceStatus.allowAccess')}
           </Button>
           {!state.permissions?.accessibility && (
             <Button
@@ -88,7 +99,7 @@ export function ComputerResourceStatus() {
                 void action('accessibility');
               }}
             >
-              Универсальный доступ
+              {t('ComputerResourceStatus.accessibility2')}
             </Button>
           )}
           {!state.permissions?.screenRecording && (
@@ -98,14 +109,14 @@ export function ComputerResourceStatus() {
                 void action('screen-recording');
               }}
             >
-              Запись экрана
+              {t('ComputerResourceStatus.screenRecording2')}
             </Button>
           )}
         </div>
       )}
       {restart && (
         <p className="subtle">
-          После изменения разрешений сохраните работу и перезапустите Pi Studio.
+          {t('ComputerResourceStatus.afterChangingPermissionsSaveYourWorkAnd')}
         </p>
       )}
       {window.studio && (
@@ -116,7 +127,7 @@ export function ComputerResourceStatus() {
               void refresh();
             }}
           >
-            Проверить разрешения
+            {t('ComputerResourceStatus.checkPermissions')}
           </Button>
         </div>
       )}

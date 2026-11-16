@@ -1,18 +1,28 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
 import type { Resource } from '../../../../shared/resources';
 
 export function resourceStatus(resource: Resource, native: boolean) {
-  if (!native) return 'Пример · не подключён';
+  if (!native) return t('resourceStatus.exampleNotConnected');
   if (!resource.check)
-    return resource.localSkill ? 'Локальный skill · загрузка при запуске' : 'Не проверен';
+    return resource.localSkill
+      ? t('resourceStatus.localSkillLoadsAtLaunch')
+      : t('resourceStatus.unchecked');
   const labels = {
-    available: 'Доступен',
-    needs_auth: 'Нужен вход',
-    unavailable: 'Недоступен',
-    disabled: 'Выключен в Pi',
+    available: t('resourceStatus.available'),
+    needs_auth: t('resourceStatus.signInRequired'),
+    unavailable: t('CapabilitiesPanel.unavailable'),
+    disabled: t('resourceStatus.disabledInPi'),
   };
-  const date = new Date(resource.check.checkedAt).toLocaleString('ru-RU', {
+  const date = new Date(resource.check.checkedAt).toLocaleString(i18n.resolvedLanguage, {
     dateStyle: 'short',
     timeStyle: 'short',
   });
-  return `${labels[resource.check.status]} · проверка ${date}${resource.check.toolCount === undefined ? '' : ` · инструментов: ${resource.check.toolCount}`}`;
+  return t('resourceStatus.checked', {
+    value1: labels[resource.check.status],
+    value2: date,
+    value3:
+      resource.check.toolCount === undefined
+        ? ''
+        : t('resourceStatus.tools', { value1: resource.check.toolCount }),
+  });
 }

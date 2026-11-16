@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import type { VideoProjectInspection } from '../../../../shared/video';
 import { Button } from '@/shared/ui';
@@ -10,12 +12,13 @@ export function NativeMontageCard({
   result: VideoProjectInspection | undefined;
   documentKey: string;
 }) {
+  useTranslation(undefined, { i18n });
   const [open, setOpen] = useState(false);
-  if (!result) return <p role="status">Проверяем монтаж и материалы…</p>;
+  if (!result) return <p role="status">{t('NativeMontageCard.checkingMontageAndAssets')}</p>;
   if (!result.ok)
     return (
       <section className="montage-card">
-        <h2>Монтаж недоступен</h2>
+        <h2>{t('NativeMontageCard.montageUnavailable')}</h2>
         <p role="alert" className="error-message">
           {result.error}
         </p>
@@ -34,22 +37,24 @@ export function NativeMontageCard({
   const { timeline, manifest } = document;
   return (
     <section className="montage-card">
-      <h2>Монтажный проект</h2>
+      <h2>{t('MontageCard.montageProject')}</h2>
       <p>{manifest.name}</p>
       <dl className="data-list">
-        <dt>Размер</dt>
+        <dt>{t('MontageCard.size')}</dt>
         <dd>
           {timeline.width} × {timeline.height}
         </dd>
-        <dt>Частота</dt>
+        <dt>{t('MontageCard.frameRate')}</dt>
         <dd>{timeline.fps} fps</dd>
-        <dt>Длительность</dt>
-        <dd>{(timeline.durationInFrames / timeline.fps).toFixed(2)} с</dd>
-        <dt>Материалы</dt>
+        <dt>{t('NativeMontageCard.duration')}</dt>
+        <dd>
+          {(timeline.durationInFrames / timeline.fps).toFixed(2)} {t('NativeMontageCard.s')}
+        </dd>
+        <dt>{t('NativeMontageCard.assets')}</dt>
         <dd>{document.assets.length}</dd>
       </dl>
       <Button kind="primary" onClick={() => setOpen(true)}>
-        Открыть монтаж
+        {t('MontageCard.openMontage')}
       </Button>
     </section>
   );

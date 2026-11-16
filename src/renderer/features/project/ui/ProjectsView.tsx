@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Folder, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui';
@@ -17,6 +19,7 @@ import { useProjectActivity } from '../model/useProjectActivity';
 import './projectsList.css';
 
 export function ProjectsView() {
+  useTranslation(undefined, { i18n });
   const [query, setQuery] = useState('');
   const [edit, setEdit] = useState<{ project: WorkspaceProject; mode: 'clone' | 'rename' } | null>(
     null,
@@ -30,35 +33,27 @@ export function ProjectsView() {
   const fileCounts = useProjectFileCounts(projects);
   const activity = useProjectActivity();
   const showSearch = projects.length >= 6;
-  const search = showSearch ? query.trim().toLocaleLowerCase('ru-RU') : '';
+  const search = showSearch ? query.trim().toLocaleLowerCase(i18n.resolvedLanguage) : '';
   const shown = [...projects]
     .sort((a, b) => b.createdAt - a.createdAt)
     .filter((project) =>
       [project.name, project.folderName ?? project.id].some((value) =>
-        value.toLocaleLowerCase('ru-RU').includes(search),
+        value.toLocaleLowerCase(i18n.resolvedLanguage).includes(search),
       ),
     );
   const count = projects.length;
-  const noun =
-    count % 100 >= 11 && count % 100 <= 14
-      ? 'проектов'
-      : count % 10 === 1
-        ? 'проект'
-        : count % 10 >= 2 && count % 10 <= 4
-          ? 'проекта'
-          : 'проектов';
   return (
     <div className="page-body projects-page">
       {showSearch && (
         <div className="projects-list-toolbar">
           <span className="projects-total" aria-live="polite">
-            {count} {noun}
+            {t('projects.count', { count })}
           </span>
           <label className="projects-search">
             <Search size={19} aria-hidden="true" />
             <input
-              aria-label="Найти проект"
-              placeholder="Найти проект"
+              aria-label={t('ProjectsView.searchProjects')}
+              placeholder={t('ProjectsView.searchProjects')}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -67,12 +62,12 @@ export function ProjectsView() {
       )}
       <AddArea
         className="project-create-area"
-        label="Создать проект"
+        label={t('NewProjectDialog.createProject')}
         showLabel
         disabled={busy}
-        onClick={() => setDialog({ title: 'Новый проект', kind: 'new-project' })}
+        onClick={() => setDialog({ title: t('ProjectsView.newProject'), kind: 'new-project' })}
       />
-      <table className="projects-table" aria-label="Проекты">
+      <table className="projects-table" aria-label={t('Topbar.projects')}>
         <colgroup>
           <col className="project-title-column" />
           <col className="project-spent-column" />
@@ -84,17 +79,17 @@ export function ProjectsView() {
         </colgroup>
         <thead>
           <tr>
-            <th scope="col">Проект</th>
-            <th scope="col">Потрачено</th>
-            <th scope="col">Создан</th>
+            <th scope="col">{t('ProjectsView.project2')}</th>
+            <th scope="col">{t('ProjectsView.timeSpent')}</th>
+            <th scope="col">{t('ProjectsView.created')}</th>
             <th scope="col" className="project-number">
-              Агенты
+              {t('Topbar.agents')}
             </th>
             <th scope="col" className="project-number">
-              Файлы
+              {t('ProjectsView.files')}
             </th>
-            <th scope="col" aria-label="Действия с проектом" />
-            <th scope="col" aria-label="Открыть проект" />
+            <th scope="col" aria-label={t('ProjectsView.projectActions')} />
+            <th scope="col" aria-label={t('ProjectsView.openProject')} />
           </tr>
         </thead>
         <tbody>
@@ -115,10 +110,10 @@ export function ProjectsView() {
                 if ((await removeProject(project.id)) === false) return;
                 demo(
                   isDesktop
-                    ? 'Проект перемещён в корзину студии. Все файлы сохранены.'
-                    : 'Проект удалён из списка прототипа.',
+                    ? t('ProjectsView.projectMovedToStudioTrashAllFiles')
+                    : t('ProjectsView.projectRemovedFromThePrototypeList'),
                   {
-                    label: 'Вернуть',
+                    label: t('useResourceUnlink.undo'),
                     onClick: () => restoreProject(project),
                   },
                 );
@@ -128,7 +123,9 @@ export function ProjectsView() {
           {!shown.length && (
             <tr>
               <td colSpan={7} className="projects-empty">
-                {projects.length ? 'Проекты не найдены.' : 'Проектов пока нет.'}
+                {projects.length
+                  ? t('ProjectsView.noProjectsFound')
+                  : t('ProjectsView.noProjectsYet')}
               </td>
             </tr>
           )}
@@ -137,7 +134,10 @@ export function ProjectsView() {
       {trashProjects.length > 0 && (
         <div className="projects-trash">
           <DisclosureList>
-            <Disclosure label={`Корзина студии · ${trashProjects.length}`} icon={Trash2}>
+            <Disclosure
+              label={t('ProjectsView.studioTrash', { value1: trashProjects.length })}
+              icon={Trash2}
+            >
               <DisclosureList>
                 {trashProjects.map((project) => (
                   <ListRow
@@ -146,7 +146,7 @@ export function ProjectsView() {
                     icon={Folder}
                     actions={
                       <Button disabled={busy} onClick={() => void restoreProject(project)}>
-                        Восстановить
+                        {t('ProjectsView.restore')}
                       </Button>
                     }
                   />

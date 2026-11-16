@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/shared/ui/Textarea';
 import { useState } from 'react';
 import { Button, EmptyIntegration } from '@/shared/ui';
@@ -11,6 +13,7 @@ import { builtinResource } from '../../../../shared/builtinResources';
 import { BuiltinResourceInfo } from './BuiltinResourceInfo';
 
 export function ResourceEditor({ resource, onClose }: { resource: Resource; onClose: () => void }) {
+  useTranslation(undefined, { i18n });
   const [draft, setDraft] = useState(resource);
   const { saveResource, resources } = useResources();
   const { demo } = useNotice();
@@ -38,29 +41,27 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
       <Modal
         title={resource.name}
         onClose={onClose}
-        footer={<Button onClick={onClose}>Закрыть</Button>}
+        footer={<Button onClick={onClose}>{t('TeamTransfers.close')}</Button>}
       >
         <p>{resource.description}</p>
         <dl className="data-list">
-          <dt>Папка навыка</dt>
-          <dd>{resource.source || 'Не импортирована'}</dd>
-          <dt>Версия</dt>
-          <dd>{resource.version || 'Не закреплена'}</dd>
-          <dt>Состав</dt>
-          <dd>SKILL.md и вспомогательные файлы</dd>
+          <dt>{t('LocalSkillInfo.skillFolder')}</dt>
+          <dd>{resource.source || t('ResourceEditor.notImported')}</dd>
+          <dt>{t('ResourceEditor.version')}</dt>
+          <dd>{resource.version || t('ResourceEditor.notPinned')}</dd>
+          <dt>{t('ResourceEditor.contents')}</dt>
+          <dd>{t('ResourceEditor.skillMdAndSupportingFiles')}</dd>
         </dl>
-        <p className="subtle">
-          Название и описание читаются из SKILL.md. Для других инструкций создаётся отдельный skill.
-        </p>
+        <p className="subtle">{t('ResourceEditor.nameAndDescriptionAreReadFromSkill')}</p>
       </Modal>
     );
   return (
     <Modal
-      title={resource.name || 'Новый ресурс'}
+      title={resource.name || t('ResourceEditor.newResource')}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Отмена</Button>
+          <Button onClick={onClose}>{t('TeamNameDialog.cancel')}</Button>
           <Button
             kind="primary"
             disabled={!draft.name.trim()}
@@ -77,23 +78,23 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
               onClose();
             }}
           >
-            Сохранить
+            {t('TeamNameDialog.save')}
           </Button>
         </>
       }
     >
-      {field('name', 'Название')}
+      {field('name', t('ConnectionEditor.name'))}
       <Textarea
-        label="Описание"
+        label={t('ManagedSkillEditor.description')}
         value={draft.description}
         onChange={(event) => setDraft({ ...draft, description: event.target.value })}
       />
       {draft.kind === 'mcps' ? (
         <>
           <label className="field-label">
-            Транспорт
+            {t('ResourceEditor.transport')}
             <Select
-              label="Транспорт MCP"
+              label={t('ResourceEditor.mcpTransport')}
               options={['HTTP', 'stdio']}
               value={draft.transport}
               onValueChange={(transport) => setDraft({ ...draft, transport })}
@@ -101,39 +102,41 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           </label>
           {field(
             'source',
-            draft.transport === 'HTTP' ? 'URL сервера' : 'Исполняемый файл',
+            draft.transport === 'HTTP'
+              ? t('ResourceEditor.serverUrl')
+              : t('ResourceEditor.executable'),
             draft.transport === 'HTTP' ? 'https://example.com/mcp' : '/path/to/server',
           )}
           {draft.transport === 'stdio' &&
-            field('args', 'Аргументы запуска', 'Отдельный массив аргументов JSON')}
+            field(
+              'args',
+              t('ResourceEditor.launchArguments'),
+              t('ResourceEditor.separateJsonArgumentsArray'),
+            )}
           {!window.studio &&
             field(
               'credential',
-              'Ссылка на учётные данные',
-              'Например: keychain:heygen — без токена',
+              t('ResourceEditor.credentialReference'),
+              t('ResourceEditor.forExampleKeychainHeygenNoToken'),
             )}
           {!window.studio && (
             <div className="action-row">
               <Button
-                onClick={() =>
-                  demo(
-                    'Авторизация MCP не выполнялась. В рабочей версии откроется вход в выбранный сервис.',
-                  )
-                }
+                onClick={() => demo(t('ResourceEditor.mcpAuthenticationHasNotBeenPerformedThe'))}
               >
-                Авторизовать
+                {t('ResourceEditor.authenticate')}
               </Button>
               <Button
-                onClick={() => demo('Проверка подключения не выполнялась. MCP пока не подключён.')}
+                onClick={() => demo(t('ResourceEditor.connectionNotCheckedMcpIsNotConnected'))}
               >
-                Проверить подключение
+                {t('ClaudeCodeAuth.checkConnection')}
               </Button>
             </div>
           )}
           <p className="subtle">
             {window.studio
-              ? 'Для OAuth и других способов авторизации подключите сервер через помощника как ресурс Pi. После сохранения проверка и вход доступны в каталоге.'
-              : 'Пример: MCP не подключён, секреты не вводятся.'}
+              ? t('ResourceEditor.forOauthAndOtherAuthenticationMethodsConnect')
+              : t('ResourceEditor.exampleMcpNotConnectedNoSecretsEntered')}
           </p>
         </>
       ) : (
@@ -141,19 +144,22 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
           {field(
             'source',
             draft.kind === 'skills'
-              ? 'Папка навыка / SKILL.md'
-              : 'Источник пакета npm / git / локальная папка',
+              ? t('ResourceEditor.skillFolderSkillMd')
+              : t('ResourceEditor.packageSourceNpmGitLocalFolder'),
           )}
-          {draft.kind === 'plugins' && !window.studio && field('version', 'Закреплённая версия')}
+          {draft.kind === 'plugins' &&
+            !window.studio &&
+            field('version', t('ResourceEditor.pinnedVersion'))}
           {draft.kind === 'plugins' && window.studio && (
             <p className="subtle">
-              Установленная версия: {resource.version || 'Не определена'}. Версия пакета задаётся в
-              источнике, например npm:package@1.2.3.
+              {t('ResourceEditor.installedVersion')}
+              {resource.version || t('ResourceEditor.unknown')}
+              {t('ResourceEditor.setThePackageVersionInItsSource')}
             </p>
           )}
           {draft.kind === 'plugins' && (
             <Textarea
-              label="Состав пакета"
+              label={t('ResourceEditor.packageContents')}
               value={draft.contents}
               onChange={(event) => setDraft({ ...draft, contents: event.target.value })}
             />
@@ -163,23 +169,25 @@ export function ResourceEditor({ resource, onClose }: { resource: Resource; onCl
               onClick={() =>
                 demo(
                   draft.kind === 'skills'
-                    ? 'Импорт файлов пока не подключён. Путь сохраняется только как настройка макета.'
-                    : 'Установка пакетов пока не подключена. Источник и версия сохраняются только в макете.',
+                    ? t('ResourceEditor.fileImportIsNotConnectedYetThe')
+                    : t('ResourceEditor.packageInstallationIsNotConnectedYetSource'),
                 )
               }
             >
-              {draft.kind === 'skills' ? 'Импортировать из папки' : 'Установить пакет'}
+              {draft.kind === 'skills'
+                ? t('ResourceEditor.importFromFolder')
+                : t('ResourceActions.installPackage')}
             </Button>
           )}
           <p className="subtle">
             {window.studio
-              ? 'После сохранения пакет можно установить и проверить в каталоге.'
-              : 'Пример: не установлен.'}
+              ? t('ResourceEditor.afterSavingInstallAndCheckThePackage')
+              : t('ResourceEditor.exampleNotInstalled')}
           </p>
         </>
       )}
       <EmptyIntegration>
-        Сохранение настроек не устанавливает ресурс и не подключается к сервису.
+        {t('ResourceEditor.savingSettingsDoesNotInstallTheResource')}
       </EmptyIntegration>
     </Modal>
   );

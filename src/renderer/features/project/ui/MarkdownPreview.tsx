@@ -1,3 +1,5 @@
+import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { useTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Square, SquareCheck } from 'lucide-react';
@@ -6,17 +8,20 @@ import { markdownFile, type MarkdownFiles } from '../model/markdownFiles';
 import { outputMediaUrl } from '../../../../shared/outputPaths';
 
 function MarkdownImage({ src, alt, title }: { src?: string; alt?: string; title?: string }) {
+  useTranslation(undefined, { i18n });
   const [failed, setFailed] = useState(false);
   if (!src || failed)
     return (
-      <span className="error-message" role="img" aria-label={alt || 'Изображение'}>
-        Изображение недоступно{alt ? `: ${alt}` : '.'}
+      <span className="error-message" role="img" aria-label={alt || t('MarkdownPreview.image')}>
+        {t('MarkdownPreview.imageUnavailable')}
+        {alt ? `: ${alt}` : '.'}
       </span>
     );
   return <img src={src} alt={alt ?? ''} title={title} onError={() => setFailed(true)} />;
 }
 
 export function MarkdownPreview({ content, files }: { content: string; files?: MarkdownFiles }) {
+  useTranslation(undefined, { i18n });
   return (
     <article className="output-markdown">
       <Markdown
@@ -38,7 +43,12 @@ export function MarkdownPreview({ content, files }: { content: string; files?: M
                 </a>
               );
             if (files && !/^https?:\/\//i.test(href ?? '') && !href?.startsWith('#'))
-              return <span className="error-message">Ссылка недоступна: {children}</span>;
+              return (
+                <span className="error-message">
+                  {t('MarkdownPreview.linkUnavailable')}
+                  {children}
+                </span>
+              );
             return (
               <a href={href} target="_blank" rel="noopener noreferrer">
                 {children}
@@ -58,7 +68,9 @@ export function MarkdownPreview({ content, files }: { content: string; files?: M
             <span
               className="markdown-task-marker"
               role="img"
-              aria-label={checked ? 'Выполнено' : 'Не выполнено'}
+              aria-label={
+                checked ? t('MarkdownPreview.completed') : t('MarkdownPreview.notCompleted')
+              }
             >
               {checked ? (
                 <SquareCheck size={17} aria-hidden="true" />
@@ -69,7 +81,7 @@ export function MarkdownPreview({ content, files }: { content: string; files?: M
           ),
         }}
       >
-        {content || 'Файл пуст.'}
+        {content || t('MarkdownPreview.theFileIsEmpty')}
       </Markdown>
     </article>
   );

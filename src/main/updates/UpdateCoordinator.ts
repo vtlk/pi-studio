@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -92,9 +93,7 @@ export class UpdateCoordinator {
   quitPrevented() {
     if (this.state.phase !== 'installing') return;
     this.committed = false;
-    void this.fail(
-      new Error('Выход отменён: изменения ещё не сохранены. Прежняя версия сохранена.'),
-    );
+    void this.fail(new Error(t('UpdateCoordinator.quitCancelledChangesHaveNotBeenSaved')));
   }
   request(): Promise<void> {
     if (this.work) return this.work;
@@ -111,7 +110,9 @@ export class UpdateCoordinator {
     await this.schedule.checkNow(true);
     if (this.closed) return;
     if (this.state.phase !== 'available' || !this.candidate)
-      throw new Error(this.state.message ?? 'Подходящее обновление больше не доступно.');
+      throw new Error(
+        this.state.message ?? t('UpdateCoordinator.aCompatibleUpdateIsNoLongerAvailable'),
+      );
     const candidate = this.candidate;
     await this.discard();
     this.state = {
@@ -151,7 +152,7 @@ export class UpdateCoordinator {
     this.state = {
       ...this.state,
       phase: 'waiting',
-      message: 'Установим после сохранения и завершения работы.',
+      message: t('UpdateCoordinator.willInstallAfterChangesAreSavedAnd'),
     };
     this.tick();
   }
@@ -160,7 +161,7 @@ export class UpdateCoordinator {
       typeof ready?.saved !== 'boolean' ||
       (ready.token !== undefined && (typeof ready.token !== 'string' || ready.token.length > 100))
     )
-      throw new Error('Неверное подтверждение сохранения.');
+      throw new Error(t('UpdateCoordinator.invalidSaveConfirmation'));
     this.rendererSeen = this.now();
     this.rendererSaved = ready.saved;
     if (ready.token && ready.token === this.state.prepareToken && this.state.phase === 'waiting') {
@@ -181,7 +182,7 @@ export class UpdateCoordinator {
           (view.projectId !== undefined &&
             (typeof view.projectId !== 'string' || view.projectId.length > 200))
         )
-          throw new Error('Неверное состояние открытого проекта.');
+          throw new Error(t('UpdateCoordinator.invalidOpenProjectState'));
         this.view = { page: view.page, projectId: view.projectId };
       }
       const lease = this.options.acquire();
@@ -190,7 +191,11 @@ export class UpdateCoordinator {
         return;
       }
       this.lease = lease;
-      this.state = { ...this.state, phase: 'installing', message: 'Устанавливаем обновление…' };
+      this.state = {
+        ...this.state,
+        phase: 'installing',
+        message: t('UpdateCoordinator.installingUpdate'),
+      };
       const work = this.install()
         .catch((error: unknown) => this.fail(error))
         .finally(() => {
@@ -217,7 +222,7 @@ export class UpdateCoordinator {
     const verify = () => {
       lease.verify();
       if (!this.rendererSaved || this.now() - this.rendererSeen > 5000)
-        throw new Error('Сохранение интерфейса больше не подтверждено. Программа не заменена.');
+        throw new Error(t('UpdateCoordinator.interfaceSaveConfirmationIsNoLongerValid'));
     };
     verify();
     await this.options.flushMain(this.view);
@@ -239,7 +244,9 @@ export class UpdateCoordinator {
       phase: 'error',
       prepareToken: this.lease ? this.state.prepareToken : undefined,
       message:
-        error instanceof Error ? error.message.slice(0, 700) : 'Не удалось обновить Pi Studio.',
+        error instanceof Error
+          ? error.message.slice(0, 700)
+          : t('UpdateCoordinator.couldNotUpdatePiStudio'),
     };
     try {
       await this.discard();
@@ -248,7 +255,9 @@ export class UpdateCoordinator {
     } catch {
       this.state = {
         ...this.state,
-        message: `${this.state.message} Не удалось подтвердить отмену установщика.`,
+        message: t('UpdateCoordinator.couldNotConfirmInstallerCancellation', {
+          value1: this.state.message,
+        }),
       };
     }
   }
@@ -284,8 +293,7 @@ export class UpdateCoordinator {
         this.state = {
           ...this.state,
           phase: 'error',
-          message:
-            'Не удалось подтвердить отмену установщика. Программа остаётся запущенной. Повторите выход.',
+          message: t('UpdateCoordinator.couldNotConfirmInstallerCancellationTheApp'),
         };
         throw error;
       }

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { MenuItemConstructorOptions } from 'electron';
 
 interface Actions {
@@ -15,7 +16,7 @@ export function menuTemplate(
   const mac = platform === 'darwin';
   const update: MenuItemConstructorOptions = {
     id: 'check-updates',
-    label: 'Проверить обновления…',
+    label: t('menuTemplate.checkForUpdates'),
     click: actions.checkUpdates,
   };
   return [
@@ -25,54 +26,54 @@ export function menuTemplate(
             role: 'appMenu',
             label: 'Pi Studio',
             submenu: [
-              { label: 'О Pi Studio', click: actions.about },
+              { label: t('menuTemplate.aboutPiStudio'), click: actions.about },
               update,
               { type: 'separator' },
-              { role: 'services', label: 'Службы' },
+              { role: 'services', label: t('menuTemplate.services') },
               { type: 'separator' },
-              { role: 'hide', label: 'Скрыть Pi Studio' },
-              { role: 'hideOthers', label: 'Скрыть остальные' },
-              { role: 'unhide', label: 'Показать все' },
+              { role: 'hide', label: t('menuTemplate.hidePiStudio') },
+              { role: 'hideOthers', label: t('menuTemplate.hideOthers') },
+              { role: 'unhide', label: t('menuTemplate.showAll') },
               { type: 'separator' },
-              { role: 'quit', label: 'Завершить Pi Studio' },
+              { role: 'quit', label: t('menuTemplate.quitPiStudio') },
             ],
           } as MenuItemConstructorOptions,
         ]
       : []),
     {
       role: 'fileMenu',
-      label: 'Файл',
+      label: t('menuTemplate.file'),
       submenu: [
-        { role: 'close', label: 'Закрыть окно' },
+        { role: 'close', label: t('Modal.closeWindow') },
         ...(!mac
           ? ([
               { type: 'separator' },
-              { role: 'quit', label: 'Выход' },
+              { role: 'quit', label: t('menuTemplate.exit') },
             ] as MenuItemConstructorOptions[])
           : []),
       ],
     },
     {
       role: 'editMenu',
-      label: 'Правка',
+      label: t('menuTemplate.edit'),
       submenu: [
-        { role: 'undo', label: 'Отменить' },
-        { role: 'redo', label: 'Повторить' },
+        { role: 'undo', label: t('menuTemplate.undo') },
+        { role: 'redo', label: t('menu.redo') },
         { type: 'separator' },
-        { role: 'cut', label: 'Вырезать' },
-        { role: 'copy', label: 'Скопировать' },
-        { role: 'paste', label: 'Вставить' },
-        { role: 'pasteAndMatchStyle', label: 'Вставить с текущим форматированием' },
-        { role: 'delete', label: 'Удалить' },
-        { role: 'selectAll', label: 'Выделить всё' },
+        { role: 'cut', label: t('menuTemplate.cut') },
+        { role: 'copy', label: t('menuTemplate.copy') },
+        { role: 'paste', label: t('menuTemplate.paste') },
+        { role: 'pasteAndMatchStyle', label: t('menuTemplate.pasteAndMatchStyle') },
+        { role: 'delete', label: t('McpSecretsDialog.delete') },
+        { role: 'selectAll', label: t('menuTemplate.selectAll') },
         ...(mac
           ? ([
               { type: 'separator' },
               {
-                label: 'Речь',
+                label: t('Playback.speech'),
                 submenu: [
-                  { role: 'startSpeaking', label: 'Начать чтение' },
-                  { role: 'stopSpeaking', label: 'Остановить чтение' },
+                  { role: 'startSpeaking', label: t('menuTemplate.startSpeaking') },
+                  { role: 'stopSpeaking', label: t('menuTemplate.stopSpeaking') },
                 ],
               },
             ] as MenuItemConstructorOptions[])
@@ -81,43 +82,43 @@ export function menuTemplate(
     },
     {
       role: 'viewMenu',
-      label: 'Вид',
+      label: t('menuTemplate.view'),
       submenu: [
-        { role: 'resetZoom', label: 'Фактический размер' },
-        { role: 'zoomIn', label: 'Увеличить' },
-        { role: 'zoomOut', label: 'Уменьшить' },
+        { role: 'resetZoom', label: t('menuTemplate.actualSize') },
+        { role: 'zoomIn', label: t('menuTemplate.zoomIn') },
+        { role: 'zoomOut', label: t('menuTemplate.zoomOut') },
         { type: 'separator' },
-        { role: 'togglefullscreen', label: 'Полный экран' },
+        { role: 'togglefullscreen', label: t('menuTemplate.fullScreen') },
         ...(development
           ? ([
               { type: 'separator' },
-              { role: 'reload', label: 'Перезагрузить (разработка)' },
-              { role: 'toggleDevTools', label: 'Инструменты разработчика' },
+              { role: 'reload', label: t('menuTemplate.reloadDevelopment') },
+              { role: 'toggleDevTools', label: t('menuTemplate.developerTools') },
             ] as MenuItemConstructorOptions[])
           : []),
       ],
     },
     {
       role: 'windowMenu',
-      label: 'Окно',
+      label: t('menuTemplate.window'),
       submenu: [
-        { role: 'minimize', label: 'Свернуть' },
+        { role: 'minimize', label: t('menuTemplate.minimize') },
         ...(mac
           ? ([
-              { role: 'zoom', label: 'Изменить размер окна' },
+              { role: 'zoom', label: t('menuTemplate.zoomWindow') },
               { type: 'separator' },
-              { role: 'front', label: 'Все окна на передний план' },
+              { role: 'front', label: t('menuTemplate.bringAllToFront') },
             ] as MenuItemConstructorOptions[])
           : []),
       ],
     },
     {
       role: 'help',
-      label: 'Справка',
+      label: t('menuTemplate.help'),
       submenu: [
         ...(!mac ? [update] : []),
-        { label: 'Сообщить о проблеме…', click: actions.help },
-        ...(!mac ? [{ label: 'О Pi Studio', click: actions.about }] : []),
+        { label: t('menuTemplate.reportAnIssue'), click: actions.help },
+        ...(!mac ? [{ label: t('menuTemplate.aboutPiStudio'), click: actions.about }] : []),
       ],
     },
   ];

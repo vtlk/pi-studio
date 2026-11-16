@@ -1,3 +1,5 @@
+import { changeLanguage } from '../src/shared/i18n/index.ts';
+await changeLanguage('ru');
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
