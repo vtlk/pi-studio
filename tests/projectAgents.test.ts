@@ -93,7 +93,7 @@ test('removing a project agent is persistent and reversible; output/session byte
     .projects[0];
   const output = join(root, 'projects/movie/agents/custom-b/output/result.txt');
   await writeFile(output, 'Real output preserved');
-  const sessionPath = 'agents/custom-b/sessions/dialogue.jsonl';
+  const sessionPath = '.pistudio/sessions/b/dialogue.jsonl';
   await writeFile(join(root, 'projects/movie', sessionPath), 'canonical Pi history');
   await store.projects.updateRuntime(project.id, 'b', 'waiting', {
     id: 'dialogue',

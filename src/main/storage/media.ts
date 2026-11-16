@@ -1,3 +1,4 @@
+import { outputScope } from './outputScope.ts';
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import { extname } from 'node:path';
@@ -24,8 +25,11 @@ const mime: Record<string, string> = {
 };
 /** Local media stays streamed in main; the renderer receives no file:// access. */
 export async function mediaResponse(root: string, relative: string, request: Request) {
-  if (!/^agents\/[a-zA-Z0-9_-]+\/output\/.+/.test(relative))
+  try {
+    await outputScope(root, relative);
+  } catch {
     return new Response(null, { status: 403 });
+  }
   return streamMedia(root, relative, request);
 }
 /** Callers validate their own output scope before using the common byte-range transport. */

@@ -72,7 +72,7 @@ test('legacy team migration preserves exact IDs, order, paths, output and canoni
     .projects[0];
   const path = await store.projects.directory(project.id);
   const output = join(path, project.agents[0].outputPath, 'result.md');
-  const session = join(path, 'agents/two/sessions/dialogue.jsonl');
+  const session = join(path, '.pistudio/sessions/two/dialogue.jsonl');
   await writeFile(output, 'Keep output bytes');
   await writeFile(session, 'Keep canonical dialogue');
   const file = join(root, '.pistudio/studio.json');

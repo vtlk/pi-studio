@@ -1,7 +1,8 @@
+import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { sessionSystemPrompt } from '../../../bundled/pi-bridge/prompt.mjs';
 import { builtinResource, hasTeamMcp } from '../../shared/builtinResources.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import { agentDirectory, projectAgentOutputPath } from '../../shared/agentPaths.ts';
 import type { ModelConnectionStatus } from '../../shared/connections.ts';
 import type { TeamScope } from './scope.ts';
 import type { TeamRuntime } from './types.ts';
@@ -14,11 +15,11 @@ export async function agentSettings(
   check?: (folder: string, connectionId: string) => Promise<ModelConnectionStatus>,
 ) {
   if (typeof id !== 'string' || !scope.team?.agentIds.includes(id))
-    throw new Error('Настройки доступны только для участников исходной команды.');
+    throw new Error(t('error.settings.settingsAreAvailableOnlyFor'));
   const current = scope.catalog.agents.find((item) => item.id === id);
   const saved = scope.project.agents.find((item) => item.profile.id === id);
-  if (!current) throw new Error('Текущий профиль удалён.');
-  if (!saved) throw new Error('Агент ещё не в проекте. Нажмите «Перечитать агентов».');
+  if (!current) throw new Error(t('error.settings.theCurrentProfileWasDeleted'));
+  if (!saved) throw new Error(t('error.scope.theAgentIsNotIn'));
   const role = [
     current.mainInstruction ?? '',
     ...current.instructions
@@ -81,14 +82,18 @@ export async function agentSettings(
   const record = {
     projectId: scope.project.id,
     projectRoot: scope.root,
-    cwd: join(scope.root, agentDirectory(saved.outputPath)),
-    output: join(scope.root, saved.outputPath),
+    workspaceMode: scope.project.workspaceMode ?? 'per-agent',
+    cwd:
+      scope.project.workspaceMode === 'shared'
+        ? scope.root
+        : join(scope.root, agentDirectory(saved.outputPath)),
+    output: join(scope.root, projectAgentOutputPath(scope.project, saved)),
     previousOutputs: scope.project.agents
       .slice(0, scope.project.agents.indexOf(saved))
       .map((item) => ({
         agentId: item.profile.id,
         agentName: item.profile.name,
-        path: join(scope.root, item.outputPath),
+        path: join(scope.root, projectAgentOutputPath(scope.project, item)),
       })),
   };
   const freshPrompt = sessionSystemPrompt({

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { randomUUID } from 'node:crypto';
 import { mkdir, rename, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -43,7 +44,7 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
           (resource) => resource.source === source.source && resource.kind === source.kind,
         );
         if (!builtin || builtin.source === 'builtin:administration')
-          throw new Error('Пакет требует неизвестный или административный встроенный MCP.');
+          throw new Error(t('error.importTeam.thePackageRequiresAnUnknown'));
         resourceMap[source.id] = builtin.id;
         continue;
       }
@@ -63,7 +64,7 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
         createdAt: Date.now(),
       };
       if (source.kind === 'skills') {
-        if (!source.filesRoot) throw new Error('У навыка отсутствуют переносимые файлы.');
+        if (!source.filesRoot) throw new Error(t('error.importTeam.theSkillHasNoPortable'));
         const file = data.files.find((file) => file.path === source.filesRoot + '/SKILL.md')!;
         const skill = parseSkill(Buffer.from(file.data, 'base64').toString('utf8'));
         resource.name = skill.name;
@@ -71,7 +72,7 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
         resource.localSkill = true;
       }
       if (source.kind === 'mcps') {
-        if (!source.mcp) throw new Error('В пакете отсутствует конфигурация MCP.');
+        if (!source.mcp) throw new Error(t('error.importTeam.thePackageIsMissingMcp'));
         resource.source = `pi:studio_import_${localId.replaceAll('-', '_')}`;
         resource.transport = typeof source.mcp.url === 'string' ? 'http' : 'stdio';
         resource.mcpSecretNames = [
@@ -120,7 +121,14 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
     await atomicJson(join(staging, 'state.json'), state);
     await rename(staging, final);
     await store.addImportedTeam(
-      { id: teamId, name: report.teamName, agentIds: agents.map((agent) => agent.id) },
+      {
+        id: teamId,
+        name: report.teamName,
+        agentIds: agents.map((agent) => agent.id),
+        ...(data.manifest.team.workspaceMode === undefined
+          ? {}
+          : { workspaceMode: data.manifest.team.workspaceMode }),
+      },
       agents,
       resources,
     );

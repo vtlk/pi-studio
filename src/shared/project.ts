@@ -32,6 +32,8 @@ export interface ProjectAgent {
   usage?: AgentUsage;
   profile: ProjectAgentProfile;
   outputPath: string;
+  /** Stable service directory, separate from shared task files. Legacy agents retain their paths. */
+  runtimePath?: string;
   session?: SessionBinding;
   runStatus?: AgentRunStatus;
   runFailure?: RunFailure;
@@ -40,6 +42,7 @@ export interface ProjectAgent {
 export type AgentRunStatus = 'idle' | 'running' | 'waiting' | 'ready' | 'error' | 'stopped';
 export interface WorkspaceProject {
   sourceTeamId?: string;
+  workspaceMode?: import('./agentTeams').TeamWorkspaceMode;
   usage?: AgentUsage;
   id: string;
   name: string;

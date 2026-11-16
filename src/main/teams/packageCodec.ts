@@ -1,3 +1,5 @@
+import { t } from '../../shared/i18n/index.ts';
+import { parseTeamWorkspaceMode } from '../../shared/agentTeams.ts';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import type {
@@ -23,43 +25,42 @@ export function packagePath(value: unknown): string {
     value.includes('\\') ||
     [...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
   )
-    throw new Error('Недопустимый путь в пакете команды.');
+    throw new Error(t('error.packageCodec.invalidPathInTheTeam'));
   return value;
 }
 function shortText(value: unknown, max = 4000): string {
   if (typeof value !== 'string' || value.length > max)
-    throw new Error('Некорректное поле пакета команды.');
+    throw new Error(t('error.packageCodec.invalidTeamPackageField'));
   return value;
 }
 function strings(value: unknown): string[] {
-  if (!Array.isArray(value) || value.length > 10000) throw new Error('Некорректный список пакета.');
+  if (!Array.isArray(value) || value.length > 10000)
+    throw new Error(t('error.packageCodec.invalidPackageList'));
   return value.map((value) => shortText(value));
 }
 export function validatePackage(value: unknown): TeamPackage {
   const doc = record(value),
     m = record(doc.manifest);
   if (m.format !== 'pi-studio-team' || m.version !== 1)
-    throw new Error('Неподдерживаемая версия пакета команды.');
+    throw new Error(t('error.packageCodec.unsupportedTeamPackageVersion'));
   const team = record(m.team),
     name = shortText(team.name, 500).trim();
-  if (!name) throw new Error('В пакете отсутствует название команды.');
+  if (!name) throw new Error(t('error.packageCodec.thePackageHasNoTeam'));
   if (
     !Array.isArray(m.resources) ||
     m.resources.length > 1000 ||
     !Array.isArray(m.connections) ||
     m.connections.length > 1000
   )
-    throw new Error('Слишком большой каталог пакета.');
+    throw new Error(t('error.packageCodec.packageCatalogTooLarge'));
   const resources = m.resources.map((value) => {
     const r = record(value),
       id = stableId(r.id);
     if (!/^resource-[0-9]+$/.test(id) || !['skills', 'mcps', 'plugins'].includes(String(r.kind)))
-      throw new Error('Некорректный ресурс пакета.');
+      throw new Error(t('error.packageCodec.invalidPackageResource'));
     const source = shortText(r.source);
     if (r.kind === 'mcps' && retiredBuiltin(undefined, source))
-      throw new Error(
-        'Пакет содержит назначение удалённого встроенного MCP. Импорт отменён; существующие данные не изменены.',
-      );
+      throw new Error(t('error.packageCodec.thePackageAssignsARemoved'));
     if (
       source &&
       !source.startsWith('builtin:') &&
@@ -70,7 +71,7 @@ export function validatePackage(value: unknown): TeamPackage {
       !source.startsWith('command:') &&
       source !== 'local'
     )
-      throw new Error('Непереносимый источник ресурса пакета.');
+      throw new Error(t('error.packageCodec.nonportablePackageResourceSource'));
     if (r.mcp !== undefined) assertPortableMcp(record(r.mcp));
     if (/^https?:/.test(source)) assertCredentialReferences({ url: source });
     if (r.kind === 'plugins' && source !== 'local') packageSource(source);
@@ -78,7 +79,7 @@ export function validatePackage(value: unknown): TeamPackage {
     if (r.filesRoot !== undefined) {
       filesRoot = shortText(r.filesRoot);
       if (filesRoot !== `resources/${id}/files`)
-        throw new Error('Некорректная область файлов ресурса.');
+        throw new Error(t('error.packageCodec.invalidResourceFileScope'));
     }
     return {
       id,
@@ -108,31 +109,33 @@ export function validatePackage(value: unknown): TeamPackage {
         : { endpointConfig: parseModelEndpoint(c.endpointConfig) }),
     };
   });
-  const agents = parseAgents(m.agents);
+  // Portable IDs belong to this manifest's resource table, not the local built-in registry.
+  // Apply local required assignments only after import has remapped every resource reference.
+  const agents = parseAgents(m.agents, false);
   const ids = new Set(resources.map((r) => r.id));
   if (
     ids.size !== resources.length ||
     new Set(connections.map((c) => c.id)).size !== connections.length
   )
-    throw new Error('Повторяющиеся ссылки пакета.');
+    throw new Error(t('error.packageCodec.duplicatePackageReferences'));
   for (const agent of agents) {
     for (const kind of ['skills', 'mcps', 'plugins'] as const)
       for (const id of agent[kind]) {
         if (!resources.some((r) => r.id === id && r.kind === kind))
-          throw new Error('Назначение ссылается на отсутствующий ресурс.');
+          throw new Error(t('error.packageCodec.theAssignmentReferencesAMissing'));
       }
     if (agent.model?.connectionId && !connections.some((c) => c.id === agent.model!.connectionId))
-      throw new Error('Отсутствует требование модельного подключения.');
+      throw new Error(t('error.packageCodec.modelConnectionRequirementMissing'));
   }
   if (!Array.isArray(doc.files) || doc.files.length > 10000)
-    throw new Error('Слишком много файлов пакета.');
+    throw new Error(t('error.packageCodec.tooManyPackageFiles'));
   let bytes = 0;
   const files: TeamPackageFile[] = doc.files.map((value) => {
     const f = record(value),
       path = packagePath(f.path),
       data = shortText(f.data, packageLimit * 2);
     if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data))
-      throw new Error('Некорректные двоичные данные пакета.');
+      throw new Error(t('error.packageCodec.invalidPackageBinaryData'));
     const buffer = Buffer.from(data, 'base64');
     bytes += buffer.length;
     if (
@@ -140,25 +143,30 @@ export function validatePackage(value: unknown): TeamPackage {
       fileDigest(buffer) !== f.sha256 ||
       typeof f.executable !== 'boolean'
     )
-      throw new Error('Нарушена целостность или размер пакета.');
+      throw new Error(t('error.packageCodec.packageIntegrityOrSizeMismatch'));
     if (!resources.some((r) => r.filesRoot && path.startsWith(r.filesRoot + '/')))
-      throw new Error('Файл не принадлежит ресурсу пакета.');
+      throw new Error(t('error.packageCodec.theFileDoesNotBelong'));
     return { path, data, sha256: f.sha256 as string, executable: f.executable };
   });
   const fileNames = files.map((file) => file.path.toLowerCase());
   if (new Set(fileNames).size !== files.length)
-    throw new Error('Повторяющиеся пути файлов пакета.');
+    throw new Error(t('error.packageCodec.duplicatePackageFilePaths'));
   for (const r of resources)
     if (
       r.kind === 'skills' &&
       r.filesRoot &&
       !files.some((f) => f.path === r.filesRoot + '/SKILL.md')
     )
-      throw new Error('В пакете отсутствует SKILL.md.');
+      throw new Error(t('error.packageCodec.skillMdIsMissingFrom'));
   const manifest: TeamPackageManifest = {
     format: 'pi-studio-team',
     version: 1,
-    team: { name },
+    team: {
+      name,
+      ...(team.workspaceMode === undefined
+        ? {}
+        : { workspaceMode: parseTeamWorkspaceMode(team.workspaceMode) }),
+    },
     agents,
     resources,
     connections,
@@ -168,20 +176,24 @@ export function validatePackage(value: unknown): TeamPackage {
 }
 export function encodePackage(value: TeamPackage) {
   const json = Buffer.from(JSON.stringify(validatePackage(value)));
-  if (json.length > packageLimit * 2) throw new Error('Пакет команды превышает допустимый размер.');
+  if (json.length > packageLimit * 2)
+    throw new Error(t('error.packageCodec.theTeamPackageExceedsThe'));
   const encoded = gzipSync(json);
-  if (encoded.length > packageLimit) throw new Error('Архив команды превышает 64 МБ.');
+  if (encoded.length > packageLimit)
+    throw new Error(t('registerTeamHandlers.theTeamArchiveExceedsMb'));
   return encoded;
 }
 export function decodePackage(bytes: Uint8Array) {
-  if (bytes.length > packageLimit) throw new Error('Пакет превышает 64 МБ.');
+  if (bytes.length > packageLimit) throw new Error(t('error.packageCodec.thePackageExceedsMb'));
   try {
     return validatePackage(
       JSON.parse(gunzipSync(bytes, { maxOutputLength: packageLimit * 2 }).toString('utf8')),
     );
   } catch (error) {
     throw new Error(
-      `Пакет команды не принят: ${error instanceof Error ? error.message : 'повреждённый архив'}`,
+      t('error.packageCodec.teamPackageRejected', {
+        value1: error instanceof Error ? error.message : t('error.packageCodec.damagedArchive'),
+      }),
       { cause: error },
     );
   }

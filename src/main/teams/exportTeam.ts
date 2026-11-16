@@ -1,3 +1,5 @@
+import { normalizeBuiltinAssignments } from '../../shared/builtinAssignments.ts';
+import { t } from '../../shared/i18n/index.ts';
 import { isAbsolute } from 'node:path';
 import type { AgentCatalog } from '../../shared/agentTeams.ts';
 import { teamAgents } from '../../shared/agentTeams.ts';
@@ -22,7 +24,7 @@ export async function exportTeam(
   connections: Connection[],
   readMcp = nativeMcpConfig,
 ): Promise<TeamPackage> {
-  const profiles = structuredClone(teamAgents(catalog, teamId)),
+  const profiles = structuredClone(teamAgents(catalog, teamId)).map(normalizeBuiltinAssignments),
     team = catalog.teams.find((team) => team.id === teamId)!;
   const resourceMap = new Map<string, string>(),
     connectionMap = new Map<string, string>();
@@ -48,10 +50,13 @@ export async function exportTeam(
             builtinResource(id);
           if (!resource || resource.kind !== kind)
             throw new Error(
-              `Ресурс «${id}» агента «${agent.name}» отсутствует. Исправьте назначение перед экспортом.`,
+              t('error.exportTeam.resourceForAgentIsMissing', {
+                value1: id,
+                value2: agent.name,
+              }),
             );
           if (resource.source === 'builtin:administration')
-            throw new Error('Административный MCP не переносится обычным агентам.');
+            throw new Error(t('error.exportTeam.administrativeMcpIsNotTransferred'));
           ref = `resource-${portable.length + 1}`;
           const r: PortableResource = {
             id: ref,
@@ -132,7 +137,7 @@ export async function exportTeam(
     manifest: {
       format: 'pi-studio-team',
       version: 1,
-      team: { name: team.name },
+      team: { name: team.name, workspaceMode: team.workspaceMode },
       agents: profiles,
       resources: portable,
       connections: accounts,

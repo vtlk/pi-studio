@@ -1,4 +1,10 @@
-import type { ProjectAgent, AgentRunStatus, SessionBinding } from '../../shared/project.ts';
+import { t } from '../../shared/i18n/index.ts';
+import type {
+  ProjectAgent,
+  AgentRunStatus,
+  SessionBinding,
+  WorkspaceProject,
+} from '../../shared/project.ts';
 import type { RunFailure } from '../../shared/runFailure.ts';
 
 export function withAgentRuntime(
@@ -17,4 +23,22 @@ export function withAgentRuntime(
 
 export function withFork(agent: ProjectAgent): ProjectAgent {
   return { ...agent, session: agent.session ? { ...agent.session, needsFork: true } : undefined };
+}
+
+export function withAgentModel(
+  project: WorkspaceProject,
+  agentId: string,
+  model: NonNullable<ProjectAgent['profile']['model']>,
+) {
+  const selected = project.agents.find((agent) => agent.profile.id === agentId);
+  if (!selected) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
+  if (JSON.stringify(selected.profile.model) === JSON.stringify(model)) return project;
+  return {
+    ...project,
+    agents: project.agents.map((agent) =>
+      agent === selected
+        ? { ...agent, profile: { ...agent.profile, model: structuredClone(model) } }
+        : agent,
+    ),
+  };
 }

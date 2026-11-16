@@ -105,7 +105,12 @@ export async function runSession(bootstrapPath) {
           envelope.record.cwd,
           envelope.record.sessionDirectory,
         )
-      : SessionManager.open(envelope.sessionPath, envelope.record.sessionDirectory)
+      : SessionManager.open(
+          envelope.sessionPath,
+          envelope.record.sessionDirectory,
+          // Pi's supported in-memory override preserves the exact JSONL path and header.
+          envelope.record.workspaceMode ? envelope.record.cwd : undefined,
+        )
     : SessionManager.create(envelope.record.cwd, envelope.record.sessionDirectory);
   if (resolve(sessions.getCwd()) !== resolve(envelope.record.cwd))
     throw new Error('Pi session cwd differs; a supported fork is required');

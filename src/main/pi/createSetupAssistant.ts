@@ -2,6 +2,7 @@ import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { RunHost } from './RunHost.ts';
+import { migrateAgentSessions } from '../storage/migrateAgentSessions.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { readPiCatalog } from './catalog.ts';
 import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
@@ -13,7 +14,7 @@ import { parseProject, snapshotAgent } from '../storage/validation.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Resource } from '../../shared/resources.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import { agentDirectory, agentSessionDirectory } from '../../shared/agentPaths.ts';
 import type { SessionBinding } from '../../shared/project.ts';
 import type { openSessionTerminal } from './terminal.ts';
 import { StudioResources } from './StudioResources.ts';
@@ -125,17 +126,29 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           systemRole: _role,
           ...profile
         } = agent;
-        const project = parseProject({
+        let project = parseProject({
           schemaVersion: 1,
           id: 'pi-setup-assistant',
           name: agent.name,
           createdAt: 0,
           agents: [{ profile, outputPath, ...(session ? { session } : {}) }],
         });
-        for (const sub of ['output', 'sessions'])
+        const migrated = await migrateAgentSessions(root, project.agents[0]);
+        if (migrated !== project.agents[0]) {
+          project = { ...project, agents: [migrated] };
+          await atomicJson(join(root, 'state.json'), {
+            schemaVersion: 1,
+            session: migrated.session,
+            outputPath,
+          });
+        }
+        for (const sub of ['output'])
           await mkdir(await safePath(root, `${agentDirectory(outputPath)}/${sub}`, true), {
             recursive: true,
           });
+        await mkdir(await safePath(root, agentSessionDirectory(project.agents[0]), true), {
+          recursive: true,
+        });
         const run = await buildRunContext(
           root,
           project,

@@ -1,5 +1,6 @@
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
+import { projectAgentOutputPath } from '../../../../shared/agentPaths';
 import { useState } from 'react';
 import type { ProjectAgent } from '../model/workspace.types';
 import { listOutputFiles } from '../model/outputTree';
@@ -41,6 +42,10 @@ export function AgentOutputsView({
   };
   const selected = files.find(({ file }) => file.id === fileId) ?? files[0];
   const projectId = selectedProject?.id;
+  const shared = selectedProject?.workspaceMode === 'shared';
+  const filesLabel = shared
+    ? t('AgentOutputsView.sharedTeamFiles')
+    : t('AgentOutputsView.agentFiles');
   const { file: loadedFile, loading, error } = useOutputFile(projectId, selected?.file);
   const selectedFile = loadedFile ?? selected?.file;
   const max = Math.max(140, (width || 600) - 240);
@@ -53,8 +58,8 @@ export function AgentOutputsView({
     >
       <aside className="output-files-pane">
         <div className="project-column-heading output-files-heading">
-          <Tooltip label={t('AgentOutputsView.agentFiles')} onlyWhenTruncated>
-            <h2>{t('AgentOutputsView.agentFiles')}</h2>
+          <Tooltip label={filesLabel} onlyWhenTruncated>
+            <h2>{filesLabel}</h2>
           </Tooltip>
           <DeleteAgentDataButton agent={agent} />
         </div>
@@ -80,7 +85,13 @@ export function AgentOutputsView({
           <OutputToolbar
             file={selectedFile}
             projectId={projectId}
-            filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
+            filePath={
+              selected
+                ? [projectAgentOutputPath(selectedProject ?? {}, agent), ...selected.path]
+                    .filter(Boolean)
+                    .join('/')
+                : undefined
+            }
           />
           <SearchablePreview
             enabled={

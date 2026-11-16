@@ -209,7 +209,8 @@ export class StudioStore {
   }
   async command(command: ProjectCommand) {
     if (command.kind === 'create' && command.teamId) {
-      const current = this.teamProfiles(command.teamId);
+      const teamId = command.teamId;
+      const current = this.teamProfiles(teamId);
       if (
         !isDeepStrictEqual(
           current.map((agent) => snapshotAgent(agent).profile),
@@ -217,7 +218,13 @@ export class StudioStore {
         )
       )
         throw new Error('Состав команды изменился. Перечитайте настройки перед созданием проекта.');
-      command = { ...command, agents: current };
+      command = {
+        ...command,
+        agents: current,
+        workspaceMode:
+          this.agentCatalog().teams.find((team) => team.id === teamId)?.workspaceMode ??
+          'per-agent',
+      };
     }
     if (command.kind === 'update-agents') {
       const teamId = (await this.projects.read(command.projectId)).sourceTeamId;

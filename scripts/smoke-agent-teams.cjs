@@ -32,6 +32,7 @@ const timeout = setTimeout(() => {
     filePaths: cancelPicker ? [] : [packagePath],
   });
   app.setPath('userData', userData);
+  app.getPreferredSystemLanguages = () => ['ru-KZ'];
   app.setPath('videos', root);
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) =>
@@ -84,9 +85,16 @@ const timeout = setTimeout(() => {
       `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
     );
   const load = () => js('window.studio.loadStudio()');
-  const createTeam = async (name) => {
+  const createTeam = async (name, shared = false) => {
     await named('Создать команду');
     await field('Название команды', name);
+    if (shared) {
+      await named('Рабочие папки агентов');
+      await until(`document.querySelectorAll('[role="option"]').length===2`);
+      await js(
+        `Array.from(document.querySelectorAll('[role="option"]')).find(e=>e.textContent==='Все агенты в одной папке').click()`,
+      );
+    }
     await click('Создать');
     await saved();
   };
@@ -115,7 +123,7 @@ const timeout = setTimeout(() => {
   await createTeam('Первая');
   await addAgent('Первая', 'Первый');
   await addAgent('Первая', 'Второй');
-  await createTeam('Вторая');
+  await createTeam('Вторая', true);
   await addAgent('Вторая', 'Другой');
   const state = await load();
   assert.equal(state.sections.agentTeams.length, 2);
@@ -193,10 +201,29 @@ const timeout = setTimeout(() => {
   assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`), true);
   await js(`document.querySelector('.agent-team .disclosure-trigger').click()`);
   assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`), false);
-  await named('Переименовать команду «Первая»');
+  assert.equal(state.sections.agentTeams[0].workspaceMode, 'per-agent');
+  assert.equal(state.sections.agentTeams[1].workspaceMode, 'shared');
+  await named('Настройки команды «Первая»');
   await field('Название команды', 'Переименована');
+  await named('Рабочие папки агентов');
+  await until(`document.querySelectorAll('[role="option"]').length===2`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="option"]')).find(e=>e.textContent==='Все агенты в одной папке').click()`,
+  );
+  await js('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+  await writeFile(
+    resolve('artifacts/team-workspace-dialog.png'),
+    (await window.webContents.capturePage()).toPNG(),
+  );
+  await js('window.studio.setLanguage("en")');
+  await until(`!!document.querySelector('[aria-label="Agent working folders"]')`);
+  assert.equal(await js(`document.querySelector('[aria-label="Agent working folders"]').textContent.trim()`), 'All agents in one folder');
+  await writeFile(resolve('artifacts/team-workspace-dialog-en.png'), (await window.webContents.capturePage()).toPNG());
+  await js('window.studio.setLanguage("ru")');
+  await until(`!!document.querySelector('[aria-label="Рабочие папки агентов"]')`);
   await click('Сохранить');
   await saved();
+  assert.equal((await load()).sections.agentTeams[0].workspaceMode, 'shared');
   await addAgent('Переименована', 'Третий');
   await click('Проекты');
   await named('Создать проект');
@@ -215,6 +242,13 @@ const timeout = setTimeout(() => {
   await click('Создать');
   await until(`document.querySelector('.project-header h1')?.textContent==='Из второй команды'`);
   const project = (await load()).projects[0];
+  assert.equal(project.workspaceMode, 'shared');
+  assert.deepEqual(
+    (
+      await require('node:fs/promises').readdir(join(studio, 'projects', project.folderName))
+    ).sort(),
+    ['.pistudio', 'project.json'],
+  );
   assert.equal(project.sourceTeamId, state.sections.agentTeams[1].id);
   assert.deepEqual(
     project.agents.map((agent) => agent.profile.name),
@@ -222,13 +256,7 @@ const timeout = setTimeout(() => {
   );
   assert.equal(project.agents[0].session, undefined);
   assert.equal('instructions' in project.agents[0].profile, false);
-  const marker = join(
-    studio,
-    'projects',
-    project.folderName,
-    project.agents[0].outputPath,
-    'keep.md',
-  );
+  const marker = join(studio, 'projects', project.folderName, 'keep.md');
   await writeFile(marker, 'Keep output');
   await click('Агенты');
   await openTeamMenu(state.sections.agentTeams[1].id);
@@ -267,6 +295,21 @@ const timeout = setTimeout(() => {
     resolve('artifacts/agent-teams.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
+  if (process.env.PI_STUDIO_TEAM_WORKSPACE_QA === '1') {
+    const proof = {
+      checkedAt: new Date().toISOString(), isolatedOffscreen: true,
+      workspaceModeCreateAndEditThroughSharedSelect: true,
+      workspaceModePersistsAcrossReloadAndUndo: true,
+      sharedProjectCreatesNoOutputOrAgentNamedWorkFolders: true,
+      workspaceDialogLiveRuEn: true, userStudioChanged: false,
+    };
+    await writeFile(resolve('artifacts/team-workspace-ui-proof.json'), JSON.stringify(proof, null, 2) + '\n');
+    console.log('Native team workspace UI: create/edit, shared project root, RU/EN, persistence and Undo passed.');
+    clearTimeout(timeout);
+    window.destroy();
+    app.exit(0);
+    return;
+  }
   const menuChecks = await require('./team-menu-checks.cjs')({
     js,
     until,
@@ -391,6 +434,10 @@ const timeout = setTimeout(() => {
     collapseRenameAdd: true,
     projectExplicitSelection: true,
     projectScopedToSelectedTeam: true,
+    workspaceModeCreateAndEditThroughSharedSelect: true,
+    workspaceDialogLiveRuEn: true,
+    workspaceModePersistsAcrossReloadAndUndo: true,
+    sharedProjectCreatesNoOutputOrAgentNamedWorkFolders: true,
     confirmationCancel: true,
     teamDeletePreservesProjectAndOutput: true,
     undoPreservesLaterEdits: true,

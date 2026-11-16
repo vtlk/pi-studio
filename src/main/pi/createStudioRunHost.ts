@@ -114,6 +114,15 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           store.folder,
           selectedModel.imageInput,
         );
+        project = await store.projects.prepareAgentSessions(project.id, request.agentId);
+        const sourceTeam = store
+          .agentCatalog()
+          .teams.find((team) => team.id === project.sourceTeamId);
+        if (sourceTeam)
+          project = await store.projects.applyWorkspaceMode(
+            project.id,
+            sourceTeam.workspaceMode ?? 'per-agent',
+          );
         project = await store.projects.applyAgentModel(project.id, request.agentId, model);
         const run = await buildRunContext(
           await store.projects.directory(project.id),

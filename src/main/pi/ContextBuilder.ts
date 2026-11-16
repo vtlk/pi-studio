@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import { parseReasoning, type ThinkingLevel } from '../../shared/reasoning.ts';
 import { mkdir, realpath } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -8,7 +9,12 @@ import type { RunContextRecord } from '../../shared/runtime.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { resolveResources, type ResolvedResources, type McpConfigResolver } from './resources.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import {
+  agentDirectory,
+  agentRuntimeDirectory,
+  agentSessionDirectory,
+  projectAgentOutputPath,
+} from '../../shared/agentPaths.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 import { hasTeamMcp, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
 
@@ -38,14 +44,13 @@ export async function buildRunContext(
 ): Promise<PreparedRun> {
   projectRoot = await realpath(projectRoot);
   const saved = project.agents.find((item) => item.profile.id === agentId);
-  if (!saved) throw new Error('Агент отсутствует в снимке проекта.');
-  if (!saved.profile.enabled) throw new Error('Агент выключен.');
+  if (!saved) throw new Error(t('error.contextBuilder.theAgentIsMissingFrom'));
+  if (!saved.profile.enabled) throw new Error(t('session.agentDisabled'));
   const current = constructor.find((item) => item.id === agentId);
-  if (!current)
-    throw new Error('Текущие инструкции агента удалены. Другой профиль не подставляется.');
+  if (!current) throw new Error(t('error.contextBuilder.theAgentSCurrentInstructions'));
   const model = current.model;
   if (!hasModelConfiguration(model))
-    throw new Error('Выберите подключение, модель и уровень рассуждения агента в конструкторе.');
+    throw new Error(t('error.contextBuilder.selectTheAgentSConnection'));
   // This app-owned capability is revoked from the current constructor on each explicit open.
   const teamAccess = hasTeamMcp(current);
   const optionalIds = optionalBuiltinMcps.map((item) => item.id);
@@ -69,10 +74,17 @@ export async function buildRunContext(
     },
   };
   project = { ...project, agents: project.agents.map((item) => (item === saved ? agent : item)) };
-  const agentFolder = agentDirectory(agent.outputPath);
-  const cwd = await safePath(projectRoot, agentFolder);
-  const output = await safePath(projectRoot, agent.outputPath);
-  const sessionDirectory = await safePath(projectRoot, `${agentFolder}/sessions`);
+  const agentFolder = agentRuntimeDirectory(agent);
+  const cwd =
+    project.workspaceMode === 'shared'
+      ? projectRoot
+      : await safePath(projectRoot, agentDirectory(agent.outputPath));
+  const output =
+    project.workspaceMode === 'shared'
+      ? projectRoot
+      : await safePath(projectRoot, agent.outputPath);
+  await mkdir(output, { recursive: true });
+  const sessionDirectory = await safePath(projectRoot, agentSessionDirectory(agent));
   const resources = await resolveResources(agent.profile, catalog, materializeMcp);
   const record: RunContextRecord = {
     schemaVersion: 1,
@@ -82,12 +94,14 @@ export async function buildRunContext(
     createdAt: Date.now(),
     projectRoot,
     cwd,
+    workspaceMode: project.workspaceMode ?? 'per-agent',
+    leaseDirectory: await safePath(projectRoot, agentFolder),
     output,
     sessionDirectory,
     previousOutputs: project.agents.slice(0, project.agents.indexOf(agent)).map((item) => ({
       agentId: item.profile.id,
       agentName: item.profile.name,
-      path: join(projectRoot, item.outputPath),
+      path: join(projectRoot, projectAgentOutputPath(project, item)),
     })),
     model: {
       connectionId: model.connectionId,

@@ -66,7 +66,7 @@ test('readable folders survive rename, refresh, deletion/restore and clone; new 
   );
   const directory = await store.projects.directory(project.id);
   await writeFile(join(directory, paths[0], 'script.md'), 'Preserve output');
-  const sessionPath = `${agentDirectory(paths[0])}/sessions/dialogue.jsonl`;
+  const sessionPath = `.pistudio/sessions/${profiles[0].id}/dialogue.jsonl`;
   await writeFile(join(directory, sessionPath), 'Preserve transcript');
   await store.projects.updateRuntime(project.id, profiles[0].id, 'waiting', {
     id: 'dialogue',
@@ -95,7 +95,7 @@ test('readable folders survive rename, refresh, deletion/restore and clone; new 
     [],
   );
   assert.equal(run.record.cwd, join(directory, 'agents/personazhi'));
-  assert.equal(run.record.sessionDirectory, join(directory, 'agents/personazhi/sessions'));
+  assert.equal(run.record.sessionDirectory, join(directory, '.pistudio/sessions', profiles[1].id));
   assert.deepEqual(run.record.previousOutputs[1], {
     agentId: renamed.id,
     agentName: renamed.name,

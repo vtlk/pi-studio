@@ -60,7 +60,14 @@ export const setupTools: SessionTool[] = [
     name: 'configure_team',
     description:
       'Create a named ordinary agent team, or rename one by its existing stable ID. Does not change projects or launch agents. Read teams in list_configuration; pass the intended teamId when creating an agent.',
-    inputSchema: object({ id: string, name: string }, ['name']),
+    inputSchema: object(
+      {
+        id: string,
+        name: string,
+        workspaceMode: { type: 'string', enum: ['per-agent', 'shared'] },
+      },
+      ['name'],
+    ),
   },
   {
     name: 'list_team_imports',

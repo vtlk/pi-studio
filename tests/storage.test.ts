@@ -61,12 +61,12 @@ test('project creates stable output/session directories without instruction text
   const project = projects[0];
   const root = await store.projects.directory(project.id);
   assert.ok((await stat(join(root, 'agents/scenarist/output'))).isDirectory());
-  assert.ok((await stat(join(root, 'agents/scenarist/sessions'))).isDirectory());
+  assert.ok((await stat(join(root, '.pistudio/sessions/writer'))).isDirectory());
   const raw = await readFile(join(root, 'project.json'), 'utf8');
   assert.equal(raw.includes('mainInstruction'), false);
   assert.equal(raw.includes('instructions'), false);
   assert.equal(raw.includes('Только текущий текст'), false);
-  assert.deepEqual(await readdir(join(root, 'agents/scenarist/sessions')), []);
+  assert.deepEqual(await readdir(join(root, '.pistudio/sessions/writer')), []);
   assert.deepEqual((await store.projects.read(project.id)).agents[0].entries, []);
 });
 test('clone copies every project file into an independent folder and preserves the source snapshot', async (t) => {
@@ -359,7 +359,7 @@ test('Russian project names use Latin folder slugs for create, rename, clone and
   assert.equal(created.name, 'Мой супер проект');
   assert.equal(created.folderName, 'moy-super-proekt');
   const source = await store.projects.directory(created.id);
-  const historyPath = 'agents/scenarist/sessions/history.jsonl';
+  const historyPath = '.pistudio/sessions/writer/history.jsonl';
   await writeFile(join(source, historyPath), 'canonical history');
   await store.projects.updateRuntime(created.id, 'writer', 'stopped', {
     id: 'dialogue',

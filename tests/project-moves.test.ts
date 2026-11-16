@@ -67,7 +67,7 @@ test('clone preserves active/archived histories and attachments but excludes onl
   const histories = new Map<string, Buffer>();
   for (const agent of project.agents) {
     const directory = agent.outputPath.replace(/\/output$/, '');
-    const path = `${directory}/sessions/history.jsonl`;
+    const path = `.pistudio/sessions/${agent.profile.id}/history.jsonl`;
     const bytes = Buffer.from(`{"type":"session","id":"${agent.profile.id}"}\n`);
     histories.set(path, bytes);
     await writeFile(join(root, path), bytes);
@@ -145,7 +145,7 @@ test('rename marks active and archived bindings for native fork while preserving
   const root = await store.projects.directory(project.id);
   const history = Buffer.from('canonical Pi history\n');
   for (const agent of project.agents) {
-    const path = agent.outputPath.replace(/\/output$/, '/sessions/history.jsonl');
+    const path = `.pistudio/sessions/${agent.profile.id}/history.jsonl`;
     await writeFile(join(root, path), history);
     await store.projects.updateRuntime(project.id, agent.profile.id, 'stopped', {
       id: agent.profile.id,
