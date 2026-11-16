@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-16T19:31:52.221885+00:00",
+  "version": "0.2.0-alpha.86",
+  "platform": "win32-x64",
+  "archiveBytes": 171439336,
+  "sha256": "dd538e2e6f7efd759e5239e01f27304fa1841a61b1777fd4174f78254f0ebdb7",
+  "allZipCrcsVerified": true,
+  "amd64PeBinariesVerified": 3,
+  "publicWindowsGuideMatches": true,
+  "technicalSpecificationsAndMacBinariesAbsent": true,
+  "cuaLicenseAndSourceNoticesMatch": true,
+  "nativeWindowsAcceptance": false,
+  "authenticodeSigned": false,
+  "crossBuiltOnMac": true,
+  "userExplicitlyRequestedThisBuild": true,
+  "sharedCompiledFilesComparedWithMac": 14,
+  "sharedCompiledPayloadByteIdentical": true,
+  "sourceCommit": "2e136340e1e2f0271feaea30fb9420ebabb68b57",
+  "macSourceCommit": "cc16a9735963d932e11e6996ede52ff4fd058008",
+  "metadataSignatureEd25519Verified": true,
+  "temporaryPackageStageRemoved": true
+}

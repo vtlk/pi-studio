@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-11-16T19:38:11.417Z",
+  "version": "0.2.0-alpha.86",
+  "platform": "win32-x64",
+  "sourceCommit": "2e136340e1e2f0271feaea30fb9420ebabb68b57",
+  "releaseUrl": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.86",
+  "windowsAddedAfterExplicitUserRequest": true,
+  "allSixAssetSizesAndDigestsVerified": true,
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.86-darwin-arm64.update.json",
+      "size": 622,
+      "digest": "sha256:f44f7d1111cc514860d10023b53e09c483c632e613dea3e0a9a2f80779a22c34",
+      "url": "https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.86/Pi-Studio-0.2.0-alpha.86-darwin-arm64.update.json"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.86-mac-arm64.zip",
+      "size": 142877313,
+      "digest": "sha256:958d4c5fae0df2e45a08990de0b3f31921ee115b0d8cc75b3a3863ab9b4076b7",
+      "url": "https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.86/Pi-Studio-0.2.0-alpha.86-mac-arm64.zip"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.86-mac-arm64.zip.sha256",
+      "size": 105,
+      "digest": "sha256:3c8c059c9914173a358d153372ba24d072982ef2094b32fe0cabd44082afe71e",
+      "url": "https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.86/Pi-Studio-0.2.0-alpha.86-mac-arm64.zip.sha256"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.86-win-x64.zip",
+      "size": 171439336,
+      "digest": "sha256:dd538e2e6f7efd759e5239e01f27304fa1841a61b1777fd4174f78254f0ebdb7",
+      "url": "https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.86/Pi-Studio-0.2.0-alpha.86-win-x64.zip"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.86-win-x64.zip.sha256",
+      "size": 103,
+      "digest": "sha256:ea391ce98bb20dbb0bc3d9e010ac3a29ea6523b2fee8cb2c3417383a45636efb",
+      "url": "https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.86/Pi-Studio-0.2.0-alpha.86-win-x64.zip.sha256"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.86-win32-x64.update.json",
+      "size": 630,
+      "digest": "sha256:f78455b2fb0e1b7198df5e0bd0885bd480dbffeae054e9722ca0e81e1cde4f05",
+      "url": "https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.86/Pi-Studio-0.2.0-alpha.86-win32-x64.update.json"
+    }
+  ],
+  "anonymousWindowsArchiveAndChecksumAvailable": true,
+  "downloadedProductionEd25519MetadataVerified": true,
+  "anonymousUpdaterOffers78to86": true,
+  "crossBuiltOnMac": true,
+  "nativeWindowsAcceptance": false,
+  "authenticodeSigned": false,
+  "macAlreadyInstalled": "0.2.0-alpha.86",
+  "temporaryWindowsStageRemoved": true
+}

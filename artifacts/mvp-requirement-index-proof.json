@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T19:17:50.049253+00:00",
+  "checkedAt": "2026-11-16T19:39:33.801785+00:00",
   "headAtAudit": "257924be59002e3e45e9e30fe9d559f7542feeae",
   "backlogUniqueIdCount": 216,
   "backlogIds": [
@@ -300,7 +300,11 @@
     "artifacts/alpha86-validation-proof.json": "1266992ed8db1ca616376ebea6dc91925db2a734c927ab27973995c9dc6fcb02",
     "artifacts/alpha86-package-proof.json": "70f2a3d4b57fbe78148f829e9d8e8ff9fbe83d19ac533a3281e71e89310ca4c3",
     "artifacts/alpha86-packaged-fields-proof.json": "efada6a41230d69e8f88e6749d43913b198cc9339075a6f83886079406ec85be",
-    "artifacts/alpha86-release-proof.json": "adffd0dcb978b4f5b20e3460dbfa89a5e2011acf530a34fe7dfdf007a96ed3d5"
+    "artifacts/alpha86-release-proof.json": "adffd0dcb978b4f5b20e3460dbfa89a5e2011acf530a34fe7dfdf007a96ed3d5",
+    "artifacts/alpha86-installation-proof.json": "3b35d36754a4efb078d3b6b57f4ab5f6aafc76e33331ac318772e5a32b82834c",
+    "artifacts/alpha86-windows-package-proof.json": "bbcf8b17eb4cc2f62f06bd8ab9c1e98400dbb877c252bd50958b15e23cd34a4a",
+    "artifacts/alpha86-windows-release-proof.json": "c75d9fbd26884742f3af4775d3c9961537e7560f786ecead1fb968e51a46144a",
+    "artifacts/release-package-0.2.0-alpha.86-proof.json": "e8d95c374a4666980327d028fda59eb56f1547661fc5e1752cc7ba9d331f207c"
   },
   "latestScopeReplacements": [
     "library retired",
@@ -311,9 +315,9 @@
     "five required helper MCPs; ordinary Project only",
     "public repository retained by owner"
   ],
-  "backlogSha256": "c6a2eeb44fc5e48b1a9e17066747bcd4899a2a6ad8d3549ab8995d5302d092cc",
-  "auditSha256": "4e0bff4d9780891f2a349f3058f5c5c197268b58ddf1575c59a5b35d3599bf32",
-  "installedVersion": "0.2.0-alpha.85",
+  "backlogSha256": "35f82f500da771807e57417fcaac419d2ff9b0d84c7de284d8c9a30d59e62da3",
+  "auditSha256": "1d359662272ba46a17ce28ede8447140617fd907b53360e38d65b4391dd48c18",
+  "installedVersion": "0.2.0-alpha.86",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
   "scope": "Requirement-index and supersession reconciliation with explicitly bounded read evidence, not a new runtime test or completion proof. Full specification text stays local and ignored.",
@@ -327,5 +331,7 @@
   ],
   "publishedVersion": "0.2.0-alpha.86",
   "promptFitPublishedVersion": "0.2.0-alpha.86",
-  "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63"
+  "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
+  "publishedWindowsVersion": "0.2.0-alpha.86",
+  "nativeWindowsAcceptance": false
 }

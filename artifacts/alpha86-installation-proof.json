@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-11-16T19:30:20.707Z",
+  "version": "0.2.0-alpha.86",
+  "installedPid": 13889,
+  "runningInstances": 1,
+  "windowInspection": {
+    "attention": false,
+    "saving": false,
+    "active": true,
+    "pid": 13889,
+    "visited": 247,
+    "count": 1,
+    "saved": false,
+    "dialogs": 0,
+    "trusted": 1
+  },
+  "protectedFilesUnchangedAfterOpening": 97,
+  "canonicalJsonlPreserved": 79,
+  "imageOperationStates": {
+    "saved": 78,
+    "failed": 6
+  },
+  "selectedWorkspacePreserved": true,
+  "userApprovedThisVersion": true,
+  "normalQuitConfirmed": true,
+  "applicationBackupsCreated": false,
+  "automaticPiMessages": 0,
+  "packagingStageRemoved": true,
+  "sourceCommit": "cc16a9735963d932e11e6996ede52ff4fd058008",
+  "previousVersion": "0.2.0-alpha.85",
+  "signedPublishedZipUsed": true,
+  "stablePublisherTeamIdentifier": "2N3G6XT5H9",
+  "protectedFilesImmediatelyAfterInstall": 97,
+  "protectedStudios": 2,
+  "newChromeClones": 0,
+  "personalBrowserModified": false,
+  "piDialoguesReopened": 0,
+  "fullNativeWindowsAcceptance": false
+}
