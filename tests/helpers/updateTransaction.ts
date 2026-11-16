@@ -45,7 +45,7 @@ import {join} from 'node:path';
 import {paths,atomicJson,authenticated} from ${JSON.stringify(protocol)};
 const args=process.argv.slice(2), data=args.find(arg=>arg.startsWith('--pistudio-user-data=')).split('=').slice(1).join('=');
 const failed=args.some(arg=>arg.startsWith('--pistudio-update-failed='));
-if(failed){await writeFile(join(data,'OLD_REOPENED'),${JSON.stringify(version)});process.exit(0);}
+if(failed){const failedId=args.find(arg=>arg.startsWith('--pistudio-update-failed=')).split('=')[1];const job=JSON.parse(await readFile(join(data,'updates/transactions',failedId+'.json'),'utf8'));await atomicJson(join(data,'OLD_REOPENED'),{nonce:job.nonce,pid:process.pid,version:${JSON.stringify(version)}});process.exit(0);}
 const id=args.find(arg=>arg.startsWith('--pistudio-update=')).split('=')[1];
 const job=JSON.parse(await readFile(join(data,'updates/transactions',id+'.json'),'utf8')), p=paths(job);
 await mkdir(p.startups,{recursive:true});
@@ -121,22 +121,52 @@ setInterval(async()=>{
   cleanup = async () => {
     parent.stdin.end('quit');
     await parentExit;
-    // Test-only cleanup may terminate only PIDs whose nonce-bound startup marker belongs to this fixture.
+    // The detached rollback launcher may still be finishing its acknowledgement after the helper exits.
+    const markers: { nonce: string; pid: number }[] = [];
+    if (await exists(p.result)) {
+      const result = JSON.parse(await readFile(p.result, 'utf8'));
+      if (result.status === 'rolled-back')
+        markers.push(
+          await until(
+            async () => {
+              const file = join(userData, 'OLD_REOPENED');
+              return (await exists(file)) ? JSON.parse(await readFile(file, 'utf8')) : undefined;
+            },
+            (value) => !!value,
+          ),
+        );
+    }
     if (await exists(p.startups))
-      for (const name of await readdir(p.startups)) {
-        const marker = JSON.parse(await readFile(join(p.startups, name), 'utf8'));
-        if (marker.nonce === nonce)
-          try {
-            const command = execFileSync('/bin/ps', ['-p', String(marker.pid), '-o', 'command='], {
-              encoding: 'utf8',
-            });
-            if (
-              command.includes('/Resources/app/fixture.mjs') &&
-              command.includes(`--pistudio-update=${id}`)
-            )
-              process.kill(marker.pid, 'SIGTERM');
-          } catch {}
-      }
+      for (const name of await readdir(p.startups))
+        markers.push(JSON.parse(await readFile(join(p.startups, name), 'utf8')));
+    const ending: number[] = [];
+    // Test-only cleanup may terminate only PIDs whose nonce-bound startup marker belongs to this fixture.
+    for (const marker of markers) {
+      if (marker.nonce !== nonce) continue;
+      try {
+        const command = execFileSync('/bin/ps', ['-p', String(marker.pid), '-o', 'command='], {
+          encoding: 'utf8',
+        });
+        if (
+          command.includes(root) &&
+          command.includes('/Resources/app/fixture.mjs') &&
+          (command.includes(`--pistudio-update=${id}`) ||
+            command.includes(`--pistudio-update-failed=${id}`))
+        ) {
+          process.kill(marker.pid, 'SIGTERM');
+          ending.push(marker.pid);
+        }
+      } catch {}
+    }
+    for (const pid of ending)
+      await until(async () => {
+        try {
+          process.kill(pid, 0);
+          return false;
+        } catch {
+          return true;
+        }
+      }, Boolean);
     for (const child of helpers)
       if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
     await Promise.all(helperExits);
