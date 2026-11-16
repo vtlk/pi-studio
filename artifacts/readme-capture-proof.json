@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-11-15T19:49:24.428Z",
-  "version": "0.2.0-alpha.72",
+  "checkedAt": "2026-11-16T07:41:07.187Z",
+  "version": "0.2.0-alpha.79",
   "nativeMain": true,
   "isolatedUserDataAndStudio": true,
   "initialTeamsAndAgentsEmpty": true,
@@ -11,7 +11,7 @@
     "team-transfer.png"
   ],
   "dataOrigin": "Explicit documentation-only catalog/project CRUD through actual native IPC and local sample Markdown, not preinstalled data or generated model results.",
-  "sourceMainSha256": "dfa4edde517aabae2582d4456a0ce17016ef9e90a2ce21e2413216e0ad6795b1",
+  "sourceMainSha256": "a7588df9fc73fdce5295f395def238cab26ec57aeef744015f767ccf02ca2377",
   "modelRequests": 0,
   "terminalOpened": false,
   "userStudioChanged": false,

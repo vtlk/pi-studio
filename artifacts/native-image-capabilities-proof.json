@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-11-15T05:37:27.632Z",
-  "version": "0.2.0-alpha.62",
+  "checkedAt": "2026-11-16T07:37:57.643Z",
+  "version": "0.2.0-alpha.79",
   "actualPi": "1.5.2",
   "primarySource": "https://github.com/earendil-works/pi/blob/v1.5.2/packages/ai/src/types.ts",
   "sdkTypesSha256": "c0ecd26c0170c7d6016c734ec38b551c7d8c7d8e6573f82f7f6a3818df84acd8",
@@ -80,12 +80,11 @@
   "userStudioTouched": false,
   "sourceSha256": {
     "src/main/images/imageRuntime.ts": "9e6f6de584381cdd161ad08bc81bbbb9cf7b652b2a26ea64400ce4eb40438436",
-    "src/main/images/ImageGeneration.ts": "7f5d23184048dc9ebae022a07f5e8c4eed516e9b18890ee1257be3e5bd462ef7",
-    "src/main/pi/createStudioRunHost.ts": "300aecb5b616e1aeb8a3ff874a8871c855cb8079229c95d0df09f8e86b43cf0c",
-    "src/main/pi/createLibraryRunHost.ts": "353e8100244fc837b936b5c204dfd43930da5f9462d75d6d8476e752ae358997",
-    "src/main/pi/RunLifecycle.ts": "35761dd07ca0103d28f866d131e5e2acf80c4eebb12f811a3a9dcca42be02dd8",
-    "bundled/pi-bridge/session.mjs": "62d9848500773ea17d1989cebb7cf0a7231997038dcd649b1c6f75a3ce84e190",
-    "scripts/smoke-native-image-capabilities.ts": "49024717c85fc80a9a680dfd9f0aff29084e9745f6e4c3bd7a9fdfe6e6983123"
+    "src/main/images/ImageGeneration.ts": "8681366505ce93e60b1c3fbca27862574d803955ea0cbe36af0b0826b87a366f",
+    "src/main/pi/createStudioRunHost.ts": "fe907ec1cd5be16ae3461262e3d66721760415be49ef2c25d5cb2a20aaa48c34",
+    "src/main/pi/RunLifecycle.ts": "15daddbebf60079d01f6da3a1436a641fbbbcb9a1e4a1de5efc0aa44eea13cfd",
+    "bundled/pi-bridge/session.mjs": "0667ae6049c5996067052aa4a0a43f5a527175ca9e6bd44a3f4f8599613631cc",
+    "scripts/smoke-native-image-capabilities.ts": "4ead7d18bc4af8635995cc6690cc9984b49e144f25efb74e3b6f7ca63ec8d820"
   },
   "limits": "Actual native Pi protocol/tool transport driven by a local scripted SSE model and injected Images HTTP fixture, not a real non-Codex cloud account or artistic image generation."
 }

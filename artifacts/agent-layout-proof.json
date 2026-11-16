@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-11-16T06:22:29.695Z",
-  "version": "0.2.0-alpha.78",
+  "checkedAt": "2026-11-16T07:41:21.947Z",
+  "version": "0.2.0-alpha.79",
   "realMainPreloadRendererAndDiskPersistence": true,
   "controlledSaveDelayAndOneFailure": true,
   "initialAndBackgroundReadNoSuccess": true,
