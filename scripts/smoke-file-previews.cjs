@@ -475,7 +475,8 @@ const deadline = setTimeout(() => {
     svgScriptsDoNotExecute: true,
     nativeAudioAndVideoPlayback: true,
     unsupportedFileMessage: true,
-    manifestValidation: true,
+    legacyManifestRenderedAsPlainJson: true,
+    videoInspectionApiAbsent: true,
     finderTargetsAgentOutputForEveryPreview: true,
     newModelRequests: 0,
     scope:

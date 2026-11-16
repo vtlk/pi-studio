@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-16T14:53:35.804307+00:00",
+  "sourceCommit": "964b3f91180ff4c445b124730b095a3be94d2f7b",
+  "testedScope": "Frozen current working source, including other in-progress changes; not a signed app package.",
+  "technicalSpecTrackedFiles": 0,
+  "privateLibraryTrackedFiles": 0,
+  "remotionDependencyNamesAbsent": true,
+  "nativeBundleNoticePackages": 127,
+  "checks": {
+    "nativeBuildAndTypecheck": true,
+    "webBuild": true,
+    "lint": true,
+    "architectureModules": 381,
+    "unitFsPassed": 344,
+    "nativeFilePreview": true,
+    "nativeAudioVideoMutedInQa": true,
+    "legacyJsonSearchAndCopyAvailable": true,
+    "userClipboardUntouched": true
+  },
+  "nativePreviewEvidenceSha256": "216a562cee433f009da32faa653267d60495a022079b56c048cc97cc2aeaac31",
+  "appInstalledOrClosed": false,
+  "windowsBuilt": false,
+  "historyRewritten": false,
+  "remaining": [
+    "Signed-package release and per-update installation consent.",
+    "History cleanup plan before any public repository opening."
+  ]
+}
