@@ -101,6 +101,9 @@ export function ModelPanel() {
           {window.studio ? (
             <SearchableSelect
               label="Модель агента"
+              placeholder="Выберите модель"
+              searchPlaceholder="Найти модель"
+              emptyMessage="Модели не найдены"
               value={model.id || 'none'}
               options={modelOptions}
               onValueChange={chooseModel}

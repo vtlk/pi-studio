@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
 import { Select } from '@/shared/ui/Select';
+import { SearchableSelect } from '@/shared/ui/SearchableSelect';
 import { useNotice } from '@/shared/model/Notice';
 import { useConnections, type Connection } from '../model/Connections';
 import { usePiCatalog } from '../model/usePiCatalog';
@@ -156,22 +157,32 @@ export function ConnectionEditor({
         <label className="field-label">
           ID провайдера
           {window.studio && draft.purpose === 'pi' ? (
-            <Select
-              label="Провайдер Pi"
+            <SearchableSelect
+              label="ID провайдера"
+              placeholder="Выберите провайдера"
+              searchPlaceholder="Найти провайдера"
+              emptyMessage="Провайдеры не найдены"
+              loadingMessage="Загружаем провайдеров…"
+              loading={loading}
               value={draft.providerId || 'none'}
               disabled={busy || authActive}
               options={[
-                {
-                  value: 'none',
-                  label: loading ? 'Загружаем провайдеров…' : 'Выберите провайдера',
-                },
+                ...(catalog?.providers.length
+                  ? [{ value: 'none', label: 'Выберите провайдера' }]
+                  : []),
                 ...(catalog?.providers.map((item) => ({
                   value: item.id,
                   label: `${item.name} · ${item.id}`,
                 })) ?? []),
                 ...(draft.providerId &&
                 !catalog?.providers.some((item) => item.id === draft.providerId)
-                  ? [{ value: draft.providerId, label: draft.providerId }]
+                  ? [
+                      {
+                        value: draft.providerId,
+                        label: `${draft.providerId} · недоступен`,
+                        disabled: true,
+                      },
+                    ]
                   : []),
               ]}
               onValueChange={(id) =>

@@ -1,3 +1,4 @@
+import { useControlScope } from './ControlScope.context';
 import { useRef, useState, type ReactNode } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
@@ -27,6 +28,7 @@ export function SplitButton({
   menuLabel,
   actions,
 }: SplitButtonProps) {
+  const controlsScope = useControlScope();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const pendingAction = useRef<(() => void) | null>(null);
@@ -71,6 +73,7 @@ export function SplitButton({
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           className="ui-action-menu"
+          data-controls-scope={controlsScope}
           align="end"
           sideOffset={5}
           collisionPadding={8}

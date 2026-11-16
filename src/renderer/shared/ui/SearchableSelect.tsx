@@ -1,6 +1,7 @@
+import { useControlScope } from './ControlScope.context';
 import * as Popover from '@radix-ui/react-popover';
 import { Check, ChevronDown, Search } from 'lucide-react';
-import { useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { SelectOption } from './Select';
 
 interface SearchableSelectProps {
@@ -8,6 +9,11 @@ interface SearchableSelectProps {
   value: string;
   options: readonly SelectOption[];
   disabled?: boolean;
+  loading?: boolean;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyMessage?: string;
+  loadingMessage?: string;
   onValueChange: (value: string) => void;
 }
 
@@ -16,8 +22,14 @@ export function SearchableSelect({
   value,
   options,
   disabled,
+  loading = false,
+  placeholder = 'Выберите вариант',
+  searchPlaceholder = 'Найти вариант',
+  emptyMessage = 'Варианты не найдены',
+  loadingMessage = 'Загружаем варианты…',
   onValueChange,
 }: SearchableSelectProps) {
+  const controlsScope = useControlScope();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeValue, setActiveValue] = useState(value);
@@ -34,29 +46,50 @@ export function SearchableSelect({
     if (open && activeIndex >= 0)
       document.getElementById(`${listId}-${activeIndex}`)?.scrollIntoView({ block: 'nearest' });
   }, [open, activeIndex, listId, query]);
+  useEffect(() => {
+    if (disabled || loading) setOpen(false);
+  }, [disabled, loading]);
   const choose = (next: string) => {
     onValueChange(next);
     setOpen(false);
   };
   return (
     <Popover.Root
-      open={open && !disabled}
+      open={open && !disabled && !loading}
       onOpenChange={(next) => {
         setOpen(next);
         setQuery('');
         setActiveValue(value);
       }}
     >
-      <Popover.Trigger className="ui-select-trigger" aria-label={label} disabled={disabled}>
-        <span>{options.find((item) => item.value === value)?.label ?? 'Выберите модель'}</span>
+      <Popover.Trigger
+        className="ui-select-trigger"
+        aria-label={label}
+        aria-busy={loading || undefined}
+        disabled={disabled || loading}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            setQuery('');
+            setActiveValue(value);
+            setOpen(true);
+          }
+        }}
+      >
+        <span>
+          {options.find((item) => item.value === value)?.label ??
+            (loading ? loadingMessage : value || placeholder)}
+        </span>
         <ChevronDown size={17} aria-hidden="true" />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
           className="ui-searchable-select"
+          data-controls-scope={controlsScope}
           sideOffset={4}
           collisionPadding={12}
           aria-label={label}
+          onEscapeKeyDown={(event) => event.stopPropagation()}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             input.current?.focus({ preventScroll: true });
@@ -72,7 +105,7 @@ export function SearchableSelect({
               aria-controls={listId}
               aria-autocomplete="list"
               aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
-              placeholder="Найти модель"
+              placeholder={searchPlaceholder}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -123,7 +156,7 @@ export function SearchableSelect({
           </div>
           {filtered.length === 0 && (
             <p className="ui-select-empty" role="status">
-              Модели не найдены
+              {emptyMessage}
             </p>
           )}
         </Popover.Content>

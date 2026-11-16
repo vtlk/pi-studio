@@ -1,3 +1,4 @@
+import { useControlScope } from './ControlScope.context';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export function Select({
   disabled,
   onValueChange,
 }: SelectProps) {
+  const controlsScope = useControlScope();
   const items = options.map((item) =>
     typeof item === 'string' ? { value: item, label: item } : item,
   );
@@ -42,7 +44,12 @@ export function Select({
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
-        <SelectPrimitive.Content className="ui-select-content" position="popper" sideOffset={4}>
+        <SelectPrimitive.Content
+          className="ui-select-content"
+          data-controls-scope={controlsScope}
+          position="popper"
+          sideOffset={4}
+        >
           <SelectPrimitive.ScrollUpButton className="ui-select-scroll">
             <ChevronUp size={16} />
           </SelectPrimitive.ScrollUpButton>

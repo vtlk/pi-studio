@@ -45,14 +45,14 @@ body,
 .step-nav > button {
   padding: 7px 12px;
   border: 1px solid var(--separator);
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   color: var(--text);
   font-size: 15px;
 }
 
 .segmented > button {
   border: 1px solid var(--separator);
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   padding: 7px 12px;
   color: var(--text);
   font-size: 15px;
@@ -71,7 +71,7 @@ body,
   color: var(--text);
   background: var(--surface);
   font-size: 15px;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
 }
 .icon-button {
   color: var(--text);
@@ -324,7 +324,7 @@ input::placeholder {
 }
 .topbar nav > button {
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   color: var(--text);
   font-weight: 600;
   text-transform: uppercase;
@@ -333,7 +333,7 @@ input::placeholder {
 }
 .segmented > button,
 .step-nav > button {
-  border-radius: 6px;
+  border-radius: var(--control-radius);
 }
 
 /* Pills share one treatment at every level. */
@@ -341,7 +341,7 @@ input::placeholder {
 .step-nav > button,
 .segmented > button {
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   background: var(--surface);
   color: var(--text);
 }
@@ -354,7 +354,7 @@ input::placeholder {
   font-size: 16px;
   padding: 18px;
   border: 1px solid var(--control-border-soft);
-  border-radius: 6px;
+  border-radius: var(--control-radius);
 }
 /* User-selected palette. Foreground and background change together. */
 .button.primary:disabled {
@@ -585,7 +585,7 @@ input::placeholder {
   text-align: left;
   padding: 10px 12px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   background: var(--surface);
   color: var(--text);
   line-height: 1.45;

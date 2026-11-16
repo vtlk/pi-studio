@@ -1,3 +1,4 @@
+import { useControlScope } from './ControlScope.context';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Fragment, useRef, useState } from 'react';
 import { Ellipsis, type LucideIcon } from 'lucide-react';
@@ -20,6 +21,7 @@ export function ActionMenu({
     danger?: boolean;
   }[];
 }) {
+  const controlsScope = useControlScope();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null),
     pending = useRef<(() => void) | null>(null);
@@ -38,6 +40,7 @@ export function ActionMenu({
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           className="ui-action-menu"
+          data-controls-scope={controlsScope}
           align="end"
           sideOffset={5}
           collisionPadding={8}

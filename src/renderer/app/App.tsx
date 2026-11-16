@@ -12,6 +12,8 @@ import { ProjectsView } from '@/features/project/ui/ProjectsView';
 import { AgentsView } from '@/features/agents/ui/AgentsView';
 import { SettingsView } from '@/features/settings/ui/SettingsView';
 import { Topbar } from './layout/Topbar';
+import { PageControlsScope } from './layout/PageControlsScope';
+import { useControlScope } from '@/shared/ui/ControlScope.context';
 import { TooltipProvider } from '@/shared/ui/Tooltip';
 import { WorkspaceProvider, type WorkspaceContextValue } from '@/features/project/model/Workspace';
 import { ConnectionsProvider } from '@/features/connections/model/Connections';
@@ -32,8 +34,9 @@ const pages = {
 function StudioShell() {
   const { page } = useNavigation();
   const Page = pages[page];
+  const controlsScope = useControlScope();
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-controls-scope={controlsScope}>
       <LegacyTemplateCleanup />
       <main className="main-shell">
         <Topbar />
@@ -62,31 +65,33 @@ export default function App({ useWorkspaceState, ExtraProviders = Fragment, defa
         <TooltipProvider>
           <StorageProvider>
             <NavigationProvider>
-              <NoticeProvider>
-                <ConfirmProvider>
-                  <ConnectionsProvider initial={defaults?.connections}>
-                    <ResourcesProvider initial={defaults?.resources}>
-                      <AgentProfilesProvider initial={defaults?.agents}>
-                        <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
-                          <UpdatesProvider initial={initial}>
-                            <ExtraProviders>
-                              <LaunchProvider>
-                                <UpdateWorkspace>
-                                  <TeamTransfersProvider>
-                                    <StartupGate>
-                                      <StudioShell />
-                                    </StartupGate>
-                                  </TeamTransfersProvider>
-                                </UpdateWorkspace>
-                              </LaunchProvider>
-                            </ExtraProviders>
-                          </UpdatesProvider>
-                        </WorkspaceProvider>
-                      </AgentProfilesProvider>
-                    </ResourcesProvider>
-                  </ConnectionsProvider>
-                </ConfirmProvider>
-              </NoticeProvider>
+              <PageControlsScope>
+                <NoticeProvider>
+                  <ConfirmProvider>
+                    <ConnectionsProvider initial={defaults?.connections}>
+                      <ResourcesProvider initial={defaults?.resources}>
+                        <AgentProfilesProvider initial={defaults?.agents}>
+                          <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
+                            <UpdatesProvider initial={initial}>
+                              <ExtraProviders>
+                                <LaunchProvider>
+                                  <UpdateWorkspace>
+                                    <TeamTransfersProvider>
+                                      <StartupGate>
+                                        <StudioShell />
+                                      </StartupGate>
+                                    </TeamTransfersProvider>
+                                  </UpdateWorkspace>
+                                </LaunchProvider>
+                              </ExtraProviders>
+                            </UpdatesProvider>
+                          </WorkspaceProvider>
+                        </AgentProfilesProvider>
+                      </ResourcesProvider>
+                    </ConnectionsProvider>
+                  </ConfirmProvider>
+                </NoticeProvider>
+              </PageControlsScope>
             </NavigationProvider>
           </StorageProvider>
         </TooltipProvider>

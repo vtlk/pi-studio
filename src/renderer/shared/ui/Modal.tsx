@@ -1,3 +1,4 @@
+import { useControlScope } from './ControlScope.context';
 import { useContext, useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { IconButton } from './index';
@@ -23,6 +24,7 @@ export function Modal({
   dismissible = true,
   size,
 }: ModalProps) {
+  const controlsScope = useControlScope();
   const inheritedSize = useContext(ModalSizeContext);
   const currentSize = size ?? inheritedSize;
   const ref = useRef<HTMLElement>(null);
@@ -73,6 +75,7 @@ export function Modal({
         <section
           ref={ref}
           className="dialog"
+          data-controls-scope={controlsScope}
           data-size={currentSize}
           role={alert ? 'alertdialog' : 'dialog'}
           aria-modal="true"

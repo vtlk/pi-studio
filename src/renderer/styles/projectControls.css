@@ -1,0 +1,30 @@
+/* UI-26: page scope follows React context into dialogs and Radix portals.
+   Keep existing transparent border space so hover/disabled never changes hit areas.
+   Form triggers and Checkbox/Switch retain their field boundaries and own shapes. */
+[data-controls-scope='projects']
+  :is(button, [role='button']):not(.ui-select-trigger):not([role='switch']):not([role='checkbox']) {
+  border-color: transparent !important;
+  border-radius: var(--control-radius) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+[data-controls-scope='projects'] .split-button {
+  border-color: transparent !important;
+  border-radius: var(--control-radius);
+  outline: none;
+  box-shadow: none;
+}
+[data-controls-scope='projects'] .split-button::after {
+  content: none;
+}
+[data-controls-scope='projects'] .split-button > .button {
+  border-radius: 0 !important;
+}
+[data-controls-scope='projects'] .split-button > .button:first-child {
+  border-start-start-radius: var(--control-radius) !important;
+  border-end-start-radius: var(--control-radius) !important;
+}
+[data-controls-scope='projects'] .split-button > .button:last-child {
+  border-start-end-radius: var(--control-radius) !important;
+  border-end-end-radius: var(--control-radius) !important;
+}
