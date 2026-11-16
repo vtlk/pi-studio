@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-16T05:37:02.552Z",
+  "version": "0.2.0-alpha.77",
+  "sourceCommit": "32efc8a32eb72c0fd9e94170be669251beb56972",
+  "mainPid": 76270,
+  "mainProcessCount": 1,
+  "oldPidExited": true,
+  "normalQuit": true,
+  "deepStrictSignatureVerified": true,
+  "inventoryVerified": true,
+  "mainSha256": "b2b90cf93ad7176bf53e5de9b03446cbef5dbba71e93a2a4e83052e67e2f8b8e",
+  "compiledMainMatchesReleaseBuild": true,
+  "stableCertificateIdentityPreserved": true,
+  "studioLocationUnchanged": true,
+  "filesHashProof": "alpha77-installed-data-proof.json",
+  "installation": "existing local bootstrap installer; .75 lacks updater inventory",
+  "programBackupsCreated": false,
+  "modelOrTerminalRequestsInitiatedByUpdate": 0,
+  "nativeWindowsAcceptance": false,
+  "notarized": false
+}

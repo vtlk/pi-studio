@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-11-16T05:34:49.978Z",
+  "tag": "v0.2.0-alpha.77",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.77",
+  "sourceCommit": "32efc8a32eb72c0fd9e94170be669251beb56972",
+  "privatePrerelease": true,
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.77-darwin-arm64.update.json",
+      "bytes": 622,
+      "sha256": "0cff8d060d94f8d25826595a3f55bd9761b1e1259cf1de35275117c49e228848"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip",
+      "bytes": 143013059,
+      "sha256": "637946c8bbe936b9694b5721f1fb7ace8710bf7f0106557a329e043d6725d356"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "sha256": "e250801fd09c779515d49dc5266de7015df7e68b166a35514f3602f351be92e1"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.77-win-x64.zip",
+      "bytes": 171568918,
+      "sha256": "336b582e3ed319cec27b319c96416a4cd5136af39e2e5be90c4cdab488c7c5d7"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.77-win-x64.zip.sha256",
+      "bytes": 103,
+      "sha256": "1205307407e4da9b3a6094b687cf00da3cfa952d0a429e974c569ef671812936"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.77-win32-x64.update.json",
+      "bytes": 630,
+      "sha256": "57490ccd3b272ebf093a21fbdd05c46976d0d3f414ac5ab77258d0e08d5ecda1"
+    }
+  ],
+  "githubAssetSizesAndDigestsVerified": true,
+  "downloadedBothMetadataAndVerifiedEd25519": true,
+  "anonymousReleasesStatus": 404,
+  "actionsEnabled": false,
+  "repositoryVisibility": "PRIVATE",
+  "notarized": false,
+  "nativeWindowsAcceptance": false,
+  "realGitHubToInstalledUpdateAccepted": false,
+  "scope": "Private prerelease publication and exact remote assets/metadata validation; not final public/platform acceptance."
+}
