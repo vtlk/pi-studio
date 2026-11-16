@@ -1,4 +1,5 @@
-import { app, protocol } from 'electron';
+import { app, protocol, nativeTheme } from 'electron';
+import { ThemePreferences } from './appearance/ThemePreferences';
 import { join } from 'node:path';
 import { realpath } from 'node:fs/promises';
 import { applicationRoot } from './updates/registerNativeUpdates';
@@ -49,6 +50,10 @@ async function startStudio() {
   }
   await boot.startup?.start();
   if (boot.startup?.read().phase === 'aborting') return;
+  const appearance = await ThemePreferences.load(
+    join(app.getPath('userData'), 'appearance.json'),
+    nativeTheme,
+  );
   await app.whenReady();
   if (process.platform === 'win32') app.setAppUserModelId('studio.pi.desktop');
   app.setAboutPanelOptions({
@@ -65,6 +70,7 @@ async function startStudio() {
     ),
   );
   const service = registerDesktopHandlers({
+    appearance,
     startup: boot.startup,
     updates: (value) => {
       updates = value;

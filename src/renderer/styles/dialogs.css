@@ -6,16 +6,16 @@
   align-items: center;
   justify-content: center;
   padding: 25px;
-  background: #24253055;
+  background: var(--overlay);
 }
 
 .dialog {
-  background: white;
+  background: var(--raised);
   border: 1px solid var(--line);
   border-radius: 12px;
   max-height: calc(100vh - 50px);
   overflow: auto;
-  box-shadow: 0 12px 45px #0002;
+  box-shadow: 0 12px 45px var(--shadow);
 }
 .modal-top {
   display: flex;

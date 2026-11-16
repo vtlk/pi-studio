@@ -46,10 +46,17 @@ import { registerNativeUpdates } from '../updates/registerNativeUpdates';
 import type { NativeUpdates } from '../updates/NativeUpdates';
 import type { UpdateStartup } from '../updates/UpdateStartup';
 import { createStudioWindow, setUpdateQuitGuard } from '../windows/createStudioWindow';
+import type { ThemePreferences } from '../appearance/ThemePreferences';
+import { registerAppearance } from '../appearance/registerAppearance';
 
 export function registerDesktopHandlers(
-  options: { startup?: UpdateStartup; updates?: (updates: NativeUpdates) => void } = {},
+  options: {
+    appearance?: ThemePreferences;
+    startup?: UpdateStartup;
+    updates?: (updates: NativeUpdates) => void;
+  } = {},
 ): StudioService {
+  if (options.appearance) registerAppearance(options.appearance, caller);
   const service = new StudioService(
     join(app.getPath('userData'), 'workspace.json'),
     join(app.getPath('videos'), 'Pi Studio'),
@@ -163,7 +170,16 @@ export function registerDesktopHandlers(
   });
   registerGracefulQuit(
     [team, runs, setup, computer],
-    [browserAuth, startup, runs, setup, browser, usageRecovery, team],
+    [
+      browserAuth,
+      startup,
+      runs,
+      setup,
+      browser,
+      usageRecovery,
+      team,
+      ...(options.appearance ? [options.appearance] : []),
+    ],
     {
       close: () => updates.close(),
       failed: () => {

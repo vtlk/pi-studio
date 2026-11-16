@@ -34,7 +34,7 @@
   display: flex;
   flex-direction: column;
   padding: 0;
-  background: #f7f7f8;
+  background: var(--sidebar);
 }
 .column-heading,
 .project-column-heading {
@@ -42,9 +42,9 @@
   min-height: 52px;
   margin: 0;
   padding: 16px 20px;
-  border-bottom: 1px solid #e4e4e7;
-  background: #f4f4f5;
-  color: #71717a;
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--heading-surface);
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 600;
   line-height: 20px;
@@ -73,11 +73,11 @@
   padding: 0;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #52525b;
+  color: var(--text-soft);
   background: transparent;
 }
 .output-files-heading .clear-agent-outputs:hover:not(:disabled) {
-  border-color: #a1a1aa;
+  border-color: var(--control-border-soft);
   background: transparent;
 }
 .project-agent-menu .section-menu {
@@ -91,7 +91,7 @@
   padding: 16px 20px;
   gap: 16px;
   border-radius: 0;
-  border-bottom: 1px solid #e4e4e7;
+  border-bottom: 1px solid var(--line-strong);
   background: transparent;
 }
 .project-agent-menu .section-menu-item.active {
@@ -109,19 +109,19 @@
   font-size: 13px;
   font-weight: 400;
   line-height: 20px;
-  color: #71717a;
+  color: var(--muted);
 }
 :is(.project-agent-menu, .agent-stages) .section-menu-item.active .section-menu-description {
-  color: #52525b;
+  color: var(--on-accent-secondary);
 }
 .project-agent-menu .section-menu-item[data-muted] .section-menu-text {
-  color: #737373;
+  color: var(--text-disabled);
 }
 .project-agent-menu .section-menu-item:not([data-muted]) .agent-status-icon[data-status='ready'] {
-  color: #15803d;
+  color: var(--success);
 }
 .project-agent-menu .section-menu-item:not([data-muted]) .agent-status-icon[data-status='error'] {
-  color: #b91c1c;
+  color: var(--danger);
 }
 .project-agent-menu .agent-status-icon {
   display: inline-flex;
@@ -149,13 +149,13 @@
   overflow: hidden;
 }
 .section-menu-item[data-muted] {
-  background: #ededed;
-  color: #737373;
+  background: var(--disabled-surface);
+  color: var(--text-disabled);
 }
 .section-menu-item.active[data-muted],
 .section-menu-item[data-muted]:hover:not(:disabled) {
-  background: #d6d6d6;
-  color: #555;
+  background: var(--disabled-selected);
+  color: var(--text-soft);
 }
 .output-browser {
   display: grid;
@@ -177,7 +177,7 @@
   background: transparent;
 }
 .project-file-toolbar .copy-output-button:hover:not(:disabled) {
-  background: #ededf0;
+  background: var(--hover-soft);
 }
 .output-browser-content {
   flex: 1;
@@ -200,12 +200,12 @@
   padding-inline: 12px 20px;
 }
 ::highlight(pistudio-preview-matches) {
-  background-color: #fff0a3;
-  color: #171717;
+  background-color: var(--find-match);
+  color: var(--find-ink);
 }
 ::highlight(pistudio-preview-current) {
-  background-color: #ffda24;
-  color: #171717;
+  background-color: var(--find-current);
+  color: var(--find-ink);
 }
 .project-active-file {
   flex: 1 1 200px;
@@ -216,19 +216,19 @@
   text-overflow: ellipsis;
   font-size: 13px;
   line-height: 1.6;
-  color: #242027;
+  color: var(--content-ink);
 }
 /* Agent controls are siblings of row navigation, never nested buttons. */
 .project-agent-menu .section-menu-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e4e4e7;
+  border-bottom: 1px solid var(--line-strong);
 }
 .project-agent-menu .section-menu-row:has(.section-menu-item.active) {
   background: var(--pill-active);
 }
 .project-agent-menu .section-menu-row:hover {
-  background: #ececee;
+  background: var(--hover-soft);
 }
 .project-agent-menu .section-menu-row:has(.section-menu-item.active):hover {
   background: var(--pill-hover);
@@ -247,10 +247,10 @@
   background: transparent;
 }
 .project-agent-menu .section-menu-row:has([data-muted]) {
-  background: #ededed;
+  background: var(--disabled-surface);
 }
 .project-agent-menu .section-menu-row:has(.active[data-muted]) {
-  background: #d6d6d6;
+  background: var(--disabled-selected);
 }
 .project-agent-menu .section-menu-item[data-muted] {
   background: transparent;
@@ -276,12 +276,12 @@
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: #27272a;
+  color: var(--action-ink);
 }
 .app-shell .project-agent-actions :is(.icon-button, .button):hover:not(:disabled) {
-  background: #0000000a;
-  border-color: #71717a;
-  color: #18181b;
+  background: var(--action-hover);
+  border-color: var(--action-border);
+  color: var(--action-ink);
 }
 .project-agent-actions .split-button {
   margin-left: 0;
@@ -320,7 +320,7 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #f7f7f8;
+  background: var(--sidebar);
 }
 .output-file-tree {
   min-width: 0;
@@ -348,7 +348,7 @@
   border-radius: 6px;
   text-align: left;
   font-size: 15px;
-  color: #242027;
+  color: var(--content-ink);
 }
 .file-tree-item > span {
   min-width: 0;
@@ -357,12 +357,12 @@
   white-space: nowrap;
 }
 .file-tree-item.active {
-  background: #ffd447;
-  color: #242027;
+  background: var(--pill-active);
+  color: var(--pill-ink);
 }
 .file-tree-item.active:hover {
-  background: #f2c126;
-  color: #242027;
+  background: var(--pill-hover);
+  color: var(--pill-ink);
 }
 .file-tree-chevron.open {
   transform: rotate(90deg);
@@ -462,14 +462,14 @@
   margin: 12px 0;
 }
 .output-markdown blockquote {
-  border-left: 3px solid #27272a;
+  border-left: 3px solid var(--control-border);
   padding-left: 16px;
   margin: 18px 0;
 }
 .output-markdown pre {
   overflow: auto;
   padding: 14px;
-  border: 1px solid #c9c9d0;
+  border: 1px solid var(--separator);
   border-radius: 5px;
 }
 .output-markdown code {
@@ -490,12 +490,12 @@
   margin: 18px 0;
 }
 .output-markdown :is(th, td) {
-  border: 1px solid #c9c9d0;
+  border: 1px solid var(--separator);
   padding: 8px 12px;
   text-align: left;
 }
 .output-markdown a {
-  color: #242027;
+  color: var(--content-ink);
   text-decoration: underline;
 }
 .markdown-task-marker {
@@ -506,8 +506,8 @@
 
 .app-shell .project-agent-actions :is(.icon-button, .button):disabled {
   background: transparent;
-  border-color: #d4d4d8;
-  color: #a1a1aa;
+  border-color: var(--field-border);
+  color: var(--disabled-ink);
   cursor: not-allowed;
 }
 
@@ -538,7 +538,7 @@
 .app-shell
   :is(.project-workspace, .projects-table)
   :is(.icon-button, .hover-delete):is(:hover, :focus-visible):not(:disabled) {
-  border-color: var(--control-border, #71717a);
+  border-color: var(--control-border, var(--muted));
 }
 .project-workspace .project-agent-actions .split-button {
   position: relative;
@@ -558,5 +558,14 @@
 }
 .project-workspace
   .split-button:not([data-disabled]):is(:hover, :has(:focus-visible), [data-menu-open])::after {
-  border-color: var(--control-border, #71717a);
+  border-color: var(--control-border, var(--muted));
+}
+
+/* Selected rows keep dark action/status ink on yellow in either theme. */
+.project-agent-menu .section-menu-row:has(.active:not([data-muted])) {
+  --action-ink: var(--pill-ink);
+  --action-border: var(--pill-ink);
+  --success: #15803d;
+  --danger: #b91c1c;
+  --disabled-ink: var(--on-accent-secondary);
 }

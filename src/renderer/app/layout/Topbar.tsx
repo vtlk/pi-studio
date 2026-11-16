@@ -3,6 +3,7 @@ import { useNavigation, type Page } from '@/shared/model/Navigation';
 import { Button } from '@/shared/ui';
 import { useStorage } from '@/shared/storage/Storage';
 import { UpdateAction } from '@/features/updates/UpdateAction';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 const sections: { page: Page; label: string }[] = [
   { page: 'projects', label: 'Проекты' },
@@ -44,6 +45,7 @@ export function Topbar() {
           : 'Веб-макет · без сохранения'}
       </span>
       <UpdateAction />
+      <ThemeToggle />
       <Button kind="primary" className="settings-button" onClick={() => navigate('settings')}>
         <Settings2 size={17} aria-hidden="true" />
         Настройки

@@ -1,6 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Fragment, useRef, useState } from 'react';
-import { Ellipsis } from 'lucide-react';
+import { Ellipsis, type LucideIcon } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 export function ActionMenu({
   label,
@@ -13,6 +13,7 @@ export function ActionMenu({
   disabled?: boolean;
   actions: {
     label: string;
+    icon?: LucideIcon;
     onSelect: () => void;
     disabled?: boolean;
     separator?: boolean;
@@ -59,6 +60,7 @@ export function ActionMenu({
                   pending.current = action.onSelect;
                 }}
               >
+                {action.icon && <action.icon size={16} aria-hidden="true" />}
                 {action.label}
               </DropdownMenu.Item>
             </Fragment>

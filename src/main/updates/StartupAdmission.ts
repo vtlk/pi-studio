@@ -2,6 +2,7 @@ import { desktopChannels as c } from '../../shared/contracts.ts';
 
 // Hydration and passive reads work while the replacement is frozen. Launch/auth/edits do not.
 const reads = new Set<string>([
+  c.getTheme,
   c.getInfo,
   c.loadStudio,
   c.getStartup,

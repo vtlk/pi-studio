@@ -1,7 +1,7 @@
 /* Common flat geometry, after workspace/theme rules; feature spacing stays local. */
 :is(.app-shell, .startup-screen) :is(input:not([type='range']), textarea, .ui-select-trigger) {
   border-radius: 0;
-  border-color: #d4d4d8;
+  border-color: var(--field-border);
   box-shadow: none;
 }
 
@@ -46,9 +46,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-top: 1px solid #ececee;
-  background: #fafafa;
-  color: #71717a;
+  border-top: 1px solid var(--hover-soft);
+  background: var(--subtle-surface);
+  color: var(--muted);
   cursor: ns-resize;
   touch-action: none;
   user-select: none;
@@ -56,13 +56,13 @@
 
 .textarea-resize-handle:hover,
 .textarea-resize-handle[data-dragging] {
-  background: #ededf0;
-  color: #27272a;
+  background: var(--hover-soft);
+  color: var(--content-ink);
 }
 
 .textarea-resize-handle[aria-disabled='true'] {
   cursor: default;
-  opacity: 0.5;
+  color: var(--text-disabled);
 }
 
 .dialog .textarea-resize-handle {
@@ -82,10 +82,10 @@
   gap: 6px;
   height: 42px;
   padding: 4px 8px;
-  border-bottom: 1px solid #ececee;
-  background: #fafafa;
+  border-bottom: 1px solid var(--hover-soft);
+  background: var(--subtle-surface);
   min-width: 0;
-  color: #71717a;
+  color: var(--muted);
 }
 .ui-textarea-control[data-find-open] > .ui-textarea {
   padding-top: 52px;

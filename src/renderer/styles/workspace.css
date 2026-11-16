@@ -20,8 +20,8 @@
   gap: 16px;
   padding: 16px;
   border-radius: 6px;
-  background: #27272a;
-  color: white;
+  background: var(--primary);
+  color: var(--on-primary);
   font-size: 14px;
 }
 .storage-error > span {
@@ -29,8 +29,8 @@
 }
 .storage-warning {
   bottom: 84px;
-  background: #fff1b8;
-  color: #27272a;
+  background: var(--warning-surface);
+  color: var(--content-ink);
 }
 .settings-layout {
   display: grid;
@@ -213,7 +213,7 @@
 .prototype-note {
   margin: 12px 0;
   padding: 10px 12px;
-  background: #f5f5f6;
+  background: var(--subtle-surface);
   border-radius: 6px;
   font-size: 13px;
 }
@@ -226,7 +226,7 @@
   line-height: 1.6;
 }
 .data-list dt {
-  color: #62626b;
+  color: var(--text-secondary);
 }
 .data-list dd {
   margin: 0;
@@ -236,7 +236,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   padding: 16px;
-  background: #f5f5f6;
+  background: var(--subtle-surface);
   border-radius: 6px;
   font:
     13px/1.7 ui-monospace,
@@ -250,11 +250,11 @@
 }
 .error-message {
   padding: 12px;
-  border-left: 3px solid #962f2f;
+  border-left: 3px solid var(--danger);
   margin: 16px 0;
 }
 .editor-prototype {
-  background: white;
+  background: var(--surface);
   min-width: 0;
 }
 .editor-fullscreen {
@@ -299,7 +299,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #f0f1f4;
+  background: var(--stage);
 }
 .editor-stage > img {
   width: 100%;
@@ -312,7 +312,7 @@
   left: 8%;
   right: 8%;
   text-align: center;
-  color: white;
+  color: var(--on-primary);
   background: #27272ae8;
   border-radius: 4px;
   padding: 6px;
@@ -364,7 +364,7 @@
   justify-content: space-between;
   padding: 8px 10px 8px 112px;
   font-size: 10px;
-  background: #f7f7f8;
+  background: var(--sidebar);
 }
 .editor-track {
   display: flex;
@@ -393,16 +393,17 @@
   flex: 1;
   margin: 4px;
 }
-.editor-track-clips[data-muted] {
-  opacity: 0.4;
+.editor-track-clips[data-muted] .editor-clip {
+  color: var(--text-disabled);
+  background: var(--disabled-surface);
 }
 .editor-clip {
   position: absolute;
   top: 0;
   bottom: 0;
   border-radius: 4px;
-  background: #e5e5e9;
-  border: 2px solid white;
+  background: var(--stage);
+  border: 2px solid var(--surface);
   padding: 5px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -419,7 +420,7 @@
   top: -4px;
   bottom: -4px;
   width: 2px;
-  background: #27272a;
+  background: var(--primary);
   pointer-events: none;
 }
 .editor-footer {
@@ -525,7 +526,7 @@
   position: relative;
   height: 100%;
   aspect-ratio: 9 / 16;
-  background: #fff;
+  background: var(--surface);
   overflow: hidden;
 }
 .editor-canvas > img {

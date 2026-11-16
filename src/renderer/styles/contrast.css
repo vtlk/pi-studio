@@ -1,7 +1,7 @@
 /* One explicit selection colour; readable text throughout the workspace. */
 body,
 .main-shell {
-  background: #fff;
+  background: var(--window-bg);
 }
 .app-shell
   :is(
@@ -22,13 +22,13 @@ body,
     .version-row,
     .prototype-label
   ) {
-  color: #202027;
+  color: var(--text);
 }
 .app-shell button:disabled {
   opacity: 1;
-  color: #62626b;
-  background: #f1f1f1;
-  border-color: #b6b6be;
+  color: var(--text-secondary);
+  background: var(--disabled-surface);
+  border-color: var(--disabled-border);
 }
 .topbar nav {
   gap: 6px;
@@ -44,19 +44,19 @@ body,
 }
 .step-nav > button {
   padding: 7px 12px;
-  border: 1px solid #c9c9d0;
+  border: 1px solid var(--separator);
   border-radius: 6px;
-  color: #202027;
+  color: var(--text);
   font-size: 15px;
 }
 
 .segmented > button {
-  border: 1px solid #c9c9d0;
+  border: 1px solid var(--separator);
   border-radius: 6px;
   padding: 7px 12px;
-  color: #202027;
+  color: var(--text);
   font-size: 15px;
-  background: white;
+  background: var(--surface);
 }
 :is(.segmented, .agent-tabs, .filter-chips) {
   gap: 7px;
@@ -67,14 +67,14 @@ body,
   color: inherit;
 }
 .button {
-  border-color: #a9a9b3;
-  color: #202027;
-  background: white;
+  border-color: var(--control-border-soft);
+  color: var(--text);
+  background: var(--surface);
   font-size: 15px;
   border-radius: 6px;
 }
 .icon-button {
-  color: #202027;
+  color: var(--text);
 }
 .surface {
   border: 0;
@@ -108,14 +108,14 @@ body,
 textarea,
 input:not([type='range']),
 select {
-  border-color: #b5b5c1;
-  color: #202027;
-  background: white;
+  border-color: var(--control-border-soft);
+  color: var(--text);
+  background: var(--surface);
   font-size: 15px;
 }
 textarea::placeholder,
 input::placeholder {
-  color: #50505a;
+  color: var(--text-soft);
 }
 .scene-page {
   padding: 18px 24px;
@@ -124,7 +124,7 @@ input::placeholder {
 .scene-choices {
   gap: 12px;
   font-size: 15px;
-  color: #202027;
+  color: var(--text);
 }
 .simple-scene-layout {
   margin: 0;
@@ -138,16 +138,16 @@ input::placeholder {
   margin: 0;
   padding: 0;
   border: 0;
-  color: #202027;
+  color: var(--text);
   font-size: 15px;
 }
 .scene-notes h3 {
-  color: #202027;
+  color: var(--text);
   font-size: 15px;
   margin-top: 16px;
 }
 .scene-notes p {
-  color: #202027;
+  color: var(--text);
   font-size: 15px;
   line-height: 1.8;
 }
@@ -156,15 +156,15 @@ input::placeholder {
   font-weight: 500;
 }
 .preview-shell {
-  border: 1px solid #c9c9d0;
+  border: 1px solid var(--separator);
   border-radius: 7px;
-  background: white;
+  background: var(--surface);
 }
 .player-controls {
-  border-top: 1px solid #c9c9d0;
+  border-top: 1px solid var(--separator);
 }
 .subtitle {
-  color: white;
+  color: var(--on-primary);
   background: #172533dd;
   font-size: 16px;
 }
@@ -173,14 +173,14 @@ input::placeholder {
   font-size: 15px;
 }
 .clip {
-  color: #202027;
-  background: #eee;
-  border-color: #aaa;
+  color: var(--text);
+  background: var(--disabled-surface);
+  border-color: var(--text-dim);
 }
 .track-label,
 .timeline-head,
 .ruler {
-  color: #202027;
+  color: var(--text);
 }
 .cast-list {
   display: flex;
@@ -191,7 +191,7 @@ input::placeholder {
   align-items: center;
   gap: 20px;
   padding: 15px 0;
-  border-bottom: 1px solid #c9c9d0;
+  border-bottom: 1px solid var(--separator);
 }
 .cast-row > img {
   height: 90px;
@@ -226,7 +226,7 @@ input::placeholder {
 }
 .voice-row {
   padding: 18px 0;
-  border-color: #c9c9d0;
+  border-color: var(--separator);
 }
 .voice-row p {
   font-size: 16px;
@@ -234,12 +234,12 @@ input::placeholder {
 .voice-speaker,
 .voice-speaker small,
 .voice-row .subtle {
-  color: #202027;
+  color: var(--text);
 }
 .voice-row .badge {
-  color: #202027;
-  border: 1px solid #c9c9d0;
-  background: white;
+  color: var(--text);
+  border: 1px solid var(--separator);
+  background: var(--surface);
 }
 .assembly-preview {
   max-width: 1000px;
@@ -252,12 +252,12 @@ input::placeholder {
 }
 .sound-table th {
   font-weight: 500;
-  border-bottom: 1px solid #999;
+  border-bottom: 1px solid var(--text-dim);
   padding: 10px;
 }
 .sound-table td {
   padding: 14px 10px;
-  border-bottom: 1px solid #c9c9d0;
+  border-bottom: 1px solid var(--separator);
 }
 .sound-table input {
   width: 140px;
@@ -271,7 +271,7 @@ input::placeholder {
 }
 .acceptance-control {
   padding-bottom: 17px;
-  border-bottom: 1px solid #c9c9d0;
+  border-bottom: 1px solid var(--separator);
 }
 .acceptance-control > span {
   display: block;
@@ -286,19 +286,19 @@ input::placeholder {
   color: var(--accent);
 }
 .badge {
-  border: 1px solid #aaa;
-  background: white;
-  color: #202027;
+  border: 1px solid var(--text-dim);
+  background: var(--surface);
+  color: var(--text);
 }
 .badge.green {
-  background: white;
-  color: #202027;
+  background: var(--surface);
+  color: var(--text);
 }
 .compiled-prompt {
-  background: white;
+  background: var(--surface);
 }
 .compiled-prompt p {
-  color: #202027;
+  color: var(--text);
 }
 @media (max-width: 1100px) {
   .simple-scene-layout {
@@ -315,9 +315,9 @@ input::placeholder {
   }
 }
 .topbar {
-  background: #fff;
+  background: var(--surface);
   gap: 20px;
-  border-bottom: 1px solid #c9c9d0;
+  border-bottom: 1px solid var(--separator);
   padding-left: 96px;
   height: 66px;
   min-height: 66px;
@@ -325,7 +325,7 @@ input::placeholder {
 .topbar nav > button {
   padding: 8px 14px;
   border-radius: 6px;
-  color: #202027;
+  color: var(--text);
   font-weight: 600;
   text-transform: uppercase;
   font-size: 16px;
@@ -342,8 +342,8 @@ input::placeholder {
 .segmented > button {
   border: 0;
   border-radius: 6px;
-  background: white;
-  color: #202027;
+  background: var(--surface);
+  color: var(--text);
 }
 .plan-workspace .stage-actions > span {
   font-size: 14px;
@@ -353,31 +353,31 @@ input::placeholder {
   line-height: 1.85;
   font-size: 16px;
   padding: 18px;
-  border: 1px solid #b5b5c1;
+  border: 1px solid var(--control-border-soft);
   border-radius: 6px;
 }
 /* User-selected palette. Foreground and background change together. */
 .button.primary:disabled {
-  background: #eee;
-  border-color: #bbb;
-  color: #62626b;
+  background: var(--disabled-surface);
+  border-color: var(--disabled-border);
+  color: var(--text-secondary);
 }
 .checkbox.checked {
-  background: #242027;
-  border-color: #242027;
-  color: white;
+  background: var(--content-ink);
+  border-color: var(--content-ink);
+  color: var(--on-primary);
 }
 .asset-thumb.active {
-  background: white;
+  background: var(--surface);
   border: 2px solid var(--accent);
-  border-color: #27272a;
+  border-color: var(--control-border);
 }
 .asset-thumb.active > span {
-  color: #242027;
+  color: var(--content-ink);
   font-weight: 600;
 }
 .app-shell .text-button {
-  color: #242027;
+  color: var(--content-ink);
 }
 /* Single source for every pill state. No legacy selected-state overrides. */
 .topbar nav > button[aria-current='page'] {
@@ -385,8 +385,8 @@ input::placeholder {
   color: var(--menu-ink);
 }
 .topbar nav > button:hover:not(:disabled) {
-  background: #e8e8eb;
-  color: #202027;
+  background: var(--hover);
+  color: var(--text);
 }
 .topbar nav > button[aria-current='page']:hover:not(:disabled) {
   background: var(--menu-hover);
@@ -410,8 +410,8 @@ input::placeholder {
     .segmented > button,
     .filter-chips > button
   ):hover:not(:disabled) {
-  background: #e8e8eb;
-  color: #202027;
+  background: var(--hover);
+  color: var(--text);
 }
 :is(
     .step-nav > button[aria-current='step'],
@@ -424,19 +424,19 @@ input::placeholder {
   color: var(--pill-ink);
 }
 .button.primary {
-  background: #27272a;
-  border-color: #27272a;
-  color: #ffffff;
+  background: var(--primary);
+  border-color: var(--control-border);
+  color: var(--on-primary);
 }
 .button.primary:hover:not(:disabled) {
-  background: #414146;
-  border-color: #414146;
-  color: #ffffff;
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: var(--on-primary);
 }
 .project-header {
   padding: 14px 24px;
   background: #000;
-  color: #fff;
+  color: var(--on-primary);
 }
 .project-header h1 {
   font-size: 35px;
@@ -455,7 +455,7 @@ input::placeholder {
   justify-content: flex-start;
   gap: 5px;
   padding: 20px 12px;
-  border-right: 1px solid #c9c9d0;
+  border-right: 1px solid var(--separator);
 }
 .project-layout > .step-nav > button {
   text-align: left;
@@ -586,8 +586,8 @@ input::placeholder {
   padding: 10px 12px;
   border: 0;
   border-radius: 6px;
-  background: white;
-  color: #202027;
+  background: var(--surface);
+  color: var(--text);
   line-height: 1.45;
   font-size: 15px;
   white-space: normal;
@@ -600,8 +600,8 @@ input::placeholder {
   color: var(--pill-ink);
 }
 .section-menu-item:hover:not(:disabled) {
-  background: #e8e8eb;
-  color: #202027;
+  background: var(--hover);
+  color: var(--text);
 }
 .section-menu-item.active:hover:not(:disabled) {
   background: var(--pill-hover);
@@ -659,12 +659,12 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border: 1px solid #c9c9d0;
-  color: #242027;
+  background: var(--surface);
+  border: 1px solid var(--separator);
+  color: var(--content-ink);
 }
 .app-shell .asset-create-thumb:hover:not(:disabled) {
-  background: #ffd447;
-  border-color: #242027;
-  color: #242027;
+  background: var(--pill-active);
+  border-color: var(--pill-ink);
+  color: var(--pill-ink);
 }

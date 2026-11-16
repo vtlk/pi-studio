@@ -113,6 +113,9 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
   w.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
   w.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
   await until(`!document.querySelector('[role="menu"]')`);
+  await until(
+    `document.activeElement===document.querySelector(${JSON.stringify(split + ' .split-button-trigger')})`,
+  );
   await clearPointer();
   assert.equal(await frame(), 'rgba(0, 0, 0, 0)');
   assert.deepEqual(

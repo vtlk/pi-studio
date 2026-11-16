@@ -32,13 +32,21 @@ module.exports.loadOffscreenMain = (mainEntry) => {
   // Offscreen QA must not appear as a second Studio in the user's Dock or app switcher.
   if (process.platform === 'darwin') electron.app.setActivationPolicy('accessory');
   const OriginalWindow = electron.BrowserWindow;
+  const ownedWindows = new Set();
   class OffscreenWindow extends OriginalWindow {
+    // Electron's native enumeration excludes subclass instances in this runtime.
+    // Application broadcasts must still reach every live window owned by this QA entry.
+    static getAllWindows() {
+      return [...ownedWindows].filter((window) => !window.isDestroyed());
+    }
     constructor(options) {
       super({
         ...options,
         show: false,
         webPreferences: { ...options.webPreferences, offscreen: true, backgroundThrottling: false },
       });
+      ownedWindows.add(this);
+      this.once('closed', () => ownedWindows.delete(this));
       this.webContents.setFrameRate(30);
     }
     // Application activation/reopen must never turn an isolated QA window into OS focus.

@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, session, shell } from 'electron';
+import { BrowserWindow, dialog, session, shell, nativeTheme } from 'electron';
 import { join } from 'node:path';
 
 let studioWindow: BrowserWindow | undefined;
@@ -27,7 +27,7 @@ export function createStudioWindow(): BrowserWindow {
           ),
         }
       : {}),
-    backgroundColor: '#08090b',
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#171717' : '#f8f9fb',
     ...(process.platform === 'darwin'
       ? {
           titleBarStyle: 'hiddenInset' as const,

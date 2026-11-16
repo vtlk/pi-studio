@@ -47,6 +47,7 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
     if (id === 'electron')
       return {
         BrowserWindow: FakeWindow,
+        nativeTheme: { shouldUseDarkColors: false },
         session: { defaultSession: { setPermissionRequestHandler() {} } },
         dialog: {},
         shell: {},

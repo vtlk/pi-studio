@@ -36,6 +36,9 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getTheme(): Promise<import('./appearance').ThemeState>;
+  setTheme(theme: import('./appearance').ThemeChoice): Promise<import('./appearance').ThemeState>;
+  onThemeChanged(listener: (state: import('./appearance').ThemeState) => void): () => void;
   getUpdateState(): Promise<import('./updates').UpdateState>;
   checkForUpdates(): Promise<import('./updates').UpdateState>;
   requestUpdate(): Promise<void>;
@@ -131,6 +134,9 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getTheme: 'studio:theme',
+  setTheme: 'studio:theme-set',
+  themeChanged: 'studio:theme-changed',
   getUpdateState: 'studio:update-state',
   checkForUpdates: 'studio:update-check',
   requestUpdate: 'studio:update-request',

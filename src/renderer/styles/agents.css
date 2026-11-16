@@ -6,7 +6,7 @@
 .agent-stages {
   padding: 0;
   border-right: 1px solid var(--line);
-  background: #f7f7f8;
+  background: var(--sidebar);
 }
 .agent-stages > .section-menu {
   gap: 0;
@@ -16,7 +16,7 @@
   padding: 16px 20px;
   gap: 16px;
   border-radius: 0;
-  border-bottom: 1px solid #e4e4e7;
+  border-bottom: 1px solid var(--line-strong);
   background: transparent;
 }
 .agent-stages .agent-list-item.active {
@@ -56,11 +56,11 @@
 }
 .instruction-sortable {
   position: relative;
-  background: #fff;
+  background: var(--surface);
 }
 .instruction-sortable[data-dragging] {
   z-index: 3;
-  outline: 2px solid #27272a;
+  outline: 2px solid var(--primary);
 }
 .instruction-sortable .disclosure-content > .ui-textarea-field {
   margin-top: 10px;
@@ -118,7 +118,7 @@
 }
 .agent-model-panel > .agent-model-error {
   margin: 0;
-  color: var(--danger, #b91c1c);
+  color: var(--danger);
 }
 .agent-settings-content > p {
   font-size: 14px;
@@ -194,7 +194,7 @@
 }
 .agent-list-entry[data-dragging] {
   z-index: 3;
-  outline: 2px solid #27272a;
+  outline: 2px solid var(--primary);
 }
 
 .agent-list-entry {
@@ -277,7 +277,7 @@
   margin: 0;
   padding: 16px 20px;
   border: 0;
-  border-bottom: 1px dashed #b6b6be;
+  border-bottom: 1px dashed var(--disabled-border);
   border-radius: 0;
   background: transparent;
   justify-content: center;
@@ -312,7 +312,7 @@
   padding-block: 8px;
 }
 .agent-team > .disclosure > .ui-list-row:hover {
-  background: #eeeef0;
+  background: var(--subtle-surface);
 }
 .agent-stages .add-area.agent-team-create {
   min-height: 38px;
@@ -330,5 +330,5 @@
 .app-shell
   .agent-list-entry
   > :is(.hover-delete, .agent-helper-launch):is(:hover, :focus-visible):not(:disabled) {
-  border-color: var(--control-border, #71717a);
+  border-color: var(--control-border, var(--muted));
 }

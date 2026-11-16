@@ -1,8 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 import { runFailure } from '../shared/runFailure';
+import { themeState, type ThemeState } from '../shared/appearance';
 
 const desktopApi: DesktopApi = {
+  getTheme: () => ipcRenderer.invoke(desktopChannels.getTheme),
+  setTheme: (theme) => ipcRenderer.invoke(desktopChannels.setTheme, theme),
+  onThemeChanged: (listener) => {
+    const receive = (_event: unknown, value: ThemeState) => {
+      if (themeState(value)) listener(value);
+    };
+    ipcRenderer.on(desktopChannels.themeChanged, receive);
+    return () => ipcRenderer.removeListener(desktopChannels.themeChanged, receive);
+  },
   getUpdateState: () => ipcRenderer.invoke(desktopChannels.getUpdateState),
   checkForUpdates: () => ipcRenderer.invoke(desktopChannels.checkForUpdates),
   requestUpdate: () => ipcRenderer.invoke(desktopChannels.requestUpdate),

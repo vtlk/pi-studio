@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { FileInput, FileOutput, Pencil, Trash2 } from 'lucide-react';
 import { TeamIcon } from './TeamIcon';
 import { Disclosure } from '@/shared/ui/Disclosure';
 import { ActionMenu } from '@/shared/ui/ActionMenu';
@@ -86,16 +86,19 @@ export function AgentList() {
                     actions={[
                       {
                         label: 'Импорт команды',
+                        icon: FileInput,
                         disabled: !transfer.available,
                         onSelect: () => void transfer.importTeam(true),
                       },
                       {
                         label: 'Экспорт команды',
+                        icon: FileOutput,
                         disabled: !transfer.available,
                         onSelect: () => void transfer.exportTeam(team.id, true),
                       },
                       {
                         label: 'Удалить команду',
+                        icon: Trash2,
                         separator: true,
                         danger: true,
                         onSelect: () =>

@@ -1,27 +1,9 @@
 :root {
-  --menu-active: #27272a;
-  --menu-hover: #414146;
-  --menu-ink: #ffffff;
-  --pill-active: #ffd447;
-  --pill-hover: #f2c126;
-  --pill-ink: #242027;
-
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #242530;
-  background: #f8f9fb;
+  color: var(--ink);
+  background: var(--bg);
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
-  --paper: #f8f9fb;
-  --white: #fff;
-  --ink: #242530;
-  --muted: #878996;
-  --line: #e7e8ee;
-  --border: #e7e8ee;
-  --accent: #27272a;
-  --accent-soft: #fff;
-  --stage: #f0f1f6;
-  --panel: #fff;
-  --bg: #f8f9fb;
 }
 * {
   box-sizing: border-box;
@@ -43,10 +25,11 @@ button {
 }
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 1;
+  color: var(--disabled-ink);
 }
 button:hover:not(:disabled) {
-  background: #f3f3f3;
+  background: var(--hover-soft);
 }
 h1,
 h2,
@@ -77,8 +60,8 @@ svg {
 input:not([type='range']),
 select,
 textarea {
-  border: 1px solid #ddd;
-  background: #fff;
+  border: 1px solid var(--separator);
+  background: var(--surface);
   border-radius: 7px;
   padding: 8px 10px;
   width: 100%;
@@ -91,7 +74,7 @@ input[type='range'] {
 }
 .subtle {
   font-size: 14px;
-  color: #888;
+  color: var(--text-dim);
 }
 .inline {
   display: flex;
@@ -99,7 +82,7 @@ input[type='range'] {
   gap: 8px;
 }
 .faded {
-  opacity: 0.35;
+  color: var(--text-disabled);
 }
 .eyebrow {
   display: none;
@@ -118,17 +101,17 @@ input[type='range'] {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--separator);
   padding: 8px 11px;
   white-space: nowrap;
   min-height: 32px;
 }
 .button.accepted {
-  color: #50754f;
+  color: var(--success);
 }
 .button.primary .badge {
-  color: #ccc;
-  background: #555;
+  color: var(--scrollbar);
+  background: var(--text-soft);
 }
 .icon-button {
   display: inline-flex;
@@ -150,14 +133,14 @@ input[type='range'] {
   text-underline-offset: 3px;
 }
 .surface {
-  background: #fff;
+  background: var(--surface);
   overflow: hidden;
 }
 .field-label {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  color: #777;
+  color: var(--text-dim);
   font-size: 14px;
   margin: 17px 0;
 }
@@ -170,7 +153,7 @@ input[type='range'] {
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  color: #999;
+  color: var(--text-dim);
   font-size: 13px;
   line-height: 1.6;
   margin-top: 14px;
@@ -184,9 +167,9 @@ input[type='range'] {
   gap: 7px;
   width: 100%;
   padding: 9px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--separator);
   border-radius: 7px;
-  color: #888;
+  color: var(--text-dim);
   text-align: left;
 }
 .folder-field svg:last-child {
@@ -215,16 +198,16 @@ input[type='range'] {
   align-items: center;
   gap: 10px;
   max-width: 650px;
-  background: #333;
-  color: white;
+  background: var(--toast-surface);
+  color: var(--on-primary);
   font-size: 14px;
   line-height: 1.6;
   padding: 13px 16px;
   border-radius: 6px;
-  box-shadow: 0 4px 18px #0002;
+  box-shadow: 0 4px 18px var(--shadow);
 }
 .toast .icon-button {
-  color: #bbb;
+  color: var(--disabled-border);
 }
 
 /* User preference: keyboard operation stays enabled, without a separate focus highlight. */

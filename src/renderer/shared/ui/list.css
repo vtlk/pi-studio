@@ -1,7 +1,7 @@
 .ui-list {
-  border-top: 1px solid #d4d4d8;
-  border-bottom: 1px solid #d4d4d8;
-  background: #fff;
+  border-top: 1px solid var(--list-line);
+  border-bottom: 1px solid var(--list-line);
+  background: var(--surface);
 }
 .ui-list:empty {
   display: none;
@@ -10,7 +10,7 @@
   border: 0;
 }
 .ui-list > * + * {
-  border-top: 1px solid #e4e4e7;
+  border-top: 1px solid var(--line-strong);
 }
 .ui-list-row {
   display: flex;
@@ -19,11 +19,11 @@
   min-height: 52px;
   padding: 0 16px;
   position: relative;
-  color: #27272a;
+  color: var(--content-ink);
   background: transparent;
 }
 .ui-list-row:hover {
-  background: #f4f4f5;
+  background: var(--heading-surface);
 }
 .ui-list-row[data-clickable='true'] {
   cursor: pointer;
@@ -71,10 +71,10 @@
   top: calc(50% - 9px);
 }
 .ui-list-row-icon {
-  color: #52525b;
+  color: var(--text-soft);
 }
 .ui-list-row-chevron {
-  color: #71717a;
+  color: var(--muted);
   transition: transform 0.15s;
 }
 .ui-list-row[data-expanded='true'] .ui-list-row-chevron {
@@ -98,8 +98,8 @@
 }
 .app-shell .ui-list-row-actions .hover-delete:hover:not(:disabled),
 .app-shell .ui-list-row-drag button:hover:not(:disabled) {
-  background: #e4e4e7;
-  color: #27272a;
+  background: var(--line-strong);
+  color: var(--content-ink);
 }
 .ui-list-row:hover .hover-delete,
 .ui-list-row:focus-within .hover-delete {
@@ -119,7 +119,7 @@
   display: flex;
   align-items: center;
   height: 25px;
-  color: #52525b;
+  color: var(--text-soft);
 }
 .ui-list-row-actions-placeholder {
   flex: 0 0 28px;

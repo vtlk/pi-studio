@@ -185,7 +185,9 @@ const timeout = setTimeout(() => {
   );
   assert.equal(
     await js(`getComputedStyle(document.querySelector('.agent-stages')).backgroundColor`),
-    'rgb(247, 247, 248)',
+    (await js('document.documentElement.dataset.theme')) === 'dark'
+      ? 'rgb(34, 34, 33)'
+      : 'rgb(247, 247, 248)',
   );
   await js(`document.querySelector('.agent-team .disclosure-trigger').click()`);
   assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`), true);

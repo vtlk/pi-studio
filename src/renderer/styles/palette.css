@@ -1,0 +1,78 @@
+/* One semantic palette for native and web. Media/composition colors stay independent. */
+:root {
+  color-scheme: light;
+  --window-bg: light-dark(#fff, #171717);
+  --bg: light-dark(#f8f9fb, #171717);
+  --paper: var(--bg);
+  --surface: light-dark(#fff, #222221);
+  --white: var(--surface);
+  --panel: var(--surface);
+  --raised: light-dark(#fff, #2c2c2a);
+  --sidebar: light-dark(#f7f7f8, #222221);
+  --heading-surface: light-dark(#f4f4f5, #2c2c2a);
+  --subtle-surface: light-dark(#fafafa, #2c2c2a);
+  --stage: light-dark(#f0f1f6, #2c2c2a);
+  --hover: light-dark(#e8e8eb, #41413e);
+  --hover-soft: light-dark(#ededf0, #41413e);
+  --ink: light-dark(#242530, #f0eeea);
+  --text: light-dark(#202027, #f0eeea);
+  --content-ink: light-dark(#242027, #f0eeea);
+  --text-secondary: light-dark(#62626b, #b6b3ad);
+  --text-soft: light-dark(#52525b, #b6b3ad);
+  --text-dim: light-dark(#71717a, #b6b3ad);
+  --muted: light-dark(#71717a, #b6b3ad);
+  --text-disabled: light-dark(#62626b, #b6b3ad);
+  --list-line: light-dark(#d4d4d8, #454542);
+  --icon-surface: light-dark(#f0f0f1, #2c2c2a);
+  --line: light-dark(#e7e8ee, #454542);
+  --line-strong: light-dark(#e4e4e7, #454542);
+  --line-soft: light-dark(#ececee, #454542);
+  --border: var(--line);
+  --separator: light-dark(#c9c9d0, #454542);
+  --field-border: light-dark(#94949a, #77746d);
+  --control-border: light-dark(#71717a, #77746d);
+  --control-border-soft: light-dark(#94949a, #77746d);
+  --add-border: light-dark(#94949a, #77746d);
+  --disabled-border: light-dark(#b6b6be, #77746d);
+  --disabled-surface: light-dark(#ededed, #2c2c2a);
+  --disabled-selected: light-dark(#d6d6d6, #41413e);
+  --primary: #27272a;
+  --primary-hover: light-dark(#414146, #41413e);
+  --on-primary: #fff;
+  --menu-active: light-dark(var(--primary), #41413e);
+  --menu-hover: var(--primary-hover);
+  --menu-ink: var(--on-primary);
+  --pill-active: #ffd447;
+  --pill-hover: #f2c126;
+  --pill-ink: #242027;
+  --accent: var(--content-ink);
+  --accent-soft: var(--surface);
+  --danger: light-dark(#b91c1c, #ff9b94);
+  --success: light-dark(#15803d, #a8d5a2);
+  --warning-surface: light-dark(#fff1b8, #3b331d);
+  --warning-ink: light-dark(#27272a, #ffd447);
+  --overlay: light-dark(#24253055, #0009);
+  --shadow: light-dark(#0002, #0008);
+  --toast-surface: light-dark(#333, #2c2c2a);
+  --scrollbar: light-dark(#ccc, #77746d);
+  --switch-thumb: light-dark(#27272a, #f0eeea);
+  --action-hover: light-dark(#0000000a, #ffffff12);
+  --action-ink: var(--content-ink);
+  --action-border: var(--control-border);
+  --find-match: #fff0a3;
+  --find-current: #ffda24;
+  --find-ink: #171717;
+  --on-accent-secondary: #52525b;
+  --disabled-ink: var(--text-disabled);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
