@@ -81,11 +81,11 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
   );
   assert.equal(headers.height, actual.toolbarHeight);
   assert.equal(headers.headingHeight, actual.headingHeight);
-  assert.equal(headers.headingPadding, actual.padding);
-  const split = '.project-agent-actions .split-button';
+  // The project heading now also contains the auto-continue Switch.
+  const split = '.project-agent-actions';
   const frame = () =>
     js(
-      `getComputedStyle(document.querySelector(${JSON.stringify(split)}),'::after').borderTopColor`,
+      `getComputedStyle(document.querySelector(${JSON.stringify(split + ' .project-agent-launch')})).borderTopColor`,
     );
   await clearPointer();
   assert.equal(await frame(), 'rgba(0, 0, 0, 0)');
@@ -94,17 +94,19 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
   );
   await mouse('.project-agent-menu .section-menu-row', 20);
   assert.equal(await frame(), 'rgba(0, 0, 0, 0)');
-  for (const part of ['.split-button-main', '.split-button-trigger']) {
+  for (const part of ['.project-agent-launch', '.project-agent-menu-trigger']) {
     await mouse(split + ' ' + part);
     assert.equal(await frame(), 'rgba(0, 0, 0, 0)');
     assert.equal(
       await js(
-        `getComputedStyle(document.querySelector(${JSON.stringify(split + ' ' + part)})).borderTopWidth`,
+        `getComputedStyle(document.querySelector(${JSON.stringify(split + ' ' + part)})).borderTopColor`,
       ),
-      '0px',
+      'rgba(0, 0, 0, 0)',
     );
   }
-  await js(`document.querySelector(${JSON.stringify(split + ' .split-button-trigger')}).focus()`);
+  await js(
+    `document.querySelector(${JSON.stringify(split + ' .project-agent-menu-trigger')}).focus()`,
+  );
   w.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' });
   w.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
   await until(`!!document.querySelector('[role="menu"]')`);
@@ -114,7 +116,7 @@ module.exports = async ({ js, click, idle, until, w, pause }) => {
   w.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
   await until(`!document.querySelector('[role="menu"]')`);
   await until(
-    `document.activeElement===document.querySelector(${JSON.stringify(split + ' .split-button-trigger')})`,
+    `document.activeElement===document.querySelector(${JSON.stringify(split + ' .project-agent-menu-trigger')})`,
   );
   await clearPointer();
   assert.equal(await frame(), 'rgba(0, 0, 0, 0)');

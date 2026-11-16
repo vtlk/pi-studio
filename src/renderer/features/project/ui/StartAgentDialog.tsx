@@ -16,11 +16,13 @@ export function StartAgentDialog({
   agent,
   autoContinue,
   onOpeningChange,
+  onOpenSettings,
   onClose,
 }: {
   agent: ProjectAgent;
   autoContinue: boolean;
   onOpeningChange: (opening: boolean) => void;
+  onOpenSettings: (agentId: string, tab?: string) => void;
   onClose: () => void;
 }) {
   const [message, setMessage] = useState('');
@@ -105,6 +107,10 @@ export function StartAgentDialog({
       {configurationOpen && (
         <AgentConfigurationDialog
           agentId={agent.profile.id}
+          onConfigure={(id, tab) => {
+            onClose();
+            onOpenSettings(id, tab);
+          }}
           onClose={() => setConfigurationOpen(false)}
         />
       )}

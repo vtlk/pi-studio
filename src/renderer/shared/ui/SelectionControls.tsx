@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 interface SelectionControlProps {
   checked: boolean;
@@ -29,7 +30,8 @@ export function Switch({
   label,
   disabled = false,
   size = 'default',
-}: SelectionControlProps & { size?: 'default' | 'large' }) {
+  trackIcon,
+}: SelectionControlProps & { size?: 'default' | 'large'; trackIcon?: ReactNode }) {
   return (
     <button
       type="button"
@@ -42,6 +44,7 @@ export function Switch({
       onClick={() => onChange(!checked)}
     >
       <span aria-hidden="true" />
+      {trackIcon}
     </button>
   );
 }

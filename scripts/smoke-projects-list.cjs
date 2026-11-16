@@ -131,7 +131,11 @@ const timeout = setTimeout(() => {
   await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
     enabled: true,
   });
-  const js = (code) => win.webContents.executeJavaScript(code, true);
+  const js = (code) =>
+    win.webContents.executeJavaScript(code, true).catch((error) => {
+      console.error('Project list QA expression:', code);
+      throw error;
+    });
   const until = async (code) => {
     for (let n = 0; n < 150; n++) {
       if (await js(code)) return;
@@ -297,7 +301,7 @@ const timeout = setTimeout(() => {
   );
   assert.notEqual(
     await js(
-      `getComputedStyle(document.querySelector('.project-agent-actions .split-button-main')).backgroundColor`,
+      `getComputedStyle(document.querySelector('.project-agent-actions .project-agent-launch')).backgroundColor`,
     ),
     'rgb(255, 255, 255)',
   );
@@ -311,28 +315,32 @@ const timeout = setTimeout(() => {
   const secondActions = '.project-agent-menu .section-menu-row:nth-child(2) .project-agent-actions';
   assert.equal(
     await js(
-      `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-secondary-action')).opacity`,
+      `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-menu-trigger')).opacity`,
     ),
     '0',
   );
   assert.equal(
     await js(
-      `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .split-button-main')).opacity`,
+      `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-launch')).opacity`,
     ),
     '1',
   );
   assert.equal(
     await js(
-      `document.querySelector(${JSON.stringify(secondActions)}+' .split-button-main').textContent`,
+      `document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-launch').textContent`,
     ),
     '',
   );
   await hover('.project-agent-menu .section-menu-row:nth-child(2)');
   await until(
-    `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-secondary-action')).opacity==='1'`,
+    `getComputedStyle(document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-menu-trigger')).opacity==='1'`,
   );
   await js(
-    `document.querySelector(${JSON.stringify(secondActions)}+' [aria-label="Показать в Finder"]').click()`,
+    `document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
+  await until(`!!document.querySelector('[role="menuitem"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==="Показать в Finder").click()`,
   );
   for (let n = 0; n < 100 && !revealed.length; n++)
     await new Promise((resolve) => setTimeout(resolve, 25));
@@ -348,7 +356,11 @@ const timeout = setTimeout(() => {
     'Folder action targets its own row without switching preview',
   );
   await js(
-    `document.querySelector(${JSON.stringify(secondActions)}+' [aria-label="Удалить агента из проекта"]').click()`,
+    `document.querySelector(${JSON.stringify(secondActions)}+' .project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
+  await until(`!!document.querySelector('[role="menuitem"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==="Удалить агента из проекта").click()`,
   );
   await until(`document.querySelector('[role="alertdialog"]')?.textContent.includes('QA 1')`);
   await click('Отмена');
@@ -616,7 +628,11 @@ const timeout = setTimeout(() => {
   const removable = changed.agents.find((agent) => agent.profile.id === 'new-agent');
   await writeFile(join(createdRoot, removable.outputPath, 'undo.txt'), 'keep removed agent output');
   await js(
-    `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label').textContent.endsWith('New QA')).querySelector('[aria-label="Удалить агента из проекта"]').click()`,
+    `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label').textContent.endsWith('New QA')).querySelector('.project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
+  await until(`!!document.querySelector('[role="menuitem"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==='Удалить агента из проекта').click()`,
   );
   await until(`document.querySelector('[role="alertdialog"]')?.textContent.includes('New QA')`);
   await click('Удалить');

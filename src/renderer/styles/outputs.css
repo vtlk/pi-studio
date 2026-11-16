@@ -285,32 +285,60 @@
   border-color: var(--action-border);
   color: var(--action-ink);
 }
-.project-agent-actions .split-button {
-  margin-left: 0;
-}
-.app-shell .project-agent-actions .split-button[aria-busy='true'] .split-button-main {
+/* The primary action stays visible; the menu keeps its slot to avoid row shifts. */
+.app-shell .project-agent-actions .project-agent-launch[aria-busy='true'] {
   opacity: 1;
+  color: var(--action-ink);
 }
-.app-shell .project-agent-actions .split-button-main {
-  border-radius: 6px 0 0 6px;
-}
-.app-shell .project-agent-actions .split-button-trigger {
-  width: 24px;
-  border-left: 0;
-  border-radius: 0 6px 6px 0;
-}
-.project-agent-secondary-action {
-  position: absolute;
-  left: 0;
-  top: 0;
+.project-agent-menu-trigger {
   opacity: 0;
   pointer-events: none;
 }
-.project-agent-menu .section-menu-row:hover .project-agent-secondary-action,
-.project-agent-menu .section-menu-row:focus-within .project-agent-secondary-action {
-  position: static;
+.project-agent-menu .section-menu-row:hover .project-agent-menu-trigger,
+.project-agent-menu .section-menu-row:focus-within .project-agent-menu-trigger,
+.project-agent-menu-trigger[aria-expanded='true'] {
   opacity: 1;
   pointer-events: auto;
+}
+@media (hover: none) {
+  .project-agent-menu-trigger {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+.project-agent-heading {
+  min-height: 53px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px 8px 20px;
+}
+.project-agent-heading h2 {
+  margin: 0;
+  font: inherit;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.project-auto-continue {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.project-agent-heading .ui-switch[aria-checked='false'] {
+  background: var(--disabled-surface);
+}
+.project-agent-heading .ui-switch > svg {
+  position: absolute;
+  right: 4px;
+  color: var(--content-ink);
+  pointer-events: none;
+}
+.project-agent-heading .ui-switch[aria-checked='true'] > svg {
+  right: auto;
+  left: 4px;
+  color: var(--pill-ink);
 }
 .agent-first-message {
   --textarea-base-height: 180px;
@@ -551,4 +579,41 @@
   --success: #15803d;
   --danger: #b91c1c;
   --disabled-ink: var(--on-accent-secondary);
+}
+
+/* Inline settings cover the complete preview pane, including its path/Copy toolbar. */
+.output-preview-pane {
+  position: relative;
+  overflow: hidden;
+}
+.output-preview-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.output-preview-content[aria-hidden='true'] {
+  visibility: hidden;
+}
+.project-inline-agent-settings {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: auto;
+  background: var(--surface);
+  animation: project-settings-enter 180ms ease-out;
+}
+@keyframes project-settings-enter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-inline-agent-settings {
+    animation: none;
+  }
 }

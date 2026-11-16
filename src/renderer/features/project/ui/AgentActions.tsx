@@ -1,7 +1,15 @@
 import { useRef, useState } from 'react';
-import { FolderOpen, LoaderCircle, MessageSquare, Play } from 'lucide-react';
+import {
+  FolderOpen,
+  ListStart,
+  LoaderCircle,
+  MessageSquare,
+  Play,
+  Settings2,
+  Trash2,
+} from 'lucide-react';
 import { IconButton } from '@/shared/ui';
-import { SplitButton } from '@/shared/ui/SplitButton';
+import { ActionMenu } from '@/shared/ui/ActionMenu';
 import { useStorage } from '@/shared/storage/Storage';
 import { useNotice } from '@/shared/model/Notice';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
@@ -13,22 +21,27 @@ import { getCurrentAgentInstructions } from '../model/snapshot';
 import { validateAgentModel } from '../../../../shared/modelConfiguration';
 import { StartAgentDialog } from './StartAgentDialog';
 import { AgentConfigurationDialog } from './AgentConfigurationDialog';
-import { ProjectAgentDeleteButton } from './ProjectAgentDeleteButton';
+import { useProjectAgentRemoval } from '../model/useProjectAgentRemoval';
 
 export function AgentActions({
   agent,
   onLaunch,
   modelConfigured,
+  autoContinue,
+  onOpenSettings,
 }: {
   agent: ProjectAgent;
   onLaunch: () => void;
   modelConfigured: boolean;
+  autoContinue: boolean;
+  onOpenSettings: (agentId: string, tab?: string) => void;
 }) {
   const { demo } = useNotice();
   const { saveNow } = useStorage();
   const { setAutoContinue, selectedProject, busy } = useWorkspace();
   const { agents } = useAgentProfiles();
   const { connections } = useConnections();
+  const removal = useProjectAgentRemoval(agent);
   const [configurationOpen, setConfigurationOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [continueAfterRun, setContinueAfterRun] = useState(false);
@@ -39,6 +52,11 @@ export function AgentActions({
     setOpening(value);
   };
   const hasSession = !!agent.session;
+  const launchLabel = autoContinue
+    ? 'Запустить и продолжить'
+    : hasSession
+      ? 'Продолжить диалог'
+      : 'Запустить';
   const launch = async (autoContinue: boolean) => {
     if (openingRef.current || busy) return;
     if (!getCurrentAgentInstructions(agent.profile.id, agents)) {
@@ -91,52 +109,82 @@ export function AgentActions({
         className="project-agent-actions"
         role="toolbar"
         aria-label={`Действия агента «${agent.profile.name}»`}
+        aria-busy={opening || undefined}
       >
-        <ProjectAgentDeleteButton agent={agent} className="project-agent-secondary-action" />
         <IconButton
+          label={launchLabel}
           title={
-            navigator.platform.startsWith('Win') ? 'Показать в Проводнике' : 'Показать в Finder'
+            opening ? 'Открываем Pi…' : modelConfigured ? launchLabel : 'Подключение не настроено'
           }
-          className="project-agent-secondary-action"
-          disabled={busy}
-          onClick={async () => {
-            if (!window.studio || !selectedProject) {
-              demo('Finder доступен в приложении macOS.');
-              return;
-            }
-            try {
-              await window.studio.revealAgentOutput({
-                projectId: selectedProject.id,
-                agentId: agent.profile.id,
-              });
-            } catch (error) {
-              demo(error instanceof Error ? error.message : 'Не удалось показать папку агента.');
-            }
-          }}
-        >
-          <FolderOpen size={18} />
-        </IconButton>
-        <SplitButton
-          iconOnly
-          kind="secondary"
-          menuLabel="Другие варианты запуска"
-          label={hasSession ? 'Продолжить диалог' : 'Запустить'}
-          tooltipLabel={
-            opening ? 'Открываем Pi…' : modelConfigured ? undefined : 'Подключение не настроено'
-          }
-          icon={
-            opening ? (
-              <LoaderCircle size={18} className="project-launch-spinner" aria-hidden="true" />
-            ) : hasSession ? (
-              <MessageSquare size={18} />
-            ) : (
-              <Play size={18} />
-            )
-          }
+          className="project-agent-launch"
           busy={opening}
           disabled={busy || !agent.profile.enabled}
-          onClick={() => void launch(false)}
-          actions={[{ label: 'Запустить и продолжить', onSelect: () => void launch(true) }]}
+          onClick={() => void launch(autoContinue)}
+        >
+          {opening ? (
+            <LoaderCircle size={18} className="project-launch-spinner" aria-hidden="true" />
+          ) : autoContinue ? (
+            <ListStart size={18} aria-hidden="true" />
+          ) : hasSession ? (
+            <MessageSquare size={18} aria-hidden="true" />
+          ) : (
+            <Play size={18} aria-hidden="true" />
+          )}
+        </IconButton>
+        <ActionMenu
+          label={`Действия агента «${agent.profile.name}»`}
+          className="project-agent-menu-trigger"
+          disabled={busy || opening}
+          actions={[
+            {
+              label: 'Запустить и продолжить',
+              icon: ListStart,
+              disabled: !agent.profile.enabled,
+              onSelect: () => void launch(true),
+            },
+            {
+              label: navigator.platform.startsWith('Win')
+                ? 'Показать в Проводнике'
+                : 'Показать в Finder',
+              icon: FolderOpen,
+              onSelect: () =>
+                void (async () => {
+                  if (!window.studio || !selectedProject) {
+                    demo('Finder доступен в приложении macOS.');
+                    return;
+                  }
+                  try {
+                    await window.studio.revealAgentOutput({
+                      projectId: selectedProject.id,
+                      agentId: agent.profile.id,
+                    });
+                  } catch (error) {
+                    demo(
+                      error instanceof Error ? error.message : 'Не удалось показать папку агента.',
+                    );
+                  }
+                })(),
+            },
+            {
+              label: 'Настройки агента',
+              icon: Settings2,
+              onSelect: () => {
+                if (!agents.some((profile) => profile.id === agent.profile.id)) {
+                  demo('Этот агент удалён из конструктора. Другой профиль не подставляется.');
+                  return;
+                }
+                onOpenSettings(agent.profile.id);
+              },
+            },
+            {
+              label: 'Удалить агента из проекта',
+              icon: Trash2,
+              separator: true,
+              danger: true,
+              disabled: removal.disabled,
+              onSelect: removal.remove,
+            },
+          ]}
         />
       </div>
       {startOpen && (
@@ -144,12 +192,14 @@ export function AgentActions({
           agent={agent}
           autoContinue={continueAfterRun}
           onOpeningChange={updateOpening}
+          onOpenSettings={onOpenSettings}
           onClose={() => setStartOpen(false)}
         />
       )}
       {configurationOpen && (
         <AgentConfigurationDialog
           agentId={agent.profile.id}
+          onConfigure={onOpenSettings}
           onClose={() => setConfigurationOpen(false)}
         />
       )}

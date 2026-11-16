@@ -27,6 +27,10 @@ async function parent() {
     const proof = await readFile(join(root, 'proof.json'), 'utf8');
     await mkdir('artifacts', { recursive: true });
     await writeFile('artifacts/launch-progress-proof.json', proof);
+    await require('node:fs/promises').copyFile(
+      join(root, 'project-inline-settings.png'),
+      'artifacts/project-inline-settings.png',
+    );
     console.log(proof);
   } finally {
     await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
@@ -95,11 +99,15 @@ async function child() {
   const originals = [];
   for (const agent of project.agents) {
     mkdirSync(join(projectRoot, agent.outputPath), { recursive: true });
+    writeFileSync(
+      join(projectRoot, agent.outputPath, 'result.md'),
+      '# Result for ' + agent.profile.id,
+    );
     mkdirSync(join(projectRoot, `agents/${agent.profile.id}/sessions`), { recursive: true });
     if (agent.session) {
       const content = JSON.stringify({ type: 'session', id: agent.profile.id }) + '\n';
       writeFileSync(join(projectRoot, agent.session.path), content);
-      originals.push([agent.session.path, content]);
+      originals.push([agent.profile.id, content]);
     }
   }
   writeFileSync(projectFile, JSON.stringify(project));
@@ -117,7 +125,10 @@ async function child() {
       },
     }),
   );
+  let projectLocalSessions = false;
   const requests = [];
+  const reveals = [];
+  const commands = [];
   const pending = new Map();
   const fixtureSessions = new Map();
   const handle = ipcMain.handle.bind(ipcMain);
@@ -132,27 +143,36 @@ async function child() {
               provider: connection.providerId,
               status: 'ready',
             })
-          : channel === 'studio:read-project'
-            ? async (...args) => {
-                const indexed = await action(...args);
-                return {
-                  ...indexed,
-                  agents: indexed.agents.map((agent) =>
-                    fixtureSessions.has(agent.profile.id)
-                      ? { ...agent, session: fixtureSessions.get(agent.profile.id) }
-                      : agent,
-                  ),
-                };
+          : channel === 'studio:reveal-agent-output'
+            ? (_, request) => {
+                reveals.push(request);
               }
-            : channel === 'studio:launch-agent'
-              ? (_, request) => {
-                  requests.push(request);
-                  assert.ok(!pending.has(request.agentId), 'No duplicate launch IPC');
-                  return new Promise((resolve, reject) =>
-                    pending.set(request.agentId, { resolve, reject }),
-                  );
+            : channel === 'studio:project-command'
+              ? (...args) => {
+                  commands.push(args[1]);
+                  return action(...args);
                 }
-              : action,
+              : channel === 'studio:read-project'
+                ? async (...args) => {
+                    const indexed = await action(...args);
+                    return {
+                      ...indexed,
+                      agents: indexed.agents.map((agent) =>
+                        fixtureSessions.has(agent.profile.id)
+                          ? { ...agent, session: fixtureSessions.get(agent.profile.id) }
+                          : agent,
+                      ),
+                    };
+                  }
+                : channel === 'studio:launch-agent'
+                  ? (_, request) => {
+                      requests.push(request);
+                      assert.ok(!pending.has(request.agentId), 'No duplicate launch IPC');
+                      return new Promise((resolve, reject) =>
+                        pending.set(request.agentId, { resolve, reject }),
+                      );
+                    }
+                  : action,
     );
   const loaded = new Promise((resolve) =>
     app.once('browser-window-created', (_, w) => {
@@ -181,9 +201,9 @@ async function child() {
   };
   const row = (id) =>
     `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(r=>r.querySelector('.section-menu-label')?.textContent.endsWith(${JSON.stringify('. ' + id)}))`;
-  const split = (id) => `${row(id)}.querySelector('.split-button')`;
-  const main = (id) => `${split(id)}.querySelector('.split-button-main')`;
-  const busy = (id) => `${split(id)}.getAttribute('aria-busy')==='true'`;
+  const toolbar = (id) => `${row(id)}.querySelector('.project-agent-actions')`;
+  const main = (id) => `${toolbar(id)}.querySelector('.project-agent-launch')`;
+  const busy = (id) => `${toolbar(id)}.getAttribute('aria-busy')==='true'`;
   const saved = () =>
     until(
       `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
@@ -201,7 +221,17 @@ async function child() {
       const result = JSON.parse(await readFile(projectFile, 'utf8'));
       const agent = result.agents.find((a) => a.profile.id === id);
       if (!agent.session) {
-        agent.session = { id, title: id, path: `agents/${id}/sessions/exact.jsonl`, createdAt: 1 };
+        agent.session = {
+          id,
+          title: id,
+          path: projectLocalSessions
+            ? `.pistudio/sessions/${id}/exact.jsonl`
+            : `agents/${id}/sessions/exact.jsonl`,
+          createdAt: 1,
+        };
+        await mkdir(require('node:path').dirname(join(projectRoot, agent.session.path)), {
+          recursive: true,
+        });
         await writeFile(
           join(projectRoot, agent.session.path),
           JSON.stringify({ type: 'session', id }) + '\n',
@@ -217,7 +247,7 @@ async function child() {
   const checkBusy = async (id) => {
     await until(busy(id));
     const dimensions = await js(
-      `(()=>{const s=${split(id)},b=s.querySelector('.split-button-main'),r=b.getBoundingClientRect();return {disabled:[...s.querySelectorAll('button')].every(b=>b.disabled),spinner:!!b.querySelector('.project-launch-spinner'),animation:getComputedStyle(b.querySelector('svg')).animationName,width:r.width,height:r.height}})()`,
+      `(()=>{const s=${toolbar(id)},b=s.querySelector('.project-agent-launch'),r=b.getBoundingClientRect();return {disabled:[...s.querySelectorAll('button')].every(b=>b.disabled),spinner:!!b.querySelector('.project-launch-spinner'),animation:getComputedStyle(b.querySelector('svg')).animationName,width:r.width,height:r.height}})()`,
     );
     assert.equal(dimensions.disabled, true);
     assert.equal(dimensions.spinner, true);
@@ -225,10 +255,16 @@ async function child() {
     return dimensions;
   };
   const menu = async (id) => {
-    await js(`${split(id)}.querySelector('.split-button-trigger').focus()`);
-    w.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' });
-    w.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
-    await until(`!!document.querySelector('[role="menuitem"]')`);
+    await js('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
+    const trigger = `${toolbar(id)}.querySelector('.project-agent-menu-trigger')`;
+    await until(`!${trigger}.disabled&&${trigger}.getAttribute('aria-expanded')!=='true'`);
+    await js(`${trigger}.focus()`);
+    await until(`document.activeElement===${trigger}`);
+    await js(
+      `${trigger}.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+    );
+    await until(`!!document.querySelector('[role="menu"][data-state="open"] [role="menuitem"]')`);
+    await js('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
   };
   const auto = async (id) => {
     await menu(id);
@@ -241,6 +277,22 @@ async function child() {
   await until(`!!document.querySelector('[aria-label="Открыть проект «Launch progress»"]')`);
   await js(`document.querySelector('[aria-label="Открыть проект «Launch progress»"]').click()`);
   await until(`!!(${row('bound-a')})`);
+  projectLocalSessions = (await js("window.studio.readProject('progress-project')")).agents
+    .find((a) => a.profile.id === 'bound-a')
+    .session.path.startsWith('.pistudio/sessions/');
+  const menuChecks = await require('./project-agent-menu-checks.cjs')({
+    root,
+    js,
+    until,
+    click,
+    row,
+    main,
+    menu,
+    w,
+    requests,
+    reveals,
+    commands,
+  });
   const originalSize = await js(
     `(()=>{const r=${main('bound-a')}.getBoundingClientRect();return {width:r.width,height:r.height}})()`,
   );
@@ -279,12 +331,28 @@ async function child() {
   assert.equal(requests.at(-1).autoContinue, true);
   assert.equal(requests.at(-1).firstMessage, undefined);
   await settle('bound-b');
+  const mode = `document.querySelector('.project-agent-heading [role="switch"]')`;
+  const countBeforeMode = requests.length;
+  await js(`${mode}.click()`);
+  await until(`${mode}.getAttribute('aria-checked')==='true'`);
+  assert.equal(requests.length, countBeforeMode);
+  await js(`${main('bound-b')}.click()`);
+  await checkBusy('bound-b');
+  assert.equal(requests.at(-1).autoContinue, true);
+  assert.equal(requests.at(-1).firstMessage, undefined);
+  await js(`${mode}.click()`);
+  assert.equal(
+    requests.at(-1).autoContinue,
+    true,
+    'Changing the preference cannot rewrite an admitted launch',
+  );
+  await settle('bound-b');
   await js(`${main('fresh')}.click()`);
   await until(`!!document.querySelector('.agent-first-message')`);
   assert.equal(await js(busy('fresh')), false);
   await click('Отмена');
   await until(`!document.querySelector('.agent-first-message')`);
-  assert.equal(requests.length, 3);
+  assert.equal(requests.length, 4);
   await js(`${main('unconfigured')}.click()`);
   await until(
     `document.querySelector('[role="dialog"]')?.textContent.includes('Сначала настройте')`,
@@ -293,8 +361,11 @@ async function child() {
   await js(`document.querySelector('[role="dialog"] footer button').click()`);
   await until(`!document.querySelector('[role="dialog"]')`);
   for (const id of ['fresh', 'fresh-chain']) {
-    if (id === 'fresh-chain') await auto(id);
-    else await js(`${main(id)}.click()`);
+    if (id === 'fresh-chain') {
+      await js(`${mode}.click()`);
+      await until(`${mode}.getAttribute('aria-checked')==='true'`);
+    }
+    await js(`${main(id)}.click()`);
     await until(`!!document.querySelector('.agent-first-message')`);
     await message('First exact task: ' + id);
     const submit = id === 'fresh' ? 'Запустить' : 'Запустить и продолжить';
@@ -313,12 +384,20 @@ async function child() {
     }
     await settle(id);
     await until(`!document.querySelector('.agent-first-message')`);
+    if (id === 'fresh-chain') {
+      assert.equal(await js(`!!${main(id)}.querySelector('.lucide-list-start')`), true);
+      await js(`${mode}.click()`);
+    }
     assert.equal(await js(`!!${main(id)}.querySelector('.lucide-message-square')`), true);
   }
-  assert.equal(requests.length, 6);
+  assert.equal(requests.length, 7);
   assert.equal(pending.size, 0);
-  for (const [path, content] of originals)
-    assert.equal(await readFile(join(projectRoot, path), 'utf8'), content);
+  const finalProject = await js("window.studio.readProject('progress-project')");
+  for (const [id, content] of originals) {
+    const session = finalProject.agents.find((agent) => agent.profile.id === id).session;
+    assert.equal(session.id, id);
+    assert.equal(await readFile(join(projectRoot, session.path), 'utf8'), content);
+  }
   await saved();
   await writeFile(
     join(root, 'proof.json'),
@@ -326,11 +405,13 @@ async function child() {
       {
         checkedAt: new Date().toISOString(),
         nativeMainPreloadRenderer: true,
+        ...menuChecks,
         launchRequests: requests.length,
         synchronousDoubleClickDispatchesOnce: true,
         perAgentParallelProgress: true,
         successAndFailureRestoreIcons: true,
         newAndResumeAutoContinue: true,
+        headerPreferenceAppliedOnlyAtExplicitLaunch: true,
         draftPreservedOnFailure: true,
         cancelAndMissingConfigurationDoNotSpinOrDispatch: true,
         reducedMotion: true,

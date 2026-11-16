@@ -1,6 +1,6 @@
 import { TeamMessages } from './TeamMessages';
 import { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { Pause, Play, RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useWorkspace } from '../model/Workspace';
@@ -18,10 +18,12 @@ import { useConnections } from '@/features/connections/model/Connections';
 import { validateAgentModel } from '../../../../shared/modelConfiguration';
 import { UsageMetrics } from './UsageMetrics';
 import { usageAccessible } from '../model/usageFormat';
+import { Switch } from '@/shared/ui/SelectionControls';
+import { Tooltip } from '@/shared/ui/Tooltip';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   const { confirm } = useConfirm();
-  const { agents: profiles } = useAgentProfiles();
+  const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
   const { ref, width } = useElementWidth();
   const [agentWidth, setAgentWidth] = useState(320);
@@ -34,6 +36,15 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
       '',
   );
   const [refreshOpen, setRefreshOpen] = useState(false);
+  const [autoContinue, setAutoContinue] = useState(false);
+  const [settingsAgentId, setSettingsAgentId] = useState<string | null>(null);
+  const closeSettings = () => setSettingsAgentId(null);
+  const openSettings = (id: string, tab?: string) => {
+    selectProfile(id);
+    if (tab) setAgentTab(tab);
+    setAgentId(id);
+    setSettingsAgentId(id);
+  };
   const selectedAgent =
     project.agents.find((agent) => agent.profile.id === agentId) ?? project.agents[0];
   return (
@@ -63,7 +74,33 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
         style={{ gridTemplateColumns: `${actualAgentWidth}px 8px minmax(0, 1fr)` }}
       >
         <aside className="project-agent-menu">
-          <h2 className="project-column-heading">Агенты проекта</h2>
+          <div className="project-column-heading project-agent-heading">
+            <Tooltip label="Агенты проекта" onlyWhenTruncated>
+              <h2>Агенты проекта</h2>
+            </Tooltip>
+            <Tooltip
+              label={
+                autoContinue
+                  ? 'Выключить автоматическое продолжение'
+                  : 'Включить автоматическое продолжение'
+              }
+            >
+              <span className="project-auto-continue">
+                <Switch
+                  checked={autoContinue}
+                  onChange={setAutoContinue}
+                  label="Автоматическое продолжение при запуске диалога"
+                  trackIcon={
+                    autoContinue ? (
+                      <Play size={11} aria-hidden="true" />
+                    ) : (
+                      <Pause size={11} aria-hidden="true" />
+                    )
+                  }
+                />
+              </span>
+            </Tooltip>
+          </div>
           <SectionMenu
             label="Агенты проекта"
             items={project.agents.map((agent, index) => {
@@ -86,13 +123,21 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
                   <AgentActions
                     agent={agent}
                     modelConfigured={modelConfigured}
-                    onLaunch={() => setAgentId(agent.profile.id)}
+                    autoContinue={autoContinue}
+                    onOpenSettings={openSettings}
+                    onLaunch={() => {
+                      closeSettings();
+                      setAgentId(agent.profile.id);
+                    }}
                   />
                 ),
               };
             })}
             selected={selectedAgent?.profile.id ?? ''}
-            onSelect={setAgentId}
+            onSelect={(id) => {
+              closeSettings();
+              setAgentId(id);
+            }}
           />
         </aside>
         <ResizeHandle
@@ -107,6 +152,10 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
             <AgentOutputsView
               key={`${project.id}:${selectedAgent.profile.id}`}
               agent={selectedAgent}
+              settingsAgentId={
+                settingsAgentId === selectedAgent.profile.id ? settingsAgentId : null
+              }
+              onCloseSettings={closeSettings}
               treeWidth={treeWidth}
               onTreeWidthChange={setTreeWidth}
             />

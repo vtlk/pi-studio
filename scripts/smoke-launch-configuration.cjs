@@ -129,7 +129,7 @@ const deadline = setTimeout(() => {
         '\n' +
         JSON.stringify(
           await js(
-            `({tooltips:Array.from(document.querySelectorAll('[role="tooltip"]')).map(e=>e.textContent),active:document.activeElement?.outerHTML.slice(0,900),buttons:Array.from(document.querySelectorAll('.split-button-main')).map(e=>({label:e.getAttribute('aria-label'),disabled:e.disabled}))})`,
+            `({tooltips:Array.from(document.querySelectorAll('[role="tooltip"]')).map(e=>e.textContent),active:document.activeElement?.outerHTML.slice(0,900),buttons:Array.from(document.querySelectorAll('.project-agent-launch')).map(e=>({label:e.getAttribute('aria-label'),disabled:e.disabled}))})`,
           ),
         ),
     );
@@ -143,6 +143,9 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Открыть проект «Launch states»"]')`);
   await js(`document.querySelector('[aria-label="Открыть проект «Launch states»"]').click()`);
   await until(`document.querySelectorAll('.project-agent-menu .section-menu-row').length===11`);
+  bound.session.path = (await js("window.studio.readProject('qa-project')")).agents.find(
+    (a) => a.profile.id === 'bound',
+  ).session.path;
   const before = await readFile(file, 'utf8');
   for (const agent of snapshots) {
     const configured = ['valid', 'current-valid'].includes(agent.profile.id),
@@ -168,15 +171,7 @@ const deadline = setTimeout(() => {
       await js(`!!${expr}.querySelector('button[aria-label="Продолжить диалог"]')`),
       agent.profile.id === 'bound',
     );
-    assert.equal(
-      await js(`!!${expr}.querySelector('button[aria-label="Другие варианты запуска"]')`),
-      true,
-    );
-    assert.equal(await js(`!!${expr}.querySelector('[aria-label="Показать в Finder"]')`), true);
-    assert.equal(
-      await js(`!!${expr}.querySelector('[aria-label="Удалить агента из проекта"]')`),
-      true,
-    );
+    assert.equal(await js(`!!${expr}.querySelector('.project-agent-menu-trigger')`), true);
   }
   const configurationDialog = `Array.from(document.querySelectorAll('[role="dialog"]')).some(el=>el.textContent.includes('Сначала настройте подключение Агента в настройках агента'))`;
   for (const id of [
@@ -189,9 +184,9 @@ const deadline = setTimeout(() => {
     'current-missing',
     'bound',
   ]) {
-    await until(`!${row(id)}.querySelector('.split-button-main').disabled`);
+    await until(`!${row(id)}.querySelector('.project-agent-launch').disabled`);
     await js(
-      `(()=>{const el=${row(id)}.querySelector('.split-button-main');el.focus();const rect=el.getBoundingClientRect();el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:rect.x+rect.width/2,clientY:rect.y+rect.height/2}));})()`,
+      `(()=>{const el=${row(id)}.querySelector('.project-agent-launch');el.focus();const rect=el.getBoundingClientRect();el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:rect.x+rect.width/2,clientY:rect.y+rect.height/2}));})()`,
     );
     await until(
       `document.querySelector('[role="tooltip"]')?.textContent.includes('Подключение не настроено')`,
@@ -205,7 +200,7 @@ const deadline = setTimeout(() => {
     await until(`!(${configurationDialog})`);
   }
   await js(
-    `${row('empty')}.querySelector('button[aria-label="Другие варианты запуска"]').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+    `${row('empty')}.querySelector('.project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
   );
   await until(`!!document.querySelector('[role="menuitem"]')`);
   await js(
@@ -220,7 +215,7 @@ const deadline = setTimeout(() => {
   await click('Отмена');
   const menu = () =>
     js(
-      `${row('valid')}.querySelector('button[aria-label="Другие варианты запуска"]').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+      `${row('valid')}.querySelector('.project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
     );
   await menu();
   await until(`!!document.querySelector('[role="menuitem"]')`);
@@ -272,7 +267,7 @@ const deadline = setTimeout(() => {
   );
   await save('connections', []);
   await until(
-    `document.querySelectorAll('.project-agent-actions .split-button').length===11 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-item')).every(el=>el.getAttribute('aria-label').includes('. Не подключена модель.'))`,
+    `document.querySelectorAll('.project-agent-actions .project-agent-launch').length===11 && Array.from(document.querySelectorAll('.project-agent-menu .section-menu-item')).every(el=>el.getAttribute('aria-label').includes('. Не подключена модель.'))`,
   );
   await save('connections', [account]);
   await until(

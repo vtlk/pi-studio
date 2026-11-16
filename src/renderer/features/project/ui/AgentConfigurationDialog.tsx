@@ -7,9 +7,11 @@ import { Button } from '@/shared/ui';
 export function AgentConfigurationDialog({
   agentId,
   onClose,
+  onConfigure,
 }: {
   agentId: string;
   onClose: () => void;
+  onConfigure?: (agentId: string, tab?: string) => void;
 }) {
   const { agents, systemAgents, setAgentId, setAgentTab } = useAgentProfiles();
   const { navigate } = useNavigation();
@@ -31,7 +33,8 @@ export function AgentConfigurationDialog({
               setAgentId(agentId);
               setAgentTab('Модель');
               onClose();
-              navigate('agents');
+              if (onConfigure) onConfigure(agentId, 'Модель');
+              else navigate('agents');
             }}
           >
             Перейти

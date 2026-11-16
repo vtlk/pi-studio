@@ -17,21 +17,30 @@ import { DeleteAgentDataButton } from './DeleteAgentDataButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { SearchablePreview } from './SearchablePreview';
 import { getPreviewKind } from '../model/previewCapabilities';
+import { AgentProfileEditor } from '@/features/agents/ui/AgentProfileEditor';
 
 export function AgentOutputsView({
   agent,
   treeWidth,
   onTreeWidthChange,
+  settingsAgentId,
+  onCloseSettings,
 }: {
   agent: ProjectAgent;
   treeWidth: number;
   onTreeWidthChange: (value: number) => void;
+  settingsAgentId: string | null;
+  onCloseSettings: () => void;
 }) {
   const { selectedProject } = useWorkspace();
   const { isDesktop } = useStorage();
   const { ref, width } = useElementWidth();
   const files = listOutputFiles(agent.entries);
   const [fileId, setFileId] = useState('');
+  const selectFile = (id: string) => {
+    onCloseSettings();
+    setFileId(id);
+  };
   const selected = files.find(({ file }) => file.id === fileId) ?? files[0];
   const projectId = selectedProject?.id;
   const { file: loadedFile, loading, error } = useOutputFile(projectId, selected?.file);
@@ -57,8 +66,8 @@ export function AgentOutputsView({
         </div>
         <OutputFileTree
           entries={agent.entries}
-          selectedFileId={selected?.file.id ?? ''}
-          onSelectFile={setFileId}
+          selectedFileId={settingsAgentId ? '' : (selected?.file.id ?? '')}
+          onSelectFile={selectFile}
         />
       </aside>
       <ResizeHandle
@@ -69,73 +78,85 @@ export function AgentOutputsView({
         onChange={onTreeWidthChange}
       />
       <div className="output-preview-pane">
-        <OutputToolbar
-          file={selectedFile}
-          projectId={projectId}
-          filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
-        />
-        <SearchablePreview
-          enabled={
-            !!selectedFile &&
-            ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile)) &&
-            !nativeManifestPath &&
-            !selectedFile.name.endsWith('.pistudio.json')
-          }
-          ready={!loading && !error}
-          empty={!selectedFile?.content}
-          documentKey={`${projectId}:${agent.profile.id}:${selectedFile?.id}:${selectedFile?.fingerprint}`}
+        <div
+          className="output-preview-content"
+          inert={!!settingsAgentId}
+          aria-hidden={settingsAgentId ? true : undefined}
         >
-          {loading ? (
-            <p className="output-empty" role="status">
-              Читаем файл…
-            </p>
-          ) : error ? (
-            <p className="error-message" role="alert">
-              {error}
-            </p>
-          ) : selected && selectedFile ? (
-            <div className="output-file-preview">
-              {nativeManifestPath && projectId ? (
-                <NativeMontageCard
-                  key={`${projectId}:${nativeManifestPath}`}
-                  result={nativeVideo}
-                  documentKey={`${projectId}:${nativeManifestPath}`}
-                />
-              ) : !isDesktop && selected.file.name.endsWith('.pistudio.json') && selectedProject ? (
-                <MontageCard
-                  key={selected.file.id}
-                  file={selected.file}
-                  path={selected.path}
-                  agent={agent}
-                  projectId={selectedProject.id}
-                />
-              ) : (
-                <>
-                  {selected.file.artifact ? (
-                    <ArtifactPreview file={selected.file} agent={agent} />
-                  ) : (
-                    <OutputPreview
-                      key={`${selectedFile.id}:${selectedFile.fingerprint}`}
-                      file={selectedFile}
-                      markdownFiles={
-                        projectId && selectedFile.diskPath
-                          ? {
-                              projectId,
-                              path: selectedFile.diskPath,
-                              files: files.map(({ file }) => file),
-                              onSelect: setFileId,
-                            }
-                          : undefined
-                      }
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          ) : (
-            <p className="output-empty">Выходных файлов пока нет.</p>
-          )}
-        </SearchablePreview>
+          <OutputToolbar
+            file={selectedFile}
+            projectId={projectId}
+            filePath={selected ? [agent.outputPath, ...selected.path].join('/') : undefined}
+          />
+          <SearchablePreview
+            enabled={
+              !settingsAgentId &&
+              !!selectedFile &&
+              ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile)) &&
+              !nativeManifestPath &&
+              !selectedFile.name.endsWith('.pistudio.json')
+            }
+            ready={!loading && !error}
+            empty={!selectedFile?.content}
+            documentKey={`${projectId}:${agent.profile.id}:${selectedFile?.id}:${selectedFile?.fingerprint}`}
+          >
+            {loading ? (
+              <p className="output-empty" role="status">
+                Читаем файл…
+              </p>
+            ) : error ? (
+              <p className="error-message" role="alert">
+                {error}
+              </p>
+            ) : selected && selectedFile ? (
+              <div className="output-file-preview">
+                {nativeManifestPath && projectId ? (
+                  <NativeMontageCard
+                    key={`${projectId}:${nativeManifestPath}`}
+                    result={nativeVideo}
+                    documentKey={`${projectId}:${nativeManifestPath}`}
+                  />
+                ) : !isDesktop &&
+                  selected.file.name.endsWith('.pistudio.json') &&
+                  selectedProject ? (
+                  <MontageCard
+                    key={selected.file.id}
+                    file={selected.file}
+                    path={selected.path}
+                    agent={agent}
+                    projectId={selectedProject.id}
+                  />
+                ) : (
+                  <>
+                    {selected.file.artifact ? (
+                      <ArtifactPreview file={selected.file} agent={agent} />
+                    ) : (
+                      <OutputPreview
+                        key={`${selectedFile.id}:${selectedFile.fingerprint}`}
+                        file={selectedFile}
+                        markdownFiles={
+                          projectId && selectedFile.diskPath
+                            ? {
+                                projectId,
+                                path: selectedFile.diskPath,
+                                files: files.map(({ file }) => file),
+                                onSelect: selectFile,
+                              }
+                            : undefined
+                        }
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <p className="output-empty">Выходных файлов пока нет.</p>
+            )}
+          </SearchablePreview>
+        </div>
+        {settingsAgentId && (
+          <AgentProfileEditor key={settingsAgentId} agentId={settingsAgentId} inline />
+        )}
       </div>
     </div>
   );

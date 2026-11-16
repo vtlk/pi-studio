@@ -11,23 +11,28 @@ export const timecode = (value: number) =>
 export function IconButton({
   children,
   title,
+  label,
   onClick,
   disabled,
+  busy = false,
   className,
 }: {
   children: ReactNode;
   title: string;
+  label?: string;
   onClick?: () => void;
   disabled?: boolean;
+  busy?: boolean;
   className?: string;
 }) {
   return (
     <Tooltip label={title}>
       <button
         className={cx('icon-button', className)}
-        aria-label={title}
+        aria-label={label ?? title}
+        aria-busy={busy || undefined}
         onClick={onClick}
-        disabled={disabled}
+        disabled={disabled || busy}
       >
         {children}
       </button>
