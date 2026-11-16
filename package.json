@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.83",
+  "version": "0.2.0-alpha.84",
   "private": true,
   "description": "Pi Studio — харнес для конвейерных производств на базе команд агентов Pi",
   "type": "module",
