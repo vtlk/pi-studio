@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-16T07:37:33.118Z",
+  "version": "0.2.0-alpha.79",
+  "mainEntry": "source",
+  "emptyCatalogsAndTwoPageNavigation": true,
+  "removedPreloadMethodsAbsent": true,
+  "helperInitialPromptClean": true,
+  "legacyMetadataReopenedThroughMain": true,
+  "formerProfileSameIdAndText": true,
+  "oldAssignmentsRevoked": true,
+  "projectAndOutputUnchanged": true,
+  "oldMediaAndCanonicalJsonlUntouched": true,
+  "repeatReloadNoResurrection": true,
+  "modelOrTerminalRequests": 0,
+  "isolatedStudioAndMockKeychain": true
+}

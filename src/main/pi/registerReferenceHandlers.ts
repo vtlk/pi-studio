@@ -1,44 +1,15 @@
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { dialog, nativeImage, type BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
-import type { LibraryKind } from '../../shared/library';
 import type { StudioService } from '../storage/StudioStore';
-import { withReadDeadline } from '../storage/files';
-import type { ReferenceFiles } from '../pi/ReferenceFiles';
-import { referenceImage } from '../pi/referenceImage';
-import type { createLibraryRunHost } from '../pi/createLibraryRunHost';
+import type { ReferenceFiles } from './ReferenceFiles';
+import { referenceImage } from './referenceImage';
 
-export function registerLibraryHandlers(
+export function registerReferenceHandlers(
   service: StudioService,
   references: ReferenceFiles,
-  generators: ReturnType<typeof createLibraryRunHost>,
   caller: (event: IpcMainInvokeEvent) => BrowserWindow,
 ) {
-  handleDesktopInvoke(desktopChannels.listLibrary, (event) => {
-    caller(event);
-    return service.serialize(() =>
-      withReadDeadline(async () => (await service.load()).library.list()),
-    );
-  });
-  handleDesktopInvoke(
-    desktopChannels.readLibraryCharacter,
-    (event, id: string, version: number, revision: string) => {
-      caller(event);
-      return service.serialize(async () =>
-        (await service.load()).library.character(id, version, revision),
-      );
-    },
-  );
-  handleDesktopInvoke(
-    desktopChannels.createLibraryAsset,
-    async (
-      event,
-      request: { kind: LibraryKind; agentId: string; description: string; attachments: string[] },
-    ) => {
-      caller(event);
-      await generators.create(request);
-    },
-  );
   handleDesktopInvoke(desktopChannels.releaseReferenceFiles, (event, ids: unknown) => {
     caller(event);
     references.release(ids);

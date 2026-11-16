@@ -1,6 +1,5 @@
 import { ContinuationCancelled } from './RunTypes.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
-import type { PreviewRenderer } from '../library/previewOptions.ts';
 import { RunHost } from './RunHost.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { stableId } from '../storage/validation.ts';
@@ -10,7 +9,6 @@ import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { nextEnabledStage, nextStageMessage } from './stageChain.ts';
 import { productionTools } from './RunChannel.ts';
-import { libraryTools, libraryTool } from '../library/tools.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
 import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
 import type { openSessionTerminal } from './terminal.ts';
@@ -32,7 +30,6 @@ interface Options {
   browser?: BrowserSupport;
   computer?: ComputerSupport;
   activity?: ProjectActivity;
-  libraryPreview?: PreviewRenderer;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
   captureTerminal?: RunDependencies['captureTerminal'];
@@ -46,15 +43,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       ...(options.team?.groups(run) ?? []),
     ],
     observed: (run, event) => options.team?.event(run, event) ?? Promise.resolve(),
-    tools: (run) => [
-      ...productionTools,
-      ...(run.libraryAccess
-        ? libraryTools.filter(
-            (tool) => tool.name !== 'library_render_preview' || !!options.libraryPreview,
-          )
-        : []),
-      ...(options.images?.tools(run) ?? []),
-    ],
+    tools: (run) => [...productionTools, ...(options.images?.tools(run) ?? [])],
     closed: (run) => {
       options.activity?.set(run, false);
       options.images?.cancel(run);
@@ -80,7 +69,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     tool: (run, name, args) =>
       ['generate_image', 'get_image_operation'].includes(name) && options.images
         ? options.images.tool(run, name, args)
-        : libraryTool(service, run, name, args, 'project', options.libraryPreview),
+        : Promise.reject(new Error('Неизвестный инструмент проекта.')),
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,

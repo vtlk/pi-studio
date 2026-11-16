@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-11-16T07:39:35.572Z",
+  "version": "0.2.0-alpha.79",
+  "checkedFiles": 63,
+  "aggregateSha256": "2558e8beb540f99e4a6c9957bba67cbbe981a5510e07fb8f1e35285bea0afb2b",
+  "retiredSemanticMarkersAbsent": true,
+  "exclusiveParserDependenciesAbsent": true,
+  "scope": "Own compiled main/preload/renderer and shipped bridges/helper; generic OS and third-party library names are not a product feature.",
+  "runtimeAcceptance": false
+}

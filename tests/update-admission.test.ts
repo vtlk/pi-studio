@@ -102,7 +102,6 @@ test('startup permits hydration/status reads but denies launch, user edits, auth
     c.openStudio,
     c.beginConnectionLogin,
     c.deleteAgentData,
-    c.createLibraryAsset,
     c.copyOutput,
     c.installResource,
   ])

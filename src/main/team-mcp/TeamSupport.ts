@@ -138,7 +138,7 @@ export class TeamSupport {
   async call(run: TeamCaller, name: string, args: Record<string, unknown>) {
     if (this.stopping) throw new Error('Studio закрывается; новые поручения не отправляются.');
     if (!run.teamAccess) throw new Error('MCP team не назначен этому открытию.');
-    // Service/library workspaces must never select a project implicitly.
+    // Service workspaces must never select a project implicitly.
     if (!run.project.sourceTeamId)
       throw new Error('team требует привязки к открытому проекту и его исходной команде.');
     const scope = await teamScope(this.service, run);

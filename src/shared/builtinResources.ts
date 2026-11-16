@@ -1,15 +1,9 @@
 import type { Agent } from './studio.ts';
 import type { Resource } from './resources.ts';
 
-export const libraryMcpId = 'pistudio-library';
-export const libraryMcp: Resource = {
-  id: libraryMcpId,
-  name: 'Pi Studio · Библиотека',
-  kind: 'mcps',
-  source: 'builtin:library',
+const builtinBase = {
+  kind: 'mcps' as const,
   version: 'Встроенный',
-  description:
-    'Поиск, чтение, подготовка, проверка и публикация персонажей и локаций. Генератор и навыки подключаются отдельно.',
   transport: 'Встроенный',
   args: '',
   credential: '',
@@ -17,7 +11,7 @@ export const libraryMcp: Resource = {
   createdAt: 0,
 };
 export const browserMcp: Resource = {
-  ...libraryMcp,
+  ...builtinBase,
   id: 'pistudio-browser',
   name: 'Pi Studio · Браузер',
   source: 'builtin:browser',
@@ -26,7 +20,7 @@ export const browserMcp: Resource = {
     'Визуальное управление отдельным локальным браузером: снимки, координатные действия, ввод и вкладки. Профиль закреплён за диалогом Pi. Нужна модель с поддержкой изображений; компоненты устанавливаются отдельно.',
 };
 export const computerMcp: Resource = {
-  ...libraryMcp,
+  ...builtinBase,
   id: 'pistudio-computer',
   name: 'Pi Studio · Компьютер',
   source: 'builtin:computer',
@@ -36,14 +30,14 @@ export const computerMcp: Resource = {
 };
 export const teamMcpId = 'pistudio-team';
 export const teamMcp: Resource = {
-  ...libraryMcp,
+  ...builtinBase,
   id: teamMcpId,
   name: 'team',
   source: 'builtin:team',
   description:
     'Агенты своей команды в текущем проекте: чтение настроек и результатов, передача сообщений в точный диалог. Назначается явно; вне проекта недоступен.',
 };
-export const optionalBuiltinMcps = [libraryMcp, teamMcp];
+export const optionalBuiltinMcps = [teamMcp];
 export function hasTeamMcp(agent: Pick<Agent, 'mcps' | 'capabilitySettings'>) {
   return (
     agent.mcps.includes(teamMcpId) &&
@@ -52,19 +46,18 @@ export function hasTeamMcp(agent: Pick<Agent, 'mcps' | 'capabilitySettings'>) {
 }
 export const builtinResources: readonly Resource[] = [
   {
-    ...libraryMcp,
+    ...builtinBase,
     id: 'pistudio-project',
     name: 'Pi Studio · Проект',
     source: 'builtin:project',
     description:
       'Обязательные инструменты проектной сессии: текущий контекст и файлы проекта, веб-поиск, проверка результата и монтажного манифеста. Подключается автоматически к проектным агентам.',
   },
-  libraryMcp,
   teamMcp,
   browserMcp,
   computerMcp,
   {
-    ...libraryMcp,
+    ...builtinBase,
     id: 'pistudio-administration',
     name: 'Pi Studio · Ресурсы и агенты',
     source: 'builtin:administration',
@@ -79,10 +72,4 @@ export function reservedMcpName(name: string) {
 }
 export function builtinResource(id: string) {
   return builtinResources.find((item) => item.id === id);
-}
-export function hasLibraryMcp(agent: Pick<Agent, 'mcps' | 'capabilitySettings'>) {
-  return (
-    agent.mcps.includes(libraryMcpId) &&
-    agent.capabilitySettings?.[`mcps:${libraryMcpId}`]?.enabled !== false
-  );
 }

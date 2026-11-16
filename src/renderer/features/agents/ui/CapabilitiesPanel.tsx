@@ -138,7 +138,6 @@ export function CapabilitiesPanel() {
         >
           {field === 'mcps' ? (
             <McpPicker
-              allowLibrary={selectedSystemRole !== 'assistant'}
               attached={selectedAgent.mcps}
               onPick={(id) => updateAgent({ mcps: [...selectedAgent.mcps, id] })}
             />

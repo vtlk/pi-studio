@@ -17,7 +17,7 @@ export function ArtifactPreview({ file }: { file: OutputFile; agent: ProjectAgen
       </dl>
       <DisclosureList>
         {artifact.reference && (
-          <Disclosure label="Версия материала библиотеки" defaultOpen>
+          <Disclosure label="Связанный материал" defaultOpen>
             <p>
               {artifact.reference.title} · зафиксирована v{artifact.reference.version}. Доступна v
               {artifact.reference.latestVersion}.

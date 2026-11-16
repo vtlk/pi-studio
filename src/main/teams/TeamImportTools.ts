@@ -8,7 +8,6 @@ import { atomicJson } from '../storage/files.ts';
 import { stableId } from '../storage/validation.ts';
 import { listImports, readImport } from './importState.ts';
 import type { ImportedTeamState } from './importTeam.ts';
-import { builtinResource } from '../../shared/builtinResources.ts';
 import { isLocalMcpPath } from './portableMcp.ts';
 
 type CheckModel = (agent: Agent, store: StudioStore) => Promise<void>;
@@ -146,11 +145,7 @@ export class TeamImportTools {
         }
         for (const kind of ['skills', 'mcps', 'plugins'] as const)
           for (const id of agent[kind]) {
-            if (
-              agent.capabilitySettings?.[`${kind}:${id}`]?.enabled === false ||
-              builtinResource(id)?.source === 'builtin:library'
-            )
-              continue;
+            if (agent.capabilitySettings?.[`${kind}:${id}`]?.enabled === false) continue;
             try {
               const check = await this.native.check(id, scope.folder);
               if (check.status !== 'available') issues.push(`Ресурс ${id}: ${check.status}.`);

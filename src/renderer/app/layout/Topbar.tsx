@@ -6,7 +6,6 @@ import { UpdateAction } from '@/features/updates/UpdateAction';
 
 const sections: { page: Page; label: string }[] = [
   { page: 'projects', label: 'Проекты' },
-  { page: 'library', label: 'Библиотека' },
   { page: 'agents', label: 'Агенты' },
 ];
 export function Topbar() {

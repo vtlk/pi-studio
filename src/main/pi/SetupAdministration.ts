@@ -13,11 +13,7 @@ import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
-import {
-  libraryMcp,
-  builtinResources,
-  optionalBuiltinMcps,
-} from '../../shared/builtinResources.ts';
+import { builtinResources, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
 import {
   endpointProviderId,
   parseModelEndpoint,
@@ -311,10 +307,6 @@ export class SetupAdministration {
           (item) => item.id === args.resourceId && item.kind === kind,
         );
         if (!resource) throw new Error('Ресурс отсутствует в каталоге.');
-        if (resource.id === libraryMcp.id && systems.some((item) => item.id === agent.id))
-          throw new Error(
-            'Библиотечный MCP назначается обычным агентам. Административный MCP помощника уже подключён.',
-          );
         const updated = {
           ...agent,
           [kind]: agent[kind].includes(resource.id) ? agent[kind] : [...agent[kind], resource.id],

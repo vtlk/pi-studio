@@ -48,14 +48,10 @@ const desktopApi: DesktopApi = {
   removeImageKey: (request) => ipcRenderer.invoke(desktopChannels.removeImageKey, request),
   checkImageConnection: (request) =>
     ipcRenderer.invoke(desktopChannels.checkImageConnection, request),
-  readLibraryCharacter: (id, version, revision) =>
-    ipcRenderer.invoke(desktopChannels.readLibraryCharacter, id, version, revision),
   chooseReferenceFiles: () => ipcRenderer.invoke(desktopChannels.chooseReferenceFiles),
   releaseReferenceFiles: (ids) => ipcRenderer.invoke(desktopChannels.releaseReferenceFiles, ids),
-  createLibraryAsset: (request) => ipcRenderer.invoke(desktopChannels.createLibraryAsset, request),
   saveSkill: (request) => ipcRenderer.invoke(desktopChannels.saveSkill, request),
   deleteAgentData: (request) => ipcRenderer.invoke(desktopChannels.deleteAgentData, request),
-  listLibrary: () => ipcRenderer.invoke(desktopChannels.listLibrary),
   getInfo: () => ipcRenderer.invoke(desktopChannels.getInfo),
   loadStudio: () => ipcRenderer.invoke(desktopChannels.loadStudio),
   chooseStudio: () => ipcRenderer.invoke(desktopChannels.chooseStudio),

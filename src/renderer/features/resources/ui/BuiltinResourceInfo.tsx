@@ -21,12 +21,6 @@ export function BuiltinResourceInfo({
       <p>Поставляется с Pi Studio. Встроенный ресурс не удаляется из общего каталога.</p>
       {resource.source === 'builtin:browser' && <BrowserResourceStatus />}
       {resource.source === 'builtin:computer' && <ComputerResourceStatus />}
-      {resource.source === 'builtin:library' && (
-        <p>
-          Назначается обычному агенту через плюс во вкладке MCP. Связь можно выключить или убрать у
-          конкретного агента. Навыки и генераторы выбираются отдельно.
-        </p>
-      )}
     </Modal>
   );
 }

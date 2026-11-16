@@ -108,10 +108,10 @@ process.on('unhandledRejection', fail);
   await until(`!!(${catalogRow})`);
   assert.deepEqual(
     await js(
-      `Array.from(document.querySelectorAll('.resource-catalog > .resource-row strong')).map(e=>e.textContent).filter(n=>['Pi Studio · Библиотека','Pi Studio · Браузер','Pi Studio · Компьютер'].includes(n))`,
+      `Array.from(document.querySelectorAll('.resource-catalog > .resource-row strong')).map(e=>e.textContent).filter(n=>['Pi Studio · Браузер','Pi Studio · Компьютер'].includes(n))`,
     ),
-    ['Pi Studio · Библиотека', 'Pi Studio · Браузер', 'Pi Studio · Компьютер'],
-    'Three independent MCP catalog entries, with no nesting under Library.',
+    ['Pi Studio · Браузер', 'Pi Studio · Компьютер'],
+    'Two independent computer/browser MCP catalog entries.',
   );
   assert.equal(
     await js(`(${catalogRow}).querySelectorAll('[role="switch"],.hover-delete').length`),

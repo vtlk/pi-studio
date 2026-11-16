@@ -4,6 +4,7 @@ import { storageSections, type StorageSection, type StudioSections } from '../..
 import { agentDirectory, agentFolderSlug } from '../../shared/agentPaths.ts';
 import { systemAgentRoles, type SystemAgent } from '../../shared/systemAgents.ts';
 import { modelEndpointUrl, parseModelEndpoint } from '../../shared/modelEndpoint.ts';
+import { retiredBuiltin } from './retireLegacyFeatures.ts';
 import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
 
 export function record(value: unknown): Record<string, unknown> {
@@ -123,7 +124,7 @@ export function parseSystemAgents(value: unknown): SystemAgent[] {
     return { ...parseAgent(item), systemRole: item.systemRole as SystemAgent['systemRole'] };
   });
   if (
-    !(profiles.length === 3 || (profiles.length === 1 && profiles[0].systemRole === 'assistant')) ||
+    profiles.length !== 1 ||
     new Set(profiles.map((item) => item.systemRole)).size !== profiles.length ||
     new Set(profiles.map((item) => item.id)).size !== profiles.length
   )
@@ -240,12 +241,7 @@ export function parseSection(section: unknown, value: unknown): unknown {
   if (section === 'agentTeams') return parseTeams(value);
   if (section === 'agentCatalog') return parseAgentCatalog(value);
   if (section === 'systemAgents') return parseSystemAgents(value);
-  if (section === 'libraryAgents') {
-    const item = record(value);
-    return { characters: text(item.characters, 128), locations: text(item.locations, 128) };
-  }
   if (section === 'baseInstruction' || section === 'piPath') return text(value);
-  if (section === 'hiddenLibraryIds') return strings(value);
   if (section === 'imageTool') {
     const item = record(value);
     return { connectionId: text(item.connectionId, 500), modelId: text(item.modelId, 500) };
@@ -282,6 +278,8 @@ export function parseSection(section: unknown, value: unknown): unknown {
     }
     if (!['skills', 'mcps', 'plugins'].includes(String(item.kind)))
       throw new Error('Некорректный тип ресурса.');
+    if (item.kind === 'mcps' && retiredBuiltin(item.id, item.source))
+      throw new Error('Этот встроенный MCP удалён из приложения. Ресурс не сохранён.');
     const credential = text(item.credential, 500);
     if (credential && !/^keychain:[a-zA-Z0-9_.-]+$/.test(credential))
       throw new Error('Сохраняйте только ссылку keychain:имя, без секретов.');

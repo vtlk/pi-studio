@@ -148,7 +148,7 @@ async function child() {
       assert.deepEqual(data.sections[name], []);
     assert.deepEqual(data.sections.agentCatalog, { agents: [], teams: [] });
     assert.deepEqual(data.projects, []);
-    assert.deepEqual((await js('window.studio.listLibrary()')).assets, []);
+    assert.equal(await js('typeof window.studio.listLibrary'), 'undefined');
     assert.equal(data.sections.systemAgents.length, 1);
     assert.equal(data.sections.systemAgents[0].systemRole, 'assistant');
     assert.equal(

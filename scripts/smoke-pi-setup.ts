@@ -11,7 +11,7 @@ import type { Agent } from '../src/shared/studio.ts';
 import type { Resource } from '../src/shared/resources.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
 import { resolvePiSdk } from '../src/main/pi/BrowserAuth.ts';
-import { libraryMcpId } from '../src/shared/builtinResources.ts';
+import { teamMcpId } from '../src/shared/builtinResources.ts';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../src/shared/runtime.ts';
 
 // Opt-in: a real service-agent request through native Pi MCP in an empty isolated studio.
@@ -107,7 +107,7 @@ try {
   };
   await headlessRequest.open(
     request,
-    `Use only the Pi Studio MCP tools. Read list_configuration and use the existing connection named "QA subscription" for provider openai-codex. Create exactly one ordinary constructor agent named "QA configured agent" using that connection, model gpt-6.1-sol, reasoning Низкий, mainInstruction "QA current instruction". Assign the existing built-in Pi Studio Library MCP (resourceId ${libraryMcpId}, kind mcps) to that ordinary agent. Do not assign it to the setup assistant. Install exactly the existing local Pi package at ${JSON.stringify(localPackage)} through install_package with name "QA local package", assign it to that one agent as kind plugins, then check_resource. Do not use bash or write files directly. Create no projects, connections or extra profiles/resources. Do not ask questions. Finish with a short confirmation.`,
+    `Use only the Pi Studio MCP tools. Read list_configuration and use the existing connection named "QA subscription" for provider openai-codex. Create exactly one ordinary constructor agent named "QA configured agent" using that connection, model gpt-6.1-sol, reasoning Низкий, mainInstruction "QA current instruction". Assign the existing built-in team MCP (resourceId ${teamMcpId}, kind mcps) to that ordinary agent. Do not assign it to the setup assistant. Install exactly the existing local Pi package at ${JSON.stringify(localPackage)} through install_package with name "QA local package", assign it to that one agent as kind plugins, then check_resource. Do not use bash or write files directly. Create no projects, connections or extra profiles/resources. Do not ask questions. Finish with a short confirmation.`,
   );
   assert.equal(await children[1], 0);
   const state = (await service.load()).bootstrap();
@@ -117,11 +117,11 @@ try {
   assert.equal(agents[0].mainInstruction, 'QA current instruction');
   assert.equal(agents[0].model?.id, 'gpt-6.1-sol');
   assert.equal(agents[0].model?.provider, 'openai-codex');
-  assert.ok(agents[0].mcps.includes(libraryMcpId));
+  assert.ok(agents[0].mcps.includes(teamMcpId));
   const remainingSystems = state.sections.systemAgents as SystemAgent[];
   assert.equal(remainingSystems.length, 1);
   assert.equal(remainingSystems[0].systemRole, 'assistant');
-  assert.ok(!remainingSystems[0].mcps.includes(libraryMcpId));
+  assert.ok(!remainingSystems[0].mcps.includes(teamMcpId));
   assert.equal((state.sections.connections as unknown[]).length, 1);
   const resources = state.sections.resources as Resource[];
   assert.equal(resources.length, 1);
@@ -198,7 +198,7 @@ try {
         publicOpenIdleWithoutMutation: true,
         currentHelperPromptApplied: true,
         ordinaryAgentConfigured: true,
-        assignedBuiltinLibraryMcp: true,
+        assignedBuiltinTeamMcp: true,
         localPackageInstalledCheckedAndAssigned: true,
         exactIdleResumeWithoutReplay: true,
         legacyCwdAndTranscriptPreservedAfterRename: true,

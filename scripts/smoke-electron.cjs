@@ -65,10 +65,6 @@ const deadline = setTimeout(() => {
   assert.deepEqual(empty.sections.connections, []);
   assert.deepEqual(empty.sections.resources, []);
   await js(
-    `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Библиотека').click()`,
-  );
-  assert.equal(await js(`document.querySelectorAll('.asset-thumb-wrap').length`), 0);
-  await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Агенты').click()`,
   );
   await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);

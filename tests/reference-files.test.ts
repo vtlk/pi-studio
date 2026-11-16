@@ -4,11 +4,9 @@ import { mkdtemp, mkdir, readFile, writeFile, rm, readdir, symlink } from 'node:
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
-import { StudioStore, StudioService } from '../src/main/storage/StudioStore.ts';
+import { StudioStore } from '../src/main/storage/StudioStore.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
-import type { SystemAgent } from '../src/shared/systemAgents.ts';
-import { createLibraryRunHost } from '../src/main/pi/createLibraryRunHost.ts';
 
 test('references preserve duplicate filenames, hashes and image content; originals can disappear after the copy', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-references-'));
@@ -87,50 +85,4 @@ test('changed, missing, symlinked and unknown references fail explicitly and cle
   await assert.rejects(() => files.select([join(root, 'link.txt')], root));
   await rm(path);
   await assert.rejects(() => files.attach(run, [selected[0].id], root, true));
-});
-
-test('a library create request uses an explicitly assigned ordinary agent and never creates a project or falls back to another model', async (t) => {
-  const root = await mkdtemp(join(tmpdir(), 'pistudio-library-launch-'));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
-  const store = await service.load();
-  let opened = false;
-  const generator = createLibraryRunHost(service, {
-    bootstraps: join(root, 'boots'),
-    bridge: '/unused',
-    catalog: '/unused',
-    piPath: () => '/unused',
-    references: new ReferenceFiles(),
-    headless: true,
-    openTerminal: async () => {
-      opened = true;
-    },
-  });
-  t.after(() => generator.close());
-  const agent: Agent = {
-    id: 'artist',
-    name: 'Artist',
-    enabled: true,
-    skills: [],
-    mcps: ['pistudio-library'],
-    plugins: [],
-    instructions: [],
-  };
-  await store.saveSection('agents', [agent]);
-  for (const kind of ['characters', 'locations'] as const)
-    await assert.rejects(
-      () =>
-        generator.create({
-          kind,
-          agentId: 'artist',
-          description: 'Make an asset',
-          attachments: [],
-        }),
-      /Выберите подключение, модель и уровень рассуждения/,
-    );
-  assert.equal(opened, false);
-  assert.deepEqual(store.bootstrap().projects, []);
-  assert.deepEqual(store.bootstrap().sections.agents, [agent]);
-  assert.equal((store.bootstrap().sections.systemAgents as SystemAgent[]).length, 1);
-  await assert.rejects(() => readdir(join(store.folder, '.pistudio/library-runs')));
 });

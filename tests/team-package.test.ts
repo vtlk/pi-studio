@@ -17,7 +17,7 @@ import type { Connection } from '../src/shared/connections.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { StudioResources } from '../src/main/pi/StudioResources.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
-import { libraryMcpId } from '../src/shared/builtinResources.ts';
+import { teamMcpId } from '../src/shared/builtinResources.ts';
 
 const profile = (id: string): Agent => ({
   id,
@@ -28,7 +28,7 @@ const profile = (id: string): Agent => ({
     { id: 'instruction-' + id, name: 'Текущий блок', content: 'CURRENT_TEXT', enabled: false },
   ],
   skills: ['skill'],
-  mcps: ['mcp', libraryMcpId],
+  mcps: ['mcp', teamMcpId],
   plugins: ['plugin'],
   capabilitySettings: { 'skills:skill': { enabled: false } },
   model: {
@@ -149,7 +149,7 @@ test('portable package includes full current prompts, disabled blocks and comple
   ])
     assert.equal(text.includes(secret), false, secret);
   assert.equal(
-    reopened.manifest.resources.some((resource) => resource.source === 'builtin:library'),
+    reopened.manifest.resources.some((resource) => resource.source === 'builtin:team'),
     true,
   );
   assert.ok(

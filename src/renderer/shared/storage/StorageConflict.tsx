@@ -7,11 +7,9 @@ const sectionNames: Record<StorageSection, string> = {
   agentTeams: 'Команды агентов',
   agentCatalog: 'Команды и агенты',
   systemAgents: 'Системные агенты',
-  libraryAgents: 'Агенты библиотеки',
   resources: 'Ресурсы',
   connections: 'Подключения',
   imageTool: 'Генерация изображений',
-  hiddenLibraryIds: 'Библиотека',
   baseInstruction: 'Общие инструкции',
   piPath: 'Путь к Pi',
 };

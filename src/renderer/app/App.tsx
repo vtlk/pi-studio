@@ -1,7 +1,6 @@
 import { Fragment, type ComponentType, type ReactNode } from 'react';
 import { StorageProvider } from '@/shared/storage/Storage';
 import { ConfirmProvider } from '@/shared/model/Confirm';
-import { LibraryProvider } from '@/features/library/model/Library';
 import { NavigationProvider, useNavigation } from '@/shared/model/Navigation';
 import { NoticeProvider } from '@/shared/model/Notice';
 import { LaunchProvider } from '@/features/launch/model/Launch';
@@ -9,7 +8,6 @@ import { AgentProfilesProvider } from '@/features/agents/model/AgentProfiles';
 import { DialogView } from '@/features/launch/ui/DialogView';
 import { ProjectView } from '@/features/project/ui/ProjectView';
 import { ProjectsView } from '@/features/project/ui/ProjectsView';
-import { LibraryView } from '@/features/library/ui/LibraryView';
 import { AgentsView } from '@/features/agents/ui/AgentsView';
 import { SettingsView } from '@/features/settings/ui/SettingsView';
 import { Topbar } from './layout/Topbar';
@@ -27,7 +25,6 @@ import { UpdateWorkspace } from '@/features/updates/UpdateWorkspace';
 const pages = {
   project: ProjectView,
   projects: ProjectsView,
-  library: LibraryView,
   agents: AgentsView,
   settings: SettingsView,
 };
@@ -51,23 +48,13 @@ function StudioShell() {
 interface AppProps {
   useWorkspaceState: () => NonNullable<WorkspaceContextValue>;
   ExtraProviders?: ComponentType<{ children: ReactNode }>;
-  loadCharacter?: import('../features/library/runtime/loadLibraryCharacter').CharacterLoader;
   defaults?: {
     agents: import('../../shared/studio').Agent[];
     connections: import('../../shared/connections').Connection[];
     resources: import('../../shared/resources').Resource[];
-    library: {
-      characters: import('../../shared/studio').Asset[];
-      locations: import('../../shared/studio').Asset[];
-    };
   };
 }
-export default function App({
-  useWorkspaceState,
-  ExtraProviders = Fragment,
-  defaults,
-  loadCharacter,
-}: AppProps) {
+export default function App({ useWorkspaceState, ExtraProviders = Fragment, defaults }: AppProps) {
   return (
     <UpdateBootstrap>
       {(initial) => (
@@ -82,18 +69,13 @@ export default function App({
                         <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
                           <UpdatesProvider initial={initial}>
                             <ExtraProviders>
-                              <LibraryProvider
-                                initial={defaults?.library}
-                                loadCharacter={loadCharacter}
-                              >
-                                <LaunchProvider>
-                                  <UpdateWorkspace>
-                                    <StartupGate>
-                                      <StudioShell />
-                                    </StartupGate>
-                                  </UpdateWorkspace>
-                                </LaunchProvider>
-                              </LibraryProvider>
+                              <LaunchProvider>
+                                <UpdateWorkspace>
+                                  <StartupGate>
+                                    <StudioShell />
+                                  </StartupGate>
+                                </UpdateWorkspace>
+                              </LaunchProvider>
                             </ExtraProviders>
                           </UpdatesProvider>
                         </WorkspaceProvider>

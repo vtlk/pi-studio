@@ -9,13 +9,10 @@ import {
 import type { UpdateView } from '../../shared/updates.ts';
 
 export function parseUpdateView(value: unknown): UpdateView | undefined {
-  if (
-    !value ||
-    typeof value !== 'object' ||
-    !('page' in value) ||
-    !['projects', 'project', 'agents', 'settings', 'library'].includes(String(value.page))
-  )
+  if (!value || typeof value !== 'object' || !('page' in value) || typeof value.page !== 'string')
     return;
+  if (!['projects', 'project', 'agents', 'settings'].includes(value.page))
+    return { page: 'projects' };
   const projectId = 'projectId' in value ? value.projectId : undefined;
   if (projectId !== undefined && (typeof projectId !== 'string' || projectId.length > 200)) return;
   return { page: value.page as UpdateView['page'], projectId: projectId as string | undefined };

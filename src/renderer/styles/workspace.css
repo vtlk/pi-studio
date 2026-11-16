@@ -493,30 +493,6 @@
   margin-top: 16px;
   font-size: 13px;
 }
-.library-category {
-  width: 170px;
-}
-.library-stage,
-.library-task,
-.library-art,
-.asset-thumb {
-  border-radius: 6px;
-}
-.library-task .action-row {
-  gap: 8px;
-}
-.library-task .action-row .button {
-  width: auto;
-  min-height: 34px;
-  font-size: 12px;
-  padding: 6px 9px;
-  white-space: normal;
-}
-.library-task .data-list {
-  grid-template-columns: 70px minmax(0, 1fr);
-  font-size: 12px;
-  gap: 10px;
-}
 .control-line {
   display: flex;
   justify-content: space-between;

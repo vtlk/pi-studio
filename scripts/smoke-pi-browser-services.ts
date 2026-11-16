@@ -6,7 +6,6 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
-import { createLibraryRunHost } from '../src/main/pi/createLibraryRunHost.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
 import { StudioResources } from '../src/main/pi/StudioResources.ts';
 import { BrowserSupport } from '../src/main/browser/BrowserSupport.ts';
@@ -113,16 +112,7 @@ const native = new StudioResources(service, {
   script: join(bridge, 'resources.mjs'),
 });
 const helper = createSetupAssistant(service, { ...options, resources: native });
-const references = new ReferenceFiles(async () => {
-  throw Error('No references are used in this service transport check.');
-});
-const library = createLibraryRunHost(service, { ...options, references });
-const missing = new BrowserSupport(
-  join(root, 'missing-components'),
-  join(bridge, 'browser/server.mjs'),
-);
-const textLibrary = createLibraryRunHost(service, { ...options, browser: missing, references });
-const controllers = [helper, library, textLibrary];
+const controllers = [helper];
 const timer = setTimeout(() => {
   for (const controller of controllers) controller.close();
   for (const process of processes) process.kill('SIGTERM');
@@ -185,54 +175,6 @@ try {
   assert.equal(await readFile(join(helperRoot, state.session.path), 'utf8'), helperTranscript);
   assert.equal(pages, pagesAfterHelper);
 
-  const created = await library.create({
-    kind: 'locations',
-    agentId: agent.id,
-    attachments: [],
-    description: `This is a browser service transport QA, not asset generation. Open ${url} through browser_open. Read the SERVICE value from the screenshot and use native write/bash only to save it with a newline to output/browser-library.txt. Call complete_stage with browser-library.txt. Do not publish a library asset, install anything, or use DOM/HTML/eval.`,
-  });
-  assert.equal(await children[3], 0);
-  const libraryRoot = join(store.folder, '.pistudio/library-runs', created.project.id);
-  const result = JSON.parse(await readFile(join(libraryRoot, 'state.json'), 'utf8')).project;
-  assert.equal(result.agents[0].runStatus, 'ready');
-  assert.equal(
-    (
-      await readFile(join(libraryRoot, result.agents[0].outputPath, 'browser-library.txt'), 'utf8')
-    ).trim(),
-    'BROWSER_READY_73',
-  );
-  const libraryTranscript = await readFile(
-    join(libraryRoot, result.agents[0].session.path),
-    'utf8',
-  );
-  assert.ok(calls(libraryTranscript).some((call) => call.name.endsWith('browser_open')));
-  await contextHasBrowser(libraryRoot, created.runId);
-
-  const textOnly = await textLibrary.create({
-    kind: 'locations',
-    agentId: agent.id,
-    attachments: [],
-    description:
-      'This is an isolated text-only service transport QA. Do not generate a library asset or call browser tools. Use native write/bash to save exactly TEXT_WITHOUT_BROWSER and a newline to output/text.txt, then call complete_stage with text.txt. No questions or other actions.',
-  });
-  assert.equal(await children[4], 0);
-  const textRoot = join(store.folder, '.pistudio/library-runs', textOnly.project.id);
-  const textResult = JSON.parse(await readFile(join(textRoot, 'state.json'), 'utf8')).project;
-  assert.equal(textResult.agents[0].runStatus, 'ready');
-  assert.equal(
-    (await readFile(join(textRoot, textResult.agents[0].outputPath, 'text.txt'), 'utf8')).trim(),
-    'TEXT_WITHOUT_BROWSER',
-  );
-  const textTranscript = await readFile(join(textRoot, textResult.agents[0].session.path), 'utf8');
-  assert.equal(
-    calls(textTranscript).some((call) => /browser_/.test(call.name)),
-    false,
-  );
-  assert.equal(
-    (await store.library.list()).assets.length,
-    0,
-    'Transport QA must not masquerade as generated library assets.',
-  );
   await mkdir('artifacts', { recursive: true });
   await writeFile(
     'artifacts/browser-services-proof.json',
@@ -242,15 +184,11 @@ try {
         packagedBridgeVersion: '0.2.0-alpha.55',
         nativePi: pi.version,
         model: model.id,
-        explicitUserRequests: 3,
+        explicitUserRequests: 1,
         actualSubscription: true,
         helperPublicOpenIdle: true,
         helperImageAndResourceCheck: true,
         helperExactResumeWithoutReplay: true,
-        libraryServiceImageTool: true,
-        libraryServiceValidatedTestOutput: true,
-        textRequestWithMissingBrowserComponents: true,
-        generatedLibraryAssets: 0,
         personalStudioUsed: false,
         terminalUiUsed: false,
       },
@@ -258,14 +196,11 @@ try {
       2,
     ) + '\n',
   );
-  console.log(
-    'Actual native Pi helper/library browser service checks passed; missing components do not block a text request.',
-  );
+  console.log('Actual native Pi helper browser service checks passed.');
 } finally {
   clearTimeout(timer);
   for (const controller of controllers) controller.close();
   browser.close();
-  missing.close();
   await Promise.allSettled(children);
   for (const name of await readdir(join(runtime, 'dialogues')).catch(() => []))
     if (!previousProfiles.has(name))

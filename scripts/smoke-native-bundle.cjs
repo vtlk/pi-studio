@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron');
-const { mkdtempSync, mkdirSync } = require('node:fs');
-const { rm, readFile, writeFile, readdir } = require('node:fs/promises');
+const { realpathSync } = require('node:fs');
+const { mkdir, readFile, writeFile, readdir } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const { execFileSync } = require('node:child_process');
@@ -12,10 +12,11 @@ const deadline = setTimeout(() => {
   app.exit(1);
 }, 45000);
 (async () => {
-  root = mkdtempSync(join(tmpdir(), 'pistudio-native-bundle-'));
+  root = process.env.PI_STUDIO_NATIVE_QA_ROOT;
+  assert.ok(root && root.startsWith(join(realpathSync(tmpdir()), 'pistudio-native-bundle-')));
+  assert.equal(realpathSync(root), root);
   for (const key of ['videos', 'userData']) {
     const path = join(root, key);
-    mkdirSync(path);
     app.setPath(key, path);
   }
   const loaded = new Promise((resolve) =>
@@ -64,16 +65,20 @@ const deadline = setTimeout(() => {
   assert.equal(empty.sections.systemAgents.length, 1);
   assert.equal(empty.sections.systemAgents[0].systemRole, 'assistant');
   assert.deepEqual(empty.projects, []);
-  assert.deepEqual((await js('window.studio.listLibrary()')).assets, []);
+  assert.equal(await js('typeof window.studio.listLibrary'), 'undefined');
   assert.equal(empty.sections.baseInstruction, '');
+  for (const key of ['libraryAgents', 'hiddenLibraryIds'])
+    assert.equal(key in empty.sections, false);
+  for (const method of ['listLibrary', 'readLibraryCharacter', 'createLibraryAsset'])
+    assert.equal(await js('typeof window.studio.' + method), 'undefined');
+  const catalogs = await js('window.studio.loadStudio()');
+  assert.equal(JSON.stringify(catalogs.sections.systemAgents).includes('библиотек'), false);
   assert.deepEqual(
     await js(
       `Array.from(document.querySelectorAll('.topbar nav button')).map(button=>button.textContent.trim())`,
     ),
-    ['Проекты', 'Библиотека', 'Агенты'],
+    ['Проекты', 'Агенты'],
   );
-  await click('Библиотека');
-  await until(`!!document.querySelector('[aria-label="Создать персонажа"]')`);
   await click('Агенты');
   await until(`!!document.querySelector('[aria-label="Создать команду"]')`);
   await js(`document.querySelector('.topbar .settings-button').click()`);
@@ -193,15 +198,97 @@ const deadline = setTimeout(() => {
       ),
     );
   assert.equal(await readFile(projectFile, 'utf8'), projectBefore);
+  // An actual old configuration is reopened through main, not only a data parser.
+  await saved();
+  const settingsPath = join(empty.folder, '.pistudio/studio.json');
+  const oldDocument = JSON.parse(await readFile(settingsPath, 'utf8'));
+  const former = {
+    id: 'former-creator',
+    name: 'User creator',
+    enabled: true,
+    instructions: [
+      { id: 'own-rule', name: 'Keep', content: 'User current instructions', enabled: true },
+    ],
+    skills: [],
+    mcps: ['pistudio-library'],
+    plugins: [],
+    mainInstruction: 'Preserved role',
+    systemRole: 'character',
+  };
+  oldDocument.sections.systemAgents.push(former);
+  oldDocument.sections.libraryAgents = { characters: former.id, locations: '' };
+  oldDocument.sections.hiddenLibraryIds = ['material'];
+  oldDocument.sections.agents[0].mcps.push('pistudio-library');
+  const preserved = [
+    ['library/characters/material/asset.json', 'Deliberately invalid legacy manifest'],
+    [
+      '.pistudio/library-runs/job/agents/creator/sessions/history.jsonl',
+      'Canonical legacy history\n',
+    ],
+  ];
+  for (const [path, content] of preserved) {
+    await mkdir(join(empty.folder, path, '..'), { recursive: true });
+    await writeFile(join(empty.folder, path), content);
+  }
+  await writeFile(settingsPath, JSON.stringify(oldDocument));
+  await js(`window.studio.openStudio(${JSON.stringify(empty.folder)})`);
+  await reload();
+  const retired = await js('window.studio.loadStudio()');
+  assert.equal('libraryAgents' in retired.sections, false);
+  assert.equal('hiddenLibraryIds' in retired.sections, false);
+  assert.equal(retired.sections.systemAgents.length, 1);
+  const moved = retired.sections.agents.find((a) => a.id === former.id);
+  assert.ok(moved);
+  const { systemRole: _role, ...ordinary } = former;
+  assert.deepEqual(moved, { ...ordinary, mcps: [] });
+  assert.equal(
+    retired.sections.agents.some((a) => a.mcps.includes('pistudio-library')),
+    false,
+  );
+  assert.equal(await readFile(projectFile, 'utf8'), projectBefore);
+  assert.equal(await readFile(output, 'utf8'), 'Keep project output');
+  for (const [path, content] of preserved)
+    assert.equal(await readFile(join(empty.folder, path), 'utf8'), content);
+  const migratedBytes = await readFile(settingsPath);
+  await reload();
+  assert.deepEqual(await readFile(settingsPath), migratedBytes);
+  await click('Агенты');
+  await until(`!!document.querySelector('[aria-label="Название агента"]')`);
+  assert.equal(await js(`document.body.innerText.includes('Библиотека')`), false);
+  await js(`document.querySelector('.topbar .settings-button').click()`);
+  await click('MCP-серверы');
+  assert.equal(await js(`document.body.innerText.includes('Pi Studio · Библиотека')`), false);
+  await mkdir('artifacts', { recursive: true });
+  await writeFile(
+    'artifacts/library-retirement-native-proof.json',
+    JSON.stringify(
+      {
+        checkedAt: new Date().toISOString(),
+        version: require('../package.json').version,
+        mainEntry: process.env.PI_STUDIO_QA_MAIN ? 'packaged' : 'source',
+        emptyCatalogsAndTwoPageNavigation: true,
+        removedPreloadMethodsAbsent: true,
+        helperInitialPromptClean: true,
+        legacyMetadataReopenedThroughMain: true,
+        formerProfileSameIdAndText: true,
+        oldAssignmentsRevoked: true,
+        projectAndOutputUnchanged: true,
+        oldMediaAndCanonicalJsonlUntouched: true,
+        repeatReloadNoResurrection: true,
+        modelOrTerminalRequests: 0,
+        isolatedStudioAndMockKeychain: true,
+      },
+      null,
+      2,
+    ) + '\n',
+  );
   clearTimeout(deadline);
   console.log(
-    'Native bundle passed: empty install, three-page navigation and settings, no demo module/data graph, explicit missing-preload screen, SHA-256 legacy match with cancel/confirmation/undo, edited profiles and project files preserved. No model or Terminal requests.',
+    'Native bundle passed: empty install, two-page navigation and settings, no demo module/data graph, explicit missing-preload screen, SHA-256 legacy match with cancel/confirmation/undo, edited profiles and project files preserved. No model or Terminal requests.',
   );
-  await rm(root, { recursive: true, force: true });
   app.exit(0);
 })().catch(async (error) => {
   clearTimeout(deadline);
   console.error(error);
-  if (root) await rm(root, { recursive: true, force: true });
   app.exit(1);
 });

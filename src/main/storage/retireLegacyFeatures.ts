@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import type { Agent } from '../../shared/studio.ts';
+import type { ProjectAgentProfile } from '../../shared/project.ts';
 
 // Immutable identities of retired configuration keys/resources; no feature/tool text is shipped.
 const retiredSections = new Set([
@@ -38,8 +38,8 @@ function cleanProfile(value: unknown, additional: ReadonlySet<string>) {
   return result;
 }
 /** Runtime snapshots can still contain an obsolete pinned assignment; it grants no tools. */
-export function withoutRetiredResources(agent: Agent): Agent {
-  return cleanProfile(agent, new Set()) as unknown as Agent;
+export function withoutRetiredResources<T extends ProjectAgentProfile>(agent: T): T {
+  return cleanProfile(agent, new Set()) as unknown as T;
 }
 /** Data-only compatibility. Caller validates the whole result before one atomic settings write. */
 export function retireLegacyFeatures(value: unknown, createId = randomUUID) {

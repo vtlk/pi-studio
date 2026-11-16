@@ -54,12 +54,8 @@ for (const [source, name] of [
   ['semver/LICENSE', 'Semver-LICENSE.txt'],
   ['yauzl/LICENSE', 'Yauzl-LICENSE.txt'],
   ['pend/LICENSE', 'Pend-LICENSE.txt'],
-  ['saxes/README.md', 'Saxes-README.txt'],
-  ['saxes/package.json', 'Saxes-package.json'],
-  ['xmlchars/LICENSE', 'Xmlchars-LICENSE.txt'],
 ])
   await cp(join(root, 'node_modules', source), join(licenses, name));
-await cp(join(root, 'third-party-licenses/Saxes-LICENSE.txt'), join(licenses, 'Saxes-LICENSE.txt'));
 await writeFile(
   join(licenses, 'README.txt'),
   [
@@ -73,8 +69,6 @@ await writeFile(
     'semver 7.8.6: ISC; yauzl 3.4.0 and pend 1.2.0: MIT. See Semver-LICENSE.txt, Yauzl-LICENSE.txt, Pend-LICENSE.txt. Sources: https://github.com/npm/node-semver, https://github.com/thejoshwolfe/yauzl, https://github.com/andrewrk/node-pend',
     'Editor Starter and Remotion Timeline are not included.',
     '@earendil-works/pi-claude-code 0.1.0: MIT, pinned d5b5e04c314d3452d357174d16d10dda34daa2d2. See bundled/pi-claude-code/LICENSE and UPSTREAM.json. Official Claude CLI is a separately installed, unmodified dependency; its credentials are not bundled.',
-    'Saxes 6.0.0: ISC; see Saxes-LICENSE.txt. Source: https://github.com/lddubeau/saxes',
-    'xmlchars 2.2.0: MIT; see Xmlchars-LICENSE.txt. Source: https://github.com/lddubeau/xmlchars',
     'Cua Driver 0.49.11: MIT; @ubjs runtimes 0.31.0-3: MPL-2.0. See Cua-MIT.txt, MPL-2.0.txt, Cua-node-runtime-NOTICE.md and Cua-SOURCES.md for exact corresponding source.',
     '',
   ].join('\n'),
@@ -84,7 +78,7 @@ await cp(join(root, 'out'), join(application, 'out'), {
   filter: (source) =>
     !['characters', 'scenes', 'library-runtime', 'source.json'].includes(source.split('/').at(-1)),
 });
-for (const dependency of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
+for (const dependency of ['yaml', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
   await cp(join(root, 'node_modules', dependency), join(application, 'node_modules', dependency), {
     recursive: true,
   });

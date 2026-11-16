@@ -1,7 +1,6 @@
 import { handleDesktopInvoke } from './desktopInvoke.ts';
 import { registerTeamMessageHandlers } from '../team-mcp/registerTeamMessageHandlers';
 import { TeamSupport } from '../team-mcp/TeamSupport';
-import { rasterizePreview } from '../library/rasterizePreview';
 import { outputMediaUrl } from '../../shared/outputPaths';
 import { app, BrowserWindow, dialog, shell, type IpcMainInvokeEvent } from 'electron';
 import { join } from 'node:path';
@@ -27,9 +26,8 @@ import { StudioResources } from '../pi/StudioResources';
 import type { SystemAgent } from '../../shared/systemAgents';
 import packageInfo from '../../../package.json';
 import { ReferenceFiles } from '../pi/ReferenceFiles';
+import { registerReferenceHandlers } from '../pi/registerReferenceHandlers';
 import { referenceImage } from '../pi/referenceImage';
-import { createLibraryRunHost } from '../pi/createLibraryRunHost';
-import { registerLibraryHandlers } from '../library/registerLibraryHandlers';
 import { createImageServices, registerImageHandlers } from '../images/registerImageHandlers';
 import { registerModelConnectionHandlers } from '../pi/registerModelConnectionHandlers';
 import { registerMcpSecretHandlers } from '../pi/registerMcpSecretHandlers';
@@ -106,7 +104,6 @@ export function registerDesktopHandlers(
     images,
     mcpSecrets,
     browser,
-    libraryPreview: rasterizePreview,
   };
   const runs = createStudioRunHost(service, {
     activity,
@@ -143,19 +140,11 @@ export function registerDesktopHandlers(
     resources,
     mcpSecrets,
   });
-  const generators = createLibraryRunHost(service, {
-    ...productionResources,
-    failureChanged,
-    bootstraps: join(app.getPath('userData'), 'library-bootstraps'),
-    bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
-    catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
-    piPath: () => startup.path,
-  });
   const updates = registerNativeUpdates({
     service,
     startup,
     boot: options.startup,
-    runs: [runs.updates, setup.updates, generators.updates],
+    runs: [runs.updates, setup.updates],
     images,
     team,
     auth: browserAuth,
@@ -173,8 +162,8 @@ export function registerDesktopHandlers(
     return !!phase && !['committed', 'restored'].includes(phase);
   });
   registerGracefulQuit(
-    [team, runs, setup, generators, computer],
-    [browserAuth, startup, runs, setup, generators, browser, usageRecovery, team],
+    [team, runs, setup, computer],
+    [browserAuth, startup, runs, setup, browser, usageRecovery, team],
     {
       close: () => updates.close(),
       failed: () => {
@@ -198,7 +187,7 @@ export function registerDesktopHandlers(
       return service.serialize(() => Promise.resolve(action(event, ...(args as never[]))));
     });
   }
-  registerLibraryHandlers(service, references, generators, caller);
+  registerReferenceHandlers(service, references, caller);
   registerImageHandlers(imageConnections, caller);
   handleDesktopInvoke(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);
@@ -282,7 +271,6 @@ export function registerDesktopHandlers(
   handle(desktopChannels.openStudio, (_event, folder: string) => {
     runs.assertIdle();
     setup.assertIdle();
-    generators.assertIdle();
     images.assertIdle();
     return service.open(folder);
   });
@@ -301,7 +289,6 @@ export function registerDesktopHandlers(
     if (result.canceled || !result.filePaths[0]) return null;
     runs.assertIdle();
     setup.assertIdle();
-    generators.assertIdle();
     images.assertIdle();
     return service.open(result.filePaths[0]);
   });

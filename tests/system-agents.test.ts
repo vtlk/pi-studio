@@ -116,10 +116,10 @@ test('the setup assistant edits existing system resources/instructions but creat
   await admin.call(run, 'assign_resource', {
     agentId: a.agentId,
     kind: 'mcps',
-    resourceId: 'pistudio-library',
+    resourceId: 'pistudio-team',
   });
   assert.deepEqual((store.bootstrap().sections.agents as { mcps: string[] }[])[0].mcps, [
-    'pistudio-library',
+    'pistudio-team',
   ]);
   await assert.rejects(
     () =>
@@ -128,7 +128,7 @@ test('the setup assistant edits existing system resources/instructions but creat
         kind: 'mcps',
         resourceId: 'pistudio-library',
       }),
-    /обычным агентам/,
+    /отсутствует в каталоге/,
   );
   assert.ok(
     visible.systemAgents.every((agent) => !agent.deletable && agent.builtinMcp === 'pinned'),

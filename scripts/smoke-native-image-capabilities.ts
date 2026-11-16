@@ -392,7 +392,6 @@ try {
               'src/main/images/imageRuntime.ts',
               'src/main/images/ImageGeneration.ts',
               'src/main/pi/createStudioRunHost.ts',
-              'src/main/pi/createLibraryRunHost.ts',
               'src/main/pi/RunLifecycle.ts',
               'bundled/pi-bridge/session.mjs',
               'scripts/smoke-native-image-capabilities.ts',

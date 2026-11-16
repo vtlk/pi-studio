@@ -8,7 +8,7 @@ import { useLaunch } from '../../model/Launch';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useProject } from '@/features/project/model/projectHooks';
 import { useStorage } from '@/shared/storage/Storage';
-import { libraryMcp, browserMcp, computerMcp } from '../../../../../shared/builtinResources';
+import { builtinResource, browserMcp, computerMcp } from '../../../../../shared/builtinResources';
 function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) {
   const coreTools = useCoreTools();
   const { setDialog } = useLaunch();
@@ -18,8 +18,8 @@ function CompiledPrompt({ baseInstruction = '' }: { baseInstruction?: string }) 
   const names = (kind: 'skills' | 'mcps' | 'plugins') =>
     selectedAgent
       ? enabledResources(selectedAgent, kind).map((id) =>
-          kind === 'mcps' && id === libraryMcp.id
-            ? libraryMcp.name
+          kind === 'mcps' && builtinResource(id)
+            ? builtinResource(id)!.name
             : (resources.find((item) => item.kind === kind && item.id === id)?.name ?? id),
         )
       : [];

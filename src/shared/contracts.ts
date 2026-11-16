@@ -15,10 +15,7 @@ import type { PiModelCatalog } from './models';
 import type { RunFailureNotice } from './runFailure';
 import type { LaunchAgentRequest, LaunchAgentResult } from './runtime';
 import type { VideoProjectInspection } from './video';
-import type { LibraryListing } from './library';
-import type { LibraryKind } from './library';
 import type { ReferenceFile } from './attachments';
-import type { LibraryCharacter } from './characterRig';
 import type {
   ModelConnectionRequest,
   ModelConnectionStatus,
@@ -110,16 +107,8 @@ export interface DesktopApi {
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
   onRunFailure(listener: (notice: RunFailureNotice) => void): () => void;
   openSetupAssistant(): Promise<void>;
-  listLibrary(): Promise<LibraryListing>;
-  readLibraryCharacter(id: string, version: number, revision: string): Promise<LibraryCharacter>;
   chooseReferenceFiles(): Promise<ReferenceFile[]>;
   releaseReferenceFiles(ids: string[]): Promise<void>;
-  createLibraryAsset(request: {
-    kind: LibraryKind;
-    agentId: string;
-    description: string;
-    attachments: string[];
-  }): Promise<void>;
   checkResource(resourceId: string): Promise<ResourceCheck>;
   installResource(resourceId: string): Promise<Resource>;
   openResourceLogin(
@@ -162,11 +151,8 @@ export const desktopChannels = {
   saveImageKey: 'studio:image-key-save',
   removeImageKey: 'studio:image-key-remove',
   checkImageConnection: 'studio:image-connection-check',
-  listLibrary: 'studio:list-library',
-  readLibraryCharacter: 'studio:read-library-character',
   chooseReferenceFiles: 'studio:choose-reference-files',
   releaseReferenceFiles: 'studio:release-reference-files',
-  createLibraryAsset: 'studio:create-library-asset',
   saveSkill: 'studio:save-skill',
   deleteAgentData: 'studio:delete-agent-data',
   getInfo: 'studio:get-info',

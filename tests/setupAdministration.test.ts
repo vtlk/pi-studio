@@ -11,7 +11,7 @@ import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { Connection } from '../src/shared/connections.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
-import { libraryMcpId } from '../src/shared/builtinResources.ts';
+import { teamMcpId } from '../src/shared/builtinResources.ts';
 
 test('setup tools change only current constructor/catalog links and never snapshots or instruction copies', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-setup-admin-'));
@@ -114,14 +114,14 @@ test('setup tools change only current constructor/catalog links and never snapsh
   assert.deepEqual(changed.skills, [imported.resource.id]);
   await admin.call(run, 'assign_resource', {
     agentId: created.agentId,
-    resourceId: libraryMcpId,
+    resourceId: teamMcpId,
     kind: 'mcps',
     enabled: true,
   });
   assert.ok(
     (store.bootstrap().sections.agents as Agent[])
       .find((agent) => agent.id === created.agentId)!
-      .mcps.includes(libraryMcpId),
+      .mcps.includes(teamMcpId),
   );
   const systems = store.bootstrap().sections.systemAgents as SystemAgent[];
   assert.equal(systems.length, 1);
@@ -129,10 +129,10 @@ test('setup tools change only current constructor/catalog links and never snapsh
   await assert.rejects(
     admin.call(run, 'assign_resource', {
       agentId: systems[0].id,
-      resourceId: libraryMcpId,
+      resourceId: 'pistudio-library',
       kind: 'mcps',
     }),
-    /обычным агентам/,
+    /отсутствует в каталоге/,
   );
   await assert.rejects(
     admin.call(run, 'assign_resource', {

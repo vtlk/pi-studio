@@ -177,7 +177,7 @@ export class UpdateCoordinator {
         if (
           !view ||
           typeof view !== 'object' ||
-          !['projects', 'project', 'agents', 'settings', 'library'].includes(view.page) ||
+          !['projects', 'project', 'agents', 'settings'].includes(view.page) ||
           (view.projectId !== undefined &&
             (typeof view.projectId !== 'string' || view.projectId.length > 200))
         )

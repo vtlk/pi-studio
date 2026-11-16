@@ -11,12 +11,11 @@ import type {
 import { atomicJson, isMissing, readJson, safePath } from './files.ts';
 import { parseSection, parseStudio } from './validation.ts';
 import { ProjectStore } from './ProjectStore.ts';
-import { LibraryStore } from '../library/LibraryStore.ts';
 import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { createSystemAgents, type SystemAgent } from '../../shared/systemAgents.ts';
 import type { Agent } from '../../shared/studio.ts';
-import { migrateLibraryAgents } from './migrateLibraryAgents.ts';
+import { retireLegacyFeatures } from './retireLegacyFeatures.ts';
 import { ProjectAccounting } from '../accounting/ProjectAccounting.ts';
 import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
 import { teamAgents } from '../../shared/agentTeams.ts';
@@ -27,7 +26,6 @@ import type { Resource } from '../../shared/resources.ts';
 export class StudioStore {
   private sections: StudioSections = {};
   readonly projects: ProjectStore;
-  readonly library: LibraryStore;
   private warnings: string[] = [];
   readonly folder: string;
   readonly accounting: ProjectAccounting;
@@ -35,7 +33,6 @@ export class StudioStore {
     this.folder = folder;
     this.projects = new ProjectStore(folder);
     this.accounting = new ProjectAccounting(folder);
-    this.library = new LibraryStore(folder);
   }
   static async open(folder: string) {
     if (typeof folder !== 'string' || !isAbsolute(folder) || folder.includes('\0'))
@@ -44,8 +41,11 @@ export class StudioStore {
     const store = new StudioStore(await realpath(folder));
     await mkdir(await safePath(store.folder, '.pistudio', true), { recursive: true });
     const file = await safePath(store.folder, '.pistudio/studio.json', true);
+    let retired = false;
     try {
-      store.sections = parseStudio(await readJson(file));
+      const migration = retireLegacyFeatures(await readJson(file));
+      store.sections = parseStudio(migration.document);
+      retired = migration.changed;
     } catch (error) {
       if (!isMissing(error))
         throw new Error(
@@ -54,10 +54,9 @@ export class StudioStore {
         );
       await atomicJson(file, { schemaVersion: 1, sections: {} });
     }
-    const migrated = migrateLibraryAgents(store.sections);
-    const initial = migrated ?? store.sections;
+    const initial = store.sections;
     store.warnings = await store.projects.initialize();
-    if (initial.agentTeams === undefined || migrated) {
+    if (initial.agentTeams === undefined || retired) {
       const teams = reconcileTeams(
         (initial.agents ?? []) as Agent[],
         (initial.agentTeams ?? []) as AgentTeam[],
@@ -83,7 +82,6 @@ export class StudioStore {
     for (const [key, value] of [
       ['agents', []],
       ['systemAgents', createSystemAgents(randomUUID)],
-      ['libraryAgents', { characters: '', locations: '' }],
       ['connections', []],
       ['resources', []],
       ['baseInstruction', ''],

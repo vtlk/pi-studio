@@ -47,11 +47,9 @@ test('new studio is empty; current constructor, instructions and settings surviv
   assert.equal(store.bootstrap().sections.baseInstruction, '');
   await store.saveSection('agents', [agent()]);
   await store.saveSection('baseInstruction', 'Общее правило');
-  await store.saveSection('hiddenLibraryIds', ['character-1']);
   const reopened = await StudioStore.open(store.folder);
   assert.deepEqual(reopened.bootstrap().sections.agents, [agent()]);
   assert.equal(reopened.bootstrap().sections.baseInstruction, 'Общее правило');
-  assert.deepEqual(reopened.bootstrap().sections.hiddenLibraryIds, ['character-1']);
 });
 test('project creates stable output/session directories without instruction text, fake sessions or outputs', async (t) => {
   const { store } = await fixture(t);

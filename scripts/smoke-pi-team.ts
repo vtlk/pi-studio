@@ -37,6 +37,11 @@ const server = createServer(async (req, res) => {
     const chunks: Buffer[] = [];
     for await (const chunk of req) chunks.push(Buffer.from(chunk));
     const body = JSON.parse(Buffer.concat(chunks).toString());
+    assert.equal(
+      JSON.stringify(body.tools).includes('library_'),
+      false,
+      'Removed tools never reach the real Pi model request',
+    );
     const lastUser = JSON.stringify(
       body.messages.filter((item: { role: string }) => item.role === 'user').at(-1).content,
     );

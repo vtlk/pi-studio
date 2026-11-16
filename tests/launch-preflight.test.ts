@@ -6,7 +6,6 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
-import { createLibraryRunHost } from '../src/main/pi/createLibraryRunHost.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
 import type { Agent } from '../src/shared/studio.ts';
@@ -46,7 +45,7 @@ test('all launch adapters reject incomplete/mismatched model settings before cre
     enabled: true,
     instructions: [],
     skills: [],
-    mcps: ['pistudio-library'],
+    mcps: [],
     plugins: [],
     model,
   };
@@ -73,11 +72,9 @@ test('all launch adapters reject incomplete/mismatched model settings before cre
   };
   const production = createStudioRunHost(service, options);
   const helper = createSetupAssistant(service, options);
-  const library = createLibraryRunHost(service, options);
   t.after(async () => {
     await production.close();
     await helper.close();
-    await library.close();
   });
   for (const invalid of [
     { model: { ...model, reasoning: '' }, connections: [connection] },
@@ -107,11 +104,6 @@ test('all launch adapters reject incomplete/mismatched model settings before cre
       }),
       /подключение.*модель/,
     );
-    for (const kind of ['characters', 'locations'] as const)
-      await assert.rejects(
-        library.create({ kind, agentId: agent.id, description: 'QA', attachments: [] }),
-        /подключение.*модель/,
-      );
     assert.deepEqual(
       await files(root),
       before,

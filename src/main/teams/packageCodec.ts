@@ -9,6 +9,7 @@ import { parseAgents, record, stableId } from '../storage/validation.ts';
 import { packageSource, assertCredentialReferences } from '../pi/resourceConfig.ts';
 import { assertPortableMcp } from './portableMcp.ts';
 import { parseModelEndpoint } from '../../shared/modelEndpoint.ts';
+import { retiredBuiltin } from '../storage/retireLegacyFeatures.ts';
 import { windowsFileName } from '../../shared/windowsNames.ts';
 
 export const packageLimit = 64 * 1024 * 1024;
@@ -55,6 +56,10 @@ export function validatePackage(value: unknown): TeamPackage {
     if (!/^resource-[0-9]+$/.test(id) || !['skills', 'mcps', 'plugins'].includes(String(r.kind)))
       throw new Error('Некорректный ресурс пакета.');
     const source = shortText(r.source);
+    if (r.kind === 'mcps' && retiredBuiltin(undefined, source))
+      throw new Error(
+        'Пакет содержит назначение удалённого встроенного MCP. Импорт отменён; существующие данные не изменены.',
+      );
     if (
       source &&
       !source.startsWith('builtin:') &&

@@ -63,7 +63,7 @@ try {
   await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
   for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code', 'update-helper'])
     await cp(join(root, 'bundled', name), join(application, 'bundled', name), { recursive: true });
-  for (const name of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
+  for (const name of ['yaml', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
     await cp(join(root, 'node_modules', name), join(application, 'node_modules', name), {
       recursive: true,
     });
@@ -75,13 +75,8 @@ try {
     ['semver/LICENSE', 'Semver-LICENSE.txt'],
     ['yauzl/LICENSE', 'Yauzl-LICENSE.txt'],
     ['pend/LICENSE', 'Pend-LICENSE.txt'],
-    ['xmlchars/LICENSE', 'Xmlchars-LICENSE.txt'],
   ])
     await cp(join(root, 'node_modules', source), join(application, 'licenses', name));
-  await cp(
-    join(root, 'third-party-licenses/Saxes-LICENSE.txt'),
-    join(application, 'licenses/Saxes-LICENSE.txt'),
-  );
   const response = await fetch(
     'https://registry.npmjs.org/@trycua/cua-driver-win32-x64-msvc/-/cua-driver-win32-x64-msvc-0.49.11.tgz',
     { signal: AbortSignal.timeout(120000) },

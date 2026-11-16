@@ -34,18 +34,6 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Открыть проект «Посылка с характером»"]')`);
   assert.equal(await js('typeof window.studio'), 'undefined');
   await js(
-    `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.textContent.trim()==='Библиотека').click()`,
-  );
-  await until(`document.querySelectorAll('.asset-thumb-wrap').length===13`);
-  await until(`!!document.querySelector('.animated-character svg')`);
-  assert.equal(await js(`!!document.querySelector('.character-preview-error')`), false);
-  assert.equal(
-    await js(
-      `Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Локации') && b.textContent.includes('3'))`,
-    ),
-    true,
-  );
-  await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.textContent.trim()==='Агенты').click()`,
   );
   await until(`!!document.querySelector('[aria-label="Добавить агента"]')`);
@@ -55,7 +43,7 @@ const deadline = setTimeout(() => {
   );
   clearTimeout(deadline);
   console.log(
-    'Web bundle passed: demo project, 13 characters/3 locations, original SVG rig scripts, six example profiles, no native bridge.',
+    'Web bundle passed: demo project, six example profiles, no Library feature, no native bridge.',
   );
   await rm(root, { recursive: true, force: true });
   app.exit(0);

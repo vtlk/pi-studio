@@ -1,7 +1,7 @@
 import { NavigationContext } from './Navigation.context';
 import { useContext, useState, type ReactNode } from 'react';
 
-export type Page = 'project' | 'projects' | 'library' | 'agents' | 'settings';
+export type Page = 'project' | 'projects' | 'agents' | 'settings';
 function useNavigationState() {
   const [page, setPage] = useState<Page>('projects');
   return { page, setPage, navigate: setPage };

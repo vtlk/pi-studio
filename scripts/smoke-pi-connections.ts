@@ -14,7 +14,6 @@ import type { Agent } from '../src/shared/studio.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
-import { createLibraryRunHost } from '../src/main/pi/createLibraryRunHost.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
 import { snapshotAgent } from '../src/main/storage/validation.ts';
 
@@ -186,7 +185,6 @@ globalThis.fetch=async(input,init)=>{
   };
   const host = createStudioRunHost(service, options);
   const assistant = createSetupAssistant(service, options);
-  const library = createLibraryRunHost(service, { ...options, references: new ReferenceFiles() });
   try {
     for (const [activeHost, req, base, bound] of [
       [
@@ -235,37 +233,12 @@ globalThis.fetch=async(input,init)=>{
       helperSession.path,
     );
     await assert.rejects(() => stat(proof), { code: 'ENOENT' });
-    await store.saveSection('agents', [
-      { ...profile, model, mcps: [...profile.mcps, 'pistudio-library'] },
-    ]);
-    const libraryRun = await library.create({
-      agentId: profile.id,
-      kind: 'characters',
-      description: 'QA: do not generate externally.',
-      attachments: [],
-    });
-    assert.equal(await children.at(-1), 0, 'Pi settles the deliberately denied model request');
-    const attempted = JSON.parse(await readFile(proof, 'utf8'));
-    assert.equal(
-      attempted.accountMatches,
-      true,
-      'Production library model resolves the selected isolated account',
-    );
-    assert.equal(attempted.model, model.id);
-    const libraryState = JSON.parse(
-      await readFile(
-        join(store.folder, '.pistudio/library-runs', libraryRun.project.id, 'state.json'),
-        'utf8',
-      ),
-    );
-    assert.equal(libraryState.project.agents[0].runStatus, 'error');
     console.log(
       'Production scoped project/helper exact idle resumes passed; existing messages unchanged, no credential paths/keys/instruction copies in context.',
     );
   } finally {
     host.close();
     assistant.close();
-    library.close();
     await Promise.allSettled(children);
   }
 }

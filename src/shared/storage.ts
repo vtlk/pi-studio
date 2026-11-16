@@ -6,11 +6,9 @@ export const storageSections = [
   'agentTeams',
   'agentCatalog',
   'systemAgents',
-  'libraryAgents',
   'resources',
   'connections',
   'imageTool',
-  'hiddenLibraryIds',
   'baseInstruction',
   'piPath',
 ] as const;

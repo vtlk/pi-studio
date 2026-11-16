@@ -144,7 +144,7 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   assert.deepEqual(
     await js(`Array.from(document.querySelectorAll('.topbar nav button')).map(b=>b.textContent)`),
-    ['Проекты', 'Библиотека', 'Агенты'],
+    ['Проекты', 'Агенты'],
   );
   const topbar = await colors('mainNavigation', '.topbar nav button[aria-current="page"]');
   assert.equal(topbar.transform, 'uppercase');

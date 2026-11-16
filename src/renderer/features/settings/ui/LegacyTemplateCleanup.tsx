@@ -37,13 +37,7 @@ export function LegacyTemplateCleanup() {
         })
         .filter((_, index) => agentMatches[index]);
       const oldConnections = connections.filter((_, index) => connectionMatches[index]);
-      const oldResources = resources.filter(
-        (resource, index) =>
-          resourceMatches[index] ||
-          (resource.createdAt === 0 &&
-            resource.kind === 'skills' &&
-            resource.source.includes('/.pistudio/packages/pi-studio-library/skills/')),
-      );
+      const oldResources = resources.filter((_, index) => resourceMatches[index]);
       if (!oldAgents.length && !oldConnections.length && !oldResources.length) return;
       confirm({
         title: 'Убрать сохранённые шаблоны макета?',

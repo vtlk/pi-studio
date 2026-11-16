@@ -25,7 +25,7 @@ interface Binding {
   group: SessionMcpGroup;
 }
 
-/** One host runtime shared by every project/helper/library dialogue, with private per-open leases. */
+/** One host runtime shared by every project/helper dialogue, with private per-open leases. */
 export class ComputerSupport {
   private readonly runtime: Runtime;
   private readonly bindings = new Map<string, Binding>();

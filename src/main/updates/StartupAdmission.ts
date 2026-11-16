@@ -10,8 +10,6 @@ const reads = new Set<string>([
   c.listProjectUsage,
   c.readOutput,
   c.inspectVideoProject,
-  c.listLibrary,
-  c.readLibraryCharacter,
   c.readSkill,
   c.listTeamMessages,
   c.listTeamImports,

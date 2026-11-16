@@ -28,7 +28,7 @@ export async function mediaResponse(root: string, relative: string, request: Req
     return new Response(null, { status: 403 });
   return streamMedia(root, relative, request);
 }
-/** Callers validate their own output/library scope before using the common byte-range transport. */
+/** Callers validate their own output scope before using the common byte-range transport. */
 export async function streamMedia(root: string, relative: string, request: Request) {
   if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405 });
   const type = mime[extname(relative).toLowerCase()];
