@@ -33,6 +33,8 @@ export class NativeUpdates {
   private initialization?: Promise<void>;
   private reportedStartup = false;
   private maintenanceError?: string;
+  private manualCheckToken?: string;
+  private manualError?: string;
   private readonly timer: ReturnType<typeof setInterval>;
   constructor(options: Options) {
     this.options = options;
@@ -52,20 +54,29 @@ export class NativeUpdates {
   }
   read(): UpdateState {
     const state = this.options.coordinator?.read() ?? {
-      phase: 'idle' as const,
+      phase: this.manualError ? ('error' as const) : ('idle' as const),
       currentVersion: this.options.version,
+      message: this.manualError,
     };
     const startup = this.options.startup;
     return {
       ...state,
       maintenanceError: this.maintenanceError,
+      manualCheckToken: this.manualCheckToken,
       startup: startup
         ? { ...startup.read(), token: this.token, view: this.view, folder: this.startupFolder }
         : undefined,
     };
   }
   check() {
+    if (this.closed) return Promise.resolve(this.read());
+    if (this.read().prepareToken) return Promise.resolve(this.read());
+    this.manualCheckToken = randomUUID();
     if (this.read().startup?.phase === 'starting') return Promise.resolve(this.read());
+    if (['downloading', 'verifying', 'waiting', 'installing'].includes(this.read().phase))
+      return Promise.resolve(this.read());
+    if (!this.options.coordinator)
+      this.manualError = 'Проверка обновлений доступна в установленной версии Pi Studio.';
     return (
       this.options.coordinator?.check().then(() => this.read()) ?? Promise.resolve(this.read())
     );
@@ -84,6 +95,8 @@ export class NativeUpdates {
     return this.options.coordinator?.request() ?? Promise.resolve();
   }
   report(ready: UpdateReadiness) {
+    if (ready?.manualCheckToken && ready.manualCheckToken === this.manualCheckToken)
+      this.manualCheckToken = undefined;
     if (this.options.startup?.read().phase === 'starting') {
       if (
         !this.preparing &&

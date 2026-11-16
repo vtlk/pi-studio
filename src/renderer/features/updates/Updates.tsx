@@ -29,6 +29,9 @@ export function UpdatesProvider({
   const [state, setState] = useState<UpdateState | undefined>(initial);
   const [restored, setRestored] = useState<string>();
   const [open, setOpen] = useState(false);
+  const [manual, setManual] = useState(false);
+  const manualSeen = useRef<string | undefined>(undefined);
+  const manualPending = useRef(false);
   const current = useRef({
     saving,
     error,
@@ -79,6 +82,11 @@ export function UpdatesProvider({
       try {
         const next = await api.getUpdateState();
         if (!alive.current) return;
+        if (next.manualCheckToken && next.manualCheckToken !== manualSeen.current) {
+          manualSeen.current = next.manualCheckToken;
+          setManual(!['downloading', 'verifying', 'waiting', 'installing'].includes(next.phase));
+          setOpen(true);
+        }
         setState((previous) =>
           JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
         );
@@ -91,6 +99,7 @@ export function UpdatesProvider({
             (next.startup?.phase === 'starting' || !hasTransientDraft()),
           startupToken: next.startup?.token,
           hydrated: current.current.hydrated && current.current.restored === next.startup?.token,
+          manualCheckToken: next.manualCheckToken,
         });
       } catch {
         // Background update availability never prevents working in the current installation.
@@ -142,12 +151,52 @@ export function UpdatesProvider({
         state,
         frozen,
         open: open || frozen,
-        show: () => setOpen(true),
+        manual,
+        show: () => {
+          setManual(false);
+          setOpen(true);
+        },
         hide: () => {
-          if (!frozen) setOpen(false);
+          if (!frozen) {
+            setOpen(false);
+            setManual(false);
+          }
+        },
+        check: () => {
+          const api = window.studio;
+          if (!api || manualPending.current) return;
+          manualPending.current = true;
+          setManual(true);
+          setOpen(true);
+          setState((previous) =>
+            previous ? { ...previous, phase: 'checking', message: undefined } : previous,
+          );
+          void api
+            .checkForUpdates()
+            .then(
+              (next) => {
+                if (alive.current) setState(next);
+              },
+              () => {
+                if (alive.current)
+                  setState((previous) =>
+                    previous
+                      ? {
+                          ...previous,
+                          phase: 'error',
+                          message: 'Не удалось проверить обновления. Повторите попытку.',
+                        }
+                      : previous,
+                  );
+              },
+            )
+            .finally(() => {
+              manualPending.current = false;
+            });
         },
         request: () => {
           if (!window.studio || requestPending.current) return;
+          setManual(false);
           requestPending.current = true;
           void window.studio
             .requestUpdate()

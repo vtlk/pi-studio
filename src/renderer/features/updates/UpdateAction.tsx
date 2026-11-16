@@ -25,10 +25,19 @@ export function UpdateAction() {
   );
 }
 export function UpdateDialog() {
-  const { state, open, frozen, hide, request } = useUpdates();
+  const { state, open, frozen, hide, request, manual, check } = useUpdates();
   if (!open || !state) return null;
   if (!state.offer || state.maintenanceError) {
-    const message = state.maintenanceError ?? state.startup?.message;
+    const message =
+      state.maintenanceError ??
+      state.startup?.message ??
+      (manual
+        ? state.phase === 'checking'
+          ? 'Проверяем обновления…'
+          : state.phase === 'error'
+            ? (state.message ?? 'Не удалось проверить обновления.')
+            : `Установлена актуальная версия ${state.currentVersion}`
+        : undefined);
     if (!message) return null;
     return (
       <div data-update-dialog>
@@ -39,8 +48,11 @@ export function UpdateDialog() {
           footer={
             !frozen ? (
               <>
-                <Button onClick={hide}>Понятно</Button>
+                <Button onClick={hide}>{state.phase === 'checking' ? 'Скрыть' : 'Понятно'}</Button>
                 {state.maintenanceError && <Button onClick={request}>Повторить очистку</Button>}
+                {manual && !state.maintenanceError && state.phase === 'error' && (
+                  <Button onClick={check}>Повторить</Button>
+                )}
               </>
             ) : undefined
           }
@@ -48,6 +60,7 @@ export function UpdateDialog() {
           <p
             role={
               state.maintenanceError ||
+              state.phase === 'error' ||
               state.startup?.phase === 'restored' ||
               state.startup?.phase === 'recovery-required'
                 ? 'alert'
@@ -70,7 +83,7 @@ export function UpdateDialog() {
       : state.phase === 'verifying'
         ? 'Проверяем пакет…'
         : state.phase === 'checking'
-          ? 'Проверяем доступность…'
+          ? 'Проверяем обновления…'
           : '');
   const size = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(
     state.offer.bytes / 1024 ** 2,
@@ -85,8 +98,12 @@ export function UpdateDialog() {
           <>
             {!frozen && <Button onClick={hide}>{busy ? 'Скрыть' : 'Позже'}</Button>}
             {!busy && (
-              <Button kind="primary" onClick={request}>
-                {state.phase === 'error' ? 'Повторить' : 'Обновить'}
+              <Button kind="primary" onClick={manual && state.phase === 'error' ? check : request}>
+                {state.phase === 'error'
+                  ? manual
+                    ? 'Повторить проверку'
+                    : 'Повторить'
+                  : 'Обновить'}
               </Button>
             )}
           </>

@@ -26,6 +26,7 @@ export interface UpdateReadiness {
   view?: UpdateView;
   startupToken?: string;
   hydrated?: boolean;
+  manualCheckToken?: string;
 }
 export interface UpdateStartupInfo {
   phase: 'starting' | 'committed' | 'restored' | 'aborting' | 'recovery-required';
@@ -52,4 +53,5 @@ export interface UpdateState {
   prepareToken?: string;
   startup?: UpdateStartupInfo;
   maintenanceError?: string;
+  manualCheckToken?: string;
 }

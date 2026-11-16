@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T04:22:14.507Z",
+  "checkedAt": "2026-11-16T06:29:15.415Z",
   "scope": "Actual feature provider/shared UI and production preload in an isolated offscreen Electron window; controlled update state only, not a native installer or app lifecycle integration.",
   "noOfferNoIcon": true,
   "keyboardOpen": true,
@@ -12,6 +12,11 @@
   "freezingDialogCannotDismiss": true,
   "maintenanceErrorVisibleWithoutOffer": true,
   "maintenanceErrorTakesPriorityOverNewOffer": true,
+  "manualCheckingUpToDateAndError": true,
+  "manualErrorRetryDoesNotAuthorizeDownloadEvenWithStaleOffer": true,
+  "consumedManualNoticeDoesNotReopenOnBackgroundChecks": true,
   "clipboardOrAudioOrModelAccess": false,
-  "userStudioAccess": false
+  "userStudioAccess": false,
+  "actualChildExitVerified": true,
+  "temporaryProfileRemovedAfterExit": true
 }

@@ -9,6 +9,7 @@ import { registerDesktopHandlers } from './ipc/registerDesktopHandlers';
 import { mediaResponse, streamMedia } from './storage/media';
 import { libraryKind } from './library/manifest';
 import packageInfo from '../../package.json';
+import { registerNativeMenu } from './menu/registerNativeMenu';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -71,6 +72,10 @@ async function startStudio() {
     },
   });
   await updates?.initialize();
+  registerNativeMenu(() => {
+    createStudioWindow().focus();
+    void updates?.check();
+  });
   protocol.handle('studio-media', async (request) => {
     try {
       const url = new URL(request.url);

@@ -1,0 +1,427 @@
+{
+  "checkedAt": "2026-11-16T06:19:00.410Z",
+  "version": "0.2.0-alpha.77",
+  "inspection": "Read-only Accessibility of actually installed running macOS release; no activation, clicks or keyboard input",
+  "systemAppleMenuExcluded": true,
+  "systemServiceChildrenNotRecorded": true,
+  "items": [
+    {
+      "path": "Pi Studio",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Pi Studio / About Pi Studio",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Pi Studio / Services",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Pi Studio / Hide Pi Studio",
+      "enabled": true,
+      "shortcut": "H",
+      "modifierMask": 0
+    },
+    {
+      "path": "Pi Studio / Hide Others",
+      "enabled": true,
+      "shortcut": "H",
+      "modifierMask": 2
+    },
+    {
+      "path": "Pi Studio / Show All",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Pi Studio / Quit Pi Studio",
+      "enabled": true,
+      "shortcut": "Q",
+      "modifierMask": 0
+    },
+    {
+      "path": "Pi Studio / Quit and Keep Windows",
+      "enabled": true,
+      "shortcut": "Q",
+      "modifierMask": 2
+    },
+    {
+      "path": "File",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "File / Close Window",
+      "enabled": true,
+      "shortcut": "W",
+      "modifierMask": 0
+    },
+    {
+      "path": "File / Close All",
+      "enabled": true,
+      "shortcut": "W",
+      "modifierMask": 2
+    },
+    {
+      "path": "Edit",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Undo",
+      "enabled": true,
+      "shortcut": "Z",
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Redo",
+      "enabled": true,
+      "shortcut": "Z",
+      "modifierMask": 1
+    },
+    {
+      "path": "Edit / Cut",
+      "enabled": true,
+      "shortcut": "X",
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Copy",
+      "enabled": true,
+      "shortcut": "C",
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Paste",
+      "enabled": true,
+      "shortcut": "V",
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Paste and Match Style",
+      "enabled": true,
+      "shortcut": "V",
+      "modifierMask": 3
+    },
+    {
+      "path": "Edit / Delete",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Select All",
+      "enabled": true,
+      "shortcut": "A",
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Substitutions",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Substitutions / Show Substitutions",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Substitutions / Smart Quotes",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Substitutions / Smart Dashes",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Substitutions / Text Replacement",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Speech",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Speech / Start Speaking",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Speech / Stop Speaking",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / AutoFill",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / AutoFill / Contact…",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / AutoFill / Passwords…",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / AutoFill / Credit Card…",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Edit / Start Dictation…",
+      "enabled": true,
+      "shortcut": "🎤",
+      "modifierMask": 8
+    },
+    {
+      "path": "Edit / Emoji & Symbols",
+      "enabled": true,
+      "shortcut": "E",
+      "modifierMask": 24
+    },
+    {
+      "path": "View",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "View / Reload",
+      "enabled": true,
+      "shortcut": "R",
+      "modifierMask": 0
+    },
+    {
+      "path": "View / Force Reload",
+      "enabled": true,
+      "shortcut": "R",
+      "modifierMask": 1
+    },
+    {
+      "path": "View / Toggle Developer Tools",
+      "enabled": true,
+      "shortcut": "I",
+      "modifierMask": 2
+    },
+    {
+      "path": "View / Actual Size",
+      "enabled": true,
+      "shortcut": "0",
+      "modifierMask": 0
+    },
+    {
+      "path": "View / Zoom In",
+      "enabled": true,
+      "shortcut": "+",
+      "modifierMask": 0
+    },
+    {
+      "path": "View / Zoom Out",
+      "enabled": true,
+      "shortcut": "-",
+      "modifierMask": 0
+    },
+    {
+      "path": "View / Toggle Full Screen",
+      "enabled": true,
+      "shortcut": "F",
+      "modifierMask": 24
+    },
+    {
+      "path": "Window",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Minimize",
+      "enabled": true,
+      "shortcut": "M",
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Minimise All",
+      "enabled": true,
+      "shortcut": "M",
+      "modifierMask": 2
+    },
+    {
+      "path": "Window / Zoom",
+      "enabled": true,
+      "modifierMask": 8
+    },
+    {
+      "path": "Window / Zoom All",
+      "enabled": true,
+      "modifierMask": 10
+    },
+    {
+      "path": "Window / Fill",
+      "enabled": true,
+      "shortcut": "F",
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Centre",
+      "enabled": true,
+      "shortcut": "C",
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Enter Full Screen",
+      "enabled": true,
+      "modifierMask": 24
+    },
+    {
+      "path": "Window / Move & Resize",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Halves",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Left",
+      "enabled": false,
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Move & Resize / Right",
+      "enabled": false,
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Move & Resize / Top",
+      "enabled": false,
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Move & Resize / Bottom",
+      "enabled": false,
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Move & Resize / Quarters",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Top Left",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Top Right",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Bottom Left",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Bottom Right",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Arrange",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Left & Right",
+      "enabled": false,
+      "modifierMask": 29
+    },
+    {
+      "path": "Window / Move & Resize / Left & Quarters",
+      "enabled": false,
+      "modifierMask": 31
+    },
+    {
+      "path": "Window / Move & Resize / Right & Left",
+      "enabled": false,
+      "modifierMask": 29
+    },
+    {
+      "path": "Window / Move & Resize / Right & Quarters",
+      "enabled": false,
+      "modifierMask": 31
+    },
+    {
+      "path": "Window / Move & Resize / Top & Bottom",
+      "enabled": false,
+      "modifierMask": 29
+    },
+    {
+      "path": "Window / Move & Resize / Top & Quarters",
+      "enabled": false,
+      "modifierMask": 31
+    },
+    {
+      "path": "Window / Move & Resize / Bottom & Top",
+      "enabled": false,
+      "modifierMask": 29
+    },
+    {
+      "path": "Window / Move & Resize / Bottom & Quarters",
+      "enabled": false,
+      "modifierMask": 31
+    },
+    {
+      "path": "Window / Move & Resize / Quarters",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Move & Resize / Return to Previous Size",
+      "enabled": false,
+      "shortcut": "R",
+      "modifierMask": 28
+    },
+    {
+      "path": "Window / Full-Screen Tile",
+      "enabled": false,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Bring All to Front",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Arrange in Front",
+      "enabled": true,
+      "modifierMask": 10
+    },
+    {
+      "path": "Window / Remove Window from Set",
+      "enabled": true,
+      "modifierMask": 0
+    },
+    {
+      "path": "Window / Pi Studio — видеостудия",
+      "enabled": true,
+      "modifierMask": 0
+    }
+  ],
+  "releaseDebugItemsFound": [
+    "View / Reload",
+    "View / Force Reload",
+    "View / Toggle Developer Tools"
+  ],
+  "nativeWindowsSnapshotAvailable": false
+}

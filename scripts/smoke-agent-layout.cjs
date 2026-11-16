@@ -38,7 +38,7 @@ async function parent() {
   }
 }
 async function child() {
-  const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+  const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
   const root = process.argv[3];
   app.setPath('userData', join(root, 'UserData'));
   app.setPath('videos', join(root, 'Videos'));
@@ -130,6 +130,20 @@ async function child() {
     await js('window.studio.loadStudio()');
     await pause(450);
     assert.equal(await status(), '', 'Background read is not a save');
+    const menuAction = Menu.getApplicationMenu().getMenuItemById('check-updates');
+    assert.ok(menuAction, 'Native menu contains manual check');
+    menuAction.click();
+    await until(
+      `document.querySelector('[data-update-dialog]')?.textContent.includes('установленной версии')`,
+    );
+    assert.equal(
+      await js(
+        `document.querySelector('[data-update-dialog]').textContent.includes('Установлена актуальная')`,
+      ),
+      false,
+    );
+    await click('Понятно');
+    await until(`!document.querySelector('[data-update-dialog]')`);
     const initialSettings = await js(
       `(()=>{const e=document.querySelector('.settings-button'),r=e.getBoundingClientRect();return {text:e.textContent,title:e.getAttribute('title'),width:r.width,x:r.x,y:r.y}})()`,
     );
@@ -319,6 +333,8 @@ async function child() {
         addAgentRowGeometry: true,
         wideCatalogsAndNestedFormsAllKinds: true,
         systemAgentCatalogsWide: true,
+        nativeMenuManualActionReachesRealController: true,
+        developmentRuntimeDoesNotClaimUpToDate: true,
         narrowViewportMargins: true,
         modelAndTerminalRequests: 0,
         qaIsolation:

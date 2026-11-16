@@ -1,11 +1,16 @@
 // Actual shared UI/provider/preload, controlled status fixture only. No installer/model/user data.
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { mkdtempSync, mkdirSync } = require('node:fs');
-const { rm, mkdir, writeFile } = require('node:fs/promises');
-const { join, resolve } = require('node:path');
+const { realpathSync, mkdirSync } = require('node:fs');
+const { mkdir, writeFile } = require('node:fs/promises');
+const { join, resolve, relative, basename } = require('node:path');
 const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
-const root = mkdtempSync(join(tmpdir(), 'pistudio-update-ui-'));
+if (!process.env.PI_STUDIO_UPDATE_UI_ROOT)
+  throw Error('Run node scripts/run-update-ui.cjs so cleanup follows actual process exit.');
+const root = realpathSync(process.env.PI_STUDIO_UPDATE_UI_ROOT);
+const location = relative(realpathSync(tmpdir()), root);
+if (!location || location.startsWith('..') || !basename(root).startsWith('pistudio-update-ui-'))
+  throw Error('Unowned update UI profile');
 mkdirSync(join(root, 'UserData'));
 app.setPath('userData', join(root, 'UserData'));
 require('./offscreen-main.cjs').configureQaRuntime();
@@ -19,6 +24,7 @@ let failed = false;
 let state = { currentVersion: '0.2.0-alpha.75', phase: 'idle' };
 const reports = [];
 let requests = 0;
+let checks = 0;
 const offer = {
   version: '0.2.0-alpha.76',
   bytes: 100000000,
@@ -55,6 +61,15 @@ const read = (code) => window.webContents.executeJavaScript(code);
   ipcMain.handle('studio:update-state', () => structuredClone(state));
   ipcMain.handle('studio:update-readiness', (_event, value) => {
     reports.push(value);
+    if (value.manualCheckToken && value.manualCheckToken === state.manualCheckToken)
+      state = { ...state, manualCheckToken: undefined };
+  });
+  ipcMain.handle('studio:update-check', async () => {
+    checks++;
+    state = { ...state, phase: 'checking', message: undefined };
+    await wait(150);
+    state = { ...state, phase: 'available', offer };
+    return state;
   });
   ipcMain.handle('studio:update-request', () => {
     requests++;
@@ -89,6 +104,47 @@ const read = (code) => window.webContents.executeJavaScript(code);
     await read(`!!document.querySelector('button[aria-label*="Доступна версия"]')`),
     false,
   );
+  state = { ...state, phase: 'checking', manualCheckToken: 'manual-first' };
+  await until(
+    `document.querySelector('[data-update-dialog]')?.textContent.includes('Проверяем обновления')`,
+  );
+  state = { ...state, phase: 'idle', checkedAt: Date.now() };
+  await until(
+    `document.querySelector('[data-update-dialog]')?.textContent.includes('Установлена актуальная версия')`,
+  );
+  await read(
+    `[...document.querySelectorAll('[data-update-dialog] button')].find(b=>b.textContent==='Понятно').click()`,
+  );
+  await until(`!document.querySelector('[data-update-dialog]')`);
+  state = { ...state, phase: 'checking' };
+  await wait(650);
+  assert.equal(
+    await read(`!!document.querySelector('[data-update-dialog]')`),
+    false,
+    'Background checks do not reopen result dialogs',
+  );
+  for (const staleOffer of [undefined, offer]) {
+    state = {
+      ...state,
+      phase: 'error',
+      message: 'QA offline',
+      offer: staleOffer,
+      manualCheckToken: staleOffer ? 'manual-stale' : 'manual-empty',
+    };
+    await until(
+      `document.querySelector('[data-update-dialog] [role="alert"]')?.textContent==='QA offline'`,
+    );
+    await read(
+      `[...document.querySelectorAll('[data-update-dialog] button')].find(b=>b.textContent===${JSON.stringify(staleOffer ? 'Повторить проверку' : 'Повторить')}).click()`,
+    );
+    await until(`document.querySelector('[data-update-dialog]')?.textContent.includes('Обновить')`);
+    assert.equal(requests, 0, 'Retrying a manual check never authorizes downloading');
+    await read(
+      `[...document.querySelectorAll('[data-update-dialog] button')].find(b=>b.textContent==='Позже').click()`,
+    );
+    await until(`!document.querySelector('[data-update-dialog]')`);
+  }
+  assert.equal(checks, 2);
   state = { ...state, phase: 'available', offer };
   await until(`document.querySelector('button[aria-label*="Доступна версия"]')`);
   await read(`document.querySelector('button[aria-label*="Доступна версия"]').focus()`);
@@ -230,6 +286,9 @@ const read = (code) => window.webContents.executeJavaScript(code);
     freezingDialogCannotDismiss: true,
     maintenanceErrorVisibleWithoutOffer: true,
     maintenanceErrorTakesPriorityOverNewOffer: true,
+    manualCheckingUpToDateAndError: true,
+    manualErrorRetryDoesNotAuthorizeDownloadEvenWithStaleOffer: true,
+    consumedManualNoticeDoesNotReopenOnBackgroundChecks: true,
     clipboardOrAudioOrModelAccess: false,
     userStudioAccess: false,
   };
@@ -248,6 +307,5 @@ const read = (code) => window.webContents.executeJavaScript(code);
   .finally(async () => {
     clearTimeout(deadline);
     window?.destroy();
-    await rm(root, { recursive: true, force: true });
     app.exit(failed ? 1 : 0);
   });
