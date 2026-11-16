@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/media/cover.png" alt="Pi Studio — команды AI-агентов" width="760" />
+<img src="docs/media/cover.png" alt="Pi Studio — Agent Pipeline" width="760" />
 
 ### Соберите команду AI-агентов. Поставьте проекты на поток.
 
