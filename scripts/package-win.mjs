@@ -63,7 +63,7 @@ try {
   await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
   for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code', 'update-helper'])
     await cp(join(root, 'bundled', name), join(application, 'bundled', name), { recursive: true });
-  for (const name of ['yaml', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
+  for (const name of ['yaml', 'jsonc-parser', 'semver', 'yauzl', 'pend', 'i18next'])
     await cp(join(root, 'node_modules', name), join(application, 'node_modules', name), {
       recursive: true,
     });

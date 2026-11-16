@@ -70,7 +70,7 @@ await cp(join(root, 'out'), join(application, 'out'), {
   filter: (source) =>
     !['characters', 'scenes', 'library-runtime', 'source.json'].includes(source.split('/').at(-1)),
 });
-for (const dependency of ['yaml', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
+for (const dependency of ['yaml', 'jsonc-parser', 'semver', 'yauzl', 'pend', 'i18next'])
   await cp(join(root, 'node_modules', dependency), join(application, 'node_modules', dependency), {
     recursive: true,
   });
