@@ -20,3 +20,13 @@ macOS packaging also copies Electron's root LICENSE and LICENSES.chromium.html
 from the installed Electron distribution. Windows retains them from the pinned
 official Electron ZIP. Other existing dependency notices remain in the packaged
 `licenses/` and dependency directories.
+
+## Byte-verified notice manifests
+
+New builds emit schema 2 in `third-party-packages.json`, indexing the exact UTF-8
+byte span, SHA-256, source filenames and package/version owners of every complete
+notice in `THIRD_PARTY_NOTICES.txt`. Both the collector and release-package
+verifier reject missing/changed text or inconsistent bindings. This verifies
+notice preservation, not permission or eligibility to redistribute dependencies.
+Previously published immutable packages keep their original schema 1 manifests;
+this does not change the runtime updater or replace historical release evidence.

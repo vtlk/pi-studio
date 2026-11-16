@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-11-16T13:29:09.558Z",
+  "sourceBaseCommit": "8baa09d",
+  "scope": "Isolated committed HEAD plus exactly the four listed notice-verification source files. Actual Vite renderer output; no application package or update installed.",
+  "sourceHashes": {
+    "scripts/audit/bundledNotices.ts": "1b2cfa9bf91e0a3e72f14f72cde0ee69369f0f2f906d6135f0d2c1e6028e8462",
+    "scripts/bundled-notices.ts": "cec9eb43666400d55b11f35d2c8c3ac13abcb55f345384fdcf7a78d665a67071",
+    "scripts/verify-release-packages.ts": "20f019e63f3037268edf572c453d5d465b6925d528441e73c088c87e4f6e0f48",
+    "tests/bundled-notices.test.ts": "bc8de1e478f35cc40419d2625b472be146ede9bb86defa74ac2a78915551c82a"
+  },
+  "schema": 2,
+  "packageCount": 128,
+  "distinctNoticeCount": 33,
+  "noticeBytes": 155047,
+  "noticeSha256": "5def966bb13aefaaa968894a71d1f1979550b8b8805a4e071df9ad0cf5cf44f8",
+  "manifestSha256": "75a088d8471837c177e4f17479b1882f73ab66cb9666fd113c79371b5f1489e4",
+  "allNoticeBytesAndPackageBindingsVerified": true,
+  "actualBuiltOutputTamperChecks": {
+    "changedLicenseRejected": true,
+    "truncatedLicenseRejected": true,
+    "substitutedPackageHashRejected": true
+  },
+  "checks": {
+    "buildAndTypecheck": true,
+    "lint": true,
+    "architectureModules": 386,
+    "unitFsPassed": 323,
+    "bundledNoticeTestsPassed": 5
+  },
+  "applicationPackaged": false,
+  "applicationInstalledOrClosed": false,
+  "windowsBuilt": false,
+  "legalRedistributionRightsAccepted": false,
+  "remaining": [
+    "Final publisher rights/eligibility review, including Remotion and supplemental react-remove-scroll-bar provenance.",
+    "New signed-package acceptance after the next authorized release build.",
+    "Current .83 and earlier immutable releases retain their original schema-1 notice manifests."
+  ]
+}

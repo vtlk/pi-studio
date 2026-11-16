@@ -2,6 +2,7 @@ import { readFile, readdir, lstat } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { Plugin } from 'vite';
+import { verifyBundledNotices, type BundledNoticeManifest } from './audit/bundledNotices.ts';
 
 /** Keep full upstream notices for the packages that supplied bundled renderer code. */
 export function bundledNotices(root: string): Plugin {
@@ -21,12 +22,7 @@ export function bundledNotices(root: string): Plugin {
       // Vite's generated preload/runtime helpers use virtual module IDs.
       packages.add(resolve(root, 'node_modules/vite'));
       const notices = new Map<string, { packages: string[]; files: string[]; text: string }>();
-      const manifest: {
-        name: string;
-        version: string;
-        license: unknown;
-        noticeHashes: string[];
-      }[] = [];
+      const manifest: BundledNoticeManifest['packages'] = [];
       const missing: string[] = [];
       for (const directory of [...packages].sort()) {
         const pkg = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'));
@@ -59,7 +55,7 @@ export function bundledNotices(root: string): Plugin {
           const hash = createHash('sha256').update(text).digest('hex');
           if (file.sha256 && file.sha256 !== hash)
             throw new Error(`Supplemental license changed for ${pkg.name}@${pkg.version}.`);
-          hashes.push(hash);
+          if (!hashes.includes(hash)) hashes.push(hash);
           const existing = notices.get(hash) ?? { packages: [], files: [], text };
           existing.packages.push(`${pkg.name}@${pkg.version}`);
           existing.files.push(file.name);
@@ -75,16 +71,28 @@ export function bundledNotices(root: string): Plugin {
       }
       if (missing.length)
         throw new Error(`No full license text for bundled packages: ${missing.join(', ')}.`);
-      const text = [
+      let text = [
         'Pi Studio — bundled JavaScript third-party notices',
         '',
         'Each notice below is unmodified upstream text. Package/version labels identify its bundled users.',
         '',
-        ...[...notices.values()].map(
-          (notice) =>
-            `${[...new Set(notice.packages)].sort().join(', ')}\n${[...new Set(notice.files)].sort().join(', ')}\n\n${notice.text}\n`,
-        ),
       ].join('\n');
+      const index: BundledNoticeManifest['notices'] = [];
+      for (const [sha256, notice] of notices) {
+        const packages = [...new Set(notice.packages)].sort();
+        const files = [...new Set(notice.files)].sort();
+        text += `${packages.join(', ')}\n${files.join(', ')}\n\n`;
+        index.push({
+          sha256,
+          byteOffset: Buffer.byteLength(text),
+          byteLength: Buffer.byteLength(notice.text),
+          packages,
+          files,
+        });
+        text += notice.text + '\n\n';
+      }
+      const payload: BundledNoticeManifest = { schema: 2, packages: manifest, notices: index };
+      verifyBundledNotices(Buffer.from(text), payload);
       this.emitFile({ type: 'asset', fileName: 'THIRD_PARTY_NOTICES.txt', source: text });
       this.emitFile({
         type: 'asset',
@@ -94,7 +102,7 @@ export function bundledNotices(root: string): Plugin {
       this.emitFile({
         type: 'asset',
         fileName: 'third-party-packages.json',
-        source: JSON.stringify({ schema: 1, packages: manifest }, null, 2) + '\n',
+        source: JSON.stringify(payload, null, 2) + '\n',
       });
     },
   };

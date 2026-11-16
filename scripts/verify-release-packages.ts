@@ -10,6 +10,7 @@ import { extractUpdate } from '../src/main/updates/extractUpdate.ts';
 import { verifyApplication } from '../src/main/updates/verifyApplication.ts';
 import { verifyInventory } from '../bundled/update-helper/inventory.mjs';
 import { readZipText } from './audit/zipText.mjs';
+import { verifyBundledNotices } from './audit/bundledNotices.ts';
 
 if (process.platform !== 'darwin') throw Error('Mac publisher verification requires macOS.');
 const flags = process.argv.slice(2);
@@ -59,14 +60,8 @@ try {
     if ((await readFile(join(resources, 'licenses', file))).length < 1000)
       throw Error('Electron notices missing');
   const notices = await readFile(join(resources, 'out/renderer/THIRD_PARTY_NOTICES.txt'));
-  const packages = JSON.parse(
-    await readFile(join(resources, 'out/renderer/third-party-packages.json'), 'utf8'),
-  );
-  if (
-    !packages.packages.length ||
-    packages.packages.some((p: { noticeHashes: string[] }) => !p.noticeHashes.length)
-  )
-    throw Error('Missing bundled notice');
+  const packageManifest = await readFile(join(resources, 'out/renderer/third-party-packages.json'));
+  const packages = verifyBundledNotices(notices, JSON.parse(packageManifest.toString('utf8')));
   if (win) {
     const windowsZip = join('dist', win.archive.name);
     execFileSync('/usr/bin/unzip', ['-tqq', windowsZip], { stdio: 'pipe', timeout: 120000 });
@@ -74,6 +69,7 @@ try {
       ['resources/app/out/main/index.cjs', await readFile('out/main/index.cjs')],
       ['resources/app/licenses/Pi-Studio-LICENSE.txt', ownLicense],
       ['resources/app/out/renderer/THIRD_PARTY_NOTICES.txt', notices],
+      ['resources/app/out/renderer/third-party-packages.json', packageManifest],
     ] as const) {
       const bytes = await readZipText(windowsZip, 'Pi Studio/' + entry);
       if (!bytes || !Buffer.from(bytes).equals(expected))
