@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-11-16T00:51:12.934Z",
+  "baseHead": "ab68a08b2e08463f3a26e5d625a60960be7898e9",
+  "checkoutContainsUncommittedImplementation": true,
+  "sources": {
+    "bundled/update-helper/inventory.mjs": "8bdb7f9a049cad3e298bb1f046ecdba19a411030e897585fcab6a44d88c95189",
+    "bundled/update-helper/protocol.mjs": "e73fed76c3048020f8ab8155be1e17a36f3aa7139dad501488e432d8d33d8d12",
+    "bundled/update-helper/runner.mjs": "0a678fbe3a55695adc5a2e08bc30c28654004b56cac10845a7faa5c84c0940e8",
+    "bundled/update-helper/transaction.mjs": "e07d6382a7820fc101c2b2408a709af1d7fdc470785bedd2984d67f0b5fbdc35",
+    "bundled/update-helper/worker.mjs": "344973ad4d7390d3fadeea663cdef3093f7f820855b65900cf01aa09fd17a1c3",
+    "src/main/updates/NativeUpdateInstaller.ts": "a93d40fa3aa123910507192368434035c4c9bb66bea8ed5159455631b6a344d8",
+    "src/main/updates/PreparedUpdate.ts": "b469762b0c4f3cf1ca20c5b17a74e6181a8411c1c123b1161cf4b7a68578cbd9",
+    "src/main/updates/UpdateStartup.ts": "d9312c278c6d1ba8a992d86b7585d03f6aa15a6ff53861b32f7d40e91b01dba6",
+    "src/main/updates/extractUpdate.ts": "4bf13d208ef3716eb114051ed70b3e11e490f44f876515047b55ce6a236980e7",
+    "src/main/updates/privateDirectory.ts": "e3ca3fc7858d6cf88dc1a1a57f9f829db61e1b0964fdec85da5b39ab928e2eed",
+    "src/main/updates/updateRuntime.ts": "bac3d9e70ebbb637aed1eb47259a80d955c031e7d4b6e8605e4f89589aea576c",
+    "src/main/updates/verifyApplication.ts": "daacd88a037ee33563642d1eba613ae6a82036f390f9b12393a5e33aba6432e4"
+  },
+  "unitTests": {
+    "total": 295,
+    "passed": 295,
+    "failed": 0,
+    "command": "npm test"
+  },
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 400,
+  "fixtures": {
+    "actualOwnedNodeProcessesAndDirectoryRenames": true,
+    "commitAndRealOldExitRequired": true,
+    "successfulHealthAndSwap": true,
+    "cancelAndNoConsent": true,
+    "startupCrashAndTimeoutRollback": true,
+    "wedgedStartupNeverKilled": true,
+    "ownedWorkerCrashRecovered": true,
+    "durableRenameAndPartialCommitRecovered": true,
+    "unknownTargetPreserved": true,
+    "lateUserFilesPreventReplacement": true,
+    "pathBoundStartupAndUserDataOverride": true,
+    "noHealthUntilExplicitReadiness": true
+  },
+  "actualArchiveExtractionProof": "update-extraction-proof.json",
+  "offscreenUiProof": "update-ui-proof.json",
+  "nativeQuitProof": "native-quit-proof.json",
+  "installedAppVersion": "0.2.0-alpha.75",
+  "installedAppReplaced": false,
+  "studioOrCredentialsOrCanonicalSessionsAccessed": false,
+  "notYetAccepted": [
+    "Main lifecycle and Topbar integration",
+    "Frozen hydrated renderer health and view restoration",
+    "Completed-transaction cleanup and blocked-Quit recovery",
+    "Real GitHub N to N+1 installed app cycle",
+    "Native Windows x64 update cycle",
+    "Simultaneous observer or OS power failure recovery"
+  ],
+  "scope": "Source-level concrete installer/helper/startup with inert owned process fixtures plus actual signed Mac ZIP extraction. No claim of a working in-app updater in installed alpha.75.",
+  "postInventoryOrderingChangeFocusedTests": {
+    "passed": 17,
+    "failed": 0
+  }
+}

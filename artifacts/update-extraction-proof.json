@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-16T00:38:59.708Z",
+  "baseHead": "ab68a08b2e08463f3a26e5d625a60960be7898e9",
+  "checkoutHasUncommittedInstallerChanges": true,
+  "version": "0.2.0-alpha.75",
+  "sourceCommit": "cccdb0b869be9d837a450903c3880e00aeeaf52c",
+  "archive": {
+    "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip",
+    "bytes": 142268629,
+    "unpackedBytes": 318685970,
+    "sha256": "c55e5c368686be358095d618ad51195a3e7ae6cad26fbe8de39866d6e0ba15b6"
+  },
+  "ed25519Verified": true,
+  "streamedArchiveHashVerified": true,
+  "entryCrcsVerified": true,
+  "safeSymlinksAndModesPreserved": true,
+  "extractedDeepStrictSignatureAndPublisherVerified": true,
+  "bundleIdAndArchitectureVerified": true,
+  "temporaryStagingRemoved": true,
+  "installedApplicationMutated": false,
+  "guiProcessesStarted": 0,
+  "studioOrSessionAccess": false,
+  "scope": "Signed release ZIP fully extracted with production code and checked against the installed publisher; not a GitHub-to-installed update or Windows acceptance."
+}

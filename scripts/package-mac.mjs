@@ -5,6 +5,7 @@ import { constants } from 'node:fs';
 import { homedir } from 'node:os';
 import { packageCua } from './package-cua.mjs';
 import { verifyClaudePackage } from './verify-claude-package.mjs';
+import { writeInventory, verifyInventory } from '../bundled/update-helper/inventory.mjs';
 
 if (process.platform !== 'darwin') throw new Error('Packaging Pi Studio requires macOS.');
 const signingIdentity = process.env.PI_STUDIO_SIGN_IDENTITY?.trim();
@@ -91,6 +92,9 @@ await cp(join(root, 'bundled/pi-claude-code'), join(application, 'bundled/pi-cla
 await cp(join(root, 'bundled/pi-runtime'), join(application, 'bundled/pi-runtime'), {
   recursive: true,
 });
+await cp(join(root, 'bundled/update-helper'), join(application, 'bundled/update-helper'), {
+  recursive: true,
+});
 await writeFile(
   join(application, 'package.json'),
   `${JSON.stringify(
@@ -118,6 +122,7 @@ for (const [key, value] of Object.entries({
   NSAppleEventsUsageDescription: 'Pi Studio открывает диалоги Pi в одном окне Terminal.',
 }))
   execFileSync('/usr/bin/plutil', ['-replace', key, '-string', value, plist]);
+await writeInventory(bundle, 'darwin');
 // Source media can carry Finder metadata; strip it only from the generated distribution copy.
 execFileSync('/usr/bin/xattr', ['-cr', bundle]);
 for (const binary of cuaBinaries)
@@ -128,6 +133,7 @@ execFileSync('/usr/bin/codesign', ['--force', '--deep', '--sign', signingIdentit
   stdio: 'inherit',
 });
 execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', bundle], { stdio: 'inherit' });
+await verifyInventory(bundle, 'darwin');
 const signature = spawnSync('/usr/bin/codesign', ['-d', '-r-', bundle], { encoding: 'utf8' });
 const requirement = `${signature.stdout}\n${signature.stderr}`;
 if (

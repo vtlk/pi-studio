@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { packageCua } from './package-cua.mjs';
 import { verifyClaudePackage } from './verify-claude-package.mjs';
+import { writeInventory, verifyInventory } from '../bundled/update-helper/inventory.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -59,7 +60,7 @@ try {
   const application = join(bundle, 'resources/app');
   await mkdir(join(application, 'licenses'), { recursive: true });
   await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
-  for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code'])
+  for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code', 'update-helper'])
     await cp(join(root, 'bundled', name), join(application, 'bundled', name), { recursive: true });
   for (const name of ['yaml', 'saxes', 'xmlchars', 'jsonc-parser', 'semver', 'yauzl', 'pend'])
     await cp(join(root, 'node_modules', name), join(application, 'node_modules', name), {
@@ -136,6 +137,8 @@ try {
   if (!files.some((name) => name.endsWith('.dll')) || !files.some((name) => name.endsWith('.node')))
     throw Error('Missing Windows native runtime.');
   const output = join(root, 'dist', `Pi-Studio-${metadata.version}-win-x64.zip`);
+  await writeInventory(bundle, 'win32');
+  await verifyInventory(bundle, 'win32');
   await mkdir(join(root, 'dist'), { recursive: true });
   await rm(output, { force: true });
   if (process.platform === 'win32')

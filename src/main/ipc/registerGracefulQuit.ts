@@ -3,7 +3,7 @@ import { app } from 'electron';
 /** Keep the event channel alive for Pi's final numeric accounting acknowledgement. */
 export function registerGracefulQuit(
   runs: { drain(): Promise<void> }[],
-  controllers: { close(): void }[],
+  controllers: { close(): void | Promise<void> }[],
 ) {
   let draining = false,
     finished = false;
@@ -13,14 +13,12 @@ export function registerGracefulQuit(
     event.preventDefault();
     if (draining) return;
     draining = true;
-    void Promise.allSettled(runs.map((run) => run.drain())).finally(() => {
-      for (const controller of controllers) {
-        try {
-          controller.close();
-        } catch {
-          /* Other owned processes still need closing. */
-        }
-      }
+    void Promise.allSettled(runs.map((run) => run.drain())).finally(async () => {
+      // Wait for asynchronous cleanup attempts too; every owned controller is attempted.
+      // A cancellation that must veto quit belongs in a pre-close admission guard.
+      await Promise.allSettled(
+        controllers.map((controller) => Promise.resolve().then(() => controller.close())),
+      );
       finished = true;
       // Electron is still unwinding the cancelled native quit inside this microtask.
       // A reentrant quit is ignored; resume on the next event-loop turn instead.

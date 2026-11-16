@@ -15,6 +15,7 @@ import { managedPiPath, piEnvironment } from './platform.ts';
 import { powershellArguments, powershellLiteral, windowsPowershell } from './windowsShell.ts';
 
 type Progress = (state: StartupState) => void;
+export { command as runtimeCommand, downloadNode as downloadNodeRuntime };
 export function validateRuntimeLock(manifest: unknown, lock: unknown) {
   const object = (value: unknown): Record<string, unknown> => {
     if (!value || typeof value !== 'object' || Array.isArray(value))

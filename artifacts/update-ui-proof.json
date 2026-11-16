@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-15T23:34:05.781Z",
+  "checkedAt": "2026-11-16T00:46:48.906Z",
   "scope": "Actual feature provider/shared UI and production preload in an isolated offscreen Electron window; controlled update state only, not a native installer or app lifecycle integration.",
   "noOfferNoIcon": true,
   "keyboardOpen": true,

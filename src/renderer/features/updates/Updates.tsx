@@ -49,8 +49,9 @@ export function UpdatesProvider({ children }: { children: ReactNode }) {
       }
     };
     void poll();
+    // Consent remains active in the background; hidden windows must still flush/ack readiness.
     const timer = setInterval(() => {
-      if (!document.hidden) void poll();
+      void poll();
     }, 500);
     return () => {
       alive.current = false;
