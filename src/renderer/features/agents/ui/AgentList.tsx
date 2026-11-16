@@ -2,6 +2,7 @@ import { uiText } from '@/shared/model/UiText';
 import { agentName } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
+import type { TeamWorkspaceMode } from '../../../../shared/agentTeams';
 import { useState } from 'react';
 import { FileInput, FileOutput, Pencil, Trash2 } from 'lucide-react';
 import { TeamIcon } from './TeamIcon';
@@ -54,7 +55,11 @@ export function AgentList() {
   const { demo } = useNotice();
   const { confirm } = useConfirm();
   const transfer = useTeamTransfers();
-  const [naming, setNaming] = useState<{ id?: string; name?: string } | null>(null);
+  const [naming, setNaming] = useState<{
+    id?: string;
+    name?: string;
+    workspaceMode?: TeamWorkspaceMode;
+  } | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -78,9 +83,11 @@ export function AgentList() {
               actions={
                 <>
                   <IconButton
-                    title={t('AgentList.renameTeam', { value1: team.name })}
+                    title={t('AgentList.settingsForTeam', { value1: team.name })}
                     className="team-rename"
-                    onClick={() => setNaming({ id: team.id, name: team.name })}
+                    onClick={() =>
+                      setNaming({ id: team.id, name: team.name, workspaceMode: team.workspaceMode })
+                    }
                   >
                     <Pencil size={16} />
                   </IconButton>
@@ -174,10 +181,11 @@ export function AgentList() {
       {naming && (
         <TeamNameDialog
           name={naming.name}
+          workspaceMode={naming.workspaceMode}
           onClose={() => setNaming(null)}
-          onSave={(name) => {
-            if (naming.id) renameTeam(naming.id, name);
-            else addTeam(name);
+          onSave={(name, workspaceMode) => {
+            if (naming.id) renameTeam(naming.id, name, workspaceMode);
+            else addTeam(name, workspaceMode);
           }}
         />
       )}
@@ -199,7 +207,7 @@ export function AgentList() {
               data-enabled={agent.enabled}
               aria-label={t('AgentList.summary', {
                 value1: agentName(agent) || t('AgentList.untitled'),
-                value2: agent.enabled ? t('AgentList.enabled') : t('reasoning.off'),
+                value2: agent.enabled ? t('AgentList.enabled') : t('AgentList.disabled'),
               })}
               aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
               onClick={() => setAgentId(agent.id)}

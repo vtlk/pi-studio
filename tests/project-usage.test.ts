@@ -284,11 +284,14 @@ test('actual project CRUD, archive/undo, dialogue reset and reopening preserve i
   const expected = store.accounting.summary(project.id)!.total;
   const other = await store.command({ kind: 'create', name: 'Unrelated', agents: profiles });
   assert.equal(store.accounting.summary(other.selectedId!)!.total.tokens.input.value, 0);
-  await writeFile(join(directory, 'agents/a/sessions/history.jsonl'), 'Fixture canonical dialogue');
+  await writeFile(
+    join(directory, '.pistudio/sessions/a/history.jsonl'),
+    'Fixture canonical dialogue',
+  );
   await store.projects.updateRuntime(project.id, 'a', 'waiting', {
     id: 'history',
     title: 'A',
-    path: 'agents/a/sessions/history.jsonl',
+    path: '.pistudio/sessions/a/history.jsonl',
     createdAt: 1,
   });
   await deleteAgentData(

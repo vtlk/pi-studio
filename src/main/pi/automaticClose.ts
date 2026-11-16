@@ -112,7 +112,7 @@ export function closeSuccessfulRun(
       check();
       await handle?.close();
       check();
-      const lock = join(run.record.cwd, '.pistudio-session-lock.json');
+      const lock = join(run.record.leaseDirectory ?? run.record.cwd, '.pistudio-session-lock.json');
       try {
         const lease = (await readJson(lock)) as { runId?: string; pid?: number };
         if (lease.runId === run.record.runId && lease.pid === pid) await rm(lock, { force: true });

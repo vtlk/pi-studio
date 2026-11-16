@@ -1,6 +1,6 @@
 import { t } from '../../shared/i18n/index.ts';
 import type { WorkspaceProject } from '../../shared/project.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import { agentRuntimeDirectory } from '../../shared/agentPaths.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { isMissing, readJson, safePath } from './files.ts';
@@ -50,7 +50,7 @@ export async function assertProjectSessionsClosed(project: WorkspaceProject, roo
     ...project.agents,
     ...(project.archivedAgents ?? []).map((item) => item.agent),
   ]) {
-    const cwd = await safePath(root, agentDirectory(agent.outputPath), true);
+    const cwd = await safePath(root, agentRuntimeDirectory(agent), true);
     if (await hasLiveSessionLease(cwd))
       throw new Error(t('error.sessionLease.anotherPiProcessIsStill'));
   }

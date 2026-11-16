@@ -134,14 +134,13 @@ test('setup tools change only current constructor/catalog links and never snapsh
     }),
     /отсутствует в каталоге/,
   );
-  await assert.rejects(
-    admin.call(run, 'assign_resource', {
-      agentId: created.agentId,
-      resourceId: 'pistudio-administration',
-      kind: 'mcps',
-    }),
-    /отсутствует/,
-  );
+  await admin.call(run, 'assign_resource', {
+    agentId: created.agentId,
+    resourceId: 'pistudio-administration',
+    kind: 'mcps',
+  });
+  assert.equal((store.bootstrap().sections.agents as Agent[])
+    .find((agent) => agent.id === created.agentId)!.mcps.includes('pistudio-administration'), true);
   assert.deepEqual((await store.projects.read(project.id)).agents, snapshot);
   const metadata = JSON.stringify(await admin.call(run, 'list_configuration', {}));
   assert.equal(metadata.includes('Changed current role'), false);
@@ -157,7 +156,7 @@ test('setup tools change only current constructor/catalog links and never snapsh
     }),
   );
   await service.open(join(root, 'another-studio'));
-  await assert.rejects(admin.call(run, 'configure_agent', { name: 'Wrong scope' }), /другой папке/);
+  await assert.rejects(admin.call(run, 'configure_agent', { name: 'Wrong scope' }), /не назначен|отключён/);
   assert.deepEqual((await service.load()).bootstrap().sections.agents, []);
 });
 test('administrative tools are scoped separately from every production lease', () => {

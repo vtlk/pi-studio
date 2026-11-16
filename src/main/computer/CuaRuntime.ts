@@ -1,6 +1,12 @@
 import { t } from '../../shared/i18n/index.ts';
 import type { CuaDriverLike, ToolResult } from '@trycua/cua-driver';
 import type { SessionTool } from '../pi/RunChannel.ts';
+import { CursorGeometry, computerPayload } from './CursorGeometry.ts';
+import {
+  computerActionLabels,
+  computerAgentLabel,
+  type ComputerFeedback,
+} from './ComputerFeedback.ts';
 
 export interface ComputerResult {
   content: ({ type: 'text'; text: string } | { type: 'image'; mimeType: string; data: string })[];
@@ -47,9 +53,36 @@ export class CuaRuntime {
   private readonly sessions = new Set<string>();
   private tail: Promise<unknown> = Promise.resolve();
   private closed = false;
+  private readonly labels = new Map<string, string>();
+  private readonly geometry = new CursorGeometry();
+  private feedback?: ComputerFeedback;
+  private readonly options: {
+    feedback?: ComputerFeedback;
+    driver?: () => Promise<CuaDriverLike>;
+  };
+  constructor(
+    options: { feedback?: ComputerFeedback; driver?: () => Promise<CuaDriverLike> } = {},
+  ) {
+    this.options = options;
+    this.feedback = options.feedback;
+  }
+  identify(session: string, agentName: string) {
+    this.labels.set(session, computerAgentLabel(agentName));
+  }
+  private async present(action: (feedback: ComputerFeedback) => void | Promise<void>) {
+    if (!this.feedback) return;
+    try {
+      await action(this.feedback);
+    } catch {
+      // A broken presentation surface must be removed, never change tool delivery/focus.
+      this.feedback.close();
+      this.feedback = undefined;
+    }
+  }
   private driver() {
     if (this.closed) throw new Error(t('error.cuaRuntime.computerUseIsClosed'));
     this.loading ??= (async () => {
+      if (this.options.driver) return this.options.driver();
       const sdk = await import('@trycua/cua-driver');
       return sdk.CuaDriver.createConfigured(
         sdk.ConfiguredDriverOptions.new({
@@ -135,58 +168,129 @@ export class CuaRuntime {
           content: [{ type: 'text', text: JSON.stringify(await this.permissions()) }],
         } as ComputerResult;
       const permissions = await this.permissions();
-      if (!permissions.accessibility || !permissions.screenRecording)
+      if (!permissions.accessibility || !permissions.screenRecording) {
+        this.feedback?.release(session);
         return error(
           process.platform === 'win32'
             ? 'Computer Use не подтвердил доступ к рабочему столу Windows. Проверьте сведения MCP и доступ текущей учётной записи. Действие не выполнено.'
             : 'Разрешите Pi Studio управление компьютером и запись экрана в настройках macOS. Изменение разрешений выполняется пользователем в Studio; затем перезапустите приложение.',
         );
+      }
       const driver = await this.driver();
       // Native sessions expire while Pi waits for user input. Revive only our own private label.
       const sdk = await import('@trycua/cua-driver');
       await driver.startSession(sdk.StartSessionInput.new({ session }), { signal });
       this.sessions.add(session);
       signal.throwIfAborted();
-      const result = await driver.callTool(
-        name,
-        JSON.stringify({
-          ...args,
-          ...(inputs.has(name) && 'delivery_mode' in properties
-            ? { delivery_mode: args.delivery_mode ?? 'background' }
-            : {}),
-          session,
-        }),
-        { signal },
-      );
-      const response = this.result(result);
-      if (
-        inputs.has(name) &&
-        !signal.aborted &&
-        typeof args.pid === 'number' &&
-        typeof args.window_id === 'number'
-      ) {
-        const observed = await driver
-          .callTool(
-            'get_window_state',
-            JSON.stringify({
-              pid: args.pid,
-              window_id: args.window_id,
+      const clearFeedback = () => this.feedback?.release(session);
+      signal.addEventListener('abort', clearFeedback, { once: true });
+      let completed = false;
+      try {
+        await this.present((feedback) =>
+          feedback.begin(
+            session,
+            this.labels.get(session) ?? 'Агент',
+            computerActionLabels[name] ?? 'Использует компьютер',
+            name,
+          ),
+        );
+        signal.throwIfAborted();
+        // Our windows must not enter native capture, visibility/occlusion checks or app discovery.
+        await this.present((feedback) => feedback.suspend());
+        let point: import('../../shared/computerFeedback.ts').ComputerPoint | undefined;
+        let endPoint: typeof point;
+        if (
+          inputs.has(name) &&
+          this.feedback &&
+          typeof args.pid === 'number' &&
+          typeof args.window_id === 'number'
+        ) {
+          const listed = await driver
+            .callTool('list_windows', JSON.stringify({ pid: args.pid, session }), { signal })
+            .catch(() => undefined);
+          const windows = computerPayload(listed?.structuredJson)?.windows;
+          const window = Array.isArray(windows)
+            ? windows.find((item) => item?.pid === args.pid && item?.window_id === args.window_id)
+            : undefined;
+          point = this.geometry.point(session, args, window);
+          endPoint = name === 'drag' ? this.geometry.point(session, args, window, true) : point;
+          await this.present((feedback) => feedback.pointer(session, point));
+        }
+        signal.throwIfAborted();
+        // Ask for structured frames in the SAME snapshot: an extra AX read would stale tokens.
+        const enrichedTree =
+          this.feedback &&
+          name === 'get_window_state' &&
+          args.include_accessibility_tree !== false &&
+          args.tree_format !== 'elements' &&
+          args.tree_format !== 'both' &&
+          !args.full_output;
+        const result = await driver.callTool(
+          name,
+          JSON.stringify({
+            ...args,
+            ...(enrichedTree ? { tree_format: 'both' } : {}),
+            ...(inputs.has(name) && 'delivery_mode' in properties
+              ? { delivery_mode: args.delivery_mode ?? 'background' }
+              : {}),
+            session,
+          }),
+          { signal },
+        );
+        if (name === 'get_window_state')
+          this.geometry.observe(session, computerPayload(result.structuredJson));
+        const response = this.result(result);
+        if (
+          inputs.has(name) &&
+          !signal.aborted &&
+          typeof args.pid === 'number' &&
+          typeof args.window_id === 'number'
+        ) {
+          const observed = await driver
+            .callTool(
+              'get_window_state',
+              JSON.stringify({
+                pid: args.pid,
+                window_id: args.window_id,
+                session,
+                include_screenshot: true,
+                include_accessibility_tree: false,
+                max_image_dimension: 1280,
+              }),
+              { signal },
+            )
+            .catch(() => undefined);
+          if (observed && !observed.isError)
+            response.content.push(...this.result(observed).content);
+          else
+            response.content.push({
+              type: 'text',
+              text: 'Свежий снимок после действия недоступен. Исход не подтверждён; автоматического повтора нет.',
+            });
+          this.geometry.observe(session, computerPayload(observed?.structuredJson));
+        }
+        if (!signal.aborted && !this.closed) {
+          const payload = computerPayload(result.structuredJson);
+          const accepted =
+            !result.isError && payload?.effect !== 'refused' && !payload?.refusal && !payload?.code;
+          await this.present((feedback) =>
+            feedback.pointer(
               session,
-              include_screenshot: true,
-              include_accessibility_tree: false,
-              max_image_dimension: 1280,
-            }),
-            { signal },
-          )
-          .catch(() => undefined);
-        if (observed && !observed.isError) response.content.push(...this.result(observed).content);
-        else
-          response.content.push({
-            type: 'text',
-            text: 'Свежий снимок после действия недоступен. Исход не подтверждён; автоматического повтора нет.',
-          });
+              accepted ? endPoint : undefined,
+              accepted && name === 'click' && !!endPoint,
+            ),
+          );
+        }
+        completed = true;
+        return response;
+      } finally {
+        signal.removeEventListener('abort', clearFeedback);
+        if (!completed || signal.aborted || this.closed) clearFeedback();
+        else {
+          await this.present((feedback) => feedback.resume());
+          this.feedback?.finish(session);
+        }
       }
-      return response;
     });
     this.tail = task.catch(() => {});
     return task;
@@ -205,6 +309,9 @@ export class CuaRuntime {
     };
   }
   release(session: string) {
+    this.labels.delete(session);
+    this.geometry.release(session);
+    this.feedback?.release(session);
     const task = this.tail.then(async () => {
       if (!this.sessions.delete(session) || !this.loading) return;
       const sdk = await import('@trycua/cua-driver');
@@ -215,6 +322,8 @@ export class CuaRuntime {
   }
   async close() {
     this.closed = true;
+    this.feedback?.close();
+    this.labels.clear();
     await this.tail;
     if (this.loading) {
       const driver = await this.loading.catch(() => undefined);

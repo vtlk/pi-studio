@@ -17,7 +17,7 @@ export const browserMcp: Resource = {
   source: 'builtin:browser',
   version: 'agent-browser 0.43.0',
   description:
-    'Визуальное управление отдельным локальным браузером: снимки, координатные действия, ввод и вкладки. Профиль закреплён за диалогом Pi. Нужна модель с поддержкой изображений; компоненты устанавливаются отдельно.',
+    'Управление отдельными локальными браузерами без окна или с видимым окном на Mac: снимки, файлы/PDF, вкладки, диагностика и эмуляция окружения. MCP управляет изолированными сессиями с сохранением входа. Нужна модель с поддержкой изображений; компоненты устанавливаются отдельно.',
 };
 export const computerMcp: Resource = {
   ...builtinBase,
@@ -37,7 +37,6 @@ export const teamMcp: Resource = {
   description:
     'Агенты своей команды в текущем проекте: чтение настроек и результатов, передача сообщений в точный диалог. Назначается явно; вне проекта недоступен.',
 };
-export const optionalBuiltinMcps = [teamMcp];
 export function hasTeamMcp(agent: Pick<Agent, 'mcps' | 'capabilitySettings'>) {
   return (
     agent.mcps.includes(teamMcpId) &&
@@ -62,9 +61,12 @@ export const builtinResources: readonly Resource[] = [
     name: 'Pi Studio · Ресурсы и агенты',
     source: 'builtin:administration',
     description:
-      'Административные инструменты помощника настройки: каталог, подключения, навыки, MCP, пакеты и настройки агентов. Закреплён за помощником и не выдаётся проектным агентам.',
+      'Административные инструменты: каталог, подключения, навыки, MCP, пакеты и настройки агентов. Закреплён за помощником настройки; обычному агенту доступен только после явного назначения.',
   },
 ];
+export const optionalBuiltinMcps = builtinResources.filter(
+  (resource) => resource.id !== 'pistudio-project',
+);
 export function reservedMcpName(name: string) {
   return ['pi_studio', 'pi_studio_browser', 'pi_studio_computer', 'team'].includes(
     name.replaceAll('-', '_'),

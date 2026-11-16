@@ -1,4 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
+import { projectAgentOutputPath } from '../../shared/agentPaths.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { clipboard, shell, type IpcMainInvokeEvent } from 'electron';
 import { lstat } from 'node:fs/promises';
@@ -74,7 +75,11 @@ export function registerProjectActions(
         const project = store.bootstrap().projects.find((item) => item.id === request.projectId);
         const agent = project?.agents.find((item) => item.profile.id === request.agentId);
         if (!agent) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
-        const path = await safePath(await store.projects.directory(project!.id), agent.outputPath);
+        const root = await store.projects.directory(project!.id);
+        const path =
+          project!.workspaceMode === 'shared'
+            ? root
+            : await safePath(root, projectAgentOutputPath(project!, agent));
         if (!(await lstat(path)).isDirectory())
           throw new Error(t('error.registerProjectActions.agentOutputFolderMissing'));
         shell.showItemInFolder(path);

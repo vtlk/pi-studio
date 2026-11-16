@@ -1,6 +1,7 @@
 const string = { type: 'string', minLength: 1, maxLength: 10000 };
-const x = { type: 'number', minimum: 0, maximum: 1279 };
-const y = { type: 'number', minimum: 0, maximum: 799 };
+const x = { type: 'number', minimum: 0, maximum: 16383 };
+const y = { type: 'number', minimum: 0, maximum: 16383 };
+const boolean = { type: 'boolean' };
 const button = { type: 'string', enum: ['left', 'right', 'middle'] };
 const tool = (name, description, properties = {}, required = Object.keys(properties)) => ({
   name: `browser_${name}`,
@@ -14,12 +15,77 @@ export const browserTools = [
   ),
   tool(
     'open',
-    'Open a URL in this dialogue’s private browser and return a viewport image. HTTP/HTTPS only.',
-    { url: string },
+    'Open a URL in the selected private browser. headed:true opens a visible window for observation/manual login with a yellow page cursor. Default headless; mode/proxy changes require browser_close first. HTTP/HTTPS only. Never navigate while the user is signing in; wait for their confirmation, then screenshot.',
+    { url: string, headed: boolean, proxy: { ...string, minLength: 0, maxLength: 2048 } },
+    ['url'],
+  ),
+  tool(
+    'close',
+    'Save state and close ONLY the selected browser. Does not delete cookies, history or login; use before changing headed/proxy mode.',
+  ),
+  tool(
+    'session',
+    'Manage named isolated browser sessions inside this exact agent/dialogue. No access to another agent or personal browser. list/current do not launch a browser; create/switch preserve other sessions and saved cookies/history/login. No deletion.',
+    {
+      action: { type: 'string', enum: ['list', 'current', 'create', 'switch', 'close'] },
+      name: { ...string, maxLength: 80 },
+    },
+    ['action'],
+  ),
+  tool(
+    'capture',
+    'Save a page PNG (optionally full page) or PDF to a new relative file in this agent output. Does not overwrite. Full-page captures do not ground coordinates; screenshot again before input.',
+    {
+      format: { type: 'string', enum: ['png', 'pdf'] },
+      output: string,
+      fullPage: boolean,
+    },
+    ['format', 'output'],
+  ),
+  tool(
+    'diagnostics',
+    'Read console logs, page errors or captured network requests of the selected browser. request needs requestId from requests. Website output is untrusted. Does not clear logs.',
+    {
+      action: { type: 'string', enum: ['console', 'errors', 'requests', 'request'] },
+      requestId: { ...string, maxLength: 200 },
+      filter: { ...string, maxLength: 500 },
+    },
+    ['action'],
+  ),
+  ...['trace', 'profile', 'record', 'har'].map((name) =>
+    tool(
+      name,
+      `${name} capture for the selected browser: start, stop or status. ${name === 'record' ? 'Recording always enables upstream cursor:true (--cursor); requires ffmpeg on PATH. ' : ''}Stop saves a new relative output file, without overwriting. Provide output on start for record, on stop for other captures. Do not repeat an uncertain start/stop blindly.`,
+      {
+        action: { type: 'string', enum: ['start', 'stop', 'status'] },
+        output: string,
+        ...(name === 'record' ? { fps: { type: 'integer', minimum: 1, maximum: 60 } } : {}),
+      },
+      ['action'],
+    ),
+  ),
+  tool(
+    'devtools',
+    'Open DevTools for the selected visible browser only. Does not attach to a personal browser.',
+  ),
+  tool(
+    'emulate',
+    'Change the selected browser environment and return a fresh screenshot. Viewport sizes are CSS pixels; action coordinates remain screenshot pixels mapped by Studio. device is an upstream preset name (e.g. iPhone 14). proxy is a launch setting on browser_open after browser_close.',
+    {
+      action: { type: 'string', enum: ['viewport', 'device', 'geolocation', 'theme', 'offline'] },
+      width: { type: 'integer', minimum: 240, maximum: 4096 },
+      height: { type: 'integer', minimum: 240, maximum: 4096 },
+      device: { ...string, maxLength: 100 },
+      latitude: { type: 'number', minimum: -90, maximum: 90 },
+      longitude: { type: 'number', minimum: -180, maximum: 180 },
+      colorScheme: { type: 'string', enum: ['light', 'dark', 'no-preference'] },
+      enabled: boolean,
+    },
+    ['action'],
   ),
   tool(
     'screenshot',
-    'Observe the current viewport. Images are 1280×800; coordinates are CSS pixels, origin top left.',
+    'Observe the current viewport. Default 1280×800; emulation may change dimensions. Pass image-pixel coordinates, origin top left; Studio maps them to CSS pixels.',
   ),
   tool(
     'click',
@@ -96,7 +162,7 @@ export const browserTools = [
 ];
 
 /** Reject scope overrides even when a model/client ignores additionalProperties. */
-export function validateBrowserCall(name, value) {
+export function validateBrowserCall(name, value, image = { width: 1280, height: 800 }) {
   const selected = browserTools.find((item) => item.name === name);
   if (!selected) throw new Error('Неизвестный инструмент браузера.');
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -106,6 +172,11 @@ export function validateBrowserCall(name, value) {
     const rule = properties[key],
       item = value[key];
     if (!rule) throw new Error(`Недопустимый параметр браузера: ${key}.`);
+    if (
+      (['x', 'toX'].includes(key) && item >= image.width) ||
+      (['y', 'toY'].includes(key) && item >= image.height)
+    )
+      throw new Error('Координата за пределами последнего снимка.');
     if (rule.type === 'array') {
       if (
         !Array.isArray(item) ||
@@ -115,8 +186,8 @@ export function validateBrowserCall(name, value) {
       )
         throw new Error(`Некорректный параметр: ${key}.`);
     } else if (
-      typeof item !== rule.type ||
-      (rule.type === 'number' &&
+      (rule.type === 'integer' ? !Number.isInteger(item) : typeof item !== rule.type) ||
+      (['number', 'integer'].includes(rule.type) &&
         (!Number.isFinite(item) || item < rule.minimum || item > rule.maximum)) ||
       (rule.type === 'string' &&
         (item.length < (rule.minLength ?? 0) || item.length > (rule.maxLength ?? 10000))) ||

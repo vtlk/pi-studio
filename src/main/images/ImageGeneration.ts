@@ -1,4 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
+import { projectAgentOutputPath } from '../../shared/agentPaths.ts';
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
@@ -183,7 +184,9 @@ export class ImageGeneration {
           : undefined;
         if (!previous.path || !saved || saved.sha256 !== previous.sha256)
           throw new Error(
-            t('error.imageGeneration.theResultOfOperationWas', { value1: previous.id }),
+            t('error.imageGeneration.theResultOfOperationWas', {
+              value1: previous.id,
+            }),
           );
         return {
           operationId: previous.id,
@@ -196,14 +199,17 @@ export class ImageGeneration {
       }
       if (previous?.requestId === requestId && previous.state === 'failed')
         throw new Error(
-          t('error.imageGeneration.theApiRejectedOperationFix', { value1: previous.id }),
+          t('error.imageGeneration.theApiRejectedOperationFix', {
+            value1: previous.id,
+          }),
         );
       const authorization = await this.connections.authorization({
         folder: binding.folder,
         connectionId: configuration.connectionId,
       });
       credentialRevision = authorization.revision;
-      await safePath(run.projectRoot, run.agent.outputPath);
+      if (run.project.workspaceMode !== 'shared')
+        await safePath(run.projectRoot, run.agent.outputPath);
       this.binding(run);
       operation = {
         id: randomUUID(),
@@ -233,7 +239,7 @@ export class ImageGeneration {
         .catch(() => {});
       operation.state = 'save_failed';
       const filename = `image-${operation.id}.png`,
-        path = `${run.agent.outputPath}/${filename}`;
+        path = [projectAgentOutputPath(run.project, run.agent), filename].filter(Boolean).join('/');
       const file = await open(
         await safePath(run.projectRoot, path, true),
         constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,

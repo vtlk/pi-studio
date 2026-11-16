@@ -4,12 +4,14 @@ import { randomUUID } from 'node:crypto';
 import { CuaRuntime } from './CuaRuntime.ts';
 import { cuaVersion, type ComputerState } from '../../shared/computer.ts';
 import { computerMcp } from '../../shared/builtinResources.ts';
+import { hasBuiltinMcp } from '../../shared/builtinAssignments.ts';
 import { atomicJson } from '../storage/files.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import type { ResourceCheck } from '../../shared/resources.ts';
 import type { SessionMcpGroup, SessionMcpResult, SessionTool } from '../pi/RunChannel.ts';
 
-type Runtime = Pick<CuaRuntime, 'tools' | 'permissions' | 'call' | 'release' | 'close'>;
+type Runtime = Pick<CuaRuntime, 'tools' | 'permissions' | 'call' | 'release' | 'close'> &
+  Partial<Pick<CuaRuntime, 'identify'>>;
 const statusTool: SessionTool = {
   name: 'check_permissions',
   description:
@@ -60,17 +62,20 @@ export class ComputerSupport {
       checkedAt: Date.now(),
     };
   }
-  async bind(run: PreparedRun, visual: boolean) {
+  async bind(run: PreparedRun, visual: boolean, allowed?: () => Promise<boolean>) {
+    if (!hasBuiltinMcp(run.agent.profile, computerMcp.id)) return;
     if (this.closing || this.bindings.has(run.record.runId))
       throw new Error(t('error.computerSupport.computerUseTheDialogueIs'));
     const tools = await this.runtime.tools().catch(() => [statusTool]);
     if (this.closing) throw new Error(t('error.computerSupport.computerUseIsClosing'));
     const controller = new AbortController(),
       session = `studio-${randomUUID()}`;
+    this.runtime.identify?.(session, run.agent.profile.name);
     const group: SessionMcpGroup = {
       name: 'pi_studio_computer',
       tools: visual ? tools : [statusTool],
       call: async (name, args, requestSignal) => {
+        if (allowed && !(await allowed())) return failed(t('builtin.assignmentDisabled'));
         if (controller.signal.aborted || this.closing)
           return failed('Диалог Computer Use закрыт. Запрос не выполнен.');
         if (name === 'check_permissions') {

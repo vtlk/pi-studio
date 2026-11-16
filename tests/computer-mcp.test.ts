@@ -196,7 +196,7 @@ test('Computer Use binds private sessions without permissions or image support b
     enabled: true,
     instructions: [],
     skills: [],
-    mcps: [],
+    mcps: ['pistudio-project', 'pistudio-computer'],
     plugins: [],
     model: { connectionId: 'qa', provider: 'qa', id: 'qa', reasoning: 'off', temperature: '' },
   };

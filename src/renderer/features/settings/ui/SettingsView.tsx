@@ -16,6 +16,7 @@ import type { CapabilityKind } from '@/entities/studio/types';
 import { useStorage, useStoredState } from '@/shared/storage/Storage';
 import type { PiCheck } from '../../../../shared/contracts';
 import { TeamTransferPanel } from '@/features/agents/ui/TeamTransferPanel';
+import { useNavigation } from '@/shared/model/Navigation';
 
 function LegacyRules() {
   useTranslation(undefined, { i18n });
@@ -36,7 +37,7 @@ export function SettingsView() {
   useTranslation(undefined, { i18n });
   const coreTools = useCoreTools();
   const { demo } = useNotice();
-  const [section, setSection] = useState('workspace');
+  const { settingsSection: section, setSettingsSection: setSection } = useNavigation();
   const { bootstrap, isDesktop, openStudio, chooseStudio, saving } = useStorage();
   const [folder, setFolder] = useState(bootstrap?.folder ?? '');
   const [pi, setPi] = useStoredState('piPath', '');

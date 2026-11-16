@@ -26,7 +26,11 @@ export async function referenceImage(path: string, type: string): Promise<Buffer
         });
         image = nativeImage.createFromPath(target);
       } catch {
-        throw new Error(t('error.referenceImage.couldNotConvertToPng', { value1: type }));
+        throw new Error(
+          t('error.referenceImage.couldNotConvertToPng', {
+            value1: type,
+          }),
+        );
       } finally {
         await rm(directory, { recursive: true, force: true });
       }

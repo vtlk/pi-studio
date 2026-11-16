@@ -1,4 +1,6 @@
 import { t } from '../../shared/i18n/index.ts';
+import { isSharedTaskPath } from '../../shared/agentPaths.ts';
+import { outputScope } from './outputScope.ts';
 import { readdir, lstat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { OutputEntry, OutputFile } from '../../shared/project.ts';
@@ -48,7 +50,7 @@ export async function scanOutputs(
   let directory: string;
   let children;
   try {
-    directory = await safePath(root, relative);
+    directory = relative ? await safePath(root, relative) : root;
     children = await readdir(directory, { withFileTypes: true });
   } catch (error) {
     if (disappeared(error)) return [];
@@ -58,7 +60,8 @@ export async function scanOutputs(
   for (const entry of children) {
     if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
     if (--budget.remaining < 0) throw new Error(t('error.outputs.thereAreMoreThanOutput'));
-    const diskPath = `${relative}/${entry.name}`;
+    const diskPath = [relative, entry.name].filter(Boolean).join('/');
+    if (!relative && !isSharedTaskPath(diskPath)) continue;
     let stat;
     try {
       const path = await safePath(root, diskPath);
@@ -89,8 +92,7 @@ export async function scanOutputs(
 }
 export async function loadOutput(root: string, relative: string): Promise<OutputFile> {
   try {
-    if (!/^agents\/[a-zA-Z0-9_-]+\/output\/.+/.test(relative))
-      throw new Error(t('error.outputs.outsideAgentOutput'));
+    await outputScope(root, relative);
     const path = await safePath(root, relative);
     const stat = await lstat(path);
     if (!stat.isFile()) throw new Error(t('error.outputs.theSelectedPathIsNot'));

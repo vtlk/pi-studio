@@ -216,7 +216,9 @@ export class BrowserAuth {
             message:
               typeof event.deviceCode === 'string' &&
               /^[a-zA-Z0-9 -]{1,100}$/.test(event.deviceCode)
-                ? t('error.browserAuth.enterCodeInTheBrowser', { value1: event.deviceCode })
+                ? t('error.browserAuth.enterCodeInTheBrowser', {
+                    value1: event.deviceCode,
+                  })
                 : t('error.browserAuth.confirmSignInInThe'),
           };
       } else if (event.type === 'prompt' && typeof event.id === 'string') {
@@ -289,7 +291,11 @@ export class BrowserAuth {
   cancel(id: string) {
     const login = this.logins.get(id);
     if (!login || !['opening', 'waiting', 'verifying'].includes(login.state.phase)) return;
-    login.state = { id, phase: 'cancelled', message: t('error.browserAuth.signInCancelled') };
+    login.state = {
+      id,
+      phase: 'cancelled',
+      message: t('error.browserAuth.signInCancelled'),
+    };
     login.child.stdin!.write('{"type":"cancel"}\n');
     login.child.kill();
   }

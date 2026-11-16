@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
-import type { AgentCatalog, AgentTeam } from '../../../../shared/agentTeams';
+import type { AgentCatalog, AgentTeam, TeamWorkspaceMode } from '../../../../shared/agentTeams';
 import { teamAgents } from '../../../../shared/agentTeams';
 import type { Agent, Instruction } from '../../../../shared/studio';
 import { createSystemAgents, type SystemAgent } from '../../../../shared/systemAgents';
@@ -30,15 +30,23 @@ function useProfilesState(initial: Agent[]) {
   const { agents, teams } = catalog;
   const setAgents = (action: (previous: Agent[]) => Agent[]) =>
     setCatalog((previous) => ({ ...previous, agents: action(previous.agents) }));
-  const addTeam = (name: string) => {
-    const team = { id: crypto.randomUUID(), name: name.trim(), agentIds: [] };
+  const addTeam = (name: string, workspaceMode: TeamWorkspaceMode = 'per-agent') => {
+    const team = { id: crypto.randomUUID(), name: name.trim(), workspaceMode, agentIds: [] };
     setCatalog((previous) => ({ ...previous, teams: [...previous.teams, team] }));
     return team.id;
   };
-  const renameTeam = (id: string, name: string) =>
+  const renameTeam = (id: string, name: string, workspaceMode?: TeamWorkspaceMode) =>
     setCatalog((previous) => ({
       ...previous,
-      teams: previous.teams.map((team) => (team.id === id ? { ...team, name: name.trim() } : team)),
+      teams: previous.teams.map((team) =>
+        team.id === id
+          ? {
+              ...team,
+              name: name.trim(),
+              ...(workspaceMode === undefined ? {} : { workspaceMode }),
+            }
+          : team,
+      ),
     }));
   const removeTeam = (id: string) =>
     setCatalog((previous) => {
@@ -82,7 +90,7 @@ function useProfilesState(initial: Agent[]) {
       enabled: true,
       instructions: [],
       skills: [],
-      mcps: [],
+      mcps: ['pistudio-project'],
       plugins: [],
     };
     setCatalog((previous) => ({

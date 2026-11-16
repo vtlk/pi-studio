@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-11-16T18:00:45.037461+00:00",
+  "version": "0.2.0-alpha.85",
+  "baseCommit": "e64eb8ed1c11257f9b6b4ea598871e114cf4a48a",
+  "scope": "All current source changes, including shared team workspaces, Browser/Computer extensions, complete localization, MCP assignment rules and helper preflight. No selective runtime checkout.",
+  "checks": {
+    "buildAndTypecheck": true,
+    "lint": true,
+    "architectureModules": 388,
+    "unitFsPassed": 352,
+    "actualPiSharedWorkspace": true,
+    "actualBrowserNativeMcpTools": 27,
+    "freshNativeAndLegacyUndo": true,
+    "nativeHelperModalAndAssignments": true,
+    "hiddenComputerOverlay": true,
+    "nativeFilePreviews": true,
+    "nativeAgentTeamsCrudAndUnlink": true
+  },
+  "logsSha256": {
+    "pistudio-alpha85-final-tests2.log": "0fe4d2ac32e597597e006cb1ce77b022e08f196f8ddcd88a43d7db1da846aa85",
+    "pistudio-alpha85-final-typecheck.log": "f629e2fb95464a23db8e4887d341a80bbc6375920e68ddca2eb55cf469b81e4e",
+    "pistudio-alpha85-final-lint.log": "a0ed712eb92851a43196b8d51aa513fcabfc007f0639bb0eec57fca0fa6cd294",
+    "pistudio-alpha85-final-architecture.log": "6ccae4ef986c2681f133eada4632bbc85c1bba25acedeac261f74abdd2d2915b",
+    "pistudio-alpha85-browser.log": "35f48ab7d0684c790912702c3ef9642017d6c7c9c14d8a4a369266c5a4d65b03",
+    "pistudio-alpha85-workspace.log": "09deb032721fd84c0f42f891e8139dbe736a36a4d27474ce5ac36769697262fb",
+    "pistudio-alpha85-builtin-ui.log": "502fe86880e952816ac8f983e582ebcfc31ef258f73af3896fb2ee50f37e6416",
+    "pistudio-alpha85-fresh4.log": "b621caea8c01d0a989cdc37c07b715bed172ec00f8b8d9445243bda2f4df1c36",
+    "pistudio-alpha85-computer6.log": "949d9f2af40f62c1394a3c33f7fa8e02d10e3905e7c3f1afbdd39530fd1f4c95",
+    "pistudio-alpha85-previews.log": "ff01533fb78afbc88636d70431ab20fb567feed9acfb5ef32e4160cb5604f0f9",
+    "pistudio-alpha85-team-ui2.log": "a18030885c820177f742e03964a5f1d553f7b2404f1ad97dcfe739d8f676e7aa"
+  },
+  "externalModelRequests": 0,
+  "personalBrowserUsed": false,
+  "windowsBuilt": false,
+  "installedApplicationModified": false,
+  "manualOsAndWindowsAcceptance": false
+}

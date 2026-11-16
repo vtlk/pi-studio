@@ -1,17 +1,23 @@
 import { t } from '../../shared/i18n/index.ts';
+import { normalizeBuiltinAssignments } from '../../shared/builtinAssignments.ts';
 import type { Agent } from '../../shared/studio.ts';
 import type { WorkspaceProject, ProjectAgent } from '../../shared/project.ts';
 import { storageSections, type StorageSection, type StudioSections } from '../../shared/storage.ts';
-import { agentDirectory, agentFolderSlug } from '../../shared/agentPaths.ts';
+import {
+  parseAgentStoragePaths,
+  isAgentSessionPath,
+  agentFolderSlug,
+} from '../../shared/agentPaths.ts';
 import { systemAgentRoles, type SystemAgent } from '../../shared/systemAgents.ts';
 import { modelEndpointUrl, parseModelEndpoint } from '../../shared/modelEndpoint.ts';
 import { retiredBuiltin } from './retireLegacyFeatures.ts';
+import { parseTeamWorkspaceMode } from '../../shared/agentTeams.ts';
 import type { AgentCatalog, AgentTeam } from '../../shared/agentTeams.ts';
 
 import { record, text, stableId, boolean, timestamp, list, strings } from './validationFields.ts';
 export { record, stableId } from './validationFields.ts';
 
-export function parseAgent(value: unknown): Agent {
+export function parseAgent(value: unknown, normalizeBuiltins = true): Agent {
   const item = record(value);
   const agent: Agent = {
     id: stableId(item.id),
@@ -48,10 +54,10 @@ export function parseAgent(value: unknown): Agent {
     };
     if (model.connectionId !== undefined) agent.model.connectionId = text(model.connectionId, 500);
   }
-  return agent;
+  return normalizeBuiltins ? normalizeBuiltinAssignments(agent) : agent;
 }
-export function parseAgents(value: unknown): Agent[] {
-  const agents = list(value).map(parseAgent);
+export function parseAgents(value: unknown, normalizeBuiltins = true): Agent[] {
+  const agents = list(value).map((agent) => parseAgent(agent, normalizeBuiltins));
   if (new Set(agents.map((agent) => agent.id)).size !== agents.length)
     throw new Error(t('error.validation.duplicateAgentIds'));
   return agents;
@@ -65,7 +71,14 @@ export function parseTeams(value: unknown): AgentTeam[] {
       throw new Error(t('error.validation.nameTheAgentTeam'));
     if (!Array.isArray(item.agentIds) || item.agentIds.length > 10000)
       throw new Error(t('error.validation.invalidTeamMembership'));
-    return { id: stableId(item.id), name: item.name.trim(), agentIds: item.agentIds.map(stableId) };
+    return {
+      id: stableId(item.id),
+      name: item.name.trim(),
+      agentIds: item.agentIds.map(stableId),
+      ...(item.workspaceMode === undefined
+        ? {}
+        : { workspaceMode: parseTeamWorkspaceMode(item.workspaceMode) }),
+    };
   });
   if (new Set(teams.map((team) => team.id)).size !== teams.length)
     throw new Error(t('error.validation.duplicateTeamId'));
@@ -94,7 +107,10 @@ export function parseSystemAgents(value: unknown): SystemAgent[] {
     const item = record(value);
     if (!systemAgentRoles.includes(item.systemRole as SystemAgent['systemRole']))
       throw new Error(t('error.validation.unknownSystemAgent'));
-    return { ...parseAgent(item), systemRole: item.systemRole as SystemAgent['systemRole'] };
+    return normalizeBuiltinAssignments({
+      ...parseAgent(item),
+      systemRole: item.systemRole as SystemAgent['systemRole'],
+    });
   });
   if (
     profiles.length !== 1 ||
@@ -131,16 +147,14 @@ function parseProjectAgent(value: unknown): ProjectAgent {
   if ('instructions' in profile || 'mainInstruction' in profile)
     throw new Error(t('error.validation.theProjectMustNotStore'));
   const agent = snapshotAgent(parseAgent({ ...profile, instructions: [] }));
-  agent.outputPath = text(saved.outputPath, 500);
-  const directory = agentDirectory(agent.outputPath);
+  Object.assign(
+    agent,
+    parseAgentStoragePaths(agent.profile.id, saved.outputPath, saved.runtimePath),
+  );
   if (saved.session !== undefined) {
     const binding = record(saved.session);
     const path = text(binding.path, 1000);
-    if (
-      !path.startsWith(`${directory}/sessions/`) ||
-      path.includes('..') ||
-      !path.endsWith('.jsonl')
-    )
+    if (!isAgentSessionPath(agent, path))
       throw new Error(t('error.validation.invalidPiSessionPath'));
     agent.session = {
       id: stableId(binding.id),
@@ -162,6 +176,9 @@ export function parseProject(value: unknown): WorkspaceProject {
     throw new Error(t('error.validation.duplicateSnapshotIds'));
   const project: WorkspaceProject = {
     ...(item.sourceTeamId === undefined ? {} : { sourceTeamId: stableId(item.sourceTeamId) }),
+    ...(item.workspaceMode === undefined
+      ? {}
+      : { workspaceMode: parseTeamWorkspaceMode(item.workspaceMode) }),
     id: stableId(item.id),
     name: text(item.name, 500),
     createdAt: timestamp(item.createdAt),
@@ -191,18 +208,20 @@ export function projectDocument(project: WorkspaceProject) {
   return {
     schemaVersion: 1,
     sourceTeamId: project.sourceTeamId,
+    workspaceMode: project.workspaceMode,
     id: project.id,
     name: project.name,
     createdAt: project.createdAt,
     archivedAgents: project.archivedAgents?.map(
-      ({ agent: { profile, outputPath, session }, position }) => ({
-        agent: { profile, outputPath, session },
+      ({ agent: { profile, outputPath, runtimePath, session }, position }) => ({
+        agent: { profile, outputPath, runtimePath, session },
         position,
       }),
     ),
-    agents: project.agents.map(({ profile, outputPath, session }) => ({
+    agents: project.agents.map(({ profile, outputPath, runtimePath, session }) => ({
       profile,
       outputPath,
+      runtimePath,
       session,
     })),
   };

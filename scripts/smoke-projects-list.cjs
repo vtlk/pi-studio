@@ -131,11 +131,7 @@ const timeout = setTimeout(() => {
   await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
     enabled: true,
   });
-  const js = (code) =>
-    win.webContents.executeJavaScript(code, true).catch((error) => {
-      console.error('Project list QA expression:', code);
-      throw error;
-    });
+  const js = (code) => win.webContents.executeJavaScript(code, true).catch(error => { console.error('Project list QA expression:', code); throw error; });
   const until = async (code) => {
     for (let n = 0; n < 150; n++) {
       if (await js(code)) return;
@@ -631,9 +627,7 @@ const timeout = setTimeout(() => {
     `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label').textContent.endsWith('New QA')).querySelector('.project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
   );
   await until(`!!document.querySelector('[role="menuitem"]')`);
-  await js(
-    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==='Удалить агента из проекта').click()`,
-  );
+  await js(`Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==='Удалить агента из проекта').click()`);
   await until(`document.querySelector('[role="alertdialog"]')?.textContent.includes('New QA')`);
   await click('Удалить');
   await until(`document.querySelectorAll('.project-agent-menu .section-menu-row').length===4`);

@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-11-16T11:24:40.780Z",
+  "checkedAt": "2026-11-16T17:59:58.490Z",
   "nativeMain": true,
   "packagedEntry": false,
-  "version": "0.2.0-alpha.81",
+  "version": "0.2.0-alpha.85",
   "isolatedOffscreen": true,
   "emptyNoFallback": true,
   "twoIndependentTeams": true,
@@ -10,6 +10,9 @@
   "collapseRenameAdd": true,
   "projectExplicitSelection": true,
   "projectScopedToSelectedTeam": true,
+  "workspaceModeCreateAndEditThroughSharedSelect": true,
+  "workspaceModePersistsAcrossReloadAndUndo": true,
+  "sharedProjectCreatesNoOutputOrAgentNamedWorkFolders": true,
   "confirmationCancel": true,
   "teamDeletePreservesProjectAndOutput": true,
   "undoPreservesLaterEdits": true,
@@ -32,7 +35,7 @@
   },
   "unlinkChecks": {
     "keyboardConfirmationAndCancel": true,
-    "ordinaryAndSystemUnlinkPersisted": true,
+    "ordinaryUnlinkAndPinnedSystemAssignmentsPersisted": true,
     "pinnedMcpProtected": true,
     "undoPreservesLaterLinksAndNameAndOtherAgent": true,
     "failedSaveHasNoSuccessAndRetainsNativeAssignment": true

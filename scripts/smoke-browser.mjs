@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { browserTools } from '../bundled/pi-bridge/browser/tools.mjs';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -78,7 +79,10 @@ const script = resolve('bundled/pi-bridge/browser/server.mjs');
 const output = join(root, 'project/output');
 await mkdir(output, { recursive: true });
 await writeFile(join(root, 'project/reference.txt'), 'UPLOAD_FIXTURE');
+await writeFile(join(root, 'studio.json'), JSON.stringify({ sections: { agents: [{ id: 'qa-browser', mcps: ['pistudio-browser'] }] } }));
 const binding = {
+  studioFile: join(root, 'studio.json'),
+  agentId: 'qa-browser',
   scope: 'private-fixture',
   sessions: join(root, 'dialogues'),
   binary,
@@ -109,7 +113,7 @@ async function connect(id, file = 'binding.json') {
   clients.add(client);
   await client.getClient();
   assert.equal(client.state, 'connected');
-  assert.equal(client.tools.length, 17);
+  assert.equal(client.tools.length, browserTools.length);
   return client;
 }
 const proof = {
@@ -150,7 +154,7 @@ try {
   await call(a, 'drag', { x: 160, y: 125, toX: 260, toY: 175 });
   assert.ok(events.includes('drag'));
   await call(a, 'scroll', { x: 1100, y: 700, dy: 300 });
-  assert.ok(events.some(x => /^scroll:[1-9]/.test(x)));
+  assert.ok(events.some((x) => /^scroll:[1-9]/.test(x)));
   await call(a, 'scroll', { x: 1100, y: 700, dy: -300 });
   await call(a, 'click', { x: 430, y: 132 });
   assert.ok(events.includes('icon'));
@@ -187,6 +191,78 @@ try {
     await readFile(join(output, 'browser/result.txt'), 'utf8'),
     'BROWSER_DOWNLOAD_FIXTURE',
   );
+  await call(a, 'capture', { format: 'png', fullPage: true, output: 'browser/page.png' }, false);
+  assert.equal(
+    (await readFile(join(output, 'browser/page.png'))).subarray(0, 8).toString('hex'),
+    '89504e470d0a1a0a',
+  );
+  await call(a, 'capture', { format: 'pdf', output: 'browser/page.pdf' }, false);
+  assert.match(
+    (await readFile(join(output, 'browser/page.pdf'))).subarray(0, 8).toString(),
+    /^%PDF/,
+  );
+  await call(a, 'diagnostics', { action: 'console' }, false);
+  await call(a, 'diagnostics', { action: 'errors' }, false);
+  const network = await call(a, 'diagnostics', { action: 'requests' }, false);
+  assert.ok(network.content.length);
+  for (const type of ['trace', 'profile', 'har']) {
+    await call(a, type, { action: 'start' }, false);
+    await call(a, 'screenshot');
+    await call(a, 'navigate', { action: 'reload' });
+    await call(a, type, { action: 'stop', output: 'browser/' + type + '.json' }, false);
+    assert.ok((await readFile(join(output, 'browser/' + type + '.json'))).length > 20);
+  }
+  await call(a, 'record', { action: 'start', output: 'browser/demo.webm', fps: 10 }, false);
+  await call(a, 'screenshot');
+  await call(a, 'click', { x: 200, y: 150 });
+  await call(a, 'record', { action: 'stop' }, false);
+  assert.ok((await readFile(join(output, 'browser/demo.webm'))).length > 100);
+  await call(a, 'emulate', { action: 'theme', colorScheme: 'dark' });
+  await call(a, 'emulate', { action: 'geolocation', latitude: 43.24, longitude: 76.95 });
+  await call(a, 'emulate', { action: 'offline', enabled: true });
+  await call(a, 'emulate', { action: 'offline', enabled: false });
+  const mobile = await call(a, 'emulate', { action: 'device', device: 'iPhone 14' }, false);
+  assert.ok(mobile.content.some((item) => item.type === 'image'));
+  const resized = await call(a, 'emulate', { action: 'viewport', width: 400, height: 700 }, false);
+  const resizedPng = Buffer.from(
+    resized.content.find((item) => item.type === 'image').data,
+    'base64',
+  );
+  assert.equal(resizedPng.readUInt32BE(16), 400);
+  assert.equal(resizedPng.readUInt32BE(20), 700);
+  const outside = await a.callTool('browser_click', { x: 500, y: 20 }, {});
+  assert.equal(outside.isError, true);
+  await call(a, 'emulate', { action: 'viewport', width: 1280, height: 800 });
+  await call(a, 'session', { action: 'create', name: 'second' }, false);
+  await call(a, 'open', { url: base + '/?id=subsession' });
+  assert.equal(requests.find((x) => x.dialogue === 'subsession').cookie, '');
+  await call(a, 'session', { action: 'switch', name: 'default' }, false);
+  assert.equal((await a.callTool('browser_click', { x: 20, y: 20 }, {})).isError, true);
+  await call(a, 'open', { url: base + '/?id=default-again' });
+  assert.match(requests.find((x) => x.dialogue === 'default-again').cookie, /dialogue=alpha/);
+  const unavailableVisible = await a.callTool('browser_open', { url: base, headed: true }, {});
+  assert.equal(
+    unavailableVisible.isError,
+    true,
+    'No silent mode switch/restart of an open browser.',
+  );
+  Object.assign(proof, {
+    namedSessions: true,
+    screenshotExport: true,
+    pdf: true,
+    diagnostics: true,
+    trace: true,
+    profiler: true,
+    har: true,
+    recordingWithCursor: true,
+    theme: true,
+    geolocation: true,
+    offline: true,
+    mobileDevice: true,
+    viewport: true,
+    imageCoordinatesValidated: true,
+    explicitCloseBeforeModeSwitch: true,
+  });
   const bad = await a.callTool('browser_open', { url: base, session: 'canonical-b' }, {});
   assert.ok(bad.isError);
   const traversal = await a.callTool(
@@ -213,7 +289,7 @@ try {
   const nonvisual = await connect('nonvisual', 'nonvisual.json');
   assert.ok((await nonvisual.callTool('browser_open', { url: base }, {})).isError);
   Object.assign(proof, {
-    tools: 17,
+    tools: browserTools.length,
     cssPixels: '1280x800 scale 1',
     canvas: true,
     iconOnly: true,

@@ -39,14 +39,14 @@ module.exports = async ({
   };
   const openUnlink = async () => {
     await js(
-      `Array.from(document.querySelectorAll('.resource-binding[data-removable]')).find(e=>e.querySelector('.ui-list-row-label').textContent==='team').querySelector('.hover-delete').focus({preventScroll:true})`,
+      `Array.from(document.querySelectorAll('.resource-binding[data-removable]')).find(e=>e.querySelector('.ui-list-row-label').textContent==='Pi Studio Team').querySelector('.hover-delete').focus({preventScroll:true})`,
     );
     await key('Enter', 'Enter', 13, '\r');
     await until(`!!document.querySelector('[role="alertdialog"]')`);
   };
   await select(0);
   await attach();
-  assert.equal(await js(`document.querySelector('[data-builtin-mcp] .hover-delete')===null`), true);
+  assert.equal(await js(`Array.from(document.querySelectorAll('[data-builtin-mcp]')).filter(r=>r.querySelector('.ui-list-row-lock')).every(r=>!r.querySelector('.hover-delete'))`), true);
   await select(1);
   await attach();
   await select(0);
@@ -62,7 +62,7 @@ module.exports = async ({
     ),
   );
   assert.ok(
-    await js(`document.querySelector('[role="alertdialog"]').textContent.includes('team')`),
+    await js(`document.querySelector('[role="alertdialog"]').textContent.includes('Pi Studio Team')`),
   );
   assert.deepEqual(await profile(first), firstBefore);
   await click('Отмена');
@@ -76,7 +76,7 @@ module.exports = async ({
   await click('Удалить');
   await saved();
   await until(`document.querySelector('.toast')?.textContent.includes('Связь с ресурсом убрана')`);
-  assert.deepEqual((await profile(first)).mcps, []);
+  assert.deepEqual((await profile(first)).mcps, ['pistudio-project']);
   assert.deepEqual(await profile(second), secondBefore);
   // Add another link before Undo; only the removed stable ID may be restored.
   const custom = {
@@ -108,7 +108,7 @@ module.exports = async ({
   await select(1);
   await click('Вернуть');
   await saved();
-  assert.deepEqual((await profile(first)).mcps, ['pistudio-team', custom.id]);
+  assert.deepEqual((await profile(first)).mcps, ['pistudio-project', 'pistudio-team', custom.id]);
   assert.equal((await profile(first)).name, firstBefore.name + ' updated');
   assert.deepEqual(await profile(second), secondBefore);
   await select(0);
@@ -116,7 +116,7 @@ module.exports = async ({
   await openUnlink();
   await click('Удалить');
   await until(`document.querySelector('.toast')?.textContent.includes('Открепление не сохранено')`);
-  assert.deepEqual((await profile(first)).mcps, ['pistudio-team', custom.id]);
+  assert.deepEqual((await profile(first)).mcps, ['pistudio-project', 'pistudio-team', custom.id]);
   assert.ok(await js(`!!document.querySelector('.storage-error')`));
   refuseSaves(false);
   await click('Вернуть назначение');
@@ -124,21 +124,19 @@ module.exports = async ({
   const assistant = initial.sections.systemAgents[0];
   await js(`document.querySelector('[data-system-role="assistant"] .agent-list-item').click()`);
   await click('MCP');
-  await attach();
-  await openUnlink();
-  await click('Удалить');
-  await saved();
-  assert.deepEqual((await profile(assistant.id)).mcps, []);
-  assert.equal(await js(`document.querySelector('[data-builtin-mcp] .hover-delete')===null`), true);
+  const required = ['pistudio-project', 'pistudio-team', 'pistudio-browser', 'pistudio-computer', 'pistudio-administration'];
+  assert.deepEqual((await profile(assistant.id)).mcps, required);
+  assert.equal(await js(`document.querySelectorAll('[data-builtin-mcp] .ui-list-row-lock').length`), 5);
+  assert.equal(await js(`document.querySelectorAll('[data-builtin-mcp] .hover-delete,[data-builtin-mcp] [role="switch"]').length`), 0);
   const catalog = await js('window.studio.loadStudio()');
   await saved();
   window.webContents.reload();
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   assert.deepEqual((await load()).sections.agentCatalog, catalog.sections.agentCatalog);
-  assert.deepEqual((await profile(assistant.id)).mcps, []);
+  assert.deepEqual((await profile(assistant.id)).mcps, required);
   return {
     keyboardConfirmationAndCancel: true,
-    ordinaryAndSystemUnlinkPersisted: true,
+    ordinaryUnlinkAndPinnedSystemAssignmentsPersisted: true,
     pinnedMcpProtected: true,
     undoPreservesLaterLinksAndNameAndOtherAgent: true,
     failedSaveHasNoSuccessAndRetainsNativeAssignment: true,

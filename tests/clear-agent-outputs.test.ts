@@ -34,7 +34,7 @@ async function fixture(t: TestContext) {
   const project = (await store.command({ kind: 'create', name: 'Results', agents })).projects[0];
   const directory = await store.projects.directory(project.id);
   const output = join(directory, project.agents[0].outputPath);
-  const history = join(directory, 'agents/artist/sessions/history.jsonl');
+  const history = join(directory, '.pistudio/sessions/artist/history.jsonl');
   await mkdir(join(output, 'nested'));
   await writeFile(join(output, 'nested/result.txt'), 'creative result');
   await writeFile(join(output, '.hidden'), 'hidden output');
@@ -42,7 +42,7 @@ async function fixture(t: TestContext) {
   await writeFile(join(directory, project.agents[1].outputPath, 'keep.txt'), 'other agent');
   await store.projects.updateRuntime(project.id, 'artist', 'ready', {
     id: 'original-session',
-    path: 'agents/artist/sessions/history.jsonl',
+    path: '.pistudio/sessions/artist/history.jsonl',
     title: 'Original',
     createdAt: 1,
   });
@@ -124,7 +124,7 @@ for (const target of ['dialogue', 'all'] as const) {
   test(`${target}: removes sessions and binding persistently, preserves settings and the other agent`, async (t) => {
     const f = await fixture(t);
     const settings = await readFile(join(f.store.folder, '.pistudio/studio.json'));
-    const sessions = join(f.directory, 'agents/artist/sessions');
+    const sessions = join(f.directory, '.pistudio/sessions/artist');
     await writeFile(join(sessions, 'old-fork.jsonl'), 'old fork');
     await mkdir(join(sessions, 'nested'));
     await writeFile(join(sessions, 'nested/history.jsonl'), 'nested history');
@@ -167,7 +167,7 @@ test('invalid deletion target and unsafe sessions leave the binding and files in
       assert.fail('No trash for an invalid target'),
     ),
   );
-  const sessions = join(f.directory, 'agents/artist/sessions');
+  const sessions = join(f.directory, '.pistudio/sessions/artist');
   const saved = join(f.root, 'saved-sessions');
   await rename(sessions, saved);
   await symlink(saved, sessions);
@@ -185,12 +185,12 @@ test('invalid deletion target and unsafe sessions leave the binding and files in
 
 test('a previously missing transcript can be reset to allow a new explicit launch', async (t) => {
   const f = await fixture(t);
-  await rm(join(f.directory, 'agents/artist/sessions'), { recursive: true });
+  await rm(join(f.directory, '.pistudio/sessions/artist'), { recursive: true });
   const cleared = await deleteAgentData(f.store, { ...f.request, target: 'dialogue' }, async () =>
     assert.fail('Nothing to trash'),
   );
   assert.equal(cleared.agents[0].session, undefined);
-  assert.deepEqual(await readdir(join(f.directory, 'agents/artist/sessions')), []);
+  assert.deepEqual(await readdir(join(f.directory, '.pistudio/sessions/artist')), []);
   assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
 });
 

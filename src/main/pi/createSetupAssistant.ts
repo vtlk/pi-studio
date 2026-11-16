@@ -1,23 +1,23 @@
 import { t } from '../../shared/i18n/index.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { mkdir } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { RunHost } from './RunHost.ts';
+import { migrateAgentSessions } from '../storage/migrateAgentSessions.ts';
 import { buildRunContext } from './ContextBuilder.ts';
-import { readPiCatalog } from './catalog.ts';
 import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
 import type { Connection } from '../../shared/connections.ts';
-import { SetupAdministration } from './SetupAdministration.ts';
+import { createAdministration } from './createAdministration.ts';
 import { setupTools } from './setupTools.ts';
 import { atomicJson, readJson, isMissing, safePath } from '../storage/files.ts';
 import { parseProject, snapshotAgent } from '../storage/validation.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Resource } from '../../shared/resources.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import { agentDirectory, agentSessionDirectory } from '../../shared/agentPaths.ts';
 import type { SessionBinding } from '../../shared/project.ts';
 import type { openSessionTerminal } from './terminal.ts';
-import { StudioResources } from './StudioResources.ts';
+import type { StudioResources } from './StudioResources.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
@@ -40,27 +40,7 @@ interface Options {
   computer?: ComputerSupport;
 }
 export function createSetupAssistant(service: StudioService, options: Options) {
-  const catalog = async () => {
-    const location = await service.serialize(async () => {
-      const store = await service.load();
-      return {
-        folder: store.folder,
-        piPath: String(store.bootstrap().sections.piPath ?? '') || options.piPath(),
-      };
-    });
-    return readPiCatalog(location.piPath, options.catalog, location.folder);
-  };
-  const administration = new SetupAdministration(
-    service,
-    catalog,
-    options.resources ??
-      new StudioResources(service, {
-        script: join(dirname(options.catalog), 'resources.mjs'),
-        piPath: options.piPath,
-        mcpSecrets: options.mcpSecrets,
-      }),
-    options.teamImports,
-  );
+  const administration = createAdministration(service, options);
   return new RunHost({
     mcpGroups: (run) => [
       ...(options.computer?.groups(run) ?? []),
@@ -126,17 +106,29 @@ export function createSetupAssistant(service: StudioService, options: Options) {
           systemRole: _role,
           ...profile
         } = agent;
-        const project = parseProject({
+        let project = parseProject({
           schemaVersion: 1,
           id: 'pi-setup-assistant',
           name: agent.name,
           createdAt: 0,
           agents: [{ profile, outputPath, ...(session ? { session } : {}) }],
         });
-        for (const sub of ['output', 'sessions'])
+        const migrated = await migrateAgentSessions(root, project.agents[0]);
+        if (migrated !== project.agents[0]) {
+          project = { ...project, agents: [migrated] };
+          await atomicJson(join(root, 'state.json'), {
+            schemaVersion: 1,
+            session: migrated.session,
+            outputPath,
+          });
+        }
+        for (const sub of ['output'])
           await mkdir(await safePath(root, `${agentDirectory(outputPath)}/${sub}`, true), {
             recursive: true,
           });
+        await mkdir(await safePath(root, agentSessionDirectory(project.agents[0]), true), {
+          recursive: true,
+        });
         const run = await buildRunContext(
           root,
           project,

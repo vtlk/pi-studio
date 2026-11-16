@@ -1,4 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
+import { isSharedTaskPath } from '../../shared/agentPaths.ts';
 import { validStudioTerminalIdentity } from './terminal-close/windowsProfile.ts';
 import { AutomaticCloseError } from './automaticClose.ts';
 import { relative, join } from 'node:path';
@@ -30,9 +31,10 @@ export class RunLifecycle {
     live.status = closedRunStatus(live.status);
     await this.dependencies.update(live.run, live.status).catch(() => {});
     live.fail(new Error(t('error.runLifecycle.connectionToPiLostResult')));
-    await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true }).catch(
-      () => {},
-    );
+    await rm(
+      join(live.run.record.leaseDirectory ?? live.run.record.cwd, '.pistudio-session-lock.json'),
+      { force: true },
+    ).catch(() => {});
   }
   async event(live: LiveRun, event: ChannelEvent) {
     live.heartbeat = Date.now();
@@ -45,10 +47,13 @@ export class RunLifecycle {
         live.terminalIdentity = terminal;
       }
       live.pid = event.pid;
-      await atomicJson(join(live.run.record.cwd, '.pistudio-session-lock.json'), {
-        pid: live.pid,
-        runId: live.run.record.runId,
-      });
+      await atomicJson(
+        join(live.run.record.leaseDirectory ?? live.run.record.cwd, '.pistudio-session-lock.json'),
+        {
+          pid: live.pid,
+          runId: live.run.record.runId,
+        },
+      );
     } else if (event.type === 'accounting') {
       await this.dependencies.accounting?.(live.run, event.usage);
     } else if (event.type === 'bound') {
@@ -228,6 +233,12 @@ export class RunLifecycle {
           throw new Error(t('error.runLifecycle.theCompletionSignalBelongsTo'));
       };
       ensureCurrent();
+      if (
+        live.run.record.workspaceMode === 'shared' &&
+        Array.isArray(args.outputs) &&
+        args.outputs.some((path) => typeof path !== 'string' || !isSharedTaskPath(path))
+      )
+        throw new Error(t('error.runLifecycle.provideResultFilesInThe'));
       const completion = await validateCompletedOutputs(live.run.record.output, args.outputs);
       ensureCurrent();
       live.completion = completion;

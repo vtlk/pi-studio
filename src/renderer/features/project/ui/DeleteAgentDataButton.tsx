@@ -16,6 +16,7 @@ export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
   const { selectedProject, deleteAgentData, busy } = useWorkspace();
   const { isDesktop } = useStorage();
   const [targetProject, setTargetProject] = useState<string>();
+  const shared = selectedProject?.workspaceMode === 'shared';
   const disabled =
     !isDesktop ||
     !selectedProject ||
@@ -52,6 +53,7 @@ export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
             }
           >
             <p>{t('DeleteAgentDataButton.deletedDataMovesToMacosTrashDeleting')}</p>
+            {shared && <p>{t('DeleteAgentDataButton.filesAreSharedByTheEntireTeam')}</p>}
             <List>
               <ListRow
                 label={t('DeleteAgentDataButton.agentDialogue')}
@@ -60,7 +62,9 @@ export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
                 onClick={() => remove('dialogue')}
               />
               <ListRow
-                label={t('AgentOutputsView.agentFiles')}
+                label={
+                  shared ? t('DeleteAgentDataButton.teamFiles') : t('AgentOutputsView.agentFiles')
+                }
                 icon={Files}
                 disabled={disabled}
                 onClick={() => remove('files')}

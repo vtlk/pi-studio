@@ -57,7 +57,7 @@ test('session MCP reads earlier agents and project metadata, with bounded UTF-8/
   assert.equal(new Set([...page1.entries, ...page2.entries].map((item) => item.path)).size, 3);
   assert.equal(page2.nextOffset, null);
 });
-test('project MCP rejects other projects, symlinks and excessive read requests; helper has no production file tools', async (t) => {
+test('project MCP rejects other projects, symlinks and excessive read requests; helper has scoped Project file tools', async (t) => {
   const temporary = await mkdtemp(join(tmpdir(), 'pistudio-project-scope-'));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const root = join(temporary, 'current');
@@ -85,7 +85,7 @@ test('project MCP rejects other projects, symlinks and excessive read requests; 
   await assert.rejects(listProjectFiles(root, { limit: 501 }));
   assert.equal(
     setupTools.some((tool) => ['read_project_file', 'list_project_files'].includes(tool.name)),
-    false,
+    true,
   );
 });
 test('every agent launch/resume/clone gets the current explicit project directory in its system prompt', async (t) => {

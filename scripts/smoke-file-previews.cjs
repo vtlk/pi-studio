@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
+app.getPreferredSystemLanguages = () => ['ru-RU'];
 const { mkdtempSync, mkdirSync, realpathSync, writeFileSync } = require('node:fs');
 const { mkdir, writeFile, readFile, rm } = require('node:fs/promises');
 const { join, resolve } = require('node:path');

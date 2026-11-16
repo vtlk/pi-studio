@@ -43,8 +43,7 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
         const builtin = builtinResources.find(
           (resource) => resource.source === source.source && resource.kind === source.kind,
         );
-        if (!builtin || builtin.source === 'builtin:administration')
-          throw new Error(t('error.importTeam.thePackageRequiresAnUnknown'));
+        if (!builtin) throw new Error(t('error.importTeam.thePackageRequiresAnUnknown'));
         resourceMap[source.id] = builtin.id;
         continue;
       }
@@ -121,7 +120,14 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
     await atomicJson(join(staging, 'state.json'), state);
     await rename(staging, final);
     await store.addImportedTeam(
-      { id: teamId, name: report.teamName, agentIds: agents.map((agent) => agent.id) },
+      {
+        id: teamId,
+        name: report.teamName,
+        agentIds: agents.map((agent) => agent.id),
+        ...(data.manifest.team.workspaceMode === undefined
+          ? {}
+          : { workspaceMode: data.manifest.team.workspaceMode }),
+      },
       agents,
       resources,
     );

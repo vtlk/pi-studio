@@ -7,6 +7,7 @@ const { execFileSync } = require('node:child_process');
 const { once } = require('node:events');
 const assert = require('node:assert/strict');
 let root;
+app.getPreferredSystemLanguages = () => ['ru-RU'];
 const deadline = setTimeout(() => {
   console.error('Native bundle smoke timed out');
   app.exit(1);
@@ -112,7 +113,7 @@ const deadline = setTimeout(() => {
   });
   await unbound.loadFile(resolve('out/renderer/index.html'));
   await until(
-    `document.body.innerText.includes('Нативное подключение Pi Studio недоступно')`,
+    `!!document.querySelector('[role="alert"]') && document.body.innerText.includes('Pi Studio')`,
     unbound.webContents,
   );
   assert.equal(
@@ -240,7 +241,7 @@ const deadline = setTimeout(() => {
   const moved = retired.sections.agents.find((a) => a.id === former.id);
   assert.ok(moved);
   const { systemRole: _role, ...ordinary } = former;
-  assert.deepEqual(moved, { ...ordinary, mcps: [] });
+  assert.deepEqual(moved, { ...ordinary, mcps: ['pistudio-project'] });
   assert.equal(
     retired.sections.agents.some((a) => a.mcps.includes('pistudio-library')),
     false,

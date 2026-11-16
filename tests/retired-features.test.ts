@@ -24,7 +24,7 @@ const profile = (id: string): Agent => ({
   mainInstruction: 'Unchanged current prompt',
   skills: ['assigned-skill'],
   plugins: ['assigned-package'],
-  mcps: [obsolete, 'custom-mcp'],
+  mcps: ['pistudio-project', obsolete, 'custom-mcp'],
   model: {
     connectionId: 'account',
     provider: 'test',
@@ -89,7 +89,7 @@ test('retirement removes only exact known assignments/catalog entries, preserves
   const agent = (parsed.agents as Agent[])[0];
   assert.deepEqual(agent, {
     ...user,
-    mcps: ['custom-mcp'],
+    mcps: ['pistudio-project', 'custom-mcp'],
     capabilitySettings: { 'mcps:custom-mcp': { enabled: true } },
   });
   assert.deepEqual(parsed.resources, [resources[1]]);
@@ -160,7 +160,7 @@ test('opening a real legacy studio retires only metadata, keeps profiles/materia
   const root = await mkdtemp(join(tmpdir(), 'pistudio-retirement-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   const store = await StudioStore.open(root);
-  const user = { ...profile('ordinary'), skills: [], plugins: [], mcps: [obsolete] };
+  const user = { ...profile('ordinary'), skills: [], plugins: [], mcps: ['pistudio-project', obsolete] };
   await store.saveSection('agents', [user]);
   const project = (
     await store.command({

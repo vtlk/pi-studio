@@ -176,7 +176,7 @@ test('import atomically restores an independent team and file tree; repeated imp
     imported = after.teams.find((team) => team.id === report.teamId)!;
   assert.deepEqual(
     after.agents.find((agent) => agent.id === 'own'),
-    own,
+    before.agents.find((agent) => agent.id === 'own'),
   );
   assert.deepEqual(after.teams[0], before.teams[0]);
   assert.equal(imported.name, 'Наша команда');
@@ -369,7 +369,7 @@ test('narrow administrative tools read only their package, preserve missing mode
     tools.call({ projectRoot: join(root, 'foreign') } as PreparedRun, 'read_team_import', {
       packageId: report.id,
     }),
-    /другой студии/,
+    /не назначен|отключён/,
   );
   const result = (await tools.call(run, 'check_team_import', { packageId: report.id })) as {
     configurationChecked: boolean;

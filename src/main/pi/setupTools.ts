@@ -10,7 +10,7 @@ const object = (properties: Record<string, unknown>, required: string[] = []) =>
 const string = { type: 'string' };
 export const setupTools: SessionTool[] = [
   ...productionTools.filter((tool) =>
-    ['web_search', 'get_run_context', 'report_blocked'].includes(tool.name),
+    ['web_search', 'get_run_context', 'report_blocked', 'list_project_files', 'read_project_file'].includes(tool.name),
   ),
   {
     name: 'configure_mcp',
@@ -59,8 +59,15 @@ export const setupTools: SessionTool[] = [
   {
     name: 'configure_team',
     description:
-      'Create a named ordinary agent team, or rename one by its existing stable ID. Does not change projects or launch agents. Read teams in list_configuration; pass the intended teamId when creating an agent.',
-    inputSchema: object({ id: string, name: string }, ['name']),
+      'Create a named ordinary agent team, or edit one by its existing stable ID. workspaceMode is per-agent or shared (work directly at project root, no Output or agent-named folders). Does not change projects or launch agents. Read teams in list_configuration; pass the intended teamId when creating an agent.',
+    inputSchema: object(
+      {
+        id: string,
+        name: string,
+        workspaceMode: { type: 'string', enum: ['per-agent', 'shared'] },
+      },
+      ['name'],
+    ),
   },
   {
     name: 'list_team_imports',

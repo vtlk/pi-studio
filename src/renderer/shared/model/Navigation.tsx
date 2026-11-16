@@ -4,7 +4,12 @@ import { useContext, useState, type ReactNode } from 'react';
 export type Page = 'project' | 'projects' | 'agents' | 'settings';
 function useNavigationState() {
   const [page, setPage] = useState<Page>('projects');
-  return { page, setPage, navigate: setPage };
+  const [settingsSection, setSettingsSection] = useState('workspace');
+  const openSettings = (section: string) => {
+    setSettingsSection(section);
+    setPage('settings');
+  };
+  return { page, setPage, navigate: setPage, settingsSection, setSettingsSection, openSettings };
 }
 export type NavigationContextValue = ReturnType<typeof useNavigationState> | null;
 export function NavigationProvider({ children }: { children: ReactNode }) {

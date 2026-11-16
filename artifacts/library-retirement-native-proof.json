@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-16T10:28:20.436Z",
-  "version": "0.2.0-alpha.81",
-  "mainEntry": "packaged",
+  "checkedAt": "2026-11-16T17:53:37.596Z",
+  "version": "0.2.0-alpha.85",
+  "mainEntry": "source",
   "emptyCatalogsAndTwoPageNavigation": true,
   "removedPreloadMethodsAbsent": true,
   "helperInitialPromptClean": true,

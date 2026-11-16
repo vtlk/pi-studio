@@ -1,8 +1,9 @@
-import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 import { contextBridge, ipcRenderer } from 'electron';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 import { runFailure } from '../shared/runFailure';
 import { themeState, type ThemeState } from '../shared/appearance';
+
+import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 
 const desktopApi: DesktopApi = {
   getLanguage: () => ipcRenderer.invoke(desktopChannels.getLanguage),
@@ -114,6 +115,8 @@ const desktopApi: DesktopApi = {
   openSetupAssistant: () => ipcRenderer.invoke(desktopChannels.openSetupAssistant),
   checkResource: (id) => ipcRenderer.invoke(desktopChannels.checkResource, id),
   installResource: (id) => ipcRenderer.invoke(desktopChannels.installResource, id),
+  getBrowserState: () => ipcRenderer.invoke(desktopChannels.getBrowserState),
+  installVisibleBrowser: () => ipcRenderer.invoke(desktopChannels.installVisibleBrowser),
   openResourceLogin: (id) => ipcRenderer.invoke(desktopChannels.openResourceLogin, id),
 };
 contextBridge.exposeInMainWorld('studio', desktopApi);

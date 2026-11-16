@@ -1,4 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
+import { projectAgentOutputPath, isSharedTaskPath } from '../../shared/agentPaths.ts';
 import { lstat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { StudioService } from '../storage/StudioStore.ts';
@@ -100,10 +101,22 @@ export async function queryTeam(
   }
   if (name === 'list_output' || name === 'read_output') {
     const target = outputAgent(scope, args.agent_id);
-    const root = await safePath(scope.root, target.outputPath);
+    const shared = scope.project.workspaceMode === 'shared';
+    const root = shared ? scope.root : await safePath(scope.root, target.outputPath);
+    if (
+      shared &&
+      args.path !== undefined &&
+      args.path !== '' &&
+      args.path !== '.' &&
+      (typeof args.path !== 'string' || !isSharedTaskPath(args.path))
+    )
+      throw new Error(t('error.queryTeam.studioServiceFilesAreNot'));
     const identity = await lstat(root);
     const assertOutput = async () => {
-      if ((await safePath(scope.root, target.outputPath)) !== root)
+      if (
+        !shared &&
+        (await safePath(scope.root, projectAgentOutputPath(scope.project, target))) !== root
+      )
         throw new Error(t('error.queryTeam.outputMovedRetryTheRequest'));
       const after = await lstat(root);
       if (identity.ino !== after.ino || identity.dev !== after.dev || !after.isDirectory())
@@ -114,6 +127,7 @@ export async function queryTeam(
         root,
         { path: args.path, offset: args.offset, limit: args.limit },
         true,
+        shared ? isSharedTaskPath : undefined,
       );
       await assertOutput();
       return result;

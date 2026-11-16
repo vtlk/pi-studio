@@ -1,5 +1,3 @@
-import type { LanguagePreferences } from '../appearance/LanguagePreferences';
-import { registerLanguage } from '../appearance/registerLanguage';
 import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from './desktopInvoke.ts';
 import { registerTeamMessageHandlers } from '../team-mcp/registerTeamMessageHandlers';
@@ -37,10 +35,11 @@ import { notifyRunFailure as failureChanged } from '../pi/notifyRunFailure';
 import { saveManagedSkill } from '../storage/managedSkills';
 import type { SkillWriteRequest } from '../../shared/resources';
 import { BrowserSupport } from '../browser/BrowserSupport';
+import { registerBrowserHandlers } from '../browser/registerBrowserHandlers';
 import { ProjectActivity } from '../pi/ProjectActivity';
 import { registerResourceHandlers } from '../pi/registerResourceHandlers';
 import { registerGracefulQuit } from './registerGracefulQuit';
-import { ComputerSupport } from '../computer/ComputerSupport';
+import { createComputerSupport } from '../computer/createComputerSupport';
 import { registerComputerHandlers } from '../computer/registerComputerHandlers';
 import { createTeamImportTools } from '../teams/createTeamImportTools';
 import { registerTeamHandlers } from '../teams/registerTeamHandlers';
@@ -49,8 +48,9 @@ import type { NativeUpdates } from '../updates/NativeUpdates';
 import type { UpdateStartup } from '../updates/UpdateStartup';
 import { createStudioWindow, setUpdateQuitGuard } from '../windows/createStudioWindow';
 import type { ThemePreferences } from '../appearance/ThemePreferences';
+import type { LanguagePreferences } from '../appearance/LanguagePreferences';
+import { registerLanguage } from '../appearance/registerLanguage';
 import { registerAppearance } from '../appearance/registerAppearance';
-
 export function registerDesktopHandlers(
   options: {
     appearance?: ThemePreferences;
@@ -90,7 +90,7 @@ export function registerDesktopHandlers(
     caller,
   );
   const references = new ReferenceFiles(referenceImage);
-  const computer = new ComputerSupport();
+  const computer = createComputerSupport();
   registerComputerHandlers(computer, caller);
   const activity = new ProjectActivity();
   const usageRecovery = new UsageRecovery(
@@ -104,6 +104,7 @@ export function registerDesktopHandlers(
     join(app.getPath('userData'), 'runtime/browser'),
     join(__dirname, '../../bundled/pi-bridge/browser/server.mjs'),
   );
+  registerBrowserHandlers(browser, caller);
   const team = new TeamSupport(service, (folder, connectionId) =>
     modelConnections.status({ folder, connectionId }),
   );
@@ -116,15 +117,6 @@ export function registerDesktopHandlers(
     mcpSecrets,
     browser,
   };
-  const runs = createStudioRunHost(service, {
-    activity,
-    ...productionResources,
-    failureChanged,
-    bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
-    bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
-    catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
-    piPath: () => startup.path,
-  });
   const resources = new StudioResources(service, {
     computer,
     browser,
@@ -136,6 +128,17 @@ export function registerDesktopHandlers(
   const teamImports = createTeamImportTools(service, resources, {
     userData: app.getPath('userData'),
     bridgeDirectory: join(__dirname, '../../bundled/pi-bridge'),
+    piPath: () => startup.path,
+  });
+  const runs = createStudioRunHost(service, {
+    activity,
+    resources,
+    teamImports,
+    ...productionResources,
+    failureChanged,
+    bootstraps: join(app.getPath('userData'), 'session-bootstraps'),
+    bridge: join(__dirname, '../../bundled/pi-bridge/session.mjs'),
+    catalog: join(__dirname, '../../bundled/pi-bridge/catalog.mjs'),
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {

@@ -1,4 +1,7 @@
 import { t } from '../../shared/i18n/index.ts';
+import { migrateProjectSessions, prepareProjectAgentSessions } from './migrateAgentSessions.ts';
+import { availableProjectDirectory } from './projectFolders.ts';
+import { readProject } from './readProject.ts';
 import { ensureProjectAgents } from './ensureProjectAgents.ts';
 import { migrateProjectTeams } from './migrateProjectTeams.ts';
 import { cp, mkdir, readdir, rename, rm, lstat } from 'node:fs/promises';
@@ -16,17 +19,18 @@ import {
   snapshotProjectAgents,
   stableId,
 } from './validation.ts';
-import { scanOutputs } from './outputs.ts';
 import {
   archiveProjectAgent,
   restoreProjectAgent,
   synchronizeProjectAgentList,
 } from '../../shared/projectAgents.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import type { TeamWorkspaceMode } from '../../shared/agentTeams.ts';
+import { parseTeamWorkspaceMode } from '../../shared/agentTeams.ts';
+import { agentRuntimeDirectory } from '../../shared/agentPaths.ts';
 import { folderSlug } from '../../shared/folderSlug.ts';
 import type { Agent } from '../../shared/studio.ts';
 import { assertProjectSessionsClosed } from './sessionLease.ts';
-import { withAgentRuntime, withFork } from './projectRuntime.ts';
+import { withAgentRuntime, withFork, withAgentModel } from './projectRuntime.ts';
 
 export class ProjectStore {
   private projects = new Map<string, WorkspaceProject>();
@@ -50,7 +54,11 @@ export class ProjectStore {
         try {
           const directory = await safePath(this.root, `${relative}/${entry.name}`);
           const file = await safePath(directory, 'project.json');
-          const project = parseProject(await readJson(file));
+          const project = await migrateProjectSessions(
+            directory,
+            parseProject(await readJson(file)),
+            (message) => warnings.push(`${relative}/${entry.name}: ${message}`),
+          );
           project.folderName = entry.name;
           if (target.has(project.id) || (relative !== 'projects' && this.projects.has(project.id)))
             throw new Error(t('error.projectStore.duplicateProjectId'));
@@ -105,63 +113,50 @@ export class ProjectStore {
     this.projects.set(projectId, updated);
     return this.read(projectId);
   }
+  async prepareAgentSessions(projectId: string, agentId: string) {
+    const project = this.get(projectId);
+    const root = await this.directory(projectId);
+    const updated = await prepareProjectAgentSessions(root, project, stableId(agentId));
+    if (updated !== project) {
+      await this.save(updated, root);
+      this.projects.set(projectId, updated);
+    }
+    return this.read(projectId);
+  }
+  /** Change only future launch context. Never relocate results or rewrite canonical dialogues. */
+  async applyWorkspaceMode(projectId: string, mode: TeamWorkspaceMode) {
+    const project = this.get(projectId);
+    mode = parseTeamWorkspaceMode(mode);
+    if ((project.workspaceMode ?? 'per-agent') !== mode) {
+      const updated = { ...project, workspaceMode: mode };
+      const root = await this.directory(projectId);
+      await ensureProjectAgents(updated, root);
+      await this.save(updated, root);
+      this.projects.set(projectId, updated);
+    }
+    return this.read(projectId);
+  }
   async applyAgentModel(projectId: string, agentId: string, model: NonNullable<Agent['model']>) {
     const project = this.get(projectId);
-    const selected = project.agents.find((agent) => agent.profile.id === stableId(agentId));
-    if (!selected) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
-    if (JSON.stringify(selected.profile.model) !== JSON.stringify(model)) {
-      const updated = {
-        ...project,
-        agents: project.agents.map((agent) =>
-          agent === selected
-            ? { ...agent, profile: { ...agent.profile, model: structuredClone(model) } }
-            : agent,
-        ),
-      };
+    const updated = withAgentModel(project, stableId(agentId), model);
+    if (updated !== project) {
       await this.save(updated, await this.directory(projectId));
       this.projects.set(projectId, updated);
     }
     return this.read(projectId);
   }
   async read(id: string): Promise<WorkspaceProject> {
-    const project = this.get(id);
-    const root = await this.directory(id);
-    return {
-      ...project,
-      agents: await Promise.all(
-        project.agents.map(async (agent) => {
-          let session = agent.session;
-          if (session) {
-            try {
-              await safePath(root, session.path);
-            } catch {
-              session = { ...session, missing: true };
-            }
-          }
-          return { ...agent, session, entries: await scanOutputs(root, agent.outputPath) };
-        }),
-      ),
-    };
+    return readProject(this.get(id), await this.directory(id));
   }
   private async save(project: WorkspaceProject, root: string) {
     await atomicJson(await safePath(root, 'project.json', true), projectDocument(project));
-  }
-  private async available(name: string) {
-    const path = await safePath(this.root, `projects/${name}`, true);
-    try {
-      await lstat(path);
-    } catch (error) {
-      if (isMissing(error)) return path;
-      throw error;
-    }
-    throw new Error(t('error.projectFolders.aFolderWithThisName'));
   }
   async command(command: ProjectCommand): Promise<ProjectCommandResult> {
     let selectedId: string | undefined;
     if (command.kind === 'create' || command.kind === 'clone') {
       const name = folderLabel(command.name);
       const folderName = folderSlug(name);
-      const destination = await this.available(folderName);
+      const destination = await availableProjectDirectory(this.root, folderName);
       const staging = await safePath(this.root, `projects/.creating-${randomUUID()}`, true);
       let project: WorkspaceProject;
       try {
@@ -171,7 +166,7 @@ export class ProjectStore {
           const leases = new Set(
             [...source.agents, ...(source.archivedAgents ?? []).map((item) => item.agent)].map(
               (agent) =>
-                join(sourceRoot, agentDirectory(agent.outputPath), '.pistudio-session-lock.json'),
+                join(sourceRoot, agentRuntimeDirectory(agent), '.pistudio-session-lock.json'),
             ),
           );
           await cp(sourceRoot, staging, {
@@ -218,7 +213,14 @@ export class ProjectStore {
             folderName,
             createdAt: Date.now(),
             autoContinue: false,
-            agents: snapshotProjectAgents(parseAgents(command.agents)),
+            ...(command.workspaceMode === undefined
+              ? {}
+              : { workspaceMode: parseTeamWorkspaceMode(command.workspaceMode) }),
+            agents: snapshotProjectAgents(parseAgents(command.agents)).map((agent) =>
+              command.workspaceMode === 'shared'
+                ? { ...agent, runtimePath: `.pistudio/agents/${agent.profile.id}` }
+                : agent,
+            ),
           };
         }
         await ensureProjectAgents(project, staging);
@@ -237,7 +239,7 @@ export class ProjectStore {
         throw new Error(t('error.projectStore.anActiveProjectAlreadyUses'));
       const name = project.name;
       const folderName = folderSlug(folderLabel(name));
-      const destination = await this.available(folderName);
+      const destination = await availableProjectDirectory(this.root, folderName);
       const source = await safePath(this.root, `.pistudio/trash/${project.folderName}`);
       await rename(source, destination);
       const restored = {
@@ -285,7 +287,7 @@ export class ProjectStore {
         const name = folderLabel(command.name);
         const folderName = folderSlug(name);
         if (folderName !== project.folderName) {
-          const destination = await this.available(folderName);
+          const destination = await availableProjectDirectory(this.root, folderName);
           await assertProjectSessionsClosed(project, root);
           await rename(root, destination);
           const updated = {
@@ -324,7 +326,12 @@ export class ProjectStore {
               if (isMissing(error)) return [];
               throw error;
             }),
-          ).map((agent) => [agent.profile.id, agent]),
+          ).map((agent) => [
+            agent.profile.id,
+            project.workspaceMode === 'shared'
+              ? { ...agent, runtimePath: `.pistudio/agents/${agent.profile.id}` }
+              : agent,
+          ]),
         );
         const next = synchronizeProjectAgentList(
           project,

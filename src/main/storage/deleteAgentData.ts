@@ -2,8 +2,12 @@ import { t } from '../../shared/i18n/index.ts';
 import { lstat, mkdir, readdir } from 'node:fs/promises';
 import type { StudioStore } from './StudioStore.ts';
 import type { DeleteAgentDataRequest } from '../../shared/storage.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
-import { hasLiveSessionLease } from './sessionLease.ts';
+import {
+  agentRuntimeDirectory,
+  agentSessionDirectory,
+  isSharedTaskPath,
+} from '../../shared/agentPaths.ts';
+import { hasLiveSessionLease, assertProjectSessionsClosed } from './sessionLease.ts';
 import { isMissing, safePath } from './files.ts';
 import { stableId } from './validation.ts';
 
@@ -21,17 +25,27 @@ export async function resolveAgentDataDeletion(
   if (!project || !agent)
     throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
   const root = await store.projects.directory(project.id);
-  const directory = agentDirectory(agent.outputPath);
+  const directory = agentRuntimeDirectory(agent);
+  if (project.workspaceMode === 'shared' && request.target !== 'dialogue')
+    await assertProjectSessionsClosed(project, root);
   const paths = [
-    ...(request.target !== 'dialogue' ? [agent.outputPath] : []),
-    ...(request.target !== 'files' ? [`${directory}/sessions`] : []),
+    ...(request.target === 'dialogue'
+      ? []
+      : project.workspaceMode === 'shared'
+        ? (await readdir(root)).filter(isSharedTaskPath)
+        : [agent.outputPath]),
+    ...(request.target !== 'files' ? [agentSessionDirectory(agent)] : []),
   ];
   // Validate both destinations before moving either; never follow a symlink.
   for (const path of paths) {
     const absolute = await safePath(root, path, true);
     try {
-      if (!(await lstat(absolute)).isDirectory())
-        throw new Error(t('error.deleteAgentData.agentFolderExpected'));
+      const info = await lstat(absolute);
+      if (
+        info.isSymbolicLink() ||
+        (!info.isDirectory() && !(project.workspaceMode === 'shared' && info.isFile()))
+      )
+        throw new Error(t('error.deleteAgentData.expectedAnOutputFolderOr'));
     } catch (error) {
       if (!isMissing(error)) throw error;
     }
@@ -44,6 +58,9 @@ export async function deleteAgentData(
   request: DeleteAgentDataRequest,
   trash: (path: string) => Promise<void>,
 ) {
+  await resolveAgentDataDeletion(store, request);
+  if (request.target !== 'files')
+    await store.projects.prepareAgentSessions(request.projectId, request.agentId);
   const { project, agent, root, directory, paths } = await resolveAgentDataDeletion(store, request);
   if (request.target !== 'files') {
     if (await hasLiveSessionLease(await safePath(root, directory)))
@@ -51,6 +68,11 @@ export async function deleteAgentData(
   }
   for (const path of paths) {
     const absolute = await safePath(root, path, true);
+    // Shared cleanup trashes only task entries, never the project root or Studio service state.
+    if (project.workspaceMode === 'shared' && isSharedTaskPath(path)) {
+      await trash(absolute);
+      continue;
+    }
     let entries: string[];
     try {
       entries = await readdir(absolute);

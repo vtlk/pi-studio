@@ -5,7 +5,7 @@ import type { ProjectAgentProfile } from '../../shared/project.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
 import { nativeMcpConfig } from './nativeMcp.ts';
-import { optionalBuiltinMcps, reservedMcpName } from '../../shared/builtinResources.ts';
+import { builtinResource, reservedMcpName } from '../../shared/builtinResources.ts';
 
 export type McpConfigResolver = (
   resource: Resource,
@@ -45,11 +45,14 @@ export async function resolveResources(
   for (const kind of ['skills', 'mcps', 'plugins'] as const)
     for (const id of profile[kind]) {
       if (profile.capabilitySettings?.[`${kind}:${id}`]?.enabled === false) continue;
-      if (kind === 'mcps' && optionalBuiltinMcps.some((item) => item.id === id)) continue;
+      if (kind === 'mcps' && builtinResource(id)) continue;
       const resource = catalog.find((item) => item.id === id && item.kind === kind);
       if (!resource)
         throw new Error(
-          t('error.resources.assignedResourceIsMissingExplicitly', { value1: kind, value2: id }),
+          t('error.resources.assignedResourceIsMissingExplicitly', {
+            value1: kind,
+            value2: id,
+          }),
         );
       if (kind === 'skills') {
         const skill = await inspectSkill(resource.source);
@@ -63,7 +66,11 @@ export async function resolveResources(
           source = await realpath(source);
           await access(source);
         } else if (!/^(npm:|git:|https:\/\/github\.com\/)/.test(source))
-          throw new Error(t('error.resources.packageAnExistingPathOr', { value1: resource.name }));
+          throw new Error(
+            t('error.resources.packageAnExistingPathOr', {
+              value1: resource.name,
+            }),
+          );
         result.plugins.push({ id, source });
       } else {
         const name = resource.source.startsWith('pi:')
@@ -80,7 +87,9 @@ export async function resolveResources(
         } else {
           if (resource.credential)
             throw new Error(
-              t('error.resources.mcpConfigureTheSecretThrough', { value1: resource.name }),
+              t('error.resources.mcpConfigureTheSecretThrough', {
+                value1: resource.name,
+              }),
             );
           config = /^https?:\/\//.test(resource.source)
             ? { url: resource.source, exposure: 'direct' }

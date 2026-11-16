@@ -22,7 +22,7 @@ export interface PortableConnection {
 export interface TeamPackageManifest {
   format: 'pi-studio-team';
   version: 1;
-  team: { name: string };
+  team: { name: string; workspaceMode?: import('./agentTeams').TeamWorkspaceMode };
   agents: Agent[];
   resources: PortableResource[];
   connections: PortableConnection[];

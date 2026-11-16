@@ -51,7 +51,7 @@ const agent: Agent = {
   name: 'QA Browser',
   enabled: true,
   skills: [],
-  mcps: [],
+  mcps: ['pistudio-project', 'pistudio-browser'],
   plugins: [],
   instructions: [],
   mainInstruction:

@@ -22,6 +22,7 @@ export function listProjectFiles(
   root: string,
   args: Record<string, unknown>,
   foldersFirst = false,
+  allowed?: (path: string) => boolean,
 ) {
   return withReadDeadline(async () => {
     const relative = projectPath(args.path, true);
@@ -35,6 +36,7 @@ export function listProjectFiles(
     const entries = [];
     for (const entry of names) {
       const path = relative ? `${relative}/${entry.name}` : entry.name;
+      if (allowed && !allowed(path)) continue;
       const metadata = await lstat(join(directory, entry.name));
       entries.push({
         path,

@@ -56,7 +56,9 @@ export async function getProviderStatus(path: string, provider: string): Promise
       !('stdout' in error) ||
       typeof error.stdout !== 'string'
     )
-      throw new Error(t('error.provider.couldNotCheckPiAuthentication'), { cause: error });
+      throw new Error(t('error.provider.couldNotCheckPiAuthentication'), {
+        cause: error,
+      });
     output = error.stdout;
   }
   const result: unknown = JSON.parse(output);

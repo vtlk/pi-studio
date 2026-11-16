@@ -1,5 +1,4 @@
-import { uiText, textOf, type UiText } from '@/shared/model/UiText';
-import { t, i18n } from '../../../../shared/i18n/index.ts';
+import { t, i18n, type MessageKey } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { getStudioApi } from '@/shared/desktopApi';
@@ -10,48 +9,56 @@ export function BrowserResourceStatus() {
   useTranslation(undefined, { i18n });
   const [busy, setBusy] = useState(false);
   const [installed, setInstalled] = useState(false);
-  const [message, setMessage] = useState<UiText>(
-    uiText('BrowserResourceStatus.checkingComponents'),
-  );
+  const [visible, setVisible] = useState(false);
+  const [visibleSupported, setVisibleSupported] = useState(false);
+  const [message, setMessage] = useState<MessageKey>('BrowserResourceStatus.checkingComponents');
+  const [error, setError] = useState('');
   useEffect(() => {
     if (!window.studio) return;
     let active = true;
     void getStudioApi()
-      .checkResource(browserMcp.id)
-      .then((check) => {
+      .getBrowserState()
+      .then((state) => {
         if (!active) return;
-        setInstalled(check.status === 'available');
+        setInstalled(state.headlessInstalled);
+        setVisible(state.headedInstalled);
+        setVisibleSupported(state.headedSupported);
         setMessage(
-          check.status === 'available'
-            ? uiText('BrowserResourceStatus.componentsInstalled')
-            : uiText('BrowserResourceStatus.componentsAreNotInstalledYet'),
+          state.headlessInstalled
+            ? 'BrowserResourceStatus.componentsInstalled'
+            : 'BrowserResourceStatus.componentsAreNotInstalledYet',
         );
       })
       .catch((error: unknown) => {
-        if (active)
-          setMessage(
-            error instanceof Error
-              ? error.message
-              : uiText('BrowserResourceStatus.couldNotCheckComponents'),
-          );
+        if (!active) return;
+        setMessage('BrowserResourceStatus.couldNotCheckComponents');
+        setError(error instanceof Error ? error.message : '');
       });
     return () => {
       active = false;
     };
   }, []);
-  const install = async () => {
+  const install = async (headed = false) => {
     setBusy(true);
-    setMessage(uiText('BrowserResourceStatus.downloadingAgentBrowserAndChromium'));
+    setError('');
+    setMessage(
+      headed
+        ? 'BrowserResourceStatus.downloadingVisibleBrowser'
+        : 'BrowserResourceStatus.downloadingAgentBrowserAndChromium',
+    );
     try {
-      await getStudioApi().installResource(browserMcp.id);
-      setInstalled(true);
-      setMessage(uiText('BrowserResourceStatus.componentsInstalledTheBrowserOpensWhenAn'));
+      if (headed) {
+        const state = await getStudioApi().installVisibleBrowser();
+        setVisible(state.headedInstalled);
+        setMessage('BrowserResourceStatus.visibleBrowserInstalledAskTheAgentTo');
+      } else {
+        await getStudioApi().installResource(browserMcp.id);
+        setInstalled(true);
+        setMessage('BrowserResourceStatus.componentsInstalledTheBrowserOpensWhenAn');
+      }
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : uiText('BrowserResourceStatus.couldNotInstallComponents'),
-      );
+      setMessage('BrowserResourceStatus.couldNotInstallComponents');
+      setError(error instanceof Error ? error.message : '');
     } finally {
       setBusy(false);
     }
@@ -59,8 +66,29 @@ export function BrowserResourceStatus() {
   return (
     <div className="resource-native-actions">
       <p className="subtle" role="status">
-        {textOf(message)}
+        {error || t(message)}
       </p>
+      {visibleSupported && (
+        <>
+          <p className="subtle">
+            {t('BrowserResourceStatus.visibleBrowser')}
+            {visible
+              ? t('BrowserResourceStatus.installed')
+              : t('BrowserResourceStatus.notInstalled')}
+            {t('BrowserResourceStatus.theBrowserRunsWithoutAWindowBy')}
+          </p>
+          {!visible && (
+            <Button
+              disabled={busy}
+              onClick={() => {
+                void install(true);
+              }}
+            >
+              {t('BrowserResourceStatus.installVisibleBrowser')}
+            </Button>
+          )}
+        </>
+      )}
       {!installed && window.studio && (
         <Button
           kind="primary"

@@ -76,7 +76,9 @@ export async function githubResponse(
           ? t('error.githubTransport.releasesUnavailableTheRepositoryMay')
           : [403, 429].includes(response.status)
             ? t('error.githubTransport.githubTemporarilyRateLimitedUpdate')
-            : t('error.githubTransport.couldNotRetrieveTheUpdate', { value1: response.status }),
+            : t('error.githubTransport.couldNotRetrieveTheUpdate', {
+                value1: response.status,
+              }),
         Number.isFinite(retryAt) && retryAt > now
           ? Math.min(retryAt, now + 24 * 3600_000)
           : undefined,

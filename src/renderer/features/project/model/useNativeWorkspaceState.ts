@@ -57,9 +57,7 @@ export function useNativeWorkspaceState() {
       );
       return result.project.agents.find((agent) => agent.profile.id === agentId)?.session;
     } catch (error) {
-      demo(
-        error instanceof Error ? error.message : uiText('useNativeWorkspaceState.couldNotOpenPi'),
-      );
+      demo(error instanceof Error ? error.message : uiText('useNativeWorkspaceState.couldNotOpenPi'));
       return undefined;
     } finally {
       mutating.current = false;
@@ -87,9 +85,7 @@ export function useNativeWorkspaceState() {
       return true;
     } catch (error) {
       demo(
-        error instanceof Error
-          ? error.message
-          : uiText('useNativeWorkspaceState.fileOperationError'),
+        error instanceof Error ? error.message : uiText('useNativeWorkspaceState.fileOperationError'),
       );
       return false;
     } finally {

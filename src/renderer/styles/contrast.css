@@ -338,6 +338,7 @@ input::placeholder {
 
 /* Pills share one treatment at every level. */
 .topbar nav > button,
+.topbar .settings-button,
 .step-nav > button,
 .segmented > button {
   border: 0;
@@ -380,15 +381,15 @@ input::placeholder {
   color: var(--content-ink);
 }
 /* Single source for every pill state. No legacy selected-state overrides. */
-.topbar nav > button[aria-current='page'] {
+:is(.topbar nav > button, .topbar .settings-button)[aria-current='page'] {
   background: var(--menu-active);
   color: var(--menu-ink);
 }
-.topbar nav > button:hover:not(:disabled) {
+:is(.topbar nav > button, .topbar .settings-button):hover:not(:disabled) {
   background: var(--hover);
   color: var(--text);
 }
-.topbar nav > button[aria-current='page']:hover:not(:disabled) {
+:is(.topbar nav > button, .topbar .settings-button)[aria-current='page']:hover:not(:disabled) {
   background: var(--menu-hover);
   color: var(--menu-ink);
 }

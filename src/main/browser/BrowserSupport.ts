@@ -4,7 +4,9 @@ import { createHash } from 'node:crypto';
 import { mkdir, realpath, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ResourceCheck } from '../../shared/resources.ts';
+import type { BrowserState } from '../../shared/browser.ts';
 import { browserMcp } from '../../shared/builtinResources.ts';
+import { hasBuiltinMcp } from '../../shared/builtinAssignments.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import { checkPi } from '../pi/checkPi.ts';
 import { atomicJson } from '../storage/files.ts';
@@ -23,6 +25,7 @@ export class BrowserSupport {
   private readonly script: string;
   private readonly controller = new AbortController();
   private installing?: Promise<typeof browserMcp>;
+  private installingVisible?: Promise<BrowserState>;
   constructor(root: string, script: string) {
     this.root = root;
     this.script = script;
@@ -33,12 +36,41 @@ export class BrowserSupport {
   private get chromeRoot() {
     return join(this.root, `chrome-${CHROME_VERSION}`);
   }
-  async check(): Promise<ResourceCheck> {
+  private get visibleChromeRoot() {
+    return join(this.root, `chrome-visible-${CHROME_VERSION}`);
+  }
+  async state(): Promise<BrowserState> {
+    const [backend, headless, headed] = await Promise.all([
+      readAgentBrowser(this.backendRoot).catch(() => undefined),
+      readChrome(this.chromeRoot).catch(() => undefined),
+      process.platform === 'darwin'
+        ? readChrome(this.visibleChromeRoot, true).catch(() => undefined)
+        : undefined,
+    ]);
     return {
-      status:
-        (await readAgentBrowser(this.backendRoot)) && (await readChrome(this.chromeRoot))
-          ? 'available'
-          : 'unavailable',
+      headlessInstalled: !!backend && !!headless,
+      headedInstalled: !!backend && !!headed,
+      headedSupported: process.platform === 'darwin',
+    };
+  }
+  installVisible() {
+    if (process.platform !== 'darwin')
+      throw new Error(t('error.browserSupport.visibleBrowserUseIsCurrently'));
+    this.installingVisible ??= (async () => {
+      // Share backend installation with an already admitted ordinary component install.
+      if (this.installing) await this.installing;
+      else await installAgentBrowser(this.backendRoot, this.controller.signal);
+      await installChrome(this.visibleChromeRoot, this.controller.signal, { headed: true });
+      return this.state();
+    })().finally(() => {
+      this.installingVisible = undefined;
+    });
+    return this.installingVisible;
+  }
+  async check(): Promise<ResourceCheck> {
+    const state = await this.state();
+    return {
+      status: state.headlessInstalled || state.headedInstalled ? 'available' : 'unavailable',
       checkedAt: Date.now(),
     };
   }
@@ -57,6 +89,7 @@ export class BrowserSupport {
     return join(this.root, 'bindings', `${run.record.runId}.json`);
   }
   async bind(run: PreparedRun, studio: string, piPath: string, visual: boolean) {
+    if (!hasBuiltinMcp(run.agent.profile, browserMcp.id)) return;
     const scope = createHash('sha256')
       .update(`${await realpath(studio)}\0${run.project.id}\0${run.agent.profile.id}`)
       .digest('hex');
@@ -66,11 +99,16 @@ export class BrowserSupport {
     await mkdir(join(this.root, 'bindings'), { recursive: true, mode: 0o700 });
     const binding = this.binding(run);
     await atomicJson(binding, {
+      studioFile: join(studio, '.pistudio/studio.json'),
+      agentId: run.agent.profile.id,
       scope,
       sessions: join(this.root, 'dialogues'),
       visual,
       binary: join(this.backendRoot, browserExecutable()),
       chrome: join(this.chromeRoot, chromeExecutable()),
+      ...(process.platform === 'darwin'
+        ? { headedChrome: join(this.visibleChromeRoot, chromeExecutable(true)) }
+        : {}),
       projectRoot: run.projectRoot,
       outputRoot: run.record.output,
     });
@@ -98,6 +136,7 @@ export class BrowserSupport {
     this.controller.abort();
   }
   assertUpdateIdle() {
-    if (this.installing) throw new Error(t('error.browserSupport.waitForBrowserComponentsTo'));
+    if (this.installing || this.installingVisible)
+      throw new Error(t('error.browserSupport.waitForBrowserComponentsTo'));
   }
 }

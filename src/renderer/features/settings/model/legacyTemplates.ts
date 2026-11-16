@@ -9,12 +9,22 @@ export async function matchesLegacyTemplate(
   const key = section === 'resources' ? `${value.kind}:${value.id}` : value.id;
   const expected = (hashes[section] as Record<string, string>)[key];
   if (!expected) return false;
-  const digest = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(canonicalJson(value)),
-  );
-  const actual = Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, '0'),
-  ).join('');
-  return actual === expected;
+  const candidates: unknown[] = [value];
+  // The current storage schema adds this required MCP without changing user configuration.
+  // Match that exact schema projection too; all other historical fields remain byte-verified.
+  if (section === 'agents' && 'mcps' in value && Array.isArray(value.mcps)) {
+    if (value.mcps.includes('pistudio-project'))
+      candidates.push({ ...value, mcps: value.mcps.filter((id) => id !== 'pistudio-project') });
+  }
+  for (const candidate of candidates) {
+    const digest = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(canonicalJson(candidate)),
+    );
+    const actual = Array.from(new Uint8Array(digest), (byte) =>
+      byte.toString(16).padStart(2, '0'),
+    ).join('');
+    if (actual === expected) return true;
+  }
+  return false;
 }

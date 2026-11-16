@@ -6,7 +6,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { ReferenceFile, SavedAttachment } from '../../shared/attachments.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { atomicJson, atomicText, safePath } from '../storage/files.ts';
-import { agentDirectory } from '../../shared/agentPaths.ts';
+import { agentRuntimeDirectory } from '../../shared/agentPaths.ts';
 
 const limit = 256 * 1024 * 1024;
 function mediaType(bytes: Buffer, name: string) {
@@ -96,7 +96,7 @@ export class ReferenceFiles {
   async attach(run: PreparedRun, ids: unknown, folder: string, imageInput: boolean) {
     const items = this.validate(ids, folder, imageInput);
     if (!items.length) return;
-    const base = `${agentDirectory(run.agent.outputPath)}/runs/${run.record.runId}`;
+    const base = `${agentRuntimeDirectory(run.agent)}/runs/${run.record.runId}`;
     const directory = await safePath(run.projectRoot, base, true);
     const saved: SavedAttachment[] = [];
     await mkdir(directory, { recursive: true });
@@ -106,7 +106,9 @@ export class ReferenceFiles {
         const sha256 = createHash('sha256').update(bytes).digest('hex');
         if (sha256 !== item.sha256)
           throw new Error(
-            t('error.referenceFiles.referenceChangedSelectItAgain', { value1: item.file.name }),
+            t('error.referenceFiles.referenceChangedSelectItAgain', {
+              value1: item.file.name,
+            }),
           );
         const id = randomUUID();
         const relative = `${base}/attachments/${id}/${item.file.name}`;

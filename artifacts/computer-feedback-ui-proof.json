@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-16T17:54:25.067Z",
+  "actualOverlayClass": true,
+  "builtNativeRenderer": true,
+  "hiddenOffscreenWindowsOnly": true,
+  "isolatedUserData": true,
+  "noPreloadOrNodeInRenderer": true,
+  "sandbox": true,
+  "nonFocusable": true,
+  "screenFrame": true,
+  "agentName": true,
+  "clickPulse": true,
+  "markupEscaped": true,
+  "idleCleanup": true,
+  "scopedRelease": true,
+  "cancelledLoadDoesNotResurrect": true,
+  "displays": 1,
+  "limits": "Hidden renderer/host tests only. No real desktop capture/input, focus handoff, macOS Spaces/fullscreen, or native multi-monitor acceptance; no installed app replacement."
+}

@@ -9,12 +9,13 @@ import type { Agent, CapabilityKind } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
 import type { PiModelCatalog } from '../../shared/models.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
-import { join } from 'node:path';
 import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
 import { builtinResources, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
+import { requiredBuiltinMcpIds } from '../../shared/builtinAssignments.ts';
+import { assertAdministrationScope } from './administrationScope.ts';
 import {
   endpointProviderId,
   parseModelEndpoint,
@@ -62,8 +63,7 @@ export class SetupAdministration {
     if (this.native && (resourceTools.includes(name) || name === 'list_configuration')) {
       const folder = await this.service.serialize(async () => {
         const store = await this.service.load();
-        if (join(store.folder, '.pistudio/setup-assistant') !== run.projectRoot)
-          throw new Error(t('error.setupAdministration.thisAssistantBelongsToA'));
+        await assertAdministrationScope(store, run);
         return store.folder;
       });
       if (name === 'configure_mcp')
@@ -104,8 +104,7 @@ export class SetupAdministration {
     const models = await this.catalog();
     return this.service.serialize(async () => {
       const store = await this.service.load();
-      if (join(store.folder, '.pistudio/setup-assistant') !== run.projectRoot)
-        throw new Error(t('error.setupAdministration.thisAssistantBelongsToA'));
+      await assertAdministrationScope(store, run);
       const sections = store.bootstrap().sections;
       const agents = (sections.agents ?? []) as Agent[];
       const systems = (sections.systemAgents ?? []) as SystemAgent[];
@@ -304,6 +303,12 @@ export class SetupAdministration {
         if (!['skills', 'mcps', 'plugins'].includes(String(args.kind)))
           throw new Error(t('error.setupAdministration.invalidResourceKind'));
         const kind = args.kind as CapabilityKind;
+        if (
+          kind === 'mcps' &&
+          args.enabled === false &&
+          requiredBuiltinMcpIds(agent).includes(String(args.resourceId))
+        )
+          throw new Error(t('CapabilitiesPanel.requiredMcpCannotBeDisabledOrRemoved'));
         const resource = [...resources, ...optionalBuiltinMcps].find(
           (item) => item.id === args.resourceId && item.kind === kind,
         );

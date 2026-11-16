@@ -1,4 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
+import { parseTeamWorkspaceMode } from '../../shared/agentTeams.ts';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import type {
@@ -108,7 +109,9 @@ export function validatePackage(value: unknown): TeamPackage {
         : { endpointConfig: parseModelEndpoint(c.endpointConfig) }),
     };
   });
-  const agents = parseAgents(m.agents);
+  // Portable IDs belong to this manifest's resource table, not the local built-in registry.
+  // Apply local required assignments only after import has remapped every resource reference.
+  const agents = parseAgents(m.agents, false);
   const ids = new Set(resources.map((r) => r.id));
   if (
     ids.size !== resources.length ||
@@ -158,7 +161,12 @@ export function validatePackage(value: unknown): TeamPackage {
   const manifest: TeamPackageManifest = {
     format: 'pi-studio-team',
     version: 1,
-    team: { name },
+    team: {
+      name,
+      ...(team.workspaceMode === undefined
+        ? {}
+        : { workspaceMode: parseTeamWorkspaceMode(team.workspaceMode) }),
+    },
     agents,
     resources,
     connections,

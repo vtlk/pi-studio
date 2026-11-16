@@ -1,4 +1,5 @@
 const { app, ipcMain, dialog } = require('electron');
+app.getPreferredSystemLanguages = () => ['ru-RU'];
 const { realpathSync, mkdirSync, writeFileSync } = require('node:fs');
 const { mkdir, writeFile, readFile } = require('node:fs/promises');
 const { join, resolve } = require('node:path');
@@ -84,9 +85,16 @@ const timeout = setTimeout(() => {
       `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
     );
   const load = () => js('window.studio.loadStudio()');
-  const createTeam = async (name) => {
+  const createTeam = async (name, shared = false) => {
     await named('Создать команду');
     await field('Название команды', name);
+    if (shared) {
+      await named('Рабочие папки агентов');
+      await until(`document.querySelectorAll('[role="option"]').length===2`);
+      await js(
+        `Array.from(document.querySelectorAll('[role="option"]')).find(e=>e.textContent==='Все агенты в одной папке').click()`,
+      );
+    }
     await click('Создать');
     await saved();
   };
@@ -115,7 +123,7 @@ const timeout = setTimeout(() => {
   await createTeam('Первая');
   await addAgent('Первая', 'Первый');
   await addAgent('Первая', 'Второй');
-  await createTeam('Вторая');
+  await createTeam('Вторая', true);
   await addAgent('Вторая', 'Другой');
   const state = await load();
   assert.equal(state.sections.agentTeams.length, 2);
@@ -193,10 +201,23 @@ const timeout = setTimeout(() => {
   assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`), true);
   await js(`document.querySelector('.agent-team .disclosure-trigger').click()`);
   assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`), false);
-  await named('Переименовать команду «Первая»');
+  assert.equal(state.sections.agentTeams[0].workspaceMode, 'per-agent');
+  assert.equal(state.sections.agentTeams[1].workspaceMode, 'shared');
+  await named('Настройки команды «Первая»');
   await field('Название команды', 'Переименована');
+  await named('Рабочие папки агентов');
+  await until(`document.querySelectorAll('[role="option"]').length===2`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="option"]')).find(e=>e.textContent==='Все агенты в одной папке').click()`,
+  );
+  await js('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+  await writeFile(
+    resolve('artifacts/team-workspace-dialog.png'),
+    (await window.webContents.capturePage()).toPNG(),
+  );
   await click('Сохранить');
   await saved();
+  assert.equal((await load()).sections.agentTeams[0].workspaceMode, 'shared');
   await addAgent('Переименована', 'Третий');
   await click('Проекты');
   await named('Создать проект');
@@ -215,6 +236,13 @@ const timeout = setTimeout(() => {
   await click('Создать');
   await until(`document.querySelector('.project-header h1')?.textContent==='Из второй команды'`);
   const project = (await load()).projects[0];
+  assert.equal(project.workspaceMode, 'shared');
+  assert.deepEqual(
+    (
+      await require('node:fs/promises').readdir(join(studio, 'projects', project.folderName))
+    ).sort(),
+    ['.pistudio', 'project.json'],
+  );
   assert.equal(project.sourceTeamId, state.sections.agentTeams[1].id);
   assert.deepEqual(
     project.agents.map((agent) => agent.profile.name),
@@ -222,13 +250,7 @@ const timeout = setTimeout(() => {
   );
   assert.equal(project.agents[0].session, undefined);
   assert.equal('instructions' in project.agents[0].profile, false);
-  const marker = join(
-    studio,
-    'projects',
-    project.folderName,
-    project.agents[0].outputPath,
-    'keep.md',
-  );
+  const marker = join(studio, 'projects', project.folderName, 'keep.md');
   await writeFile(marker, 'Keep output');
   await click('Агенты');
   await openTeamMenu(state.sections.agentTeams[1].id);
@@ -391,6 +413,9 @@ const timeout = setTimeout(() => {
     collapseRenameAdd: true,
     projectExplicitSelection: true,
     projectScopedToSelectedTeam: true,
+    workspaceModeCreateAndEditThroughSharedSelect: true,
+    workspaceModePersistsAcrossReloadAndUndo: true,
+    sharedProjectCreatesNoOutputOrAgentNamedWorkFolders: true,
     confirmationCancel: true,
     teamDeletePreservesProjectAndOutput: true,
     undoPreservesLaterEdits: true,

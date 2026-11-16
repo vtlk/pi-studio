@@ -12,7 +12,7 @@ const profile = {
   mainInstruction: 'Current role',
   instructions: [],
   skills: [],
-  mcps: [],
+  mcps: ['pistudio-project'],
   plugins: [],
 };
 

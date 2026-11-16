@@ -152,7 +152,9 @@ async function child() {
     assert.ok(initialSettings.width > 100);
     assert.equal(
       await js(`getComputedStyle(document.querySelector('.settings-button')).backgroundColor`),
-      'rgb(0, 0, 0)',
+      await js(
+        `getComputedStyle(document.querySelector('.topbar nav > button:not([aria-current="page"])')).backgroundColor`,
+      ),
     );
     await w.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
       type: 'mouseMoved',

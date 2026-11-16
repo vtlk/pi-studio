@@ -10,6 +10,7 @@ import { stableId } from '../storage/validation.ts';
 import { listImports, readImport } from './importState.ts';
 import type { ImportedTeamState } from './importTeam.ts';
 import { isLocalMcpPath } from './portableMcp.ts';
+import { assertAdministrationScope } from '../pi/administrationScope.ts';
 
 type CheckModel = (agent: Agent, store: StudioStore) => Promise<void>;
 export class TeamImportTools {
@@ -24,8 +25,7 @@ export class TeamImportTools {
   async call(run: PreparedRun, name: string, args: Record<string, unknown>): Promise<unknown> {
     const scope = await this.service.serialize(async () => {
       const store = await this.service.load();
-      if (run.projectRoot !== join(store.folder, '.pistudio/setup-assistant'))
-        throw new Error(t('error.teamImportTools.theImportBelongsToAnother'));
+      await assertAdministrationScope(store, run);
       if (name === 'list_team_imports')
         return { folder: store.folder, reports: await listImports(store) };
       const imported = await readImport(store, stableId(args.packageId));
@@ -146,7 +146,10 @@ export class TeamImportTools {
               const check = await this.native.check(id, scope.folder);
               if (check.status !== 'available')
                 issues.push(
-                  t('error.teamImportTools.resource', { value1: id, value2: check.status }),
+                  t('error.teamImportTools.resource', {
+                    value1: id,
+                    value2: check.status,
+                  }),
                 );
             } catch (error) {
               issues.push(

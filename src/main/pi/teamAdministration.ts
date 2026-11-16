@@ -1,4 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
+import { parseTeamWorkspaceMode } from '../../shared/agentTeams.ts';
 import { randomUUID } from 'node:crypto';
 import type { Agent } from '../../shared/studio.ts';
 import type { StudioStore } from '../storage/StudioStore.ts';
@@ -15,6 +16,10 @@ export async function configureTeam(store: StudioStore, args: Record<string, unk
     id: old?.id ?? randomUUID(),
     name: args.name.trim(),
     agentIds: old?.agentIds ?? [],
+    workspaceMode:
+      args.workspaceMode === undefined
+        ? (old?.workspaceMode ?? 'per-agent')
+        : parseTeamWorkspaceMode(args.workspaceMode),
   };
   await store.saveSection('agentCatalog', {
     ...catalog,

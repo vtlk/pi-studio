@@ -95,9 +95,6 @@
   color: var(--muted);
   margin-right: auto;
 }
-.agent-settings-content {
-  max-width: 900px;
-}
 .agent-prompt-panel textarea {
   margin: 0;
   --textarea-base-height: max(360px, calc(100dvh - 240px));

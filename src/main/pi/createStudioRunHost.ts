@@ -19,8 +19,13 @@ import type { RunDependencies } from './RunTypes.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
 import type { ProjectActivity } from './ProjectActivity.ts';
 import type { ComputerSupport } from '../computer/ComputerSupport.ts';
+import { hasBuiltinMcp } from '../../shared/builtinAssignments.ts';
+import { createAdministration, type AdministrationOptions } from './createAdministration.ts';
+import { currentBuiltinAccess } from './currentBuiltinAccess.ts';
+import { setupTools } from './setupTools.ts';
+import type { PreparedRun } from './ContextBuilder.ts';
 
-interface Options {
+interface Options extends AdministrationOptions {
   team?: TeamSupport;
   bootstraps: string;
   bridge: string;
@@ -38,13 +43,22 @@ interface Options {
   openTerminal?: typeof openSessionTerminal;
 }
 export function createStudioRunHost(service: StudioService, options: Options) {
+  const administration = createAdministration(service, options);
+  const administrativeTools = setupTools.filter(
+    (tool) => !productionTools.some((existing) => existing.name === tool.name),
+  );
+  const permissions = new WeakMap<PreparedRun, (id: string) => Promise<boolean>>();
   const host: RunHost = new RunHost({
     mcpGroups: (run) => [
       ...(options.computer?.groups(run) ?? []),
       ...(options.team?.groups(run) ?? []),
     ],
     observed: (run, event) => options.team?.event(run, event) ?? Promise.resolve(),
-    tools: (run) => [...productionTools, ...(options.images?.tools(run) ?? [])],
+    tools: (run) => [
+      ...productionTools,
+      ...(options.images?.tools(run) ?? []),
+      ...(hasBuiltinMcp(run.agent.profile, 'pistudio-administration') ? administrativeTools : []),
+    ],
     closed: (run) => {
       options.activity?.set(run, false);
       options.images?.cancel(run);
@@ -67,10 +81,19 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       service.serialize(async () => {
         await (await service.load()).accounting.lost(run);
       }),
-    tool: (run, name, args) =>
-      ['generate_image', 'get_image_operation'].includes(name) && options.images
-        ? options.images.tool(run, name, args)
-        : Promise.reject(new Error(t('error.createStudioRunHost.unknownProjectTool'))),
+    tool: async (run, name, args) => {
+      if (administrativeTools.some((tool) => tool.name === name)) {
+        if (
+          !hasBuiltinMcp(run.agent.profile, 'pistudio-administration') ||
+          !(await permissions.get(run)?.('pistudio-administration'))
+        )
+          throw new Error(t('builtin.assignmentDisabled'));
+        return administration.call(run, name, args);
+      }
+      if (['generate_image', 'get_image_operation'].includes(name) && options.images)
+        return options.images.tool(run, name, args);
+      throw new Error(t('error.createStudioRunHost.unknownProjectTool'));
+    },
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,
@@ -114,6 +137,16 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           store.folder,
           selectedModel.imageInput,
         );
+        project = await store.projects.prepareAgentSessions(project.id, request.agentId);
+        // Resolve only this project's stable source team; deleted teams retain the saved mode.
+        const sourceTeam = store
+          .agentCatalog()
+          .teams.find((team) => team.id === project.sourceTeamId);
+        if (sourceTeam)
+          project = await store.projects.applyWorkspaceMode(
+            project.id,
+            sourceTeam.workspaceMode ?? 'per-agent',
+          );
         project = await store.projects.applyAgentModel(project.id, request.agentId, model);
         const run = await buildRunContext(
           await store.projects.directory(project.id),
@@ -124,6 +157,9 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           options.mcpSecrets?.resolver(store.folder, piPath),
           thinkingLevel,
         );
+        permissions.set(run, (id) =>
+          currentBuiltinAccess(service, store.folder, run.agent.profile.id, id),
+        );
         await options.references?.attach(
           run,
           request.attachments ?? [],
@@ -133,7 +169,9 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         options.images?.bind(run, store.folder, selectedModel);
         await options.browser?.bind(run, store.folder, piPath, selectedModel.imageInput);
         await store.accounting.begin(run);
-        await options.computer?.bind(run, selectedModel.imageInput);
+        await options.computer?.bind(run, selectedModel.imageInput, () =>
+          permissions.get(run)!('pistudio-computer'),
+        );
         run.modelAuth = modelAuth;
         return { run, piPath };
       }),

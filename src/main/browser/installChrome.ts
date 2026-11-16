@@ -5,7 +5,12 @@ import { mkdir, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { atomicJson, isMissing } from '../storage/files.ts';
-import { CHROME_VERSION, chromeArchive, chromeExecutable } from './browserVersions.ts';
+import {
+  CHROME_VERSION,
+  chromeArchive,
+  chromeExecutable,
+  chromeFramework,
+} from './browserVersions.ts';
 import { powershellArguments, powershellLiteral, windowsPowershell } from '../pi/windowsShell.ts';
 import {
   componentHash,
@@ -16,7 +21,7 @@ import {
 
 const execute = promisify(execFile);
 const binaryLimit = 300 * 1024 ** 2;
-export async function readChrome(root: string) {
+export async function readChrome(root: string, headed = false) {
   try {
     const state = await componentState(join(root, 'installed.json'));
     if (
@@ -25,9 +30,18 @@ export async function readChrome(root: string) {
       !/^[a-f0-9]{64}$/.test(state.sha256)
     )
       throw new Error(t('error.installChrome.browserVersionMismatch'));
-    const binary = join(root, chromeExecutable());
+    if (headed && state.headed !== true)
+      throw new Error(t('error.installChrome.browserTypeMismatch'));
+    const binary = join(root, chromeExecutable(headed));
     if ((await componentHash(binary, binaryLimit)) !== state.sha256)
       throw new Error(t('error.installChrome.theBrowserWasModifiedReinstall'));
+    if (
+      headed &&
+      (typeof state.frameworkSha256 !== 'string' ||
+        (await componentHash(join(root, chromeFramework), 1024 * 1024 ** 2)) !==
+          state.frameworkSha256)
+    )
+      throw new Error(t('error.installChrome.theVisibleBrowserComponentWas'));
     return binary;
   } catch (error) {
     if (isMissing(error)) return undefined;
@@ -39,11 +53,13 @@ export async function readChrome(root: string) {
 export async function installChrome(
   root: string,
   signal: AbortSignal,
-  options: { arch?: string; request?: typeof fetch } = {},
+  options: { arch?: string; request?: typeof fetch; headed?: boolean } = {},
 ) {
-  const existing = await readChrome(root).catch(() => undefined);
+  const headed = options.headed === true;
+  const read = (path: string) => readChrome(path, headed);
+  const existing = await read(root).catch(() => undefined);
   if (existing) return existing;
-  const spec = chromeArchive(options.arch ?? process.arch);
+  const spec = chromeArchive(options.arch ?? process.arch, process.platform, headed);
   await mkdir(dirname(root), { recursive: true });
   const stage = join(dirname(root), `.chrome-install-${randomUUID()}`);
   await mkdir(stage, { mode: 0o700 });
@@ -54,7 +70,12 @@ export async function installChrome(
       spec.url,
       archive,
       signal,
-      { algorithm: 'sha256', encoding: 'hex', hash: spec.integrity, maxBytes: 200 * 1024 ** 2 },
+      {
+        algorithm: 'sha256',
+        encoding: 'hex',
+        hash: spec.integrity,
+        maxBytes: (headed ? 300 : 200) * 1024 ** 2,
+      },
       options.request,
     );
     await mkdir(unpacked);
@@ -72,7 +93,7 @@ export async function installChrome(
       },
     );
     const content = join(unpacked, spec.folder),
-      binary = join(content, chromeExecutable());
+      binary = join(content, chromeExecutable(headed));
     const version = await execute(binary, ['--version'], {
       signal,
       timeout: 10000,
@@ -83,10 +104,16 @@ export async function installChrome(
     await atomicJson(join(content, 'installed.json'), {
       version: CHROME_VERSION,
       sha256: await componentHash(binary, binaryLimit),
+      ...(headed
+        ? {
+            headed: true,
+            frameworkSha256: await componentHash(join(content, chromeFramework), 1024 * 1024 ** 2),
+          }
+        : {}),
     });
     signal.throwIfAborted();
     return (
-      (await publishBrowserComponent(content, root, readChrome)) ?? join(root, chromeExecutable())
+      (await publishBrowserComponent(content, root, read)) ?? join(root, chromeExecutable(headed))
     );
   } finally {
     await rm(stage, { recursive: true, force: true });

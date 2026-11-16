@@ -6,7 +6,8 @@ const { tmpdir } = require('node:os');
 const assert = require('node:assert/strict');
 let root,
   win,
-  network = 0;
+  network = 0,
+  visibleInstallRequests = 0;
 const timeout = setTimeout(() => fail(Error('Browser UI timed out')), 30000);
 async function cleanup() {
   clearTimeout(timeout);
@@ -51,9 +52,14 @@ process.on('unhandledRejection', fail);
       name,
       name === 'studio:startup'
         ? () => ({ phase: 'skipped', message: 'QA' })
-        : name === 'studio:model-catalog'
-          ? () => ({ providers: [], models: [] })
-          : action,
+        : name === 'studio:browser-install-visible'
+          ? () => {
+              visibleInstallRequests++;
+              return { headlessInstalled: false, headedInstalled: true, headedSupported: true };
+            }
+          : name === 'studio:model-catalog'
+            ? () => ({ providers: [], models: [] })
+            : action,
     );
   const loaded = new Promise((done) =>
     app.once('browser-window-created', (_, window) => {
@@ -92,8 +98,8 @@ process.on('unhandledRejection', fail);
     await until(`(${row}).innerText.includes('Компоненты ещё не установлены.')`);
     assert.equal(
       await js(`(${row}).querySelectorAll('button').length`),
-      2,
-      'Disclosure and explicit installation only.',
+      process.platform === 'darwin' ? 3 : 2,
+      'Disclosure and explicit installation actions only.',
     );
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
@@ -126,6 +132,18 @@ process.on('unhandledRejection', fail);
     await js(`document.querySelector('[role="dialog"] h2').textContent`),
     'Pi Studio · Браузер',
   );
+  assert.equal(visibleInstallRequests, 0);
+  if (process.platform === 'darwin') {
+    await click('Установить видимый браузер');
+    await until(
+      `document.querySelector('[role="dialog"]')?.innerText.includes('Видимый браузер установлен.')`,
+    );
+    assert.equal(
+      visibleInstallRequests,
+      1,
+      'Only an explicit user action reaches the installer endpoint (fixture).',
+    );
+  }
   assert.equal(network, 0);
   const persisted = await js('window.studio.loadStudio()');
   assert.deepEqual(
@@ -151,6 +169,8 @@ process.on('unhandledRejection', fail);
         noDisableDelete: true,
         explicitInstallOnly: true,
         automaticNetworkRequests: network,
+        visibleInstallButtonFixture: process.platform === 'darwin',
+        visibleInstallRequests,
         offscreen: true,
         separateUserData: true,
         packagedEntry: !!process.env.PI_STUDIO_QA_MAIN,

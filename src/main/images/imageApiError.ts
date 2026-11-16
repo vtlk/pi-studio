@@ -156,7 +156,9 @@ export function imagesApiFailure(
       );
     return error(
       'authentication',
-      t('error.imageApiError.imagesApiKeyRejectedHttp', { value1: status }),
+      t('error.imageApiError.imagesApiKeyRejectedHttp', {
+        value1: status,
+      }),
     );
   }
   if (status === 429)
@@ -174,11 +176,15 @@ export function imagesApiFailure(
         : ['model_not_found', 'model_not_available'].includes(rawCode)
           ? t('error.imageApiError.imagesApiTheSelectedModel')
           : diagnostic.param
-            ? t('error.imageApiError.theImagesApiRejectedParameter', { value1: diagnostic.param })
+            ? t('error.imageApiError.theImagesApiRejectedParameter', {
+                value1: diagnostic.param,
+              })
             : t('error.imageApiError.theImagesApiRejectedThe2');
     return error(
       'parameters',
-      t('error.imageApiError.noAutomaticSubstitutionNoRetry', { value1: explanation }),
+      t('error.imageApiError.noAutomaticSubstitutionNoRetry', {
+        value1: explanation,
+      }),
     );
   }
   return error('generation', t('error.imageApiError.theImagesApiReturnedAn'));

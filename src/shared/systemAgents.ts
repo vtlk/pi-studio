@@ -1,5 +1,6 @@
 import type { Agent } from './studio.ts';
 import { setupAssistantInstruction } from './systemAgentInstructions.ts';
+import { builtinResources } from './builtinResources.ts';
 
 export const systemAgentRoles = ['assistant'] as const;
 export type SystemAgentRole = (typeof systemAgentRoles)[number];
@@ -21,7 +22,7 @@ export function createSystemAgents(id: () => string): SystemAgent[] {
     enabled: true,
     instructions: [],
     skills: [],
-    mcps: [],
+    mcps: builtinResources.map((resource) => resource.id),
     plugins: [],
     mainInstruction: setupAssistantInstruction,
   }));

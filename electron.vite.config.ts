@@ -9,6 +9,14 @@ export default defineConfig({
   main: { build: { rollupOptions: { output: { format: 'cjs', entryFileNames: 'index.cjs' } } } },
   preload: { build: { rollupOptions: { output: { format: 'cjs', entryFileNames: 'index.cjs' } } } },
   renderer: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve('src/renderer/index.html'),
+          computerOverlay: resolve('src/renderer/computer-overlay.html'),
+        },
+      },
+    },
     base: './',
     resolve: { alias: { '@': resolve('src/renderer') } },
     publicDir: false,

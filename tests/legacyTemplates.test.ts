@@ -4,6 +4,16 @@ import { matchesLegacyTemplate } from '../src/renderer/features/settings/model/l
 import { initialAgents } from '../src/renderer/fixtures/agents.ts';
 import { exampleConnections } from '../src/renderer/fixtures/connections.ts';
 import { exampleResources } from '../src/renderer/fixtures/resources.ts';
+import { normalizeBuiltinAssignments } from '../src/shared/builtinAssignments.ts';
+
+test('required Project migration preserves exact legacy matching and never hides custom changes', async () => {
+  for (const template of initialAgents) {
+    const migrated = normalizeBuiltinAssignments(template);
+    assert.equal(await matchesLegacyTemplate(migrated, 'agents'), true);
+    assert.equal(await matchesLegacyTemplate({ ...migrated, mainInstruction: 'User instructions' }, 'agents'), false);
+    assert.equal(await matchesLegacyTemplate({ ...migrated, mcps: [...migrated.mcps, 'custom'] }, 'agents'), false);
+  }
+});
 
 test('legacy cleanup recognizes unchanged normalized templates but preserves every custom edit', async () => {
   const template = initialAgents[0];

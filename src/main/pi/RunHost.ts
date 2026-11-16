@@ -180,7 +180,7 @@ export class RunHost {
       if (!pi.supported) throw new Error(t('error.runHost.launchingRequiresTheSupportedPi'));
       const sdk = await resolvePiSdk(await realpath(pi.path));
       const node = await piNode(pi.path);
-      if (await hasLiveSessionLease(run.record.cwd))
+      if (await hasLiveSessionLease(run.record.leaseDirectory ?? run.record.cwd))
         throw new Error(t('error.runHost.thisDialogueIsStillOpen'));
       let sessionPath: string | undefined;
       if (run.agent.session) sessionPath = await safePath(run.projectRoot, run.agent.session.path);
@@ -337,6 +337,7 @@ export class RunHost {
     await this.retiring.get(key);
     this.channel.remove(live.run.record.runId);
     this.live.delete(key);
-    await rm(join(live.run.record.cwd, '.pistudio-session-lock.json'), { force: true });
+    const lease = live.run.record.leaseDirectory ?? live.run.record.cwd;
+    await rm(join(lease, '.pistudio-session-lock.json'), { force: true });
   }
 }

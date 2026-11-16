@@ -21,6 +21,9 @@ export interface RunContextRecord {
   createdAt: number;
   projectRoot: string;
   cwd: string;
+  workspaceMode?: import('./agentTeams').TeamWorkspaceMode;
+  /** Per-agent runtime ownership stays separate even when cwd/output are shared. */
+  leaseDirectory?: string;
   output: string;
   sessionDirectory: string;
   previousOutputs: { agentId: string; agentName?: string; path: string }[];

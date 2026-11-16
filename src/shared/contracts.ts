@@ -26,6 +26,7 @@ import type { McpSecretRequest, McpSecretEdit, McpSecretStatus } from './mcpSecr
 import type { ProjectActivity } from './projectActivity';
 import type { ProjectUsage } from './projectUsage';
 import type { ComputerState } from './computer';
+import type { BrowserState } from './browser';
 
 /** Only explicit, typed desktop capabilities may cross the preload boundary. */
 export interface DesktopInfo {
@@ -36,9 +37,7 @@ export interface DesktopInfo {
 
 export interface DesktopApi {
   getLanguage(): Promise<import('./i18n/locale').LanguageState>;
-  setLanguage(
-    language: import('./i18n/locale').Language,
-  ): Promise<import('./i18n/locale').LanguageState>;
+  setLanguage(language: import('./i18n/locale').Language): Promise<import('./i18n/locale').LanguageState>;
   onLanguageChanged(listener: (state: import('./i18n/locale').LanguageState) => void): () => void;
   getTheme(): Promise<import('./appearance').ThemeState>;
   setTheme(theme: import('./appearance').ThemeChoice): Promise<import('./appearance').ThemeState>;
@@ -117,6 +116,8 @@ export interface DesktopApi {
   releaseReferenceFiles(ids: string[]): Promise<void>;
   checkResource(resourceId: string): Promise<ResourceCheck>;
   installResource(resourceId: string): Promise<Resource>;
+  getBrowserState(): Promise<BrowserState>;
+  installVisibleBrowser(): Promise<BrowserState>;
   openResourceLogin(
     resourceId: string,
   ): Promise<{ opened: boolean; authorized: boolean; next: string; loginId?: string }>;
@@ -154,6 +155,8 @@ export const desktopChannels = {
   listTeamImports: 'studio:list-team-imports',
   continueTeamImport: 'studio:continue-team-import',
   getComputerState: 'studio:computer-state',
+  getBrowserState: 'studio:browser-state',
+  installVisibleBrowser: 'studio:browser-install-visible',
   requestComputerPermissions: 'studio:computer-permissions',
   openComputerSettings: 'studio:computer-settings',
   readMcpSecretStatus: 'studio:mcp-secrets-status',

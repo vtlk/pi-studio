@@ -16,8 +16,9 @@ import { useAgentProfiles } from '../model/AgentProfiles';
 import { resourceStatus } from '@/features/resources/model/resourceStatus';
 import { builtinResource } from '../../../../shared/builtinResources';
 import { McpPicker } from './McpPicker';
-import { BrowserResourceRow } from '@/features/resources/ui/BrowserResourceRow';
-import { ComputerResourceRow } from '@/features/resources/ui/ComputerResourceRow';
+import { BrowserResourceStatus } from '@/features/resources/ui/BrowserResourceStatus';
+import { ComputerResourceStatus } from '@/features/resources/ui/ComputerResourceStatus';
+import { requiredBuiltinMcpIds } from '../../../../shared/builtinAssignments.ts';
 
 export function CapabilitiesPanel() {
   useTranslation(undefined, { i18n });
@@ -27,46 +28,18 @@ export function CapabilitiesPanel() {
   const [catalog, setCatalog] = useState(false);
   if (!selectedAgent) return null;
   const field = agentTab === 'Skills' ? 'skills' : agentTab === 'MCP' ? 'mcps' : 'plugins';
+  const required = requiredBuiltinMcpIds({ systemRole: selectedSystemRole });
+  const links =
+    field === 'mcps' ? [...new Set([...required, ...selectedAgent.mcps])] : selectedAgent[field];
   return (
     <div className="agent-settings-content">
       {!selectedAgent[field].length && field !== 'mcps' && (
         <p>{t('CapabilitiesPanel.noResourcesAssignedChooseThemFromThe')}</p>
       )}
       <DisclosureList>
-        {field === 'mcps' && (
-          <div className="resource-binding" data-builtin-mcp>
-            <Disclosure
-              label={
-                selectedSystemRole
-                  ? t('builtin.administration.name')
-                  : t('CapabilitiesPanel.piStudioProject')
-              }
-              locked={t('CapabilitiesPanel.requiredMcpCannotBeDisabledOrRemoved')}
-              reserveActions
-            >
-              <p>
-                {selectedSystemRole
-                  ? t('builtin.assistant.description')
-                  : t('CapabilitiesPanel.currentProjectContextFileReadingWebSearch')}
-              </p>
-              <p className="subtle">
-                {t('CapabilitiesPanel.requiredBuiltInMcpDisablingAndRemoval')}
-              </p>
-              <p className="subtle">
-                {selectedSystemRole === 'assistant'
-                  ? t('CapabilitiesPanel.connectsWhenTheAssistantStarts')
-                  : t('CapabilitiesPanel.connectsWhenAProjectAgentStarts')}
-              </p>
-              {selectedSystemRole !== 'assistant' && (
-                <p className="subtle">{t('CapabilitiesPanel.theSharedImageToolUsesTheApi')}</p>
-              )}
-            </Disclosure>
-          </div>
-        )}
-        {field === 'mcps' && <BrowserResourceRow />}
-        {field === 'mcps' && <ComputerResourceRow />}
-        {selectedAgent[field].map((id) => {
+        {links.map((id) => {
           const key = `${field}:${id}`;
+          const locked = field === 'mcps' && required.includes(id);
           const resource =
             field === 'mcps' && builtinResource(id)
               ? builtinResource(id)
@@ -80,33 +53,48 @@ export function CapabilitiesPanel() {
               },
             });
           return (
-            <div className="resource-binding" key={id} data-removable>
+            <div
+              className="resource-binding"
+              key={id}
+              data-removable={!locked || undefined}
+              data-builtin-mcp={!!builtinResource(id) || undefined}
+            >
               <Disclosure
                 label={resourceLabel(resource, 'name') ?? id}
-                toggle={{
-                  checked: binding.enabled,
-                  label: t('CapabilitiesPanel.use', { value1: id }),
-                  onChange: (enabled) => updateBinding({ enabled }),
-                }}
+                locked={
+                  locked ? t('CapabilitiesPanel.requiredMcpCannotBeDisabledOrRemoved') : undefined
+                }
+                reserveActions
+                toggle={
+                  locked
+                    ? undefined
+                    : {
+                        checked: binding.enabled,
+                        label: t('CapabilitiesPanel.use', { value1: id }),
+                        onChange: (enabled) => updateBinding({ enabled }),
+                      }
+                }
                 actions={
-                  <HoverDeleteButton
-                    label={
-                      field === 'mcps'
-                        ? uiText('CapabilitiesPanel.unlinkMcp')
-                        : uiText('CapabilitiesPanel.removeFromTheAgent', { value1: id })
-                    }
-                    confirmationTitle={
-                      field === 'mcps'
-                        ? uiText('CapabilitiesPanel.unlinkMcpFromAgent', {
-                            value1: resourceLabel(resource, 'name') ?? id,
-                            value2: agentName(selectedAgent),
-                          })
-                        : undefined
-                    }
-                    disabled={busy}
-                    description={uiText('CapabilitiesPanel.onlyThisAgentSAssignmentIsRemoved')}
-                    onDelete={() => void unlink(field, id)}
-                  />
+                  locked ? undefined : (
+                    <HoverDeleteButton
+                      label={
+                        field === 'mcps'
+                          ? uiText('CapabilitiesPanel.unlinkMcp')
+                          : uiText('CapabilitiesPanel.removeFromTheAgent', { value1: id })
+                      }
+                      confirmationTitle={
+                        field === 'mcps'
+                          ? uiText('CapabilitiesPanel.unlinkMcpFromAgent', {
+                              value1: resourceLabel(resource, 'name') ?? id,
+                              value2: agentName(selectedAgent),
+                            })
+                          : undefined
+                      }
+                      disabled={busy}
+                      description={uiText('CapabilitiesPanel.onlyThisAgentSAssignmentIsRemoved')}
+                      onDelete={() => void unlink(field, id)}
+                    />
+                  )
                 }
               >
                 <p>
@@ -120,6 +108,8 @@ export function CapabilitiesPanel() {
                       : `${resource.version ? `${resourceVersion(resource)} · ` : ''}${resourceStatus(resource, !!window.studio)}`
                     : t('CapabilitiesPanel.unavailable')}
                 </p>
+                {id === 'pistudio-browser' && <BrowserResourceStatus />}
+                {id === 'pistudio-computer' && <ComputerResourceStatus />}
               </Disclosure>
             </div>
           );
@@ -138,7 +128,7 @@ export function CapabilitiesPanel() {
         >
           {field === 'mcps' ? (
             <McpPicker
-              attached={selectedAgent.mcps}
+              attached={links}
               onPick={(id) => updateAgent({ mcps: [...selectedAgent.mcps, id] })}
             />
           ) : (

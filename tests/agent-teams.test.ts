@@ -72,7 +72,7 @@ test('legacy team migration preserves exact IDs, order, paths, output and canoni
     .projects[0];
   const path = await store.projects.directory(project.id);
   const output = join(path, project.agents[0].outputPath, 'result.md');
-  const session = join(path, 'agents/two/sessions/dialogue.jsonl');
+  const session = join(path, '.pistudio/sessions/two/dialogue.jsonl');
   await writeFile(output, 'Keep output bytes');
   await writeFile(session, 'Keep canonical dialogue');
   const file = join(root, '.pistudio/studio.json');
@@ -83,7 +83,7 @@ test('legacy team migration preserves exact IDs, order, paths, output and canoni
   const catalog = migrated.agentCatalog();
   assert.equal(catalog.teams.length, 1);
   assert.deepEqual(catalog.teams[0].agentIds, ['two', 'one']);
-  assert.deepEqual(catalog.agents, profiles);
+  assert.deepEqual(catalog.agents, parseAgentCatalog({ agents: profiles, teams: catalog.teams }).agents);
   assert.equal(migrated.bootstrap().projects[0].sourceTeamId, catalog.teams[0].id);
   assert.deepEqual(migrated.bootstrap().projects[0].agents, project.agents);
   assert.equal(await readFile(output, 'utf8'), 'Keep output bytes');
@@ -152,7 +152,7 @@ test('team catalog is atomic and rejects duplicate/foreign/missing membership, s
     base: catalog,
   });
   assert.equal(result.saved, false);
-  assert.deepEqual(result.value, changed);
+  assert.deepEqual(result.value, parseAgentCatalog(changed));
 });
 
 test('project create, refresh, clone, rename and missing source remain scoped to the exact team; histories and snapshot settings survive', async (t) => {
