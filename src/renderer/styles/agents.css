@@ -328,6 +328,11 @@
   background: transparent;
 }
 .app-shell
+  .agent-list-entry:has(> .agent-list-item.active:not([data-enabled='false']))
+  > :is(.hover-delete, .agent-helper-launch) {
+  color: var(--pill-ink);
+}
+.app-shell
   .agent-list-entry
   > :is(.hover-delete, .agent-helper-launch):is(:hover, :focus-visible):not(:disabled) {
   border-color: var(--control-border, var(--muted));
