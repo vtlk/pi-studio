@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-16T12:31:45.201Z",
+  "nativeMainPreloadRenderer": true,
+  "launchRequests": 6,
+  "synchronousDoubleClickDispatchesOnce": true,
+  "perAgentParallelProgress": true,
+  "successAndFailureRestoreIcons": true,
+  "newAndResumeAutoContinue": true,
+  "draftPreservedOnFailure": true,
+  "cancelAndMissingConfigurationDoNotSpinOrDispatch": true,
+  "reducedMotion": true,
+  "dimensionsPreserved": {
+    "width": 32,
+    "height": 32
+  },
+  "canonicalHistoryUnchanged": true,
+  "realTerminalOrModelStarted": false,
+  "userAppOrDataChanged": false,
+  "limits": "Isolated compiled native UI; launch IPC is held/resolved/rejected explicitly. Real Terminal timing/platform acceptance remains separate."
+}

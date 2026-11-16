@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-16T12:41:58.596021+00:00",
+  "version": "0.2.0-alpha.83",
+  "runtimeSourceCommit": "c0c988b0b4afa3cc6fbe0bf58177a72696a56202",
+  "releaseUrl": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.83",
+  "prereleasePublished": true,
+  "draft": false,
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.83-darwin-arm64.update.json",
+      "bytes": 622,
+      "digest": "sha256:839a534ff4561a77c2f984b562955a487bfee0b317406a6cb5b337c0d8783318"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.83-mac-arm64.zip",
+      "bytes": 142923380,
+      "digest": "sha256:b075c71504d29d938b5812a002cff6d4fac5e5db29888534f67faea34b81ae05"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.83-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "digest": "sha256:482d99537d1540a81a47be4f94be60ec9c09d3afaee670a73c761de457e97e41"
+    }
+  ],
+  "allUploadedSizesAndDigestsMatch": true,
+  "downloadedMetadataProductionEd25519Verified": true,
+  "actionsEnabled": false,
+  "repositoryPrivate": true,
+  "windowsBuilt": false,
+  "windowsDownloadRetainedVersion": "0.2.0-alpha.78",
+  "readmeMacVersion": "0.2.0-alpha.83",
+  "anonymousPublicGitHubAcceptance": false,
+  "installedUserApplicationChanged": false
+}
