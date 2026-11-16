@@ -61,7 +61,13 @@
   "repositoryMadePublic": false,
   "remaining": [
     "GitHub may retain cached old commits/source archives or hidden PR refs; private repository remains private.",
-    "Personal paths in historical QA reports and final redistribution/native acceptance remain open.",
-    "Post-rewrite security scan is running; its independent report must be checked."
-  ]
+    "Personal paths in historical QA reports and final redistribution/native acceptance remain open."
+  ],
+  "postRewriteSecurityAudit": {
+    "report": "artifacts/post-history-cleanup-security-audit-proof.json",
+    "sha256": "5a623e9c3526fa401f7b228883983c6b6699345365c71a6c27bf6f03f59c1095",
+    "unreviewedFindings": 0,
+    "scope": "All reachable Git refs, current working tree including untracked, local alpha.84 ZIP and all release metadata. Older assets are covered by earlier separate reports; not redownloaded in this run."
+  },
+  "temporaryWorkingRepositoryRemoved": true
 }
