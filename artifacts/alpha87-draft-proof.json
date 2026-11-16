@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-16T21:09:49.850Z",
+  "candidate": "0.2.0-alpha.87",
+  "candidateStatus": "draft",
+  "candidateSourceCommit": "4fd44dd531942a3a55a8041b60b623f61ae5c1d4",
+  "candidateAssets": 0,
+  "publicReleaseApiStatus": 200,
+  "draftExcludedFromAnonymousFeed": true,
+  "publicMacVersion": "0.2.0-alpha.86",
+  "publicWindowsVersion": "0.2.0-alpha.86",
+  "currentPublicAssets": 6,
+  "installedApplicationReplaced": false,
+  "signingDeferred": true,
+  "signingReason": "Avoid any possible Keychain/system dialog while the user sleeps.",
+  "nativeGuiDeferredByUser": true,
+  "githubActionsEnabled": false
+}

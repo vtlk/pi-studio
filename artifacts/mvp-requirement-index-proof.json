@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-11-16T21:01:03.022Z",
-  "headAtAudit": "34d50a64c2b5604bac9fe850984d57e10b4ba63c",
+  "checkedAt": "2026-11-16T21:10:35.856Z",
+  "headAtAudit": "4fd44dd531942a3a55a8041b60b623f61ae5c1d4",
   "backlogUniqueIdCount": 213,
   "backlogIds": [
     "AG-01",
@@ -304,7 +304,9 @@
     "artifacts/release-package-0.2.0-alpha.86-proof.json": "e8d95c374a4666980327d028fda59eb56f1547661fc5e1752cc7ba9d331f207c",
     "artifacts/alpha86-cua-source-availability-proof.json": "3887ba57b99d995a4e7bb1639a015f5a7f96fe63fd3beaa701aa1f46ab44c258",
     "artifacts/alpha86-mac-user-acceptance-proof.json": "00b6d2cfc8eca1ee413831b25faf5b9f16a9047153b23968075e54189c7de54e",
-    "artifacts/native-computer-desktop-proof.json": "8197a463fb457c4eb641ffe0450ba0387446a33baf1c069a7e1e4de3c9d19537"
+    "artifacts/native-computer-desktop-proof.json": "8197a463fb457c4eb641ffe0450ba0387446a33baf1c069a7e1e4de3c9d19537",
+    "artifacts/alpha87-validation-proof.json": "20192d37665cb760b77cc2b99fd78faba2277fc9edaa6918f2db56a6a5e3cc8f",
+    "artifacts/alpha87-draft-proof.json": "b1adeea3ea7853231878896fd7f34210b51ec9bc3b4acfb3c8ee54c21f21b6df"
   },
   "latestScopeReplacements": [
     "library retired",
@@ -315,8 +317,8 @@
     "five required helper MCPs; ordinary Project only",
     "public repository retained by owner"
   ],
-  "backlogSha256": "78fccda31ac749ffc5360ed864ad75663d7d426cdcb54643735393ad7f727748",
-  "auditSha256": "02f91f3a7f082fa89af755d01606eab969bf9905abf22b3fa7f94881e30a52db",
+  "backlogSha256": "4a25c3de5429788301402aec0221306c4f7e15fefd6af72e348cbe3c3e9dd052",
+  "auditSha256": "d01233e5f89248d2f9548c97ef876874bb34eb64e2da47ca54a06c1a08a53c58",
   "installedVersion": "0.2.0-alpha.86",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
@@ -343,5 +345,8 @@
   ],
   "desktopQaDeferredByUser": true,
   "nativePermissionProbePrompts": false,
-  "nativeModelLoopAccepted": false
+  "nativeModelLoopAccepted": false,
+  "preparedCandidateVersion": "0.2.0-alpha.87",
+  "preparedCandidateStatus": "draft-no-assets",
+  "signingDeferredToAvoidSystemDialogs": true
 }
