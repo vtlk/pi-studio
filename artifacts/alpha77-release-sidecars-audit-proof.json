@@ -1,0 +1,104 @@
+{
+  "checkedAt": "2026-11-16T05:56:39.780Z",
+  "scanner": "Gitleaks 8.30.1",
+  "sourceReport": "alpha77-all-releases-audit-proof.json",
+  "sourceReportSha256": "a6d9ab6bb19139c8c0013e926f7f1f48d692616e9ddb18b3f4d8c510e17bb440",
+  "reason": "Original full scan verified every ZIP but rejected 11 sidecar formats; retry only those failed inputs.",
+  "verified": [
+    {
+      "id": 753602225,
+      "tag": "v0.2.0-alpha.77",
+      "name": "Pi-Studio-0.2.0-alpha.77-darwin-arm64.update.json",
+      "bytes": 622,
+      "sha256": "0cff8d060d94f8d25826595a3f55bd9761b1e1259cf1de35275117c49e228848",
+      "secretFindings": 0
+    },
+    {
+      "id": 753599657,
+      "tag": "v0.2.0-alpha.77",
+      "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "sha256": "e250801fd09c779515d49dc5266de7015df7e68b166a35514f3602f351be92e1",
+      "secretFindings": 0
+    },
+    {
+      "id": 753599659,
+      "tag": "v0.2.0-alpha.77",
+      "name": "Pi-Studio-0.2.0-alpha.77-win-x64.zip.sha256",
+      "bytes": 103,
+      "sha256": "1205307407e4da9b3a6094b687cf00da3cfa952d0a429e974c569ef671812936",
+      "secretFindings": 0
+    },
+    {
+      "id": 753602228,
+      "tag": "v0.2.0-alpha.77",
+      "name": "Pi-Studio-0.2.0-alpha.77-win32-x64.update.json",
+      "bytes": 630,
+      "sha256": "57490ccd3b272ebf093a21fbdd05c46976d0d3f414ac5ab77258d0e08d5ecda1",
+      "secretFindings": 0
+    },
+    {
+      "id": 752749929,
+      "tag": "v0.2.0-alpha.75",
+      "name": "Pi-Studio-0.2.0-alpha.75-darwin-arm64.update.json",
+      "bytes": 622,
+      "sha256": "82638f7c96c892acc5323deda749e4f6b761ac51447d4cb57df1c0e34e9a125a",
+      "secretFindings": 0
+    },
+    {
+      "id": 752749930,
+      "tag": "v0.2.0-alpha.75",
+      "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "sha256": "dddc34b595d521b9405b31ba82756e45b56350a1de0ed7b11277acd6cef70cb7",
+      "secretFindings": 0
+    },
+    {
+      "id": 752749937,
+      "tag": "v0.2.0-alpha.75",
+      "name": "Pi-Studio-0.2.0-alpha.75-win-x64.zip.sha256",
+      "bytes": 103,
+      "sha256": "02caec793b530f02ac487f21f1e78a95c1c67cd8dc7ce7643b5d7a5b65ece61e",
+      "secretFindings": 0
+    },
+    {
+      "id": 752749972,
+      "tag": "v0.2.0-alpha.75",
+      "name": "Pi-Studio-0.2.0-alpha.75-win32-x64.update.json",
+      "bytes": 630,
+      "sha256": "667a0fd03302b9f30de8f6543b0a9ab136fd8bcdaade9876bc061c412b9b56b6",
+      "secretFindings": 0
+    },
+    {
+      "id": 752492693,
+      "tag": "v0.2.0-alpha.74",
+      "name": "Pi-Studio-0.2.0-alpha.74-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "sha256": "fc30206ed596a14d9b2ef034b1fe8639d00b2e010c425a791a79ca097c018fc9",
+      "secretFindings": 0
+    },
+    {
+      "id": 752360482,
+      "tag": "v0.2.0-alpha.73",
+      "name": "Pi-Studio-0.2.0-alpha.73-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "sha256": "e48c21832be1209dd1341067580b86f339cb9d17bf7909ca8d48d65f161a24db",
+      "secretFindings": 0
+    },
+    {
+      "id": 752360480,
+      "tag": "v0.2.0-alpha.73",
+      "name": "Pi-Studio-0.2.0-alpha.73-win-x64.zip.sha256",
+      "bytes": 103,
+      "sha256": "ec1d8777d1cac6f00b3c3dd301a7be685da1a7354e5013e3ae6f2ad39e5e091f",
+      "secretFindings": 0
+    }
+  ],
+  "allPublishedAssetsCoveredAcrossReports": true,
+  "totalAssets": 38,
+  "unverifiedAssets": 0,
+  "redacted": true,
+  "temporaryDownloadsRemoved": true,
+  "repositoryOrReleaseCleanupPerformed": false,
+  "rightsOrNativeAcceptanceProven": false
+}

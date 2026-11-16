@@ -214,8 +214,9 @@ try {
     for (const asset of assets) {
       if (
         !/^v[0-9][a-zA-Z0-9.+-]*$/.test(asset.tag) ||
-        !/^Pi-Studio-[a-zA-Z0-9.+-]+\.zip$/.test(asset.name) ||
-        basename(asset.name) !== asset.name
+        !/^Pi-Studio-[a-zA-Z0-9.+-]+(?:\.zip(?:\.sha256)?|\.update\.json)$/.test(asset.name) ||
+        basename(asset.name) !== asset.name ||
+        asset.bytes > (asset.name.endsWith('.zip') ? 512 * 1024 ** 2 : 1024 ** 2)
       ) {
         failures.push({ asset: asset.id, reason: 'Unsupported asset name/format; not inspected.' });
         continue;
@@ -239,7 +240,7 @@ try {
         if (bytes.length !== asset.bytes || (asset.digest && asset.digest !== `sha256:${sha256}`))
           throw Error('Asset bytes/digest mismatch.');
         const alias = relative(root, file);
-        archives.set(alias, file);
+        if (asset.name.endsWith('.zip')) archives.set(alias, file);
         const result = await scan(
           `github-asset:${asset.id}:${asset.tag}`,
           ['dir', alias, '--max-archive-depth=2', '--max-target-megabytes=1024'],
