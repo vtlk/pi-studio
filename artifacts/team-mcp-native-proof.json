@@ -1,6 +1,6 @@
 {
   "nativePi": "1.5.2",
-  "packagedBridge": false,
+  "packagedBridge": true,
   "loopbackModel": true,
   "externalModelRequests": 0,
   "userStudioTouched": false,

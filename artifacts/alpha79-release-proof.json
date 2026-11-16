@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-11-16T08:00:53.639Z",
+  "tag": "v0.2.0-alpha.79",
+  "sourceCommit": "bbbbcb4e3e1a1f469f8d9f41f06735087a2543d9",
+  "remoteAssets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.79-darwin-arm64.update.json",
+      "size": 622,
+      "digest": "sha256:18aa8ffd805ac5084f9478d3c0cd0c9dec6809839fadf3aa5bec5400a39e1561"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.79-mac-arm64.zip",
+      "size": 142911791,
+      "digest": "sha256:c68040617dd490c92c77dfab79850263de1f0bbe305c29a9c98a4e7bb8d766c7"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.79-mac-arm64.zip.sha256",
+      "size": 105,
+      "digest": "sha256:c6f177484c14e90270829238fd63fe115f580813098da010750a9cff10f32040"
+    }
+  ],
+  "allThreeRemoteSizesAndDigestsMatchLocal": true,
+  "downloadedMacMetadataEd25519Verified": true,
+  "windowsCurrentPublishedVersion": "0.2.0-alpha.78",
+  "windows79NotPublished": true,
+  "actionsDisabled": true,
+  "privateRepository": true,
+  "installedUserVersion": "0.2.0-alpha.78",
+  "installationRequiresNewUserApproval": true
+}

@@ -16,6 +16,9 @@ import { tmpdir } from 'node:os';
 import { spawn, execFileSync } from 'node:child_process';
 import { createHash, generateKeyPairSync, sign, randomUUID, randomBytes } from 'node:crypto';
 import { writeInventory, verifyInventory } from '../bundled/update-helper/inventory.mjs';
+import { retireLegacyFeatures } from '../src/main/storage/retireLegacyFeatures.ts';
+import { parseStudio } from '../src/main/storage/validation.ts';
+import { isDeepStrictEqual } from 'node:util';
 import { inspectUpdateArchive } from '../src/main/updates/archive.ts';
 
 const [oldApp, newApp, mode = 'success'] = process.argv.slice(2);
@@ -300,6 +303,8 @@ try {
   });
   const originalExit = new Promise<void>((resolve) => original!.once('exit', () => resolve()));
   await waitFor(() => maybeJson(join(root, 'baseline-ready.json')), Boolean);
+  const settingsFile = join(studio, '.pistudio/studio.json');
+  const beforeSettings = JSON.parse(await readFile(settingsFile, 'utf8'));
   const before = await studioFingerprint(),
     preferences = await digest(join(userData, 'workspace.json')),
     credential = await digest(join(userData, 'qa-protected-credential.bin'));
@@ -320,9 +325,18 @@ try {
     15000,
   );
   const after = await studioFingerprint();
-  if (
-    JSON.stringify(Object.entries(before).sort()) !== JSON.stringify(Object.entries(after).sort())
-  )
+  let settingsMetadataRetiredOnly = false;
+  if (mode === 'success' && before['.pistudio/studio.json'] !== after['.pistudio/studio.json']) {
+    const expected = retireLegacyFeatures(beforeSettings);
+    if (!expected.changed || !isDeepStrictEqual(
+      parseStudio(expected.document),
+      parseStudio(JSON.parse(await readFile(settingsFile, 'utf8'))),
+    )) throw Error('Unexpected settings changes across the packaged update');
+    settingsMetadataRetiredOnly = true;
+    // Every other byte remains covered; this exception requires the exact validated migration.
+    after['.pistudio/studio.json'] = before['.pistudio/studio.json'];
+  }
+  if (JSON.stringify(Object.entries(before).sort()) !== JSON.stringify(Object.entries(after).sort()))
     throw Error('Studio bytes changed across the packaged update');
   if (
     preferences !== (await digest(join(userData, 'workspace.json'))) ||
@@ -363,7 +377,8 @@ try {
     oneUiConsent: true,
     oneUiUpdateRequest: true,
     restoredExactProject: true,
-    studioFilesPreserved: Object.keys(before).length,
+    studioFilesPreserved: Object.keys(before).length - Number(settingsMetadataRetiredOnly),
+    settingsMetadataRetiredOnly,
     externalPreferencesAndDummyCredentialPreserved: true,
     allAppProcessesExited: true,
     transactionStageRemoved: true,
