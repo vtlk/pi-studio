@@ -64,7 +64,7 @@ const deadline = setTimeout(() => {
     );
   };
   const saved = async () => {
-    await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+    await until(`!!document.querySelector('[data-save-state="idle"]')`);
     return js('window.studio.loadStudio()');
   };
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);

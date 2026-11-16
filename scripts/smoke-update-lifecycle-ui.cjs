@@ -216,7 +216,7 @@ if (!process.versions.electron) {
         if (!failed)
           await until(() =>
             js(
-              `document.querySelector('.prototype-label')?.textContent==='Сохранено'&&!document.querySelector('.storage-error')`,
+              `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
             ),
           ).catch(() => {
             failed = true;

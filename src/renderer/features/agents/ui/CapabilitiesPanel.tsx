@@ -131,6 +131,7 @@ export function CapabilitiesPanel() {
       <AddArea label={`Добавить ${agentTab}`} onClick={() => setCatalog(true)} />
       {catalog && (
         <Modal
+          size="wide"
           title={`Общий каталог · ${agentTab}`}
           onClose={() => setCatalog(false)}
           footer={<Button onClick={() => setCatalog(false)}>Готово</Button>}

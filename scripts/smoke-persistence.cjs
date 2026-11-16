@@ -50,7 +50,7 @@ const deadline = setTimeout(() => {
     );
   const saved = () =>
     until(
-      `document.querySelector('.prototype-label')?.textContent.includes('Сохранено') && !document.querySelector('.storage-error')`,
+      `!!document.querySelector('[data-save-state="idle"]') && !document.querySelector('.storage-error')`,
     );
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   await click('Агенты');

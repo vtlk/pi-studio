@@ -39,6 +39,24 @@
 .dialog > .modal-top {
   padding: 18px 0 10px;
 }
+.dialog[data-size='wide'] {
+  width: 960px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.dialog[data-size='wide'] > :is(.dialog-header, .dialog-footer) {
+  flex-shrink: 0;
+}
+.dialog[data-size='wide'] > .dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dialog[data-size='wide'] :is(.resource-row strong, .resource-row p, .data-list dd) {
+  max-width: none;
+  overflow-wrap: anywhere;
+}
 .dialog-icon {
   color: var(--accent);
 }

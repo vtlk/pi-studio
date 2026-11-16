@@ -1,6 +1,6 @@
 import { Settings2 } from 'lucide-react';
 import { useNavigation, type Page } from '@/shared/model/Navigation';
-import { IconButton } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import { useStorage } from '@/shared/storage/Storage';
 import { UpdateAction } from '@/features/updates/UpdateAction';
 
@@ -11,7 +11,7 @@ const sections: { page: Page; label: string }[] = [
 ];
 export function Topbar() {
   const { page, navigate } = useNavigation();
-  const { isDesktop, saving, error } = useStorage();
+  const { isDesktop, saving, recentlySaved, error } = useStorage();
   return (
     <header className="topbar">
       <nav aria-label="Главное меню">
@@ -29,23 +29,26 @@ export function Topbar() {
           </button>
         ))}
       </nav>
-      <span className="prototype-label" role="status">
+      <span
+        className="prototype-label"
+        role="status"
+        data-save-state={error ? 'error' : saving ? 'saving' : 'idle'}
+      >
         {isDesktop
           ? error
             ? 'Требуется внимание'
             : saving
               ? 'Сохраняем…'
-              : 'Сохранено'
+              : recentlySaved
+                ? 'Сохранено'
+                : ''
           : 'Веб-макет · без сохранения'}
       </span>
       <UpdateAction />
-      <IconButton
-        title="Настройки"
-        className="settings-button"
-        onClick={() => navigate('settings')}
-      >
-        <Settings2 size={17} />
-      </IconButton>
+      <Button kind="primary" className="settings-button" onClick={() => navigate('settings')}>
+        <Settings2 size={17} aria-hidden="true" />
+        Настройки
+      </Button>
     </header>
   );
 }

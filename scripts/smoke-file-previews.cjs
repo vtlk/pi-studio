@@ -136,7 +136,7 @@ const deadline = setTimeout(() => {
   // This folder is newer than the Markdown file; grouping takes priority over its date.
   await mkdir(join(output, 'docs', 'nested'));
   await writeFile(join(output, 'docs', 'nested', 'inside.txt'), 'Nested output');
-  await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   await new Promise((resolveLoad) => {
     window.webContents.once('did-finish-load', resolveLoad);
     window.webContents.reload();

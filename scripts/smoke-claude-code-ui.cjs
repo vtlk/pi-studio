@@ -52,7 +52,7 @@ process.on('uncaughtException', fail); process.on('unhandledRejection', fail);
   await until(`document.querySelectorAll('.ui-searchable-options [role="option"]').length===1`);
   win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' }); win.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
   await until(`document.querySelector('[aria-label="Модель агента"]').textContent.includes('Sonnet')`);
-  await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const saved = await js('window.studio.loadStudio()');
   assert.equal(saved.sections.agents[0].model.id, 'claude-sonnet-5');
   assert.equal(saved.sections.agents[0].model.provider, 'claude-code');

@@ -91,7 +91,7 @@ const deadline = setTimeout(() => {
   await until(
     `document.querySelector('[aria-label="Название агента"]')?.value==='Первый пользовательский агент'`,
   );
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const constructorBeforeCreate = (await js(`window.studio.loadStudio()`)).sections.agents;
   await js(
     `Array.from(document.querySelectorAll('.topbar nav button')).find(button => button.textContent.trim() === 'Проекты').click()`,
@@ -263,7 +263,7 @@ const deadline = setTimeout(() => {
   await js(`(() => { const input = document.querySelector('[aria-label="Название агента"]');
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Сохранённый агент');
     input.dispatchEvent(new Event('input', {bubbles:true})); })()`);
-  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const externalBefore = await js(`window.studio.loadStudio()`);
   await save(
     'agents',
@@ -275,7 +275,7 @@ const deadline = setTimeout(() => {
     `document.querySelector('[aria-label="Название агента"]')?.value==='Изменён помощником'`,
   );
   await nameAgent('Сохранённый агент');
-  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   // A helper writes between UI hydration and autosave: ordinary CRUD must reject the stale list.
   await js(`(async()=>{
     const before=await window.studio.loadStudio();
@@ -318,9 +318,9 @@ const deadline = setTimeout(() => {
   await until(
     `document.querySelector('[aria-label="Название агента"]')?.value==='Самая свежая правка помощника'`,
   );
-  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   await nameAgent('Сохранённый агент');
-  await until(`document.querySelector('.prototype-label').textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const edited = await js(`window.studio.loadStudio()`);
   assert.equal(edited.sections.agents[0].name, 'Сохранённый агент');
   assert.notEqual(edited.projects[0].agents[0].profile.name, 'Сохранённый агент');
@@ -366,14 +366,14 @@ const deadline = setTimeout(() => {
   await js(
     `Array.from(document.querySelectorAll('.dialog-footer button')).find(button => button.textContent === 'Убрать шаблоны').click()`,
   );
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const cleaned = await js(`window.studio.loadStudio()`);
   assert.deepEqual(cleaned.sections.agents, edited.sections.agents);
   assert.deepEqual(cleaned.projects, reopened.projects);
   await js(
     `Array.from(document.querySelectorAll('button')).find(button => button.textContent === 'Вернуть').click()`,
   );
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const restored = await js(`window.studio.loadStudio()`);
   assert.deepEqual(
     restored.sections.agents.map((item) => item.id),

@@ -131,7 +131,7 @@ process.on('unhandledRejection', fail);
   );
   assert.equal(inspected.ok, true, inspected.error);
   assert.equal(inspected.document.timeline.tracks.length, 2);
-  await until(`document.body.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   window.webContents.removeAllListeners('will-prevent-unload');
   window.webContents.on('will-prevent-unload', () => void fail(Error('Unsaved QA reload')));
   const reloaded = new Promise((done) => window.webContents.once('did-finish-load', done));

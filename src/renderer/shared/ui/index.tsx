@@ -42,14 +42,16 @@ export function Button({
   onClick,
   kind = 'secondary',
   disabled = false,
+  className,
 }: {
   children: ReactNode;
   onClick?: () => void;
   kind?: string;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
-    <button className={`button ${kind}`} onClick={onClick} disabled={disabled}>
+    <button className={cx('button', kind, className)} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );

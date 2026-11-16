@@ -5,6 +5,7 @@ export interface StorageValue {
   bootstrap: StudioBootstrap | null;
   isDesktop: boolean;
   saving: boolean;
+  recentlySaved: boolean;
   error: string;
   chooseStudio: () => Promise<void>;
   openStudio: (folder: string) => Promise<void>;

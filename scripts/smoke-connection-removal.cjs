@@ -125,7 +125,7 @@ process.on('unhandledRejection', fail);
     js(
       `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)}).click()`,
     );
-  const saved = () => until(`document.body.textContent.includes('Сохранено')`);
+  const saved = () => until(`!!document.querySelector('[data-save-state="idle"]')`);
   const state = () => js('window.studio.loadStudio()');
   const settings = async () => {
     await js(`document.querySelector('[aria-label="Настройки"]').click()`);

@@ -251,6 +251,44 @@
 .agent-team .disclosure-content {
   padding: 0;
 }
+.agent-team-icon {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}
+.agent-team-icon > svg {
+  position: absolute;
+  top: 0;
+}
+.agent-team-icon > svg:first-child {
+  left: 0;
+}
+.agent-team-icon > svg:nth-child(2) {
+  right: 0;
+}
+.agent-team-icon > svg:last-child {
+  left: 4px;
+  top: 8px;
+}
+.agent-team .ui-list-row[data-expanded='false'] .ui-list-row-chevron {
+  transform: rotate(90deg);
+}
+.agent-team .ui-list-row[data-expanded='true'] .ui-list-row-chevron {
+  transform: none;
+}
+.agent-stages .add-area.agent-team-add {
+  width: 100%;
+  min-height: 84px;
+  margin: 0;
+  padding: 16px 20px;
+  border: 0;
+  border-bottom: 1px dashed #b6b6be;
+  border-radius: 0;
+  background: transparent;
+  justify-content: center;
+  align-items: center;
+}
 .agent-team .ui-list-row {
   min-height: 42px;
   background: transparent;

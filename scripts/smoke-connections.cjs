@@ -102,7 +102,7 @@ const deadline = setTimeout(() => {
   await js(`document.querySelector('[aria-label="Модель агента"]').click()`);
   await until(`document.querySelectorAll('[role="option"]').length>1`);
   await js(`document.querySelectorAll('[role="option"]')[1].click()`);
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const state = await js('window.studio.loadStudio()');
   assert.equal(state.sections.agents[0].model.connectionId, account.id);
   assert.ok(state.sections.agents[0].model.id);

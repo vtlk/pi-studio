@@ -147,7 +147,7 @@ async function child() {
       );
     const saved = () =>
       until(
-        `document.querySelector('.prototype-label')?.textContent==='Сохранено'&&!document.querySelector('.storage-error')`,
+        `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
       );
     const drag = async (selector, from, to, targetSelector = selector) => {
       await js('new Promise(r=>setTimeout(r,250))');
@@ -247,7 +247,7 @@ async function child() {
         `Array.from(document.querySelectorAll('.agent-list-entry:not([data-system-role]) .agent-list-item')).find(e=>e.textContent.includes('Первый агент')).click()`,
       );
       await until(
-        `document.querySelector('[aria-label="Основной промпт агента"]')?.value==='Основная роль: создать мультфильм'`,
+        `document.querySelector('[aria-label="Основной промпт агента"]')?.value==='Основная роль: исследовать данные'`,
       );
       await click('Инструкции');
       assert.deepEqual(
@@ -279,7 +279,7 @@ async function child() {
       await saved();
       await named('Добавить агента в «QA команда»');
       await field('Название агента', 'Первый агент');
-      await field('Основной промпт агента', 'Основная роль: создать мультфильм');
+      await field('Основной промпт агента', 'Основная роль: исследовать данные');
       await saved();
       const firstId = (await agent()).id;
       await named('Добавить агента в «QA команда»');
@@ -338,7 +338,7 @@ async function child() {
         await js(`document.querySelector('.agent-list-item[aria-current="true"]').dataset.enabled`),
         'false',
       );
-      await field('Основной промпт агента', 'Основная роль: создать мультфильм');
+      await field('Основной промпт агента', 'Основная роль: исследовать данные');
       await named('Агент включён');
       await saved();
       await click('Инструкции');
@@ -451,7 +451,7 @@ async function child() {
         `document.querySelector('textarea[aria-label="Итоговые инструкции"]').value`,
       );
       for (const text of [
-        'Основная роль: создать мультфильм',
+        'Основная роль: исследовать данные',
         'Восстановить только этот блок',
         'Текст первого блока',
         'Навык один',

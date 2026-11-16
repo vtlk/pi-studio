@@ -46,7 +46,7 @@ process.on('uncaughtException', fail); process.on('unhandledRejection', fail);
   await until(`document.querySelectorAll('.ui-searchable-options [role="option"]').length===1`);
   win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' }); win.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Enter' });
   await until(`document.querySelector('[aria-label="Модель агента"]').textContent.includes('UI extension model')`);
-  await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const saved = await js('window.studio.loadStudio()');
   assert.equal(saved.sections.agents[0].model.id, 'fixture-native-ui');
   assert.equal(saved.sections.agents[0].model.provider, 'studio-ui-extension');

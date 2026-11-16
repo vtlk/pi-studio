@@ -27,6 +27,10 @@
 .prototype-label {
   margin-left: auto;
   color: #aaa;
+  min-width: 152px;
+  min-height: 20px;
+  text-align: right;
+  white-space: nowrap;
 }
 .main-scroll {
   flex: 1;
@@ -76,14 +80,19 @@
     padding-right: 23px;
   }
 }
-.topbar .settings-button {
-  width: 38px;
+.topbar .button.settings-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  width: auto;
   height: 38px;
   border-radius: 4px;
   background: #000;
   color: #fff;
 }
-.topbar .settings-button:hover:not(:disabled) {
+.topbar .button.settings-button:hover:not(:disabled) {
   background: #27272a;
   color: #fff;
 }

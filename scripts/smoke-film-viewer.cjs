@@ -103,7 +103,7 @@ async function fail(error) {
   const inspected = await js(`window.studio.inspectVideoProject(${JSON.stringify(request)})`);
   assert.equal(inspected.ok, true, inspected.error);
   assert.equal(inspected.document.timeline.durationInFrames, 240);
-  await until(`document.body.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const reloaded = new Promise((r) => window.webContents.once('did-finish-load', r));
   window.webContents.reload();
   await reloaded;

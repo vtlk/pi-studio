@@ -13,7 +13,7 @@ export function Timeline({ full = false }: { full?: boolean }) {
       <div className="timeline-head">
         <div className="inline">
           <Layers3 size={14} />
-          <strong>{full ? 'Монтаж мультфильма' : 'Слои сцены'}</strong>
+          <strong>{full ? 'Монтаж' : 'Слои сцены'}</strong>
           <Badge>Макет</Badge>
         </div>
         <button

@@ -65,7 +65,7 @@ const timeout = setTimeout(() => {
     );
   const saved = () =>
     until(
-      `document.querySelector('.prototype-label')?.textContent==='Сохранено'&&!document.querySelector('.storage-error')`,
+      `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
     );
   const load = () => js('window.studio.loadStudio()');
   const createTeam = async (name) => {

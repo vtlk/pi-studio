@@ -59,6 +59,7 @@ try {
   await rm(join(bundle, 'resources/default_app.asar'), { force: true });
   const application = join(bundle, 'resources/app');
   await mkdir(join(application, 'licenses'), { recursive: true });
+  await cp(join(root, 'LICENSE'), join(application, 'licenses/Pi-Studio-LICENSE.txt'));
   await cp(join(root, 'out'), join(application, 'out'), { recursive: true });
   for (const name of ['pi-bridge', 'pi-runtime', 'pi-claude-code', 'update-helper'])
     await cp(join(root, 'bundled', name), join(application, 'bundled', name), { recursive: true });

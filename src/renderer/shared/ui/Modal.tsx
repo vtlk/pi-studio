@@ -1,6 +1,7 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { IconButton } from './index';
+import { ModalSizeContext, type ModalSize } from './ModalSize.context';
 
 interface ModalProps {
   title: string;
@@ -10,6 +11,7 @@ interface ModalProps {
   alert?: boolean;
   inert?: boolean;
   dismissible?: boolean;
+  size?: ModalSize;
 }
 export function Modal({
   title,
@@ -19,7 +21,10 @@ export function Modal({
   alert = false,
   inert = false,
   dismissible = true,
+  size,
 }: ModalProps) {
+  const inheritedSize = useContext(ModalSizeContext);
+  const currentSize = size ?? inheritedSize;
   const ref = useRef<HTMLElement>(null);
   const returnFocus = useRef(document.activeElement);
   useEffect(() => {
@@ -57,32 +62,35 @@ export function Modal({
     }
   };
   return (
-    <div
-      inert={inert || undefined}
-      className={`modal-backdrop dialog-backdrop${alert ? ' confirmation-backdrop' : ''}`}
-      onMouseDown={(event) => {
-        if (dismissible && event.target === event.currentTarget) onClose();
-      }}
-    >
-      <section
-        ref={ref}
-        className="dialog"
-        role={alert ? 'alertdialog' : 'dialog'}
-        aria-modal="true"
-        aria-label={title}
-        onKeyDown={onKeyDown}
+    <ModalSizeContext.Provider value={currentSize}>
+      <div
+        inert={inert || undefined}
+        className={`modal-backdrop dialog-backdrop${alert ? ' confirmation-backdrop' : ''}`}
+        onMouseDown={(event) => {
+          if (dismissible && event.target === event.currentTarget) onClose();
+        }}
       >
-        <header className="dialog-header">
-          <h2>{title}</h2>
-          {dismissible && (
-            <IconButton title="Закрыть окно" onClick={onClose}>
-              <X size={20} />
-            </IconButton>
-          )}
-        </header>
-        <div className="dialog-body">{children}</div>
-        {footer && <footer className="dialog-footer">{footer}</footer>}
-      </section>
-    </div>
+        <section
+          ref={ref}
+          className="dialog"
+          data-size={currentSize}
+          role={alert ? 'alertdialog' : 'dialog'}
+          aria-modal="true"
+          aria-label={title}
+          onKeyDown={onKeyDown}
+        >
+          <header className="dialog-header">
+            <h2>{title}</h2>
+            {dismissible && (
+              <IconButton title="Закрыть окно" onClick={onClose}>
+                <X size={20} />
+              </IconButton>
+            )}
+          </header>
+          <div className="dialog-body">{children}</div>
+          {footer && <footer className="dialog-footer">{footer}</footer>}
+        </section>
+      </div>
+    </ModalSizeContext.Provider>
   );
 }

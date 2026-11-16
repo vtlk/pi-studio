@@ -297,7 +297,7 @@ const deadline = setTimeout(() => {
   await until(
     `document.querySelector('.instruction-sortable textarea').getBoundingClientRect().height===${textareaResize.resizedHeight}`,
   );
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   await mkdir(resolve('artifacts'), { recursive: true });
   await writeFile(resolve('artifacts/textarea-resize.png'), (await window.capturePage()).toPNG());
   const fieldInput = async (selector, value) =>
@@ -525,7 +525,7 @@ const deadline = setTimeout(() => {
     }
   }
   if (!process.argv.includes('--baseline')) {
-    await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+    await until(`!!document.querySelector('[data-save-state="idle"]')`);
     loadFailure = true;
     window.webContents.reload();
     await until(`!!document.querySelector('.startup-screen input')`);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Folder, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
+import { TeamIcon } from './TeamIcon';
 import { Disclosure } from '@/shared/ui/Disclosure';
 import { HoverDeleteButton } from '@/shared/ui/HoverDeleteButton';
 import { IconButton } from '@/shared/ui';
@@ -54,7 +55,7 @@ export function AgentList() {
   };
   return (
     <nav className="section-menu" aria-label="Конструктор агентов">
-      <h2 className="agent-list-group-heading">Мои агенты</h2>
+      <h2 className="agent-list-group-heading">Мои команды</h2>
       {teams.map((team, teamIndex) => {
         const profiles = team.agentIds.flatMap(
           (id) => agents.find((agent) => agent.id === id) ?? [],
@@ -63,7 +64,7 @@ export function AgentList() {
           <div className="agent-team" key={team.id} data-team-id={team.id}>
             <Disclosure
               label={team.name}
-              icon={Folder}
+              icon={TeamIcon}
               defaultOpen
               actions={
                 <>
@@ -119,6 +120,7 @@ export function AgentList() {
                 </SortableContext>
               </DndContext>
               <AddArea
+                className="agent-team-add"
                 label={`Добавить агента в «${team.name}»`}
                 onClick={() => addAgent(team.id)}
               />

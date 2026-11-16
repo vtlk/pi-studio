@@ -62,7 +62,7 @@ const deadline = setTimeout(() => {
   assert.equal(await ordered(), true);
   await field('Название агента', 'QA setup helper');
   await field('Основной промпт агента', 'QA current system role');
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   let state = await js('window.studio.loadStudio()');
   assert.equal(state.sections.systemAgents[0].name, 'QA setup helper');
   assert.equal(state.sections.systemAgents[0].mainInstruction, 'QA current system role');
@@ -93,7 +93,7 @@ const deadline = setTimeout(() => {
   await js(`document.querySelector('[aria-label="Добавить агента"]').click()`);
   await until(`document.querySelector('[aria-label="Название агента"]')?.value==='Новый агент'`);
   await field('Название агента', 'Second project role');
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   state = await js('window.studio.loadStudio()');
   assert.deepEqual(
     state.sections.agents.map((agent) => agent.name),

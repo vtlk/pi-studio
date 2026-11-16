@@ -38,6 +38,7 @@ function Fixture() {
           bootstrap: null,
           isDesktop: true,
           saving: false,
+          recentlySaved: false,
           error: '',
           chooseStudio: async () => {},
           openStudio: async () => {},

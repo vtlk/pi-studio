@@ -15,7 +15,10 @@ function deferred<T>() {
   });
   return { promise, resolve, reject };
 }
-function fixture(write: (key: StorageSection, edit: PendingEdit) => Promise<SectionSaveResult>) {
+function fixture(
+  write: (key: StorageSection, edit: PendingEdit) => Promise<SectionSaveResult>,
+  persisted?: () => void,
+) {
   const events: unknown[] = [];
   const queue = new PersistenceQueue({
     write,
@@ -24,6 +27,7 @@ function fixture(write: (key: StorageSection, edit: PendingEdit) => Promise<Sect
     error: (error) => events.push(['error', error]),
     changed: (pending) => events.push(['pending', pending]),
     settled: () => events.push(['settled']),
+    persisted,
   });
   return { queue, events };
 }
@@ -121,4 +125,64 @@ test('an in-flight write cannot have its draft discarded and an empty queue writ
   held.resolve({ saved: true, value: [] });
   await task;
   assert.equal(queue.has('agents'), false);
+});
+
+test('successful persistence is confirmed only after all writes and the writing flag have settled', async () => {
+  const held = deferred<SectionSaveResult>();
+  let calls = 0,
+    confirmations = 0;
+  const { queue } = fixture(
+    async (_key, edit) => {
+      calls++;
+      return calls === 1 ? held.promise : { saved: true, value: edit.value };
+    },
+    () => {
+      assert.equal(queue.writing, false);
+      assert.equal(queue.size, 0);
+      confirmations++;
+    },
+  );
+  await queue.flush();
+  assert.equal(confirmations, 0, 'Empty flush is not a save');
+  queue.enqueue('agents', ['first'], []);
+  const task = queue.flush();
+  await Promise.resolve();
+  queue.enqueue('agents', ['newer'], []);
+  queue.enqueue('piPath', '/pi', '');
+  assert.equal(confirmations, 0);
+  held.resolve({ saved: true, value: ['first'] });
+  await task;
+  assert.equal(calls, 3);
+  assert.equal(confirmations, 1);
+  await queue.flush();
+  assert.equal(confirmations, 1);
+});
+
+test('partial success, error and discarding a conflicting draft never confirm a completed save', async () => {
+  let confirmations = 0,
+    failing = true;
+  const { queue } = fixture(
+    async (key, edit) => {
+      if (key === 'piPath' && failing) throw Error('Disk unavailable');
+      return { saved: true, value: edit.value };
+    },
+    () => confirmations++,
+  );
+  queue.enqueue('agents', [], ['old']);
+  queue.enqueue('piPath', '/new', '/old');
+  await queue.flush();
+  assert.equal(confirmations, 0);
+  failing = false;
+  await queue.flush();
+  assert.equal(confirmations, 1, 'A real successful retry confirms the whole queue');
+  const conflict = fixture(
+    async () => ({ saved: false, value: 'external' }),
+    () => confirmations++,
+  );
+  conflict.queue.enqueue('piPath', '/draft', '/old');
+  await conflict.queue.flush();
+  const draft = conflict.queue.get('piPath');
+  assert.equal(conflict.queue.discard('piPath', draft), true);
+  await conflict.queue.flush();
+  assert.equal(confirmations, 1, 'Discard is not a save');
 });

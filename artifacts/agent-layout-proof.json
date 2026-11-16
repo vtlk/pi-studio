@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-16T06:03:25.480Z",
+  "version": "0.2.0-alpha.78",
+  "realMainPreloadRendererAndDiskPersistence": true,
+  "controlledSaveDelayAndOneFailure": true,
+  "initialAndBackgroundReadNoSuccess": true,
+  "successOnlyAfterWrite": true,
+  "successExpiresAfterThreeSeconds": true,
+  "oldTimerCannotHideNewSuccess": true,
+  "errorRemainsUntilSuccessfulRetry": true,
+  "conflictDiscardDoesNotConfirmSave": true,
+  "studioChangeClearsConfirmation": true,
+  "settingsTextWithoutTooltipOrTitle": true,
+  "settingsPositionStable": true,
+  "teamHeadingThreeLucideUsersAndArrow": true,
+  "addAgentRowGeometry": true,
+  "wideCatalogsAndNestedFormsAllKinds": true,
+  "systemAgentCatalogsWide": true,
+  "narrowViewportMargins": true,
+  "modelAndTerminalRequests": 0,
+  "qaIsolation": "Separate temporary studio/userData, accessory offscreen, mock Keychain, no OS focus/audio/clipboard. Parent waits actual exit before cleanup."
+}

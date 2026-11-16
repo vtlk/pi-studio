@@ -162,7 +162,7 @@ const deadline = setTimeout(() => {
     (await window.capturePage()).toPNG(),
   );
   await click('Модель');
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const saved = await js('window.studio.loadStudio()');
   assert.equal(saved.sections.agents[0].model.connectionId, connection.id);
   assert.equal(saved.sections.agents[0].model.id, 'qa-one');

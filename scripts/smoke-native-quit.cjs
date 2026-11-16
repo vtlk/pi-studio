@@ -108,7 +108,7 @@ if (!process.versions.electron) {
       try {
         const js = (code) => window.webContents.executeJavaScript(code, true);
         for (let i = 0; i < 150; i++) {
-          if (await js(`document.body.textContent.includes('Сохранено')`)) break;
+          if (await js(`!!document.querySelector('[data-save-state="idle"]')`)) break;
           if (i === 149) throw Error('Studio did not finish saving');
           await new Promise((resolve) => setTimeout(resolve, 40));
         }

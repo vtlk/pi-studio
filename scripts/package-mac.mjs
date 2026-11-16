@@ -40,6 +40,7 @@ const application = join(resources, 'app');
 await mkdir(application, { recursive: true });
 const licenses = join(application, 'licenses');
 await mkdir(licenses, { recursive: true });
+await cp(join(root, 'LICENSE'), join(licenses, 'Pi-Studio-LICENSE.txt'));
 await cp(join(root, 'node_modules/electron/dist/LICENSE'), join(licenses, 'Electron-LICENSE.txt'));
 await cp(
   join(root, 'node_modules/electron/dist/LICENSES.chromium.html'),

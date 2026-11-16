@@ -11,6 +11,7 @@ interface Options {
   error: (error: unknown) => void;
   changed: (pending: boolean) => void;
   settled: () => void;
+  persisted?: () => void;
 }
 
 /** Serial writes with a retained draft and an explicit stop on stale data. No merging. */
@@ -49,15 +50,19 @@ export class PersistenceQueue {
   flush(): Promise<void> {
     if (this.task) return this.task;
     if (this.blocked || !this.size) return Promise.resolve();
+    let persisted = false;
     this.task = Promise.resolve()
-      .then(() => this.drain())
+      .then(async () => {
+        persisted = await this.drain();
+      })
       .finally(() => {
         this.task = null;
         this.options.changed(this.size > 0);
+        if (persisted && !this.size && !this.blocked) this.options.persisted?.();
       });
     return this.task;
   }
-  private async drain() {
+  private async drain(): Promise<boolean> {
     try {
       while (this.size) {
         const [key, sent] = this.pending.entries().next().value!;
@@ -65,7 +70,7 @@ export class PersistenceQueue {
         if (!result.saved) {
           this.blocked = key;
           this.options.conflict(key);
-          return;
+          return false;
         }
         const latest = this.pending.get(key);
         if (latest === sent) this.pending.delete(key);
@@ -74,8 +79,10 @@ export class PersistenceQueue {
         this.options.saved(key, result.value);
       }
       this.options.settled();
+      return true;
     } catch (error) {
       this.options.error(error);
+      return false;
     }
   }
 }

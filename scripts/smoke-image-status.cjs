@@ -131,7 +131,7 @@ process.on('unhandledRejection', fail);
   assert.equal(decrypted, 0);
   await click('Отмена');
   await until(
-    `!document.querySelector('[role="dialog"]') && document.body.textContent.includes('Сохранено')`,
+    `!document.querySelector('[role="dialog"]') && !!document.querySelector('[data-save-state="idle"]')`,
   );
   const reloaded = new Promise((r) => win.webContents.once('did-finish-load', r));
   win.webContents.reload();

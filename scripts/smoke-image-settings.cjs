@@ -137,7 +137,7 @@ global.fetch = async (url, init) => {
     ),
   );
   await select('Модель ImageGen', 'gpt-image-2.5-flare');
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   state = await js('window.studio.loadStudio()');
   assert.deepEqual(state.sections.imageTool, {
     connectionId: connection.id,

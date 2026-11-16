@@ -116,7 +116,7 @@ const deadline = setTimeout(() => {
   await hover('[data-system-role="assistant"] .agent-list-item');
   assert.deepEqual(await tooltips(), [], 'Fully visible system agent name must not be duplicated');
   await click('Проекты');
-  await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`!!document.querySelector('.project-list-row')`);

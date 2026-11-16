@@ -141,7 +141,7 @@ async function child() {
     assert.equal(state.pi.nativeMcp && state.pi.exactSessions && state.pi.supported, true);
     assert.equal(state.pi.path, join(root, 'UserData/runtime/pi/bin/pi'));
     await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
-    await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+    await until(`!!document.querySelector('[data-save-state="idle"]')`);
     const data = await js('window.studio.loadStudio()');
     assert.equal(data.folder, join(root, 'Videos/Pi Studio'));
     for (const name of ['agents', 'agentTeams', 'connections', 'resources'])

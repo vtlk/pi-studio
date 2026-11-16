@@ -204,7 +204,7 @@ process.on('unhandledRejection', fail);
     js(
       `window.studio.launchAgent(${JSON.stringify({ projectId, agentId: agent.id, autoContinue: false, ...request })})`,
     );
-  await until(() => js(`document.body.textContent.includes('Сохранено')`));
+  await until(() => js(`!!document.querySelector('[data-save-state="idle"]')`));
   const reloadGuard = () => void fail(Error('Unsaved QA reload'));
   win.webContents.on('will-prevent-unload', reloadGuard);
   const reloaded = new Promise((r) => win.webContents.once('did-finish-load', r));

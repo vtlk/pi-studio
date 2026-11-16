@@ -195,7 +195,7 @@ const deadline = setTimeout(() => {
   await until(`document.querySelectorAll('.asset-thumb-wrap').length===1`);
   await js(`document.querySelector('[aria-label="Удалить QA fresh robot"]').click()`);
   await click('Удалить');
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   window.webContents.reload();
   await new Promise((resolve) => window.webContents.once('did-finish-load', resolve));
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);

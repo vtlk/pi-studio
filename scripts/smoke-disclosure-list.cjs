@@ -323,7 +323,7 @@ const deadline = setTimeout(() => {
   await until(`!document.querySelector('.ui-tooltip')`);
   await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await writeFile(resolve('artifacts/disclosure-resources.png'), (await win.capturePage()).toPNG());
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   const saved = await js('window.studio.loadStudio()');
   assert.equal(saved.sections.agents[0].mainInstruction, 'Обновлённый основной промпт');
   assert.deepEqual(

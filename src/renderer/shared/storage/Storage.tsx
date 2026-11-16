@@ -15,6 +15,31 @@ export function StorageProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(!window.studio);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [recentlySaved, setRecentlySaved] = useState(false);
+  const successTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const successEpoch = useRef(0);
+  const mounted = useRef(true);
+  const clearSaveConfirmation = useCallback(() => {
+    successEpoch.current++;
+    clearTimeout(successTimer.current);
+    if (mounted.current) setRecentlySaved(false);
+  }, []);
+  const showSaveConfirmation = useCallback(() => {
+    if (!mounted.current) return;
+    const epoch = ++successEpoch.current;
+    clearTimeout(successTimer.current);
+    setRecentlySaved(true);
+    successTimer.current = setTimeout(() => {
+      if (mounted.current && successEpoch.current === epoch) setRecentlySaved(false);
+    }, 3000);
+  }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      clearSaveConfirmation();
+    };
+  }, [clearSaveConfirmation]);
   const [revision, setRevision] = useState(0);
   const [conflict, setConflict] = useState<{
     key: StorageSection;
@@ -45,13 +70,21 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           setConflict((previous) => (previous?.key === key ? null : previous));
         },
         conflict: (key) => {
+          clearSaveConfirmation();
           setConflict({ key });
           setShowConflict(true);
           setError('Настройки уже изменены в Pi. Ваш черновик не сохранён; перечитайте раздел.');
         },
-        error: (error) => setError(`Не сохранено: ${message(error)}`),
-        changed: setSaving,
+        error: (error) => {
+          clearSaveConfirmation();
+          setError(`Не сохранено: ${message(error)}`);
+        },
+        changed: (pending) => {
+          clearSaveConfirmation();
+          setSaving(pending);
+        },
         settled: () => setError(''),
+        persisted: showSaveConfirmation,
       }),
   );
   const isPending = useCallback((section: StorageSection) => queue.has(section), [queue]);
@@ -60,13 +93,14 @@ export function StorageProvider({ children }: { children: ReactNode }) {
     try {
       const data = await getStudioApi().loadStudio();
       currentFolder.current = data.folder;
+      clearSaveConfirmation();
       setBootstrap(data);
       setReady(true);
       setError('');
     } catch (error) {
       setError(message(error));
     }
-  }, []);
+  }, [clearSaveConfirmation]);
   useEffect(() => {
     if (window.studio) void load();
   }, [load]);
@@ -163,6 +197,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
           : await window.studio.openStudio(folder);
       if (!data) return;
       currentFolder.current = data.folder;
+      clearSaveConfirmation();
       setBootstrap(data);
       setReady(true);
       setError('');
@@ -177,6 +212,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
         bootstrap,
         isDesktop: !!window.studio,
         saving,
+        recentlySaved,
         error,
         chooseStudio: () => changeStudio(),
         openStudio: (folder) => changeStudio(folder),

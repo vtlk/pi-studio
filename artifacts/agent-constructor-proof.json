@@ -17,18 +17,18 @@
   "allTabAddAreasBelowRowsForOrdinaryAndSystem": true,
   "externalRequests": 0,
   "separateProcessReopen": true,
-  "version": "0.2.0-alpha.75",
-  "verifiedAt": "2026-11-16T01:19:03.321Z",
-  "mainSha256": "a7e519b1cac2ad10ed2306bc23037a84fe38b06f2eb163a8400e33fb29ecb445",
+  "version": "0.2.0-alpha.78",
+  "verifiedAt": "2026-11-16T05:53:19.332Z",
+  "mainSha256": "f6da99639edbd29eb5341c5a60e71b5a81c00dee1d97c378bfb18e238c016e85",
   "rendererSha256": {
-    "index-CLaYh5Lr.css": "2a87f85a7360bad3c66e173af485497a579cb99e379359fd5636a27532266fc2",
-    "index-UyegHs5i.js": "6e89de87cd6037bf1ea447da3af195cfdce667a8b782d78b0bb6840e5f76c447"
+    "index-DGUamPOL.js": "42fcb950ad4e26e11b4a1dbd77af7e3785d35f01eaeae2927f76bd143afc176e",
+    "index-DIR7SYzi.css": "90fec76f1b3ad8e237b0e041d561f13d5cc7a37a02ec67aef83fa084f3d68ae9"
   },
   "sourceSha256": {
     "src/renderer/features/agents/model/AgentProfiles.tsx": "28e82afff1241707eaf88ec69c749947eb87a22335660931c77c60700aea8107",
     "src/renderer/features/agents/ui/InstructionBlock.tsx": "33dde9e9e11450250384436e08fd59ed353315c0ecffea2e974250e924f12638",
-    "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "e215d832306745f4ba8cbd811cb3bbf90013826365c057a451abaddc0d1b40e2",
-    "scripts/smoke-agent-constructor.cjs": "9daf252d3d2be169ebc6b3e7d458db1f9730d110e4ef8b401a148486cfbbc44f"
+    "src/renderer/features/agents/ui/CapabilitiesPanel.tsx": "4c4e15224ed06f46b37ba1ec0ed796b66606a4feeee939a94336c578b373fffa",
+    "scripts/smoke-agent-constructor.cjs": "e5a53011b26de52eacab0f3d88d6d65d805b835e1f6fe4d0aa881e3bffec91d0"
   },
   "scope": "Real compiled main/preload/React CRUD and disk persistence in two offscreen processes. Model catalog/status/startup are explicit IPC fixtures; no model, Pi Terminal, MCP execution or user studio changes."
 }

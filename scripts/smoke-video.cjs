@@ -75,7 +75,7 @@ const deadline = setTimeout(() => {
   };
   const inspected = await js(`window.studio.inspectVideoProject(${JSON.stringify(request)})`);
   assert.equal(inspected.ok, true, inspected.error);
-  await until(`document.querySelector('.prototype-label')?.textContent.includes('Сохранено')`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   window.webContents.reload();
   await until(
     `Array.from(document.querySelectorAll('button')).some(b => b.textContent.includes('Видео smoke'))`,

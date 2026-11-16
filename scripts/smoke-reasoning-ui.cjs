@@ -153,7 +153,7 @@ const timer = setTimeout(() => {
   await until(
     `document.querySelector('[aria-label="Уровень рассуждения (effort)"]').textContent.includes('Предельный')`,
   );
-  await until(`document.querySelector('.prototype-label')?.textContent==='Сохранено'`);
+  await until(`!!document.querySelector('[data-save-state="idle"]')`);
   assert.equal((await js('window.studio.loadStudio()')).sections.agents[0].model.reasoning, 'max');
   await chooseModel('Ограниченная модель');
   await until(
