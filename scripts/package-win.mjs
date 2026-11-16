@@ -109,7 +109,7 @@ try {
       2,
     ) + '\n',
   );
-  await cp(join(root, 'technical-spec/WINDOWS.md'), join(bundle, 'WINDOWS.md'));
+  await cp(join(root, 'docs/WINDOWS.md'), join(bundle, 'WINDOWS.md'));
   await writeFile(
     join(bundle, 'BUILD.json'),
     JSON.stringify(

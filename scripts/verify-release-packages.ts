@@ -1,5 +1,5 @@
 /** Read-only release inputs; extraction stays in owned temporary staging and never runs a package. */
-import { readFile, writeFile, mkdtemp, rm, realpath } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm, realpath, readdir } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -30,8 +30,8 @@ for (const target of ['darwin-arm64', ...(withWindows ? ['win32-x64'] : [])]) {
   if (hash.digest('hex') !== m.archive.sha256) throw Error('ZIP hash mismatch');
   manifests.push(m);
 }
-if (manifests.some((manifest) => manifest.sourceCommit !== manifests[0].sourceCommit))
-  throw Error('Release source commits differ');
+// A platform may be requested after the Mac release. Preserve each actual source
+// commit and compare every compiled payload byte instead of relabeling metadata.
 const directory = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-verify-release-')));
 try {
   const mac = manifests[0],
@@ -62,6 +62,20 @@ try {
   const notices = await readFile(join(resources, 'out/renderer/THIRD_PARTY_NOTICES.txt'));
   const packageManifest = await readFile(join(resources, 'out/renderer/third-party-packages.json'));
   const packages = verifyBundledNotices(notices, JSON.parse(packageManifest.toString('utf8')));
+  const compiledFiles: string[] = [];
+  async function compiled(directory: string, prefix = '') {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const name = prefix + entry.name;
+      if (entry.isDirectory()) await compiled(join(directory, entry.name), name + '/');
+      else if (entry.isFile()) compiledFiles.push(name);
+      else throw Error('Unexpected non-file in compiled output: ' + name);
+    }
+  }
+  await compiled('out');
+  for (const name of compiledFiles) {
+    if (!(await readFile(join(resources, 'out', name))).equals(await readFile(join('out', name))))
+      throw Error('Mac compiled payload mismatch: ' + name);
+  }
   if (win) {
     const windowsZip = join('dist', win.archive.name);
     execFileSync('/usr/bin/unzip', ['-tqq', windowsZip], { stdio: 'pipe', timeout: 120000 });
@@ -75,11 +89,18 @@ try {
       if (!bytes || !Buffer.from(bytes).equals(expected))
         throw Error('Windows payload mismatch: ' + entry);
     }
+    for (const name of compiledFiles) {
+      const bytes = await readZipText(windowsZip, 'Pi Studio/resources/app/out/' + name);
+      if (!bytes || !Buffer.from(bytes).equals(await readFile(join('out', name))))
+        throw Error('Windows compiled payload mismatch: ' + name);
+    }
   }
   const proof = {
     checkedAt: new Date().toISOString(),
     version,
     sourceCommit: mac.sourceCommit,
+    sourceCommits: manifests.map(({ platform, sourceCommit }) => ({ platform, sourceCommit })),
+    compiledPayloadFilesComparedOnEachPlatform: compiledFiles.length,
     assets: manifests.map((m) => ({ platform: m.platform, arch: m.arch, ...m.archive })),
     ed25519AndStreamedHashesVerified: true,
     macProductionExtractionAllCrcs: true,
