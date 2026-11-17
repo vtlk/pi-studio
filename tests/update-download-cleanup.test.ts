@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, realpath, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, realpath, writeFile, rm, utimes } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
@@ -28,6 +28,7 @@ test('download cleanup removes only abandoned owned caches; keeps live owners an
     if (extra) await writeFile(join(directory, 'USER.txt'), 'KEEP');
   }
   await mkdir(join(root, 'download-zz1234'));
+  await utimes(join(root, 'download-zz1234'), new Date(0), new Date(0));
   await mkdir(join(root, 'download-other'));
   await writeFile(join(root, 'download-other', 'USER.txt'), 'KEEP');
   await cleanupDownloads(root);

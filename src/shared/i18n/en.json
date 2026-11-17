@@ -1629,5 +1629,9 @@
   "Onboarding.createAgent": "Add an agent to the team",
   "Onboarding.createProject": "Create a project",
   "Onboarding.readinessCheck": "Check connection readiness",
-  "Onboarding.terminalDownloadFailed": "Could not open the Windows Terminal installation page."
+  "Onboarding.terminalDownloadFailed": "Could not open the Windows Terminal installation page.",
+  "error.download.invalidRange": "The server returned an invalid update archive range. Retry the download.",
+  "error.download.invalidPartial": "The update download could not be resumed safely.",
+  "error.download.networkInterrupted": "The update download was interrupted. Check your internet connection.",
+  "error.download.partialSaved": "Download interrupted. The downloaded portion is saved and will be reused when you retry the update."
 }

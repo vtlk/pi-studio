@@ -1629,5 +1629,9 @@
   "Onboarding.createAgent": "Добавить агента в команду",
   "Onboarding.createProject": "Создать проект",
   "Onboarding.readinessCheck": "Проверить готовность подключений",
-  "Onboarding.terminalDownloadFailed": "Не удалось открыть страницу установки Windows Terminal."
+  "Onboarding.terminalDownloadFailed": "Не удалось открыть страницу установки Windows Terminal.",
+  "error.download.invalidRange": "Сервер вернул неверный диапазон архива обновления. Повторите загрузку.",
+  "error.download.invalidPartial": "Не удалось безопасно продолжить загрузку обновления.",
+  "error.download.networkInterrupted": "Не удалось завершить загрузку обновления. Проверьте подключение к интернету.",
+  "error.download.partialSaved": "Загрузка прервана. Скачанная часть сохранена и будет использована при повторном обновлении."
 }

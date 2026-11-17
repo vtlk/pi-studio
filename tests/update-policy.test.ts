@@ -227,7 +227,7 @@ test('anonymous download redirects are HTTPS and GitHub-only; bounds/cancellatio
     githubResponse(address, signal, async () => {
       throw new Error('offline');
     }),
-    /offline/,
+    (error: unknown) => error instanceof UpdateNetworkError && error.recoverable,
   );
   await assert.rejects(
     githubResponse(
