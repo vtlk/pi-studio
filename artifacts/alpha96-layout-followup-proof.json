@@ -1,0 +1,117 @@
+{
+  "checkedAt": "2026-11-17T17:09:40.455870+00:00",
+  "release": "0.2.0-alpha.96",
+  "releaseRuntimeSource": "168c464bd50c1afedffb981f3a21b202f2cef99e",
+  "userClarification": "Team chevron at start: right when collapsed, down when expanded. Supersedes prior left-direction specification.",
+  "nativeLayout": {
+    "checkedAt": "2026-11-17T17:06:13.359Z",
+    "version": "0.2.0-alpha.96",
+    "realMainPreloadRendererAndDiskPersistence": true,
+    "agentPresentation": {
+      "headerHeight": 53,
+      "standardSwitch": [
+        42,
+        25
+      ],
+      "actionRightInset": 12,
+      "matchingProjectColumnHeading": true,
+      "ownHoverBordersOnly": true,
+      "splitBorderlessAcrossPartsAndPortal": true,
+      "localCopyBorderlessOnHover": true,
+      "noLaunchOrClipboardRequests": true
+    },
+    "controlledSaveDelayAndOneFailure": true,
+    "initialAndBackgroundReadNoSuccess": true,
+    "successOnlyAfterWrite": true,
+    "successExpiresAfterThreeSeconds": true,
+    "oldTimerCannotHideNewSuccess": true,
+    "errorRemainsUntilSuccessfulRetry": true,
+    "conflictDiscardDoesNotConfirmSave": true,
+    "studioChangeClearsConfirmation": true,
+    "settingsTextWithoutTooltipOrTitle": true,
+    "settingsPositionStable": true,
+    "teamHeadingAndDisclosureArrow": true,
+    "teamChevronRightCollapsedAndDownExpanded": true,
+    "explicitQaLanguage": "ru",
+    "addAgentRowGeometry": true,
+    "wideCatalogsAndNestedFormsAllKinds": true,
+    "systemAgentCatalogsWide": true,
+    "nativeMenuManualActionReachesRealController": true,
+    "developmentRuntimeDoesNotClaimUpToDate": true,
+    "narrowViewportMargins": true,
+    "modelAndTerminalRequests": 0,
+    "qaIsolation": "Separate temporary studio/userData, accessory offscreen, mock Keychain, no OS focus/audio/clipboard. Parent waits actual exit before cleanup."
+  },
+  "headlessOnboarding": {
+    "checkedAt": "2026-11-17T17:06:21.087Z",
+    "sidebarChecks": [
+      {
+        "language": "ru",
+        "viewport": [
+          900,
+          480
+        ],
+        "independentTeamScroll": true,
+        "systemSectionPinned": true,
+        "translatedHeadings": true,
+        "navigationLabelsNoWrap": true,
+        "teamChevronRightCollapsedAndDownExpanded": true
+      },
+      {
+        "language": "en",
+        "viewport": [
+          900,
+          480
+        ],
+        "independentTeamScroll": true,
+        "systemSectionPinned": true,
+        "translatedHeadings": true,
+        "navigationLabelsNoWrap": true,
+        "teamChevronRightCollapsedAndDownExpanded": true
+      }
+    ],
+    "missingConnectionAndModelsIncludingAssistant": true,
+    "realAuthorizationRequired": true,
+    "creationTasksLastAndImmediatelyRemoved": true,
+    "projectCreationEndsOnboardingWithoutLaunchingPi": true,
+    "importedBuiltinPermissionsAndComponents": true,
+    "revokedPermissionsReopenTaskWithoutConsent": true,
+    "terminalDownloadOnlyOnExplicitClick": true,
+    "imagesRequirementFollowsConfiguration": true,
+    "mandatoryPiHasNoSkip": true,
+    "completedCircleYellowAndTextStruck": true,
+    "centeredWithoutHorizontalOverflow": true,
+    "scopedAssistantDuplicateClicksBlocked": true,
+    "headingAndTaskListOnly": true,
+    "assistantActionBelongsToMcpRow": true,
+    "helperErrorsUseSharedDialog": true,
+    "automaticHideAndReturn": true,
+    "importOpensOnboardingAfterProfileHydration": true,
+    "completedTasksExpireAfterTwoHours": true,
+    "unresolvedTasksRemain": true,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "languages": [
+      "ru",
+      "en"
+    ],
+    "userAppOrDataChanged": false,
+    "realPiOrAuthOrBrowserConsentLaunches": 0,
+    "nativePlatformAcceptance": false
+  },
+  "publishedRuntimeCompared": {
+    "platforms": [
+      "darwin",
+      "win32"
+    ],
+    "compiledFilesPerPlatform": 14,
+    "allCompiledBytesMatch": true,
+    "signedArchiveChecksPassed": true
+  },
+  "temporaryLeftDirectionChangeReverted": true,
+  "noProductRuntimeOrVersionChange": true,
+  "installedUserApplicationOrDataModified": false,
+  "nativeWindowsAcceptance": false
+}

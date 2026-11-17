@@ -21,6 +21,12 @@
   "headlessUiUsesOnlyIsolatedPinnedChromium": true,
   "legacyAgentLayoutHarness": {
     "result": "failed",
-    "reason": "Legacy harness assumes Russian on an English OS before its current geometry assertions. Current RU/EN sidebar and no-wrap behavior are verified by the onboarding headless harness; remaining old assertions were not run."
+    "reason": "Legacy harness assumes Russian on an English OS before its current geometry assertions. Current RU/EN sidebar and no-wrap behavior are verified by the onboarding headless harness; remaining old assertions were not run.",
+    "followup": {
+      "result": "passed",
+      "proof": "artifacts/alpha96-layout-followup-proof.json",
+      "published96RuntimeBytesMatch": true,
+      "rightCollapsedDownExpandedConfirmedInRuAndEn": true
+    }
   }
 }
