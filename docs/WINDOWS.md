@@ -15,6 +15,16 @@ Pi and its private Node runtime can be installed through the first-launch screen
 Agent dialogues require Windows Terminal. Pi's Bash tool requires Git for Windows
 (Git Bash). These external applications are not silently installed; WSL is not used.
 
+If an agent reports “Session bridge disconnected”, reopen it from Studio while
+Studio stays open. From alpha.94, a cold Terminal/SDK startup keeps its bridge
+through the normal launch deadline instead of losing it after 20 seconds.
+If the error specifically asks to reload the Pi Studio terminal profile, finish
+work in Windows Terminal, close its windows yourself and launch the agent from
+Studio again. Studio reports this profile error directly and does not close
+terminal windows automatically. Other rejected bridge requests include their
+HTTP status to help diagnose the failure. Native confirmation on the affected
+Windows computer is still required.
+
 Projects, canonical Pi dialogues and application settings are stored separately
 from the program folder. Prefer “Check for updates…” in the application menu.
 After a confirmed successful startup, the updater removes the previous program,

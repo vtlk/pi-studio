@@ -1,5 +1,6 @@
 /** The session capability is sent only to Studio's loopback URL; never print response bodies. */
 export function sessionRequest(bootstrap) {
+  const russian = bootstrap.language === 'ru';
   const headers = {
     Authorization: `Bearer ${bootstrap.token}`,
     'Content-Type': 'application/json',
@@ -15,19 +16,33 @@ export function sessionRequest(bootstrap) {
       });
     } catch {
       throw new Error(
-        'Pi Studio session bridge unavailable. Keep Studio open and reopen the agent from Studio.',
+        russian
+          ? 'Нет связи с Pi Studio. Оставьте Studio открытой и откройте агента из Studio снова.'
+          : 'Pi Studio session bridge unavailable. Keep Studio open and reopen the agent from Studio.',
       );
     }
     if (!response.ok) {
       const body = await response.json().catch(() => undefined);
       if (response.status === 400 && body?.error?.reason === 'terminal_profile')
         throw new Error(
-          'Перезапустите Windows Terminal, чтобы загрузить профиль Pi Studio, затем откройте диалог снова. / Restart Windows Terminal to load the Pi Studio profile, then reopen the dialogue from Studio.',
+          russian
+            ? 'Перезапустите Windows Terminal, чтобы загрузить профиль Pi Studio, затем откройте диалог снова.'
+            : 'Restart Windows Terminal to load the Pi Studio profile, then reopen the dialogue from Studio.',
         );
       throw new Error(
-        `Pi Studio session bridge disconnected (HTTP ${response.status}). Reopen the agent from Studio.`,
+        russian
+          ? `Связь с Pi Studio прервана (HTTP ${response.status}). Откройте агента из Studio снова.`
+          : `Pi Studio session bridge disconnected (HTTP ${response.status}). Reopen the agent from Studio.`,
       );
     }
-    return response.json();
+    try {
+      return await response.json();
+    } catch {
+      throw new Error(
+        russian
+          ? 'Некорректный ответ моста Pi Studio.'
+          : 'Invalid Pi Studio session bridge response.',
+      );
+    }
   };
 }
