@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-17T23:13:02.782090+00:00",
+  "version": "0.2.0-alpha.108",
+  "ownedUnpackedBuildRemovedAfterVerification": true,
+  "oldPlatform107ArchivesRemovedByPackagers": true,
+  "retainedCurrentReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.108-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.108-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.108-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.108-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.108-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.108-win32-x64.update.json"
+  ],
+  "newChromeClones": [],
+  "availableBytesAfterCleanup": 41529864192,
+  "userApplicationProcessesDataOrUpdateStagingChanged": false,
+  "ownedSourceWorktreeRemoved": true,
+  "interruptedRootAuditOwnedStagingRemoved": true
+}
