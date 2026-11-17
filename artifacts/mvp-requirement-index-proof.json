@@ -321,7 +321,7 @@
   ],
   "backlogSha256": "4a25c3de5429788301402aec0221306c4f7e15fefd6af72e348cbe3c3e9dd052",
   "auditSha256": "d01233e5f89248d2f9548c97ef876874bb34eb64e2da47ca54a06c1a08a53c58",
-  "installedVersion": "0.2.0-alpha.87",
+  "installedVersion": "0.2.0-alpha.88",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
   "scope": "Requirement-index and supersession reconciliation with explicitly bounded read evidence, not a new runtime test or completion proof. Full specification text stays local and ignored.",
@@ -330,7 +330,7 @@
     "native Windows",
     "real external-account OAuth",
     "Claude subscription deferred by user",
-    "end-to-end real GitHub installation/final accepted release",
+    "native Windows updater and final accepted release; real Mac GitHub cycle verified in alpha.88",
     "final distribution rights review with known cache/provenance limitations"
   ],
   "publishedVersion": "0.2.0-alpha.88",
@@ -349,7 +349,7 @@
   "nativePermissionProbePrompts": false,
   "nativeModelLoopAccepted": false,
   "preparedCandidateVersion": "0.2.0-alpha.88",
-  "preparedCandidateStatus": "Published and anonymously verified; installation awaits separate consent",
+  "preparedCandidateStatus": "Published, installed through the actual GitHub updater and opened; exact protected data preserved",
   "signingDeferredToAvoidSystemDialogs": false,
   "latestIncrementalReleaseVerification": {
     "checkedAt": "2026-11-17T08:10:45.010386+00:00",
@@ -379,5 +379,12 @@
     "nativeQueriesSimulated": true,
     "physicalPlatformAcceptance": false,
     "evidenceSha256": "163a8c87ac97c4d234f0f443ee933957ad21800eedf3e7bbdc4e693a50ce33c2"
+  },
+  "actualMacGitHubUpdateCycle": {
+    "version": "0.2.0-alpha.88",
+    "proof": "artifacts/alpha88-installation-proof.json",
+    "sha256": "d867fb49d340845ace541a022e96b36504f7a8fd6b05d0ac151edfafdf6ad7ad",
+    "userApproved": true,
+    "nativeWindowsAccepted": false
   }
 }
