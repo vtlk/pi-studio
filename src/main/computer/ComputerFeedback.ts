@@ -1,3 +1,4 @@
+import { t, type MessageKey } from '../../shared/i18n/index.ts';
 import type { ComputerPoint } from '../../shared/computerFeedback.ts';
 
 export interface ComputerFeedback {
@@ -16,22 +17,26 @@ export interface ComputerFeedback {
   close(): void;
 }
 
-export const computerActionLabels: Record<string, string> = {
-  list_apps: 'Ищет приложение',
-  list_windows: 'Ищет окно',
-  launch_app: 'Открывает приложение',
-  get_window_state: 'Читает окно',
-  get_desktop_state: 'Смотрит на экран',
-  get_screen_size: 'Проверяет экран',
-  click: 'Нажимает',
-  drag: 'Перетаскивает',
-  type_text: 'Вводит текст',
-  press_key: 'Нажимает клавишу',
-  hotkey: 'Нажимает сочетание клавиш',
-  set_value: 'Изменяет поле',
-  scroll: 'Прокручивает',
-  invoke_menu: 'Выбирает пункт меню',
+const actionKeys: Record<string, MessageKey> = {
+  list_apps: 'computerOverlay.action.list_apps',
+  list_windows: 'computerOverlay.action.list_windows',
+  launch_app: 'computerOverlay.action.launch_app',
+  get_window_state: 'computerOverlay.action.get_window_state',
+  get_desktop_state: 'computerOverlay.action.get_desktop_state',
+  get_screen_size: 'computerOverlay.action.get_screen_size',
+  click: 'computerOverlay.action.click',
+  drag: 'computerOverlay.action.drag',
+  type_text: 'computerOverlay.action.type_text',
+  press_key: 'computerOverlay.action.press_key',
+  hotkey: 'computerOverlay.action.hotkey',
+  set_value: 'computerOverlay.action.set_value',
+  scroll: 'computerOverlay.action.scroll',
+  invoke_menu: 'computerOverlay.action.invoke_menu',
 };
+
+export function computerActionLabel(action: string) {
+  return t(actionKeys[action] ?? 'computerOverlay.action.default');
+}
 
 export function computerAgentLabel(name: string) {
   return (
@@ -39,6 +44,6 @@ export function computerAgentLabel(name: string) {
       .replace(/[\p{Cc}\p{Cf}]/gu, '')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 100) || 'Агент'
+      .slice(0, 100) || t('computerOverlay.agent')
   );
 }

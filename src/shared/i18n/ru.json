@@ -1640,5 +1640,15 @@
   "Onboarding.gitDownloadFailed": "Не удалось открыть страницу установки Git.",
   "ComputerResourceStatus.checkUnavailable": "Не удалось проверить доступ Computer Use. Повторите проверку.",
   "ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp": "Проверка Computer Use доступна в приложении для компьютера.",
-  "ComputerResourceStatus.windowsAccessRequired": "Computer Use не подтвердил доступ к UI Automation и вводу в этой сессии Windows. Проверьте текущую сессию рабочего стола и повторите проверку."
+  "ComputerResourceStatus.windowsAccessRequired": "Computer Use не подтвердил доступ к UI Automation и вводу в этой сессии Windows. Проверьте текущую сессию рабочего стола и повторите проверку.",
+  "error.cuaRuntime.toolUnavailable": "Этот инструмент Computer Use недоступен.",
+  "error.cuaRuntime.invalidParameter": "Computer Use: неизвестный или закрытый параметр.",
+  "error.cuaRuntime.windowsAccessNotConfirmed": "Computer Use не подтвердил доступ к рабочему столу Windows. Проверьте сведения MCP и доступ текущей учётной записи. Действие не выполнено.",
+  "error.cuaRuntime.macosAccessRequired": "Разрешите Pi Studio управление компьютером и запись экрана в настройках macOS. Изменение разрешений выполняется пользователем в Studio; затем перезапустите приложение.",
+  "error.cuaRuntime.freshScreenshotUnavailable": "Свежий снимок после действия недоступен. Исход не подтверждён; автоматического повтора нет.",
+  "error.computerSupport.dialogueClosed": "Диалог Computer Use закрыт. Запрос не выполнен.",
+  "error.computerSupport.permissionParametersUnavailable": "Параметры запроса разрешений недоступны агенту.",
+  "error.computerSupport.visualModelRequired": "Computer Use требует модель с поддержкой изображений.",
+  "error.computerSupport.actionUnconfirmed": "Computer Use не подтвердил результат действия. Автоматического повтора или переключения в foreground нет. Получите свежий снимок перед следующим действием.",
+  "computerOverlay.agent": "Агент"
 }

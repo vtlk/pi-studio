@@ -5,7 +5,7 @@ import { CursorGeometry, computerPayload } from './CursorGeometry.ts';
 import { computerPermissionsReady } from '../../shared/computer.ts';
 import { computerPermissions, ComputerPermissionCheckError } from './computerPermissions.ts';
 import {
-  computerActionLabels,
+  computerActionLabel,
   computerAgentLabel,
   type ComputerFeedback,
 } from './ComputerFeedback.ts';
@@ -175,10 +175,10 @@ export class CuaRuntime {
     const task = this.tail.then(async () => {
       signal.throwIfAborted();
       const tool = (await this.tools()).find((tool) => tool.name === name);
-      if (!tool) return error('Этот инструмент Computer Use недоступен.');
+      if (!tool) return error(t('error.cuaRuntime.toolUnavailable'));
       const properties = tool.inputSchema.properties as Record<string, unknown>;
       if (Object.keys(args).some((key) => !Object.hasOwn(properties, key)))
-        return error('Computer Use: неизвестный или закрытый параметр.');
+        return error(t('error.cuaRuntime.invalidParameter'));
       if (name === 'check_permissions')
         return {
           content: [{ type: 'text', text: JSON.stringify(await this.permissions()) }],
@@ -187,9 +187,9 @@ export class CuaRuntime {
       if (!computerPermissionsReady(permissions)) {
         this.feedback?.release(session);
         return error(
-          process.platform === 'win32'
-            ? 'Computer Use не подтвердил доступ к рабочему столу Windows. Проверьте сведения MCP и доступ текущей учётной записи. Действие не выполнено.'
-            : 'Разрешите Pi Studio управление компьютером и запись экрана в настройках macOS. Изменение разрешений выполняется пользователем в Studio; затем перезапустите приложение.',
+          (this.options.platform ?? process.platform) === 'win32'
+            ? t('error.cuaRuntime.windowsAccessNotConfirmed')
+            : t('error.cuaRuntime.macosAccessRequired'),
         );
       }
       const driver = await this.driver();
@@ -205,8 +205,8 @@ export class CuaRuntime {
         await this.present((feedback) =>
           feedback.begin(
             session,
-            this.labels.get(session) ?? 'Агент',
-            computerActionLabels[name] ?? 'Использует компьютер',
+            this.labels.get(session) ?? t('computerOverlay.agent'),
+            computerActionLabel(name),
             name,
           ),
         );
@@ -281,7 +281,7 @@ export class CuaRuntime {
           else
             response.content.push({
               type: 'text',
-              text: 'Свежий снимок после действия недоступен. Исход не подтверждён; автоматического повтора нет.',
+              text: t('error.cuaRuntime.freshScreenshotUnavailable'),
             });
           this.geometry.observe(session, computerPayload(observed?.structuredJson));
         }

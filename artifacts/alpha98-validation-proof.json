@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-11-17T17:45:08.285934+00:00",
+  "version": "0.2.0-alpha.98",
+  "unitTests": {
+    "total": 450,
+    "passed": 449,
+    "failed": 0,
+    "skipped": 1
+  },
+  "skippedNativePermissionProbeRequires": "PI_STUDIO_TEST_NATIVE_PERMISSIONS=1",
+  "typescript": true,
+  "eslint": true,
+  "architectureModules": 409,
+  "build": true,
+  "focusedGitComputerAndLocalizationTests": 11,
+  "headlessUiLanguages": [
+    "ru",
+    "en"
+  ],
+  "headlessUiThemes": [
+    "light",
+    "dark"
+  ],
+  "newGitTaskOnlyOpensInstallerOnExplicitClick": true,
+  "computerDriverAndSchemaRetriesVerified": true,
+  "windowsPermissionsNoMacosArgumentsOrElevationRequirement": true,
+  "mcpDiagnosticsFollowCurrentLanguage": true,
+  "ownedErrorsDoNotTranslateUserAgentNames": true,
+  "desktopOrPermissionOrModelCallsByLocalizationTests": 0,
+  "nativeWindowsAcceptance": false,
+  "installedUserApplicationChanged": false
+}

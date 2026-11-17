@@ -80,13 +80,13 @@ export class ComputerSupport {
       call: async (name, args, requestSignal) => {
         if (allowed && !(await allowed())) return failed(t('builtin.assignmentDisabled'));
         if (controller.signal.aborted || this.closing)
-          return failed('Диалог Computer Use закрыт. Запрос не выполнен.');
+          return failed(t('error.computerSupport.dialogueClosed'));
         if (name === 'check_permissions') {
           if (Object.keys(args).length)
-            return failed('Параметры запроса разрешений недоступны агенту.');
+            return failed(t('error.computerSupport.permissionParametersUnavailable'));
           return { content: [{ type: 'text', text: JSON.stringify(await this.state()) }] };
         }
-        if (!visual) return failed('Computer Use требует модель с поддержкой изображений.');
+        if (!visual) return failed(t('error.computerSupport.visualModelRequired'));
         try {
           return await this.runtime.call(
             session,
@@ -95,9 +95,7 @@ export class ComputerSupport {
             AbortSignal.any([controller.signal, requestSignal]),
           );
         } catch {
-          return failed(
-            'Computer Use не подтвердил результат действия. Автоматического повтора или переключения в foreground нет. Получите свежий снимок перед следующим действием.',
-          );
+          return failed(t('error.computerSupport.actionUnconfirmed'));
         }
       },
     };

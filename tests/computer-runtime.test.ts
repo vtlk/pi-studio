@@ -4,7 +4,10 @@ import { CuaRuntime } from '../src/main/computer/CuaRuntime.ts';
 
 test(
   'Cua adapter exposes bounded native schemas and only a promptless status operation before GUI use',
-  { skip: process.platform !== 'darwin' },
+  // Native permission probes are explicit acceptance work, never part of an unattended unit run.
+  {
+    skip: process.platform !== 'darwin' || process.env.PI_STUDIO_TEST_NATIVE_PERMISSIONS !== '1',
+  },
   async (t) => {
     const runtime = new CuaRuntime();
     t.after(() => runtime.close());

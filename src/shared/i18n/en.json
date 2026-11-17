@@ -1640,5 +1640,15 @@
   "Onboarding.gitDownloadFailed": "Could not open the Git installation page.",
   "ComputerResourceStatus.checkUnavailable": "Could not check Computer Use access. Retry the check.",
   "ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp": "Computer Use checks are available in the desktop app.",
-  "ComputerResourceStatus.windowsAccessRequired": "Computer Use has not confirmed UI Automation and input access in this Windows session. Check the current desktop session and try again."
+  "ComputerResourceStatus.windowsAccessRequired": "Computer Use has not confirmed UI Automation and input access in this Windows session. Check the current desktop session and try again.",
+  "error.cuaRuntime.toolUnavailable": "This Computer Use tool is unavailable.",
+  "error.cuaRuntime.invalidParameter": "Computer Use: unknown or restricted parameter.",
+  "error.cuaRuntime.windowsAccessNotConfirmed": "Computer Use could not confirm access to the Windows desktop. Check the MCP details and access for the current account. No action was performed.",
+  "error.cuaRuntime.macosAccessRequired": "Allow Pi Studio to control the computer and record the screen in macOS settings. The user must grant permissions in Studio; then restart the application.",
+  "error.cuaRuntime.freshScreenshotUnavailable": "A fresh screenshot after the action is unavailable. The outcome is unconfirmed; there is no automatic retry.",
+  "error.computerSupport.dialogueClosed": "The Computer Use dialogue is closed. The request was not performed.",
+  "error.computerSupport.permissionParametersUnavailable": "Permission request parameters are not available to the agent.",
+  "error.computerSupport.visualModelRequired": "Computer Use requires a model that supports images.",
+  "error.computerSupport.actionUnconfirmed": "Computer Use could not confirm the action result. There is no automatic retry or switch to foreground. Get a fresh screenshot before the next action.",
+  "computerOverlay.agent": "Agent"
 }
