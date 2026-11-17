@@ -12,18 +12,57 @@ export function UpdateAction() {
   const startupProblem =
     state?.startup && ['restored', 'recovery-required'].includes(state.startup.phase);
   if (!state?.offer && !startupProblem && !state?.maintenanceError) return null;
+  const downloading = state.phase === 'downloading' && !!state.offer;
+  const progress =
+    state.offer && state.offer.bytes > 0
+      ? Math.min(1, Math.max(0, (state.downloaded ?? 0) / state.offer.bytes))
+      : 0;
+  const percent = new Intl.NumberFormat(i18n.resolvedLanguage, {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  }).format(progress);
   return (
     <IconButton
       title={
         state?.maintenanceError
           ? t('UpdateAction.temporaryUpdateFilesRetainedDetails')
-          : state?.offer
-            ? t('UpdateAction.versionAvailableUpdate', { value1: state.offer.version })
-            : t('UpdateAction.updateIncompleteDetails')
+          : downloading
+            ? `${t('UpdateAction.downloadingUpdate')} ${percent}`
+            : state?.offer
+              ? t('UpdateAction.versionAvailableUpdate', { value1: state.offer.version })
+              : t('UpdateAction.updateIncompleteDetails')
       }
       onClick={show}
     >
-      <Download size={18} />
+      {downloading ? (
+        <span
+          className="update-download-progress"
+          role="progressbar"
+          aria-label={t('UpdateAction.updateDownload')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+        >
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle className="update-download-track" cx={12} cy={12} r={9} strokeWidth={2} />
+            <circle
+              cx={12}
+              cy={12}
+              r={9}
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              pathLength={100}
+              strokeDasharray={100}
+              strokeDashoffset={100 - progress * 100}
+              opacity={progress > 0 ? 1 : 0}
+              transform="rotate(-90 12 12)"
+            />
+          </svg>
+        </span>
+      ) : (
+        <Download size={18} />
+      )}
     </IconButton>
   );
 }
