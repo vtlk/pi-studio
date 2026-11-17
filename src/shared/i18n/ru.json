@@ -1596,5 +1596,9 @@
   "githubStar.open": "Открыть GitHub",
   "githubStar.later": "Позже",
   "githubStar.writeError": "Не удалось сохранить настройку напоминания о GitHub.",
-  "githubStar.openError": "Не удалось открыть GitHub. Напоминания отключены."
+  "githubStar.openError": "Не удалось открыть GitHub. Напоминания отключены.",
+  "rendererRecovery.failed": "Не удалось восстановить окно Pi Studio",
+  "rendererRecovery.detail": "Интерфейс снова завершился. Можно повторить открытие окна. Агенты продолжают работать.",
+  "rendererRecovery.retry": "Восстановить окно",
+  "rendererRecovery.close": "Закрыть окно"
 }

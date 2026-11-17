@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-17T10:04:06.671Z",
+  "candidateVersion": "0.2.0-alpha.89",
+  "sourceMainPreloadRenderer": true,
+  "simulatedProcessGoneEvent": true,
+  "actualRendererReloadAndAppReady": true,
+  "savedStateBeforeReload": true,
+  "sameMainPid": true,
+  "sameWindowAndWebContents": true,
+  "studioSettingsUnchanged": true,
+  "boundedReasonDiagnosticWritten": true,
+  "nativeDialogs": 0,
+  "automaticAgentLaunches": 0,
+  "actualProcessCrashOrDesktopCapturePerformed": false,
+  "userStudioOrInstalledAppChanged": false,
+  "nativeWindowsAccepted": false
+}

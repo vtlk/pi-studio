@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-17T10:08:22.093380+00:00",
+  "candidateVersion": "0.2.0-alpha.89",
+  "reportedProblem": "Main stayed alive while the renderer was absent; existing window had no HTML UI",
+  "immediateUserWindowRecovery": "Closed only the empty window via native UI; Studio recreated it and displayed the project list, same installed main PID25745",
+  "originalExitReasonVerified": false,
+  "sourceFix": "Handle renderer exits and initial entry load failures; one automatic view reload per minute, explicit recovery choice for repeated failures; leave main/Pi services untouched",
+  "unitTests": {
+    "passed": 368,
+    "failed": 0
+  },
+  "focusedWindowAndControllerTests": 9,
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 393,
+  "isolatedNativeProof": "artifacts/renderer-recovery-proof.json",
+  "isolatedNativeProofSha256": "8529af44ca16c3d9dc9e48e0c9db1ec3e53432e40d409f94ed6d1c488fd52047",
+  "nativeCrashWasSimulated": true,
+  "actualOsRendererKillPerformed": false,
+  "diagnosticContainsOnly": [
+    "at",
+    "reason",
+    "exitCode"
+  ],
+  "installedAppReplacedByThisFix": false,
+  "windowsBuilt": false,
+  "ciEnabled": false
+}

@@ -1596,5 +1596,9 @@
   "githubStar.open": "Open GitHub",
   "githubStar.later": "Later",
   "githubStar.writeError": "Could not save the GitHub reminder preference.",
-  "githubStar.openError": "Could not open GitHub. Reminders are disabled."
+  "githubStar.openError": "Could not open GitHub. Reminders are disabled.",
+  "rendererRecovery.failed": "Could not restore the Pi Studio window",
+  "rendererRecovery.detail": "The interface stopped again. You can retry opening the window. Agents continue running.",
+  "rendererRecovery.retry": "Restore window",
+  "rendererRecovery.close": "Close window"
 }
