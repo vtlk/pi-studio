@@ -106,7 +106,7 @@ async function child() {
   dialog.showOpenDialog = async () => prohibited(); dialog.showMessageBoxSync = prohibited;
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) => handle(name,
-    name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'Documentation capture' }) :
+    name === 'studio:startup' ? () => ({ phase: 'ready', message: 'Documentation capture' }) :
     ['studio:launch-agent', 'studio:open-setup-assistant', 'studio:resource-install', 'studio:resource-login', 'studio:provider-login', 'studio:connection-login', 'studio:codex-login', 'studio:browser-install-visible', 'studio:computer-permissions', 'studio:computer-settings'].includes(name) ? prohibited :
     name === 'studio:model-catalog' ? () => ({ providers: [], models: [] }) : action);
   const loaded = new Promise((done) => app.once('browser-window-created', (_, value) => {

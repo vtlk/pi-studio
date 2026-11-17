@@ -7,6 +7,9 @@ import { themeState, type ThemeState } from '../shared/appearance';
 import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 
 const desktopApi: DesktopApi = {
+  getOnboardingReadiness: (request) =>
+    ipcRenderer.invoke(desktopChannels.getOnboardingReadiness, request),
+  openTerminalDownload: () => ipcRenderer.invoke(desktopChannels.openTerminalDownload),
   getGitHubStar: () => ipcRenderer.invoke(desktopChannels.getGitHubStar),
   chooseGitHubStar: (choice) => ipcRenderer.invoke(desktopChannels.chooseGitHubStar, choice),
   onGitHubStarChanged: (listener) => {
@@ -116,7 +119,6 @@ const desktopApi: DesktopApi = {
     ipcRenderer.invoke(desktopChannels.answerAuthLogin, id, promptId, answer),
   getStartup: () => ipcRenderer.invoke(desktopChannels.getStartup),
   retryStartup: () => ipcRenderer.invoke(desktopChannels.retryStartup),
-  skipStartup: () => ipcRenderer.invoke(desktopChannels.skipStartup),
   chooseStartupPi: () => ipcRenderer.invoke(desktopChannels.chooseStartupPi),
   getModelCatalog: (request) => ipcRenderer.invoke(desktopChannels.getModelCatalog, request),
   discoverConnectionModels: (request) =>

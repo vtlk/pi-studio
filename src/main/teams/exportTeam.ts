@@ -24,6 +24,7 @@ export async function exportTeam(
   resources: Resource[],
   connections: Connection[],
   readMcp = nativeMcpConfig,
+  imageTool?: { connectionId?: string; modelId?: string },
 ): Promise<TeamPackage> {
   const profiles = structuredClone(teamAgents(catalog, teamId)).map(normalizeBuiltinAssignments),
     team = catalog.teams.find((team) => team.id === teamId)!;
@@ -143,6 +144,17 @@ export async function exportTeam(
       agents: profiles,
       resources: portable,
       connections: accounts,
+      ...(imageTool?.connectionId &&
+      imageTool.modelId &&
+      profiles.some(
+        (agent) =>
+          agent.enabled &&
+          agent.plugins.every(
+            (id) => agent.capabilitySettings?.[`plugins:${id}`]?.enabled === false,
+          ),
+      )
+        ? { tools: { images: true } }
+        : {}),
       requirements,
     },
     files,

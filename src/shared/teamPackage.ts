@@ -28,6 +28,7 @@ export interface TeamPackageManifest {
   resources: PortableResource[];
   connections: PortableConnection[];
   requirements: string[];
+  tools?: { images: boolean };
 }
 export interface TeamPackageFile {
   path: string;
@@ -47,9 +48,15 @@ export interface TeamImportReport {
   handoff: 'pending' | 'sending' | 'sent' | 'uncertain';
   /** Separate one-use MCP task, including imports previously handed to the legacy assistant. */
   mcpHandoff?: 'pending' | 'sending' | 'sent' | 'uncertain';
+  mcpReady?: boolean;
   agents: { agentId: string; name: string; issues: string[] }[];
   requirements: string[];
-  mcps?: { resourceId: string; authorization: import('./mcpAuthorization').McpAuthorization }[];
+  mcps?: {
+    resourceId: string;
+    name?: string;
+    authorization: import('./mcpAuthorization').McpAuthorization;
+  }[];
+  requiresImages?: boolean;
 }
 export interface TeamPackageRequest {
   folder: string;

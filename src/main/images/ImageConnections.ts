@@ -61,6 +61,10 @@ export class ImageConnections {
       ...(cache?.revision === stored.revision ? { checkedAt: cache.checkedAt } : {}),
     };
   }
+  async revision(request: ImageConnectionRequest) {
+    const scope = await this.scope(request);
+    return (await this.vault.inspect(scope.folder, scope.id)).revision;
+  }
   async save(request: ImageConnectionRequest & { key: string }) {
     if (typeof request?.key !== 'string' || !/^[\x21-\x7e]{10,8192}$/.test(request.key.trim()))
       throw new Error(t('error.imageConnections.enterAValidApiKey'));

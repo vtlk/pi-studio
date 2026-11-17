@@ -17,7 +17,8 @@ import type { Connection } from '../src/shared/connections.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { StudioResources } from '../src/main/pi/StudioResources.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
-import { teamMcpId } from '../src/shared/builtinResources.ts';
+import { teamMcpId, builtinResource } from '../src/shared/builtinResources.ts';
+import { observeTeamMcpReadiness } from '../src/main/onboarding/observeTeamMcpReadiness.ts';
 
 const profile = (id: string): Agent => ({
   id,
@@ -188,10 +189,16 @@ test('old packages still derive actionable MCP requirements from validated local
   });
   const [report] = await listImports(store);
   assert.equal(report.teamName, 'Renamed team');
-  assert.equal(report.mcps?.length, 1, 'Internal MCPs do not require portable credentials');
-  assert.equal(report.mcps![0].authorization.required, 'yes');
+  const external = report.mcps!.filter((mcp) => !builtinResource(mcp.resourceId));
+  assert.equal(external.length, 1);
+  assert.equal(external[0].authorization.required, 'yes');
+  assert.ok(
+    report
+      .mcps!.filter((mcp) => builtinResource(mcp.resourceId))
+      .every((mcp) => mcp.authorization.required === 'no'),
+  );
   const localResources = store.bootstrap().sections.resources as Resource[];
-  assert.ok(localResources.some((resource) => resource.id === report.mcps![0].resourceId));
+  assert.ok(localResources.some((resource) => resource.id === external[0].resourceId));
 });
 
 test('import atomically restores an independent team and file tree; repeated import never overwrites IDs, settings, models or other projects', async (t) => {
@@ -418,6 +425,21 @@ test('legacy assistant receipts do not swallow the new scoped MCP task; its own 
   assert.equal(sends, 1);
   assert.equal(opens, 1);
   assert.deepEqual(store.agentCatalog(), before);
+  await observeTeamMcpReadiness(service, store.folder, report.id, true);
+  assert.equal((await readImport(store, report.id)).state.report.mcpHandoff, 'sent');
+  await observeTeamMcpReadiness(service, store.folder, report.id, false);
+  assert.equal((await readImport(store, report.id)).state.report.mcpHandoff, 'pending');
+  assert.equal(sends, 1, 'Readiness transitions never dispatch a task');
+  await handoffTeamImport(service, setup, store.folder, report.id);
+  assert.equal(sends, 2, 'A new verified failure permits a new explicit setup request');
+  await handoffTeamImport(service, setup, store.folder, report.id);
+  assert.equal(sends, 2, 'This new request is also one-use');
+  await observeTeamMcpReadiness(service, store.folder, report.id, false);
+  assert.equal(
+    (await readImport(store, report.id)).state.report.mcpHandoff,
+    'sent',
+    'An ongoing failure does not rearm another request',
+  );
   const uncertain = await importTeam(store, encodePackage(data));
   const legacy = await readImport(store, uncertain.id);
   legacy.state.report.handoff = 'uncertain';
@@ -426,7 +448,31 @@ test('legacy assistant receipts do not swallow the new scoped MCP task; its own 
     (await handoffTeamImport(service, setup, store.folder, uncertain.id)).outcome,
     'uncertain',
   );
-  assert.equal(sends, 1, 'Uncertain legacy dispatch is never retried by Onboarding');
+  assert.equal(sends, 2, 'Uncertain legacy dispatch is never retried by Onboarding');
+});
+
+test('portable image-tool requirement survives import without sender account/model settings or permissive future fields', async (t) => {
+  const { root, catalog, resources } = await fixture(t);
+  catalog.agents[0].plugins = [];
+  const packet = await exportTeam(
+    catalog,
+    'team',
+    resources,
+    [account],
+    async () => ({ command: 'fixture-server' }),
+    { connectionId: 'PRIVATE-IMAGES-ACCOUNT', modelId: 'PRIVATE-IMAGES-MODEL' },
+  );
+  assert.equal(decodePackage(encodePackage(packet)).manifest.tools?.images, true);
+  assert.equal(JSON.stringify(packet).includes('PRIVATE-IMAGES'), false);
+  const store = await StudioStore.open(join(root, 'Images-target'));
+  await importTeam(store, encodePackage(packet));
+  assert.equal((await listImports(store))[0].requiresImages, true);
+  assert.throws(() =>
+    encodePackage({
+      ...packet,
+      manifest: { ...packet.manifest, tools: { images: 'yes' } },
+    } as never),
+  );
 });
 
 test('narrow administrative tools read only their package, preserve missing model requirements and perform real checks without production launches', async (t) => {

@@ -80,7 +80,7 @@ async function child() {
     handle(
       channel,
       channel === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : ['studio:launch-agent', 'studio:open-setup-assistant'].includes(channel)
           ? () => {
               launches++;

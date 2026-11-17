@@ -89,13 +89,6 @@ export class Startup {
     this.started = false;
     return this.read();
   }
-  skip() {
-    this.generation++;
-    this.controller.abort();
-    this.state = { phase: 'skipped', message: t('Startup.studioOpenedWithoutPi') };
-    this.started = true;
-    return this.read();
-  }
   async choose(path: string) {
     const pi = await (this.options.probe ?? checkPi)(path);
     if (!pi.supported || !pi.nativeMcp || !pi.exactSessions)

@@ -12,6 +12,7 @@ import { RuntimeAccounting } from './accounting/RuntimeAccounting.mjs';
 import { studioSessionTerminal } from './terminal-title.mjs';
 import { studioMcpDeadlines } from './mcp-deadlines.mjs';
 import { openingFailure, openingFailureText } from './opening-failure.mjs';
+import { sessionRequest } from './session-request.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -24,40 +25,34 @@ export async function runSession(bootstrapPath) {
     typeof bootstrap.token !== 'string'
   )
     throw new Error('Invalid Studio bridge');
-  const headers = {
-    Authorization: `Bearer ${bootstrap.token}`,
-    'Content-Type': 'application/json',
-  };
-  async function request(path, data) {
-    const response = await fetch(`${bootstrap.url}/${path}`, {
-      headers,
-      method: data === undefined ? 'GET' : 'POST',
-      ...(data === undefined ? {} : { body: JSON.stringify(data) }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!response.ok) throw new Error('Pi Studio session bridge disconnected');
-    return response.json();
-  }
+  const request = sessionRequest(bootstrap);
   let queue = Promise.resolve();
   const event = (data) => {
     const result = queue.then(() => request('event', data));
     queue = result.catch(() => {});
     return result;
   };
-  await event({
-    type: 'hello',
-    pid: process.pid,
-    ...(process.platform === 'win32' && process.env.WT_SESSION && process.env.WT_PROFILE_ID
-      ? {
-          terminalIdentity: {
-            kind: 'windows-terminal',
-            sessionId: process.env.WT_SESSION,
-            profileId: process.env.WT_PROFILE_ID,
-          },
-        }
-      : {}),
-  });
-  const envelope = await request('context');
+  let envelope;
+  try {
+    await event({
+      type: 'hello',
+      pid: process.pid,
+      ...(process.platform === 'win32' && process.env.WT_SESSION && process.env.WT_PROFILE_ID
+        ? {
+            terminalIdentity: {
+              kind: 'windows-terminal',
+              sessionId: process.env.WT_SESSION,
+              profileId: process.env.WT_PROFILE_ID,
+            },
+          }
+        : {}),
+    });
+    envelope = await request('context');
+  } catch (error) {
+    process.stderr.write(`Pi Studio: ${error.message}\n`);
+    process.exitCode = 1;
+    return;
+  }
   const initialImages = [];
   for (const attachment of envelope.record.attachments ?? []) {
     if (!attachment.image) continue;

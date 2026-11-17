@@ -28,15 +28,10 @@ const deadline = setTimeout(() => app.exit(1), 20000);
   let phase = 'downloading';
   ipcMain.handle = (channel, action) => {
     if (channel === 'studio:startup')
-      return originalHandle(channel, () =>
-        phase === 'skipped'
-          ? { phase, message: 'Студия открыта без Pi.' }
-          : { phase, message: 'Загружаем компоненты Pi…', progress: 0.65 },
-      );
-    if (channel === 'studio:startup-skip')
       return originalHandle(channel, () => ({
-        phase: (phase = 'skipped'),
-        message: 'Студия открыта без Pi.',
+        phase,
+        message: phase === 'ready' ? 'Pi готов.' : 'Загружаем компоненты Pi…',
+        progress: 0.65,
       }));
     return originalHandle(channel, action);
   };
@@ -64,12 +59,14 @@ const deadline = setTimeout(() => app.exit(1), 20000);
     resolve('artifacts/startup-screen.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
-  await js(
-    `Array.from(document.querySelectorAll('button')).find(button => button.textContent === 'Открыть без Pi').click()`,
+  assert.equal(
+    await js(`Array.from(document.querySelectorAll('button')).some(button => /без Pi|without Pi/i.test(button.textContent))`),
+    false,
   );
+  phase = 'ready';
   await until(`!!document.querySelector('[aria-label="Создать проект"]')`);
   console.log(
-    'Startup UI passed: fixture download progress presentation, branding, skip and empty studio. Real installation is covered separately by test:fresh-startup.',
+    'Startup UI passed: fixture download progress presentation, branding, mandatory preparation and empty studio. Real installation is covered separately by test:fresh-startup.',
   );
   clearTimeout(deadline);
   await rm(temporary, { recursive: true, force: true });

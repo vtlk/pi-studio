@@ -84,7 +84,7 @@ process.on('unhandledRejection', fail);
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:model-catalog'
           ? () => ({ providers: [], models: [] })
           : action,

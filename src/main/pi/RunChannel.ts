@@ -24,6 +24,10 @@ interface Lease {
   groups: readonly SessionMcpGroup[];
   calls: Map<string, AbortController>;
 }
+/** Only controlled, credential-free handshake failures may cross the session transport. */
+export class SessionEventError extends Error {
+  readonly code = 'terminal_profile';
+}
 export const productionTools: SessionTool[] = [
   {
     name: 'web_search',
@@ -319,11 +323,15 @@ export class RunChannel {
         });
       }
       json(response, 200, { jsonrpc: '2.0', id: rpcId, result });
-    } catch {
+    } catch (error) {
       json(response, 400, {
         jsonrpc: '2.0',
         id: rpcId ?? null,
-        error: { code: -32600, message: 'Invalid session request' },
+        error: {
+          code: -32600,
+          message: 'Invalid session request',
+          ...(error instanceof SessionEventError ? { reason: error.code } : {}),
+        },
       });
     }
   }

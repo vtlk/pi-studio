@@ -53,7 +53,7 @@ async function child() {
     handle(
       channel,
       channel === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
       : channel === 'studio:setup-assistant'
           ? () => {
               calls++;

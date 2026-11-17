@@ -1,5 +1,8 @@
 import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
+import { dirname } from 'node:path';
+import { piEnvironment } from './platform.ts';
+import { missingMcpExecutable } from '../onboarding/mcpExecutable.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Resource, ResourceCheck } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
@@ -55,6 +58,28 @@ export class StudioResources {
   }
   private call(path: string, request: NativeResourceRequest) {
     return (this.options.operation ?? nativeResourceOperation)(path, this.options.script, request);
+  }
+  /** No process execution or secret decryption. Revisions invalidate previously successful checks. */
+  async onboardingProbe(id: string, folder: string) {
+    const scope = await this.scope(folder);
+    const resource = scope.resources.find((item) => item.id === id && item.kind === 'mcps');
+    if (!resource) return { revision: 'missing-resource', missing: true };
+    let revision = signature(resource);
+    if (!resource.source.startsWith('pi:')) return { revision, missing: false };
+    try {
+      const config = await nativeMcpConfig(resource.source.slice(3));
+      revision += ':' + mcpConfigRevision(config);
+      try {
+        revision += ':' + ((await this.options.mcpSecrets?.revision(folder, resource)) ?? '');
+      } catch {
+        revision += ':unreadable-credentials';
+      }
+      if (await missingMcpExecutable(config, piEnvironment(dirname(scope.piPath)).PATH))
+        return { revision, missing: true };
+      return { revision, missing: false };
+    } catch {
+      return { revision: revision + ':missing-config', missing: true };
+    }
   }
   async listNative(folder: string) {
     const scope = await this.scope(folder);

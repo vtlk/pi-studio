@@ -68,7 +68,7 @@ async function child() {
     handle(
       channel,
       channel === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : channel === 'studio:model-catalog'
           ? async () => {
               if (catalogGate) await catalogGate;

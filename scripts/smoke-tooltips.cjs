@@ -35,7 +35,7 @@ const deadline = setTimeout(() => {
   ipcMain.handle = (channel, action) =>
     handle(
       channel,
-      channel === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action,
+      channel === 'studio:startup' ? () => ({ phase: 'ready', message: 'QA' }) : action,
     );
   const loaded = new Promise((resolve) =>
     app.once('browser-window-created', (_event, window) => {

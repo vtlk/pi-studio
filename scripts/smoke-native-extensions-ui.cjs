@@ -74,7 +74,7 @@ process.on('unhandledRejection', fail);
   app.setPath('videos', root);
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) =>
-    handle(name, name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action);
+    handle(name, name === 'studio:startup' ? () => ({ phase: 'ready', message: 'QA' }) : action);
   const loaded = new Promise((done) =>
     app.once('browser-window-created', (_, win) => {
       ownedWindow = win;

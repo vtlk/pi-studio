@@ -162,6 +162,12 @@ export function validatePackage(value: unknown): TeamPackage {
       !files.some((f) => f.path === r.filesRoot + '/SKILL.md')
     )
       throw new Error(t('error.packageCodec.skillMdIsMissingFrom'));
+  const tools = m.tools === undefined ? undefined : record(m.tools);
+  if (
+    tools &&
+    (typeof tools.images !== 'boolean' || Object.keys(tools).some((key) => key !== 'images'))
+  )
+    throw new Error(t('error.packageCodec.invalidTeamPackageField'));
   const manifest: TeamPackageManifest = {
     format: 'pi-studio-team',
     version: 1,
@@ -175,6 +181,7 @@ export function validatePackage(value: unknown): TeamPackage {
     resources,
     connections,
     requirements: strings(m.requirements),
+    ...(tools === undefined ? {} : { tools: { images: tools.images as boolean } }),
   };
   return { manifest, files };
 }

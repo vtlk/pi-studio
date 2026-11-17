@@ -1,4 +1,4 @@
-import { t } from '../../shared/i18n/index.ts';
+import { i18n, t } from '../../shared/i18n/index.ts';
 import { checkRunLiveness } from './runLiveness.ts';
 import { RunUpdateGuard } from './RunUpdateGuard.ts';
 import { withRunProjectChange } from './runProjectChange.ts';
@@ -237,7 +237,7 @@ export class RunHost {
       await mkdir(this.dependencies.bootstraps, { recursive: true, mode: 0o700 });
       const bootstrap = join(this.dependencies.bootstraps, `${run.record.runId}.json`);
       const headless = this.dependencies.headless === true;
-      await atomicJson(bootstrap, { ...transport, sdk, headless });
+      await atomicJson(bootstrap, { ...transport, sdk, headless, language: i18n.language });
       continuation?.check();
       if (teamDelivery)
         this.assertTeamDispatch(request.projectId, request.agentId, run.record.runId);
@@ -283,6 +283,7 @@ export class RunHost {
       live: this.live,
       retiring: this.retiring,
       lifecycle: this.lifecycle,
+      opening: this.opening,
       dependencies: this.dependencies,
       remove: (id) => this.channel.remove(id),
     });

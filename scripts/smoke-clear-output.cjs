@@ -86,7 +86,7 @@ const deadline = setTimeout(() => {
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:launch-agent'
           ? () => {
               launches++;

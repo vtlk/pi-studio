@@ -14,22 +14,120 @@ import { Modal } from '@/shared/ui/Modal';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { SetupAssistantError } from '@/features/setup-assistant/ui/SetupAssistantError';
 import { useState } from 'react';
+import { builtinResource } from '../../../shared/builtinResources';
+import type { OnboardingTask } from '../../../shared/onboarding';
+import type { Connection } from '../../../shared/connections';
+import { ConnectionEditor } from '@/features/connections/ui/ConnectionEditor';
+import { TeamNameDialog } from '@/features/agents/ui/TeamNameDialog';
+import { ComputerResourceStatus } from '@/features/resources/ui/ComputerResourceStatus';
+import { BrowserResourceStatus } from '@/features/resources/ui/BrowserResourceStatus';
+import { useLaunch } from '@/features/launch/model/Launch';
+import { Select } from '@/shared/ui/Select';
 import { agentName } from '@/shared/model/localizedProfiles';
+import { resourceLabel } from '@/shared/model/localizedResources';
 import './onboarding.css';
 
 export function OnboardingView() {
   useTranslation(undefined, { i18n });
-  const { tasks } = useOnboarding();
-  const { teams, systemAgents, setAgentId, setAgentTab } = useAgentProfiles();
+  const { tasks, readiness } = useOnboarding();
+  const { teams, systemAgents, setAgentId, setAgentTab, addTeam, addAgent } = useAgentProfiles();
   const { connections } = useConnections();
   const { resources } = useResources();
   const transfers = useTeamTransfers();
   const { navigate, openSettings } = useNavigation();
   const [resourceId, setResourceId] = useState('');
-  const resource = resources.find((item) => item.id === resourceId);
+  const [connection, setConnection] = useState<Connection>();
+  const [creatingTeam, setCreatingTeam] = useState(false);
+  const [choosingTeam, setChoosingTeam] = useState(false);
+  const [teamId, setTeamId] = useState('');
+  const [actionError, setActionError] = useState('');
+  const { setDialog } = useLaunch();
+  const refresh = () => window.dispatchEvent(new Event('pistudio:onboarding-refresh'));
+  const closeResource = () => {
+    setResourceId('');
+    refresh();
+  };
+  const configure = (task: OnboardingTask) => {
+    if (task.kind === 'readiness-check') {
+      refresh();
+      return;
+    }
+    if (task.kind === 'terminal') {
+      void window.studio
+        ?.openTerminalDownload()
+        .catch(() => setActionError(t('Onboarding.terminalDownloadFailed')));
+      return;
+    }
+    if (task.kind === 'create-team') {
+      setCreatingTeam(true);
+      return;
+    }
+    if (task.kind === 'create-agent') {
+      if (teams.length === 1) {
+        addAgent(teams[0].id);
+        navigate('agents');
+      } else if (!teams.length) setCreatingTeam(true);
+      else setChoosingTeam(true);
+      return;
+    }
+    if (task.kind === 'create-project') {
+      setDialog({ title: t('NewProjectDialog.createProject'), kind: 'new-project' });
+      return;
+    }
+    if (task.connectionId) {
+      setConnection(connections.find((connection) => connection.id === task.connectionId));
+      return;
+    }
+    if (task.kind === 'connection' || task.kind === 'images') {
+      openSettings('connections');
+      return;
+    }
+    if (task.agentId) {
+      openModel(task.agentId);
+      return;
+    }
+    if (task.resourceId) setResourceId(task.resourceId);
+  };
+  const taskLabel = (task: OnboardingTask, name: string) => {
+    const keys = {
+      connection: 'Onboarding.connection',
+      'connection-auth': 'Onboarding.connectionAuth',
+      'connection-check': 'Onboarding.connectionCheck',
+      'agent-model': 'Onboarding.agent',
+      'mcp-auth': 'Onboarding.mcpAuth',
+      'mcp-check': 'Onboarding.mcpCheck',
+      'mcp-install': 'Onboarding.mcpInstall',
+      computer: 'Onboarding.computer',
+      browser: 'Onboarding.browser',
+      images: 'Onboarding.images',
+      terminal: 'Onboarding.terminal',
+      'create-team': 'Onboarding.createTeam',
+      'create-agent': 'Onboarding.createAgent',
+      'create-project': 'Onboarding.createProject',
+      'readiness-check': 'Onboarding.readinessCheck',
+    } as const;
+    return t(keys[task.kind], { name });
+  };
+  const resource = resources.find((item) => item.id === resourceId) ?? builtinResource(resourceId);
   const assistant = systemAgents.find((agent) => agent.systemRole === 'assistant');
-  const assistantReady =
+  const assistantModelReady =
     !!assistant?.enabled && validateAgentModel(assistant.model, connections).ok;
+  const assistantReady =
+    assistantModelReady && readiness?.connections[assistant?.model?.connectionId ?? ''] === 'ready';
+  const openTeamSetup = (id: string) => {
+    if (!assistant) return;
+    if (!assistantModelReady) {
+      openModel(assistant.id);
+      return;
+    }
+    if (!assistantReady) {
+      const connection = connections.find((item) => item.id === assistant.model?.connectionId);
+      if (connection) setConnection(connection);
+      else openModel(assistant.id);
+      return;
+    }
+    void transfers.continueImport(id);
+  };
   const openModel = (id: string) => {
     setAgentId(id);
     setAgentTab('Модель');
@@ -43,14 +141,7 @@ export function OnboardingView() {
           {tasks.map((task) => {
             const systemAgent = systemAgents.find((agent) => agent.id === task.agentId);
             const name = systemAgent ? agentName(systemAgent) : task.name;
-            const label =
-              task.kind === 'connection'
-                ? t('Onboarding.connection')
-                : task.kind === 'agent-model'
-                  ? t('Onboarding.agent', { name })
-                  : task.kind === 'mcp-auth'
-                    ? t('Onboarding.mcpAuth', { name: task.name })
-                    : t('Onboarding.mcpCheck', { name: task.name });
+            const label = taskLabel(task, name);
             return (
               <li key={task.id} data-complete={task.complete} data-task-id={task.id}>
                 <span
@@ -68,35 +159,42 @@ export function OnboardingView() {
                 </div>
                 {!task.complete && (
                   <div className="onboarding-task-actions">
-                    <Button
-                      onClick={() => {
-                        if (task.kind === 'connection') openSettings('connections');
-                        else if (task.agentId) openModel(task.agentId);
-                        else if (resources.some((item) => item.id === task.resourceId))
-                          setResourceId(task.resourceId!);
-                        else openSettings('mcps');
-                      }}
-                    >
-                      {t('Onboarding.configure')}
+                    <Button onClick={() => configure(task)}>
+                      {task.kind.startsWith('create-')
+                        ? t('TeamNameDialog.create')
+                        : t('Onboarding.configure')}
                     </Button>
-                    {(task.teamIds ?? []).map((teamId) => {
+                    {task.kind === 'create-team' && (
+                      <Button
+                        disabled={transfers.busy || !transfers.available}
+                        onClick={() => void transfers.importTeam()}
+                      >
+                        {t('AgentList.importTeam')}
+                      </Button>
+                    )}
+                    {(task.kind.startsWith('mcp-') ? (task.teamIds ?? []) : []).map((teamId) => {
                       const report = transfers.reports.find((report) => report.teamId === teamId);
                       const team = teams.find((team) => team.id === teamId);
                       if (!report || !team) return null;
                       return (
                         <Tooltip
                           key={teamId}
-                          label={t('Onboarding.assistant', { name: team.name })}
+                          label={
+                            readiness?.terminal === 'missing'
+                              ? t('Onboarding.terminal')
+                              : t('Onboarding.assistant', { name: team.name })
+                          }
                         >
                           <Button
                             className="onboarding-assistant"
-                            disabled={transfers.busy || !transfers.available || !assistant}
-                            busy={transfers.busy}
-                            onClick={() =>
-                              assistantReady
-                                ? void transfers.continueImport(report.id)
-                                : assistant && openModel(assistant.id)
+                            disabled={
+                              transfers.busy ||
+                              !transfers.available ||
+                              !assistant ||
+                              (!!readiness && readiness.terminal !== 'ready')
                             }
+                            busy={transfers.busy}
+                            onClick={() => openTeamSetup(report.id)}
                           >
                             {transfers.busy && (
                               <LoaderCircle
@@ -118,14 +216,73 @@ export function OnboardingView() {
         </ul>
       </div>
       <SetupAssistantError error={transfers.error} onClose={transfers.clearError} />
+      {creatingTeam && (
+        <TeamNameDialog
+          onClose={() => setCreatingTeam(false)}
+          onSave={(name, mode) => addTeam(name, mode)}
+        />
+      )}
+      {choosingTeam && (
+        <Modal
+          title={t('Onboarding.createAgent')}
+          onClose={() => setChoosingTeam(false)}
+          footer={
+            <Button
+              disabled={!teams.some((team) => team.id === teamId)}
+              onClick={() => {
+                addAgent(teamId);
+                setChoosingTeam(false);
+                navigate('agents');
+              }}
+            >
+              {t('TeamNameDialog.create')}
+            </Button>
+          }
+        >
+          <Select
+            label={t('NewProjectDialog.agentTeam')}
+            value={teamId}
+            onValueChange={setTeamId}
+            options={teams.map((team) => ({ value: team.id, label: team.name }))}
+            placeholder={t('TeamTransferPanel.selectATeam')}
+          />
+        </Modal>
+      )}
+      {connection && (
+        <ConnectionEditor
+          connection={connection}
+          onClose={() => {
+            setConnection(undefined);
+            refresh();
+          }}
+        />
+      )}
+      {actionError && (
+        <Modal
+          alert
+          title={t('TeamTransfers.theOperationDidNotComplete')}
+          onClose={() => setActionError('')}
+          footer={<Button onClick={() => setActionError('')}>{t('TeamTransfers.close')}</Button>}
+        >
+          <p>{actionError}</p>
+        </Modal>
+      )}
       {resource && (
         <Modal
-          title={resource.name}
-          onClose={() => setResourceId('')}
-          footer={<Button onClick={() => setResourceId('')}>{t('TeamTransfers.close')}</Button>}
+          title={resourceLabel(resource, 'name')}
+          onClose={closeResource}
+          footer={<Button onClick={closeResource}>{t('TeamTransfers.close')}</Button>}
         >
-          <p>{t('Onboarding.resourceDescription')}</p>
-          <ResourceActions resource={resource} />
+          {resource.source === 'builtin:computer' ? (
+            <ComputerResourceStatus />
+          ) : resource.source === 'builtin:browser' ? (
+            <BrowserResourceStatus />
+          ) : (
+            <>
+              <p>{t('Onboarding.resourceDescription')}</p>
+              <ResourceActions resource={resource} />
+            </>
+          )}
         </Modal>
       )}
     </section>

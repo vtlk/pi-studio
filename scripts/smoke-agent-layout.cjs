@@ -50,7 +50,7 @@ async function child() {
     handle(
       channel,
       channel === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : channel === 'studio:save-section'
           ? async (...args) => {
               await pause(400);

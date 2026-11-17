@@ -37,7 +37,7 @@ ipcMain.handle = (channel, action) =>
   handle(
     channel,
     channel === 'studio:startup'
-      ? () => ({ phase: 'skipped', message: 'QA: do not install/start Pi.' })
+      ? () => ({ phase: 'ready', message: 'QA: do not install/start Pi.' })
       : [
             'studio:launch-agent',
             'studio:open-setup-assistant',

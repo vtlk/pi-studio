@@ -101,7 +101,7 @@ if (!process.versions.electron) {
               reports.push(ready);
             }
           : name === 'studio:startup'
-            ? () => ({ phase: 'skipped', message: 'Isolated QA, no Pi startup.' })
+            ? () => ({ phase: 'ready', message: 'Isolated QA, no Pi startup.' })
             : name === 'studio:launch-agent' || name === 'studio:open-setup-assistant'
               ? () => {
                   launches++;

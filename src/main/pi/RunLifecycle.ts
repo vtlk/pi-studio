@@ -6,7 +6,7 @@ import { relative, join } from 'node:path';
 import { stat, rm } from 'node:fs/promises';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { validateCompletedOutputs } from './completeStage.ts';
-import type { ChannelEvent } from './RunChannel.ts';
+import { SessionEventError, type ChannelEvent } from './RunChannel.ts';
 import type { LiveRun, RunDependencies } from './RunTypes.ts';
 import { searchWeb } from './webSearch.ts';
 import { listProjectFiles, readProjectFile } from './projectFiles.ts';
@@ -42,8 +42,11 @@ export class RunLifecycle {
       if (!Number.isSafeInteger(event.pid) || event.pid! < 2) throw new Error('Invalid process');
       if (process.platform === 'win32' && !this.dependencies.headless) {
         const terminal = event.terminalIdentity;
-        if (!validStudioTerminalIdentity(terminal))
-          throw new Error(t('error.runLifecycle.restartWindowsTerminalToLoad'));
+        if (!validStudioTerminalIdentity(terminal)) {
+          const error = new SessionEventError(t('error.runLifecycle.restartWindowsTerminalToLoad'));
+          live.fail(error);
+          throw error;
+        }
         live.terminalIdentity = terminal;
       }
       live.pid = event.pid;

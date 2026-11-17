@@ -45,6 +45,16 @@ async function terminal() {
   }
   throw new Error(t('error.windowsTerminal.forPiDialoguesInstallWindows'));
 }
+
+/** Existence only: never launches Terminal or PowerShell while evaluating Onboarding. */
+export async function hasWindowsTerminal() {
+  try {
+    await terminal();
+    return true;
+  } catch {
+    return false;
+  }
+}
 const titleArgument = (title: string) => title.replace(/[;"\p{Cc}]/gu, ' ').slice(0, 300);
 
 /** A dedicated named window per live bridge. Encoded PowerShell carries paths as literals. */
