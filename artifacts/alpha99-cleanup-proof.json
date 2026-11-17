@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-17T18:31:35.407500+00:00",
+  "version": "0.2.0-alpha.99",
+  "onlyCurrentReleaseSixAssetsRetained": true,
+  "previous98ArchivesAndMetadataRemovedBytes": 314374703,
+  "ownedMacUnpackedBuildRemoved": true,
+  "ownedWindowsStagingRemoved": true,
+  "releaseCandidateStagingRemoved": true,
+  "newChromeClones": 0,
+  "freeBytesAfterCleanup": 43390386176,
+  "userApplicationOrDataChanged": false
+}
