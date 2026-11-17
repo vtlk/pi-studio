@@ -19,6 +19,7 @@ export interface ChatMessage {
   toolName?: string;
   isError?: boolean;
   error?: string;
+  command?: string;
 }
 export interface ChatDialog {
   id: string;

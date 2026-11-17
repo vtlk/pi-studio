@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoaderCircle, MessageSquare, Power, Send, Square, X } from 'lucide-react';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import type { ChatTarget } from '../../../shared/chat';
 import { t, i18n } from '../../../shared/i18n';
 import { Button, IconButton } from '@/shared/ui';
@@ -13,6 +11,7 @@ import { useConfirm } from '@/shared/model/Confirm';
 import { useChatPanels } from './ChatPanels.context';
 import { useChat } from './useChat';
 import { ChatExtensionDialog } from './ChatExtensionDialog';
+import { ChatTranscript } from './ChatTranscript';
 import './chat.css';
 
 export function ChatPanel({
@@ -145,62 +144,7 @@ export function ChatPanel({
         }}
       >
         {state?.historyTruncated && <p className="subtle">{t('Chat.historyTruncated')}</p>}
-        {state?.messages.map((message) => (
-          <article className="pi-chat-message" data-role={message.role} key={message.id}>
-            <span className="pi-chat-role">
-              {message.role === 'user'
-                ? t('Chat.you')
-                : message.role === 'assistant'
-                  ? name
-                  : message.toolName || t('Chat.tool')}
-            </span>
-            {message.parts.map((part, index) =>
-              part.type === 'toolCall' ? (
-                <details className="pi-chat-tool" key={index}>
-                  <summary>{part.name}</summary>
-                  <pre>{part.arguments}</pre>
-                </details>
-              ) : part.type === 'thinking' ? (
-                <details className="pi-chat-thinking" key={index}>
-                  <summary>{t('Chat.thinking')}</summary>
-                  <p>{part.text}</p>
-                </details>
-              ) : part.type === 'image' ? (
-                part.src ? (
-                  <img key={index} src={part.src} alt={t('Chat.image')} />
-                ) : (
-                  <p key={index}>{t('Chat.image')}</p>
-                )
-              ) : message.role === 'toolResult' || message.role === 'bashExecution' ? (
-                <details className="pi-chat-tool" key={index}>
-                  <summary>{message.isError ? t('Chat.toolError') : t('Chat.toolResult')}</summary>
-                  <pre>{part.text}</pre>
-                </details>
-              ) : (
-                <div className="output-markdown" key={index}>
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    skipHtml
-                    components={{
-                      a: ({ href, children }) =>
-                        /^https?:\/\//i.test(href ?? '') ? (
-                          <a href={href} target="_blank" rel="noopener noreferrer">
-                            {children}
-                          </a>
-                        ) : (
-                          <span>{children}</span>
-                        ),
-                      img: ({ alt }) => <span>{alt || t('Chat.image')}</span>,
-                    }}
-                  >
-                    {part.text ?? ''}
-                  </Markdown>
-                </div>
-              ),
-            )}
-            {message.error && <p className="error-message">{message.error}</p>}
-          </article>
-        ))}
+        {state && <ChatTranscript messages={state.messages} name={name} working={state.working} />}
         {opening && (
           <div className="pi-chat-loading" role="status">
             <LoaderCircle className="project-launch-spinner" size={24} aria-hidden="true" />

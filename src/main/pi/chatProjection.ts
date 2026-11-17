@@ -48,7 +48,15 @@ export function projectChatMessage(value: unknown, id: string): ChatMessage {
       ? { toolCallId: chatText(message.toolCallId, 500) }
       : {}),
     ...(typeof message.toolName === 'string' ? { toolName: chatText(message.toolName, 500) } : {}),
-    ...(message.isError === true ? { isError: true } : {}),
+    ...(message.isError === true ||
+    (message.role === 'bashExecution' &&
+      typeof message.exitCode === 'number' &&
+      message.exitCode !== 0)
+      ? { isError: true }
+      : {}),
+    ...(message.role === 'bashExecution' && typeof message.command === 'string'
+      ? { command: chatText(message.command) }
+      : {}),
     ...(message.errorMessage ? { error: chatText(message.errorMessage, 4000) } : {}),
   };
 }

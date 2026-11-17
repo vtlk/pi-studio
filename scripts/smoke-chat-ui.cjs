@@ -29,6 +29,10 @@ async function parent() {
       'chat-en-dark.png',
       'refresh-ru-light.png',
       'refresh-en-dark.png',
+      'tools-ru-light.png',
+      'tools-ru-dark.png',
+      'tools-en-light.png',
+      'tools-en-dark.png',
     ])
       await require('node:fs/promises').copyFile(join(root, file), join('artifacts', file));
     console.log(await readFile(join(root, 'chat-ui-proof.json'), 'utf8'));
@@ -325,15 +329,146 @@ async function child() {
       role: 'assistant',
       parts: [
         { type: 'text', text: 'Сохранённый ответ **Pi**.' },
-        { type: 'toolCall', name: 'read', arguments: '{"path":"result.md"}' },
+        {
+          type: 'toolCall',
+          id: 'read-one',
+          name: 'read',
+          arguments: '{"path":"folder/script.md"}',
+        },
+        {
+          type: 'toolCall',
+          id: 'mcp-one',
+          name: 'mcp__files__lookup',
+          arguments: '{"query":"script"}',
+        },
+        { type: 'toolCall', id: 'old-missing', name: 'write', arguments: '{"path":"missing.md"}' },
       ],
     },
   ];
+  state.messages.push(
+    {
+      id: 'read-result',
+      role: 'toolResult',
+      toolCallId: 'read-one',
+      toolName: 'read',
+      parts: [
+        {
+          type: 'text',
+          text: '# Script\nFull contents <script>window.TOOL_EXECUTED=true</script>',
+        },
+      ],
+    },
+    {
+      id: 'mcp-result',
+      role: 'toolResult',
+      toolCallId: 'mcp-one',
+      toolName: 'mcp__files__lookup',
+      isError: true,
+      parts: [{ type: 'text', text: 'Lookup failed: fixture error' }],
+    },
+  );
   state.revision++;
   launchResolve({ runId: state.runId, project });
   send('studio:chat-changed', target);
   await until(
     `!document.querySelector('.pi-chat-loading')&&document.querySelectorAll('.pi-chat-message').length===2`,
+  );
+  const card = (id) => `.pi-tool-card[data-call-id="${id}"]`;
+  await until(
+    `document.querySelectorAll('.pi-tool-card').length===3&&document.querySelector(${JSON.stringify(card('mcp-one'))}).open`,
+  );
+  assert.equal(await js(`document.querySelector(${JSON.stringify(card('read-one'))}).open`), false);
+  assert.equal(
+    await js(`document.querySelectorAll('.pi-chat-message[data-role="toolResult"]').length`),
+    0,
+  );
+  assert.equal(await js(`window.TOOL_EXECUTED`), undefined, 'Tool text remains inert');
+  assert.match(
+    await js(`document.querySelector(${JSON.stringify(card('read-one'))}).innerText`),
+    /Прочитан файл.*script.md/s,
+  );
+  await js(`document.querySelector(${JSON.stringify(card('read-one') + ' summary')}).click()`);
+  await until(`document.querySelector(${JSON.stringify(card('read-one'))}).open`);
+  assert.match(
+    await js(`document.querySelector(${JSON.stringify(card('read-one'))}).innerText`),
+    /Параметры.*folder\/script.md.*Результат.*Full contents/s,
+  );
+  await js(`document.querySelector(${JSON.stringify(card('read-one') + ' summary')}).click()`);
+  await js(`document.querySelector(${JSON.stringify(card('mcp-one') + ' summary')}).click()`);
+  await until(`!document.querySelector(${JSON.stringify(card('mcp-one'))}).open`);
+  // SDK get_messages replaces message IDs after settling. Manual collapse must survive it.
+  state.messages = state.messages.map((message, index) => ({ ...message, id: String(index) }));
+  state.revision++;
+  send('studio:chat-changed', target);
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal(await js(`document.querySelector(${JSON.stringify(card('mcp-one'))}).open`), false);
+  // A new error arriving on an existing running card opens exactly once.
+  state.messages.push({
+    id: 'new-call',
+    role: 'assistant',
+    parts: [
+      { type: 'toolCall', id: 'new-error', name: 'bash', arguments: '{"command":"npm run check"}' },
+    ],
+  });
+  state.working = true;
+  state.revision++;
+  send('studio:chat-changed', target);
+  await until(
+    `document.querySelector(${JSON.stringify(card('new-error'))})?.dataset.status==='running'`,
+  );
+  assert.equal(
+    await js(`document.querySelector(${JSON.stringify(card('old-missing'))}).dataset.status`),
+    'missing',
+    'Historical incomplete tools never become active',
+  );
+  assert.equal(
+    await js(`document.querySelector(${JSON.stringify(card('new-error'))}).open`),
+    false,
+  );
+  state.messages.push({
+    id: 'new-result',
+    role: 'toolResult',
+    toolCallId: 'new-error',
+    isError: true,
+    parts: [{ type: 'text', text: 'Check failed' }],
+  });
+  state.working = false;
+  state.revision++;
+  send('studio:chat-changed', target);
+  await until(`document.querySelector(${JSON.stringify(card('new-error'))}).open`);
+  const toolLocales = [];
+  for (const [lang, mode] of [
+    ['ru', 'light'],
+    ['ru', 'dark'],
+    ['en', 'light'],
+    ['en', 'dark'],
+  ]) {
+    await js(
+      `window.studio.setLanguage(${JSON.stringify(lang)});window.studio.setTheme(${JSON.stringify(mode)})`,
+    );
+    await until(
+      `document.documentElement.lang===${JSON.stringify(lang)}&&document.documentElement.dataset.theme===${JSON.stringify(mode)}`,
+    );
+    const titles = await js(
+      `Array.from(document.querySelectorAll('.pi-tool-heading')).map(e=>e.textContent)`,
+    );
+    assert.match(titles[0], lang === 'ru' ? /Прочитан файл script.md/ : /Read file script.md/);
+    assert.match(
+      titles[1],
+      lang === 'ru' ? /Ошибка: mcp__files__lookup/ : /Error: mcp__files__lookup/,
+    );
+    const body = await js(`document.querySelector(${JSON.stringify(card('new-error'))}).innerText`);
+    assert.match(body, lang === 'ru' ? /Параметры.*Результат/s : /Arguments.*Result/s);
+    toolLocales.push({ language: lang, theme: mode, titles });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await writeFile(
+      join(root, `tools-${lang}-${mode}.png`),
+      (await windows.webContents.capturePage()).toPNG(),
+    );
+  }
+  await js(`window.studio.setLanguage('ru');window.studio.setTheme('light')`);
+  await until(
+    `document.documentElement.lang==='ru'&&document.documentElement.dataset.theme==='light'`,
   );
   const geometry = await js(
     `(()=>{const chat=document.querySelector('.pi-chat-panel').getBoundingClientRect(),pane=document.querySelector('.output-preview-pane').getBoundingClientRect(),footer=document.querySelector('.pi-chat-composer').getBoundingClientRect();return{chat:{x:chat.x,y:chat.y,width:chat.width,height:chat.height},pane:{x:pane.x,y:pane.y,width:pane.width,height:pane.height},footerBottom:footer.bottom,chatBottom:chat.bottom,overflow:document.documentElement.scrollWidth>innerWidth}})()`,
@@ -500,6 +635,11 @@ async function child() {
           'preview-sized sliding panel',
           'footer/overflow geometry',
           'equal message-bubble vertical padding',
+          'tool calls/results paired once by native ID',
+          'success collapsed; initial and arriving errors auto-open',
+          'manual collapse survives SDK message ID replacement',
+          'historical incomplete tools stay inactive; output remains inert',
+          'tool summary/details translated in RU/EN and both themes',
           'RU/EN refresh confirmation and cancel without mutation',
           'refresh consent carries exact run and task sequence',
           'RU/EN in light/dark',
@@ -513,6 +653,7 @@ async function child() {
         geometry,
         spacing,
         refreshScreens,
+        toolLocales,
       },
       null,
       2,

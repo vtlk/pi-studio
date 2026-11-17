@@ -268,3 +268,116 @@
   flex: 0 1 auto;
   font-size: 12px;
 }
+.pi-tool-card {
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--subtle-surface);
+  overflow: hidden;
+  font-size: 12px;
+}
+.pi-tool-card > summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.pi-tool-card > summary::-webkit-details-marker {
+  display: none;
+}
+.pi-tool-card > summary:hover {
+  background: var(--hover-soft);
+}
+.pi-tool-status {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--text-dim);
+}
+.pi-tool-card[data-status='success'] .pi-tool-status {
+  color: var(--success);
+}
+.pi-tool-card[data-status='error'] .pi-tool-status {
+  color: var(--danger);
+}
+.pi-tool-summary {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.pi-tool-heading {
+  color: var(--ink);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.pi-tool-heading code {
+  font-weight: 500;
+}
+.pi-tool-preview {
+  color: var(--text-dim);
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.pi-tool-identifier {
+  max-width: 130px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  padding-top: 3px;
+}
+.pi-tool-chevron {
+  margin-top: 2px;
+  color: var(--text-dim);
+  transition: transform 150ms ease;
+}
+.pi-tool-card[open] > summary .pi-tool-chevron {
+  transform: rotate(90deg);
+}
+.pi-tool-details {
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.pi-tool-detail-heading {
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+.pi-tool-details h4 {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin: 10px 0 6px;
+}
+.pi-tool-details pre {
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 8px;
+  border-radius: var(--control-radius);
+  background: var(--subtle-surface);
+  font:
+    12px/1.5 ui-monospace,
+    SFMono-Regular,
+    monospace;
+  margin: 0 0 8px;
+}
+.pi-tool-details img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+.pi-tool-details pre:last-child {
+  margin-bottom: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pi-tool-chevron {
+    transition: none;
+  }
+}
