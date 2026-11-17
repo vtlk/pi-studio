@@ -333,10 +333,10 @@
     "native Windows updater and final accepted release; real Mac GitHub cycle verified in alpha.88",
     "final distribution rights review with known cache/provenance limitations"
   ],
-  "publishedVersion": "0.2.0-alpha.90",
+  "publishedVersion": "0.2.0-alpha.91",
   "promptFitPublishedVersion": "0.2.0-alpha.86",
   "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
-  "publishedWindowsVersion": "0.2.0-alpha.90",
+  "publishedWindowsVersion": "0.2.0-alpha.91",
   "nativeWindowsAcceptance": false,
   "nativeWindowsHostUnavailableByUserReply": false,
   "nativeAcceptancePlanLocalOnly": true,
@@ -348,8 +348,8 @@
   "desktopQaDeferredByUser": true,
   "nativePermissionProbePrompts": false,
   "nativeModelLoopAccepted": false,
-  "preparedCandidateVersion": "0.2.0-alpha.90",
-  "preparedCandidateStatus": "Published for both platforms; shared Windows Pi launch fix awaits user retry on Windows 11; developer did not install/restart user apps",
+  "preparedCandidateVersion": "0.2.0-alpha.91",
+  "preparedCandidateStatus": "Published both platforms; slow-fetch and lease/export fixes; user applies updates, native second-Windows-PC and Mac .91 installation still await confirmation",
   "signingDeferredToAvoidSystemDialogs": false,
   "latestIncrementalReleaseVerification": {
     "checkedAt": "2026-11-17T08:10:45.010386+00:00",
@@ -434,6 +434,24 @@
       "release-package-0.2.0-alpha.90-proof.json": "cf320d7b771ad854668509b1f685ac32112e1eaa7173bd8b91f2d03695f42f4c",
       "helper-launch-ui-proof.json": "31c02660181564888f0dcaf9f6255aec36d12340f12b243bce65e15b60cebbeb",
       "alpha90-security-audit-proof.json": "ff2368d9f5d43a5c674945fcca6dfd37069578e978d5237017d9345f5a07c0c3"
+    }
+  },
+  "windows90LaunchUserConfirmedOnOnePc": true,
+  "latestBugFixVerification": {
+    "checkedAt": "2026-11-17T12:38:46.530584+00:00",
+    "version": "0.2.0-alpha.91",
+    "sourceCommit": "e4649ec7aa1bc98389dca2e021be5d45f1651f77",
+    "unitTestsPassed": 385,
+    "slowRealFetchCompletedAfterMs": 64079.244083,
+    "userRequestedQuietExport": true,
+    "nativeSecondPcResultAfterFixUnverified": true,
+    "proofSha256": {
+      "alpha91-validation-proof.json": "131821acb0f3aaec92a7927e4ea7ded1e8b2bcd8b7a38f82545ca5be777064eb",
+      "alpha91-release-proof.json": "422150f7c4ed31da78b788c9ea855183b48e6c7fa136cee8c08ba32086eb5fe0",
+      "release-package-0.2.0-alpha.91-proof.json": "ad06a47979828d42f08671a7e8db596df133785e9cf9dde964f6c07d20ffa6ed",
+      "slow-update-proof.json": "6d51458118b402cf9b89901ef3678daf0721c0fcff6f784ceb6165b1e310dec1",
+      "agent-teams-proof.json": "9de423bbef143734d7f56d9565c3005f2b8d7ea998b588042afe583a562625f8",
+      "alpha91-security-audit-proof.json": "5c24b496eb9abefe6c33d3d2c7d05e0ebb346e26d00a7d25194c20ab7c42ae4d"
     }
   }
 }
