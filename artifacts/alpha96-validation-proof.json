@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-17T16:41:06.333Z",
+  "version": "0.2.0-alpha.96",
+  "unitTests": {
+    "passed": 431,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typescript": true,
+  "eslint": true,
+  "architectureModules": 406,
+  "build": true,
+  "nativeWindowsAcceptance": false,
+  "installedUserApplicationChanged": false
+}

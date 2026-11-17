@@ -6,6 +6,7 @@ import {
   openWindowsSession,
   focusWindowsSession,
   openWindowsPowerShellCommand,
+  openWindowsShellCommand,
 } from '../src/main/pi/windowsTerminal.ts';
 
 const id = '4de37ae6-f61b-4845-a13f-e04a3e1f58b7';
@@ -108,6 +109,23 @@ test('explicit interactive CLI commands also open a visible Terminal', async () 
   assert.equal(call.file, wt);
   assert.equal(call.options.windowsHide, false);
   assert.ok(Buffer.from(call.args.at(-1)!, 'base64').toString('utf16le').includes('explicit CLI'));
+});
+
+test('a selected native Bash and CLI command cross PowerShell as literal data', async () => {
+  const calls: Call[] = [];
+  const child = spawnRecorder(calls);
+  const bash = "D:\\Users\\O'Brien $x\\Git\\bin\\bash.exe";
+  const command = "printf '%s' 'Тест $x; & keep literal'";
+  await openWindowsShellCommand(command, 'Pi CLI', {
+    bash: async () => bash,
+    terminal: async () => wt,
+    spawn: child.create,
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].options.windowsHide, false);
+  const decoded = Buffer.from(calls[0].args.at(-1)!, 'base64').toString('utf16le');
+  assert.ok(decoded.includes("& 'D:\\Users\\O''Brien $x\\Git\\bin\\bash.exe' '-lc'"));
+  assert.ok(decoded.includes("'printf ''%s'' ''Тест $x; & keep literal'''"));
 });
 
 test('a missing Terminal remains an explicit launch error, without a substitute shell', async () => {

@@ -6,6 +6,7 @@ import { basename, delimiter, dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { piEnvironment } from './platform.ts';
 import { powershellArguments, powershellLiteral, windowsPowershell } from './windowsShell.ts';
+import { findWindowsBash } from './windowsBash.ts';
 
 const execute = promisify(execFile);
 interface TerminalDependencies {
@@ -113,29 +114,14 @@ export async function focusWindowsSession(pid: number, dependencies: TerminalDep
 }
 
 /** Existing explicit CLI operations use the same native Git Bash supported by Pi. */
-export async function openWindowsShellCommand(command: string, title = 'Pi Studio') {
-  const roots = [process.env.ProgramFiles, process.env['ProgramFiles(x86)']].filter(
-    (root): root is string => !!root,
-  );
-  const candidates = [
-    ...roots.map((root) => join(root, 'Git/bin/bash.exe')),
-    ...piEnvironment('')
-      .PATH.split(delimiter)
-      .map((root) => join(root, 'bash.exe')),
-  ];
-  let bash: string | undefined;
-  for (const path of candidates) {
-    try {
-      await access(path);
-      bash = path;
-      break;
-    } catch {
-      /* Next location. */
-    }
-  }
-  if (!bash) throw new Error(t('error.windowsTerminal.installGitForWindowsGit'));
+export async function openWindowsShellCommand(
+  command: string,
+  title = 'Pi Studio',
+  dependencies: TerminalDependencies & { bash?: () => Promise<string> } = {},
+) {
+  const bash = await (dependencies.bash ?? findWindowsBash)();
   const script = `& ${powershellLiteral(bash)} '-lc' ${powershellLiteral(command)}; exit $LASTEXITCODE`;
-  await openWindowsPowerShellCommand(script, title);
+  await openWindowsPowerShellCommand(script, title, dependencies);
 }
 
 export async function openWindowsPowerShellCommand(

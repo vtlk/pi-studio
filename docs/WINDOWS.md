@@ -13,7 +13,10 @@ The application does not have an Authenticode signature or an installer.
 
 Pi and its private Node runtime can be installed through the first-launch screen.
 Agent dialogues require Windows Terminal. Pi's Bash tool requires Git for Windows
-(Git Bash). These external applications are not silently installed; WSL is not used.
+(Git Bash). Studio checks the standard machine and per-user Git installations,
+then custom Bash locations in PATH. Windows WSL aliases are excluded; if no native
+Bash is found, Studio asks you to install Git for Windows. These external
+applications are not silently installed; WSL is not used.
 
 If an agent reports “Session bridge disconnected”, reopen it from Studio while
 Studio stays open. From alpha.94, a cold Terminal/SDK startup keeps its bridge

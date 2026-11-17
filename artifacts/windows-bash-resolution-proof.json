@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-17T16:41:06.331Z",
+  "version": "0.2.0-alpha.96",
+  "previousSource": "37a42e57fed0235d2c0d42c7892ee33d6406186a",
+  "previousReleasedAdapterExecutedWithControlledWindowsEnvironment": true,
+  "previousAdapterSelectedWslSystemShim": true,
+  "correctedResolverRejectsWslWithoutLaunchingAnything": true,
+  "focusedAdapterAndResolverTests": 10,
+  "userAppOrDataChanged": false,
+  "nativeWindowsAcceptance": false,
+  "scope": "Released adapter function in an isolated VM and controlled filesystem/spawn tests; not a real Windows execution."
+}
