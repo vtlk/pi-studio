@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-11-17T17:17:57.308125+00:00",
+  "version": "0.2.0-alpha.97",
+  "sourceCommit": "5769ad0501f6d6d3a6e217a561a8f2b5159a49e3",
+  "unitTests": {
+    "passed": 438,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typescript": true,
+  "eslint": true,
+  "architectureModules": 407,
+  "build": true,
+  "realSlowBrowserDownloadMs": 190094,
+  "realHeaderAndIdleTimeoutMs": 60000,
+  "installerStageCleanupVerified": true,
+  "supportedUiLanguagesChecked": [
+    "ru",
+    "en"
+  ],
+  "headlessUiUsesOnlyIsolatedPinnedChromium": true,
+  "nativePiMcpClientAndHeartbeatVerified": true,
+  "signedMacAndWindowsManifestsAndPayloadsVerified": true,
+  "nativeWindowsAcceptance": false,
+  "installedUserApplicationChanged": false,
+  "audit": "docs/TIMEOUT_AUDIT.md"
+}

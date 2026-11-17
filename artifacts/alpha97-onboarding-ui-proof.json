@@ -1,0 +1,87 @@
+{
+  "checkedAt": "2026-11-17T17:11:17.221Z",
+  "sidebarChecks": [
+    {
+      "language": "ru",
+      "viewport": [
+        900,
+        480
+      ],
+      "independentTeamScroll": true,
+      "systemSectionPinned": true,
+      "translatedHeadings": true,
+      "navigationLabelsNoWrap": true,
+      "teamChevronRightCollapsedAndDownExpanded": true
+    },
+    {
+      "language": "en",
+      "viewport": [
+        900,
+        480
+      ],
+      "independentTeamScroll": true,
+      "systemSectionPinned": true,
+      "translatedHeadings": true,
+      "navigationLabelsNoWrap": true,
+      "teamChevronRightCollapsedAndDownExpanded": true
+    }
+  ],
+  "browserTimeoutChecks": [
+    {
+      "language": "ru",
+      "key": "error.transfer.headerTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    },
+    {
+      "language": "ru",
+      "key": "error.transfer.idleTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    },
+    {
+      "language": "en",
+      "key": "error.transfer.headerTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    },
+    {
+      "language": "en",
+      "key": "error.transfer.idleTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    }
+  ],
+  "missingConnectionAndModelsIncludingAssistant": true,
+  "realAuthorizationRequired": true,
+  "creationTasksLastAndImmediatelyRemoved": true,
+  "projectCreationEndsOnboardingWithoutLaunchingPi": true,
+  "importedBuiltinPermissionsAndComponents": true,
+  "revokedPermissionsReopenTaskWithoutConsent": true,
+  "terminalDownloadOnlyOnExplicitClick": true,
+  "imagesRequirementFollowsConfiguration": true,
+  "mandatoryPiHasNoSkip": true,
+  "completedCircleYellowAndTextStruck": true,
+  "centeredWithoutHorizontalOverflow": true,
+  "scopedAssistantDuplicateClicksBlocked": true,
+  "headingAndTaskListOnly": true,
+  "assistantActionBelongsToMcpRow": true,
+  "helperErrorsUseSharedDialog": true,
+  "automaticHideAndReturn": true,
+  "importOpensOnboardingAfterProfileHydration": true,
+  "completedTasksExpireAfterTwoHours": true,
+  "unresolvedTasksRemain": true,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "userAppOrDataChanged": false,
+  "realPiOrAuthOrBrowserConsentLaunches": 0,
+  "nativePlatformAcceptance": false,
+  "releaseVersion": "0.2.0-alpha.97",
+  "runtimeSourceCommit": "5769ad0501f6d6d3a6e217a561a8f2b5159a49e3"
+}

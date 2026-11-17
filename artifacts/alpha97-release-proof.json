@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-11-17T17:28:22.984Z",
+  "version": "0.2.0-alpha.97",
+  "tag": "v0.2.0-alpha.97",
+  "tagSourceCommit": "5769ad0501f6d6d3a6e217a561a8f2b5159a49e3",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.97",
+  "draft": false,
+  "actualAnonymousGithub": true,
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.97-darwin-arm64.update.json",
+      "bytes": 622,
+      "publicUrlStatus": 200,
+      "githubSha256MatchesLocal": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.97-mac-arm64.zip",
+      "bytes": 142903022,
+      "publicUrlStatus": 200,
+      "githubSha256MatchesLocal": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.97-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "publicUrlStatus": 200,
+      "githubSha256MatchesLocal": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.97-win-x64.zip",
+      "bytes": 171465548,
+      "publicUrlStatus": 200,
+      "githubSha256MatchesLocal": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.97-win-x64.zip.sha256",
+      "bytes": 103,
+      "publicUrlStatus": 200,
+      "githubSha256MatchesLocal": true
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.97-win32-x64.update.json",
+      "bytes": 630,
+      "publicUrlStatus": 200,
+      "githubSha256MatchesLocal": true
+    }
+  ],
+  "checks": [
+    {
+      "platform": "darwin",
+      "offeredVersion": "0.2.0-alpha.97",
+      "sourceCommit": "5769ad0501f6d6d3a6e217a561a8f2b5159a49e3",
+      "productionEd25519Verified": true,
+      "currentVersionHasNoNewerOffer": true
+    },
+    {
+      "platform": "win32",
+      "offeredVersion": "0.2.0-alpha.97",
+      "sourceCommit": "5769ad0501f6d6d3a6e217a561a8f2b5159a49e3",
+      "productionEd25519Verified": true,
+      "currentVersionHasNoNewerOffer": true
+    }
+  ],
+  "installedAppOrDataChanged": false,
+  "nativeWindowsAcceptance": false
+}
