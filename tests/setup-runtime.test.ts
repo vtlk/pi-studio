@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFile } from 'node:child_process';
@@ -12,10 +12,60 @@ import { nativeResourceOperation } from '../src/main/pi/NativeResources.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import { changeLanguage } from '../src/shared/i18n/index.ts';
 import { setupTools } from '../src/main/pi/setupTools.ts';
+import { StudioService } from '../src/main/storage/StudioStore.ts';
+import { StudioResources } from '../src/main/pi/StudioResources.ts';
 
 const node = 'D:\\Pi Studio\\компоненты\\node\\node.exe';
 const npm = 'D:\\Pi Studio\\компоненты\\node\\node_modules\\npm\\bin\\npm-cli.js';
 const npx = npm.replace('npm-cli.js', 'npx-cli.js');
+
+test('onboarding discovers npx in the real private Node distribution rather than Pi’s wrapper bin directory', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-runtime-probe-'));
+  const oldDir = process.env.PI_CODING_AGENT_DIR,
+    oldPath = process.env.PATH;
+  process.env.PI_CODING_AGENT_DIR = join(root, 'native');
+  process.env.PATH = '/usr/bin:/bin';
+  t.after(async () => {
+    if (oldDir === undefined) delete process.env.PI_CODING_AGENT_DIR;
+    else process.env.PI_CODING_AGENT_DIR = oldDir;
+    if (oldPath === undefined) delete process.env.PATH;
+    else process.env.PATH = oldPath;
+    await rm(root, { recursive: true, force: true });
+  });
+  await mkdir(process.env.PI_CODING_AGENT_DIR);
+  await writeFile(
+    join(process.env.PI_CODING_AGENT_DIR, 'mcp.json'),
+    JSON.stringify({ mcpServers: { qa: { command: 'npx', args: ['qa-never-execute'] } } }),
+  );
+  const bin = join(root, 'private', 'bin');
+  await mkdir(bin, { recursive: true });
+  await symlink(process.execPath, join(bin, 'node'));
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
+  const store = await service.load();
+  const resource = {
+    id: 'qa',
+    name: 'QA',
+    kind: 'mcps',
+    source: 'pi:qa',
+    description: '',
+    version: '',
+    transport: 'stdio',
+    args: '',
+    credential: '',
+    contents: '',
+    createdAt: 0,
+  };
+  await store.saveSection('resources', [resource]);
+  const native = new StudioResources(service, {
+    script: '',
+    piPath: () => join(bin, 'pi'),
+    operation: async () => {
+      throw Error('Readiness must not execute anything');
+    },
+  });
+  const result = await native.onboardingProbe('qa', store.folder);
+  assert.equal(result.missing, false);
+});
 
 test('Windows managed npm/npx use Node JS entry points with literal Unicode/space paths and preserved arguments', () => {
   const commands = nodeTools(node, 'win32', (path: string) => [npm, npx].includes(path));

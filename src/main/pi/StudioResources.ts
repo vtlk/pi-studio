@@ -1,7 +1,8 @@
 import { t } from '../../shared/i18n/index.ts';
 import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
-import { piEnvironment } from './platform.ts';
+import { piEnvironment, piNode } from './platform.ts';
+import { realpath } from 'node:fs/promises';
 import { missingMcpExecutable } from '../onboarding/mcpExecutable.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Resource, ResourceCheck } from '../../shared/resources.ts';
@@ -74,7 +75,11 @@ export class StudioResources {
       } catch {
         revision += ':unreadable-credentials';
       }
-      if (await missingMcpExecutable(config, piEnvironment(dirname(scope.piPath)).PATH))
+      const nodeDirectory =
+        typeof config.command === 'string'
+          ? dirname(await realpath(await piNode(scope.piPath)))
+          : dirname(scope.piPath);
+      if (await missingMcpExecutable(config, piEnvironment(nodeDirectory).PATH))
         return { revision, missing: true };
       return { revision, missing: false };
     } catch {
