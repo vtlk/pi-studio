@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-17T11:52:33.148869+00:00",
+  "candidateVersion": "0.2.0-alpha.90",
+  "reportedNativeWindowsResult": "Windows 11: assistant Play appears to do nothing; wt opens Terminal/PowerShell manually",
+  "sharedPath": [
+    "createSetupAssistant / createStudioRunHost",
+    "RunHost",
+    "openSessionTerminal",
+    "openWindowsSession"
+  ],
+  "fix": [
+    "Visible detached wt.exe spawn with ignored pipes; never await/timeout-kill GUI lifetime",
+    "Exact existing-session focus through visible wt.exe; CIM probe remains hidden",
+    "Helper busy icon and immediate duplicate guard; persistent localized launch-error Modal from both entry points"
+  ],
+  "unitTestsPassed": 375,
+  "focusedWindowsTerminalTests": 5,
+  "lint": true,
+  "typecheckAndBuild": true,
+  "architectureModules": 394,
+  "nativeWindowsVerifiedAfterFix": false,
+  "originalUserEnvironmentCauseProven": false,
+  "realUserAppRestartedOrUpdated": false,
+  "evidenceSha256": {
+    "helper-launch-ui-proof.json": "31c02660181564888f0dcaf9f6255aec36d12340f12b243bce65e15b60cebbeb",
+    "renderer-recovery-proof.json": "1eaf9483f9005084f51762239c6c26e77a863afef771ba4fd63f41065ae7d124"
+  }
+}

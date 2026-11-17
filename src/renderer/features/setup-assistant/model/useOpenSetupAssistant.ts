@@ -1,6 +1,6 @@
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useStorage } from '@/shared/storage/Storage';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
@@ -18,9 +18,10 @@ export function useOpenSetupAssistant() {
   const { confirm } = useConfirm();
   const { openSettings } = useNavigation();
   const [opening, setOpening] = useState(false);
+  const openingRef = useRef(false);
   const [error, setError] = useState('');
   const open = async () => {
-    if (opening) return;
+    if (openingRef.current) return;
     const assistant = systemAgents.find((agent) => agent.systemRole === 'assistant');
     if (assistant && !validateAgentModel(assistant.model, connections).ok) {
       setError('');
@@ -32,6 +33,7 @@ export function useOpenSetupAssistant() {
       });
       return;
     }
+    openingRef.current = true;
     setOpening(true);
     setError('');
     try {
@@ -44,11 +46,17 @@ export function useOpenSetupAssistant() {
         error instanceof Error
           ? error.message
           : t('useOpenSetupAssistant.couldNotOpenTheAssistant');
-      setError(message);
+      setError(
+        message.replace(
+          /^Error invoking remote method 'studio:(?:open-)?setup-assistant': (?:Error: )?/,
+          '',
+        ),
+      );
       return message;
     } finally {
+      openingRef.current = false;
       setOpening(false);
     }
   };
-  return { open, opening, error };
+  return { open, opening, error, clearError: () => setError('') };
 }

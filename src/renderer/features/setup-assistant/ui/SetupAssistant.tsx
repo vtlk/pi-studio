@@ -6,6 +6,7 @@ import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
 import { useNavigation } from '@/shared/model/Navigation';
 import { useOpenSetupAssistant } from '../model/useOpenSetupAssistant';
+import { SetupAssistantError } from './SetupAssistantError';
 
 export function SetupAssistant() {
   useTranslation(undefined, { i18n });
@@ -15,7 +16,7 @@ export function SetupAssistant() {
   const assistant = systemAgents.find((agent) => agent.systemRole === 'assistant');
   const model = assistant?.model;
   const connection = connections.find((item) => item.id === model?.connectionId);
-  const { open, opening, error } = useOpenSetupAssistant();
+  const { open, opening, error, clearError } = useOpenSetupAssistant();
   return (
     <>
       <h2>{t('SettingsView.connectionAssistant')}</h2>
@@ -51,7 +52,7 @@ export function SetupAssistant() {
           {opening ? t('AgentActions.openingPi') : t('SetupAssistantAction.openAssistantInPi')}
         </Button>
       </div>
-      {error && <p role="alert">{error}</p>}
+      <SetupAssistantError error={error} onClose={clearError} />
     </>
   );
 }

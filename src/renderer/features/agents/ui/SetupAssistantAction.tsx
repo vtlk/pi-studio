@@ -1,26 +1,29 @@
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
-import { Play } from 'lucide-react';
+import { LoaderCircle, Play } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
-import { useNotice } from '@/shared/model/Notice';
 import { useOpenSetupAssistant } from '@/features/setup-assistant/model/useOpenSetupAssistant';
+import { SetupAssistantError } from '@/features/setup-assistant/ui/SetupAssistantError';
 
 export function SetupAssistantAction({ enabled }: { enabled: boolean }) {
   useTranslation(undefined, { i18n });
-  const { open, opening } = useOpenSetupAssistant();
-  const { demo } = useNotice();
+  const { open, opening, error, clearError } = useOpenSetupAssistant();
   return (
-    <IconButton
-      className="agent-helper-launch"
-      title={t('SetupAssistantAction.openAssistantInPi')}
-      disabled={!enabled || opening}
-      onClick={() =>
-        void open().then((error) => {
-          if (error) demo(error);
-        })
-      }
-    >
-      <Play size={17} aria-hidden="true" />
-    </IconButton>
+    <>
+      <IconButton
+        className="agent-helper-launch"
+        title={opening ? t('AgentActions.openingPi') : t('SetupAssistantAction.openAssistantInPi')}
+        disabled={!enabled}
+        busy={opening}
+        onClick={() => void open()}
+      >
+        {opening ? (
+          <LoaderCircle size={17} className="project-launch-spinner" aria-hidden="true" />
+        ) : (
+          <Play size={17} aria-hidden="true" />
+        )}
+      </IconButton>
+      <SetupAssistantError error={error} onClose={clearError} />
+    </>
   );
 }

@@ -255,7 +255,8 @@
   pointer-events: none;
 }
 .agent-list-entry:hover > .agent-helper-launch,
-.agent-list-entry:focus-within > .agent-helper-launch {
+.agent-list-entry:focus-within > .agent-helper-launch,
+.agent-list-entry > .agent-helper-launch[aria-busy='true'] {
   opacity: 1;
   pointer-events: auto;
 }

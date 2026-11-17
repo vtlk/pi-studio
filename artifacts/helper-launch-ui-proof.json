@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-17T11:50:02.739Z",
+  "missingModelPreflightBeforeIpc": true,
+  "duplicateClicksBlocked": true,
+  "busyIconVisibleWithoutHover": true,
+  "errorPersistsUntilDismissed": true,
+  "rawIpcPrefixRemoved": true,
+  "successfulRetryRestoresPlay": true,
+  "settingsEntryUsesSameErrorModal": true,
+  "explicitStubbedIpcCalls": 3,
+  "realModelOrTerminalLaunches": 0,
+  "nativeWindowsUiAcceptance": false,
+  "userAppOrDataChanged": false
+}

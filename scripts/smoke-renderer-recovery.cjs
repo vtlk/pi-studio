@@ -62,7 +62,7 @@ async function child() {
       channel,
       channel === 'studio:startup'
         ? () => ({ phase: 'skipped', message: 'QA' })
-        : ['studio:launch-agent', 'studio:open-setup-assistant'].includes(channel)
+        : ['studio:launch-agent', 'studio:setup-assistant'].includes(channel)
           ? () => {
               agentLaunches++;
               throw Error('No automatic Pi launch during recovery QA');
