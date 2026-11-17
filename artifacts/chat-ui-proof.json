@@ -1,0 +1,143 @@
+{
+  "ok": true,
+  "scope": "isolated offscreen real renderer/preload + controlled IPC; native Windows acceptance remains separate",
+  "checks": [
+    "41-second loading spinner",
+    "one launch for double click",
+    "preview-sized sliding panel",
+    "footer/overflow geometry",
+    "equal message-bubble vertical padding",
+    "authoritative native queue visible after composer steer sends, duplicates preserved",
+    "queued steer/follow-up translated in RU/EN/light/dark and delivery avoids duplicate history",
+    "tool calls/results paired once by native ID",
+    "success collapsed; initial and arriving errors auto-open",
+    "manual collapse survives SDK message ID replacement",
+    "historical incomplete tools stay inactive; output remains inert",
+    "tool summary/details translated in RU/EN and both themes",
+    "multiline composer scroll and keyboard resize keep grip outside text viewport in RU/EN/light/dark",
+    "RU/EN refresh confirmation and cancel without mutation",
+    "refresh consent carries exact run and task sequence",
+    "RU/EN in light/dark",
+    "yellow process count and hidden zero",
+    "hide/reopen without launch",
+    "retained draft",
+    "send with Enter",
+    "stop without exit",
+    "closed state without spinner"
+  ],
+  "geometry": {
+    "chat": {
+      "x": 556,
+      "y": 135,
+      "width": 724,
+      "height": 605
+    },
+    "pane": {
+      "x": 556,
+      "y": 135,
+      "width": 724,
+      "height": 605
+    },
+    "footerBottom": 740,
+    "chatBottom": 740,
+    "overflow": false
+  },
+  "spacing": {
+    "top": 12,
+    "bottom": 12
+  },
+  "refreshOpensComparisonImmediatelyInRussianAndEnglish": true,
+  "refreshComparisonCancelPreservesState": true,
+  "refreshScreens": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "title": "Остановить текущие задачи?"
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "title": "Stop the current tasks?"
+    }
+  ],
+  "toolLocales": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "titles": [
+        "Прочитан файл script.md",
+        "Ошибка: mcp__files__lookup",
+        "Запись файла: нет результата missing.md",
+        "Ошибка выполнения команды npm run check"
+      ]
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "titles": [
+        "Прочитан файл script.md",
+        "Ошибка: mcp__files__lookup",
+        "Запись файла: нет результата missing.md",
+        "Ошибка выполнения команды npm run check"
+      ]
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "titles": [
+        "Read file script.md",
+        "Error: mcp__files__lookup",
+        "File write: no result missing.md",
+        "Command failed npm run check"
+      ]
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "titles": [
+        "Read file script.md",
+        "Error: mcp__files__lookup",
+        "File write: no result missing.md",
+        "Command failed npm run check"
+      ]
+    }
+  ],
+  "composerLayouts": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "fieldBottom": 655,
+      "gripTop": 655,
+      "fieldHeight": 80,
+      "scrollable": true,
+      "gripLabel": "Изменить высоту поля"
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "fieldBottom": 655,
+      "gripTop": 655,
+      "fieldHeight": 140,
+      "scrollable": true,
+      "gripLabel": "Изменить высоту поля"
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "fieldBottom": 655,
+      "gripTop": 655,
+      "fieldHeight": 140,
+      "scrollable": true,
+      "gripLabel": "Resize field height"
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "fieldBottom": 655,
+      "gripTop": 655,
+      "fieldHeight": 140,
+      "scrollable": true,
+      "gripLabel": "Resize field height"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-17T21:16:30.876421+00:00",
+  "version": "0.2.0-alpha.105",
+  "tests": {
+    "total": 488,
+    "passed": 487,
+    "skippedOptInNativePermission": 1,
+    "failed": 0
+  },
+  "buildTypecheckLintArchitecture": 442,
+  "realIsolatedRendererChatRefreshRuEnAndThemes": true,
+  "refreshImmediatelyOpensComparison": true,
+  "comparisonOpenAndCancelDoNotApplyOrRestart": true,
+  "exactTaskStopConfirmationPreserved": true,
+  "includesWindowsSidFix": true,
+  "nativeWindowsAcceptance": false,
+  "userApplicationOrDataChanged": false
+}
