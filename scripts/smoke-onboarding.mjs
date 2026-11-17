@@ -462,13 +462,14 @@ try {
   };
   const open = () =>
     js(
-      `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.textContent.trim()==='Onboarding').click()`,
+      `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim())).click()`,
     );
   await until(
-    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.textContent.trim()==='Onboarding')`,
+    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===4`);
+  assert.equal(await js(`document.querySelector('#onboarding-heading').textContent`), 'Начало работы');
   assert.deepEqual(
     await js(
       `Array.from(document.querySelector('.onboarding-content').children).map(e=>e.tagName)`,
@@ -484,6 +485,7 @@ try {
   );
   await until(`!!document.querySelector('[role="menuitemradio"][lang="en"]')`);
   await js(`document.querySelector('[role="menuitemradio"][lang="en"]').click()`);
+  await until(`document.querySelector('#onboarding-heading')?.textContent==='Onboarding'`);
   await until(
     `document.querySelector('[data-task-id="connection"] .onboarding-task-label')?.textContent==='Set up a connection'`,
   );
@@ -564,7 +566,7 @@ try {
   await until(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`);
   await js(`window.__qa.authorize();window.dispatchEvent(new Event('focus'))`);
   await until(
-    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
+    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
   assert.equal(
     await js(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`),
@@ -578,7 +580,7 @@ try {
     `window.__qa.state.sections.resources[0].check={status:'needs_auth',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
   );
   await until(
-    `Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
+    `Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
   await open();
   await until(`document.querySelector('[data-task-id="mcp:qa-mcp"]')?.dataset.complete==='false'`);
@@ -617,7 +619,7 @@ try {
     `window.__qa.state.sections.resources[0].check={status:'available',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
   );
   await until(
-    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
+    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
   await js(`document.querySelector('.settings-button').click()`);
   await until(`!!document.querySelector('.settings-layout')`);
@@ -691,7 +693,7 @@ try {
   // A separate empty studio verifies actual create dialogs and ordering, without manually ticking a task.
   await cdp('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?fresh=1` });
   await until(
-    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.textContent.trim()==='Onboarding')`,
+    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===5`);
@@ -762,7 +764,7 @@ try {
     `Array.from(document.querySelectorAll('[role="dialog"] .dialog-footer button')).find(b=>b.textContent.trim()==='Создать').click()`,
   );
   await until(
-    `!document.querySelector('[role="dialog"]')&&!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
+    `!document.querySelector('[role="dialog"]')&&!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
   assert.equal(await js('window.__qa.state.projects.length'), 1);
   assert.equal(await js('window.__qa.calls.otherLaunches+window.__qa.calls.assistant'), 0);
