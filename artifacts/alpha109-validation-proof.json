@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-17T23:55:34.403407+00:00",
+  "version": "0.2.0-alpha.109",
+  "runtimeSourceCommit": "432eda8e6b126ce25c69f42d5c8a8854c15a2b4b",
+  "tests": {
+    "total": 513,
+    "passed": 512,
+    "skippedOptInNativePermission": 1,
+    "failed": 0
+  },
+  "architectureModules": 445,
+  "typecheckAndLint": true,
+  "actualProductionMcpSsePiNpmLifecycleCancellation": true,
+  "ownedRootAndStubbornDescendantsStopped": true,
+  "unrelatedProcessPreserved": true,
+  "cancelAndRealAssignmentRevocationPreventLatePublication": true,
+  "utf8AndCredentialFreeOutputPipePreserved": true,
+  "diagnosticsRuEn": true,
+  "nativeWindowsAcceptance": false,
+  "userApplicationOrDataChanged": false
+}
