@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Latest user branch policy (2026-11-17): consolidate development into one `main` branch locally and on GitHub. Do not create persistent helper/task branches unless explicitly requested; use a temporary detached worktree for isolation and remove it after its changes are integrated. Preserve merged commits and the current resource/workspace rules; do not restore retired features from older branch contents.
+
 - Latest user continuation (2026-11-17): «какое вмешательство пользователя? давай делать». Continue clear implementation, normal macOS packaging/signing with the existing identity, CLI verification and authorized GitHub publication; do not stop all work for optional/manual acceptance. Avoid repeating desktop capture/GUI permission probes that caused dialogs. Publication is authorized; replacing the installed working app still needs the existing separate per-update consent. Windows builds remain request-only.
 
 - Latest sleep-time correction (2026-11-17): the user reports repeated permission dialogs from QA and asks to sleep undisturbed. Stop launching disposable GUI/signed test apps and stop native permission/account/desktop checks tonight. Continue source work, command-line checks and authorized GitHub publication only. Never dismiss system consent automatically or alter TCC/Keychain ACLs. Preserve the working Studio and user processes; GUI acceptance remains explicitly deferred. Do not ask further questions during the overnight window.
