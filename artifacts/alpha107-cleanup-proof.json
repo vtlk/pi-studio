@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-17T22:48:33.533395+00:00",
+  "version": "0.2.0-alpha.107",
+  "oldLocalReleaseFilesRemoved": [
+    "Pi-Studio-0.2.0-alpha.106-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.106-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.106-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.106-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.106-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.106-win32-x64.update.json"
+  ],
+  "retainedCurrentReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.107-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.107-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.107-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.107-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.107-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.107-win32-x64.update.json"
+  ],
+  "ownedUnpacked107BuildRemovedAfterVerification": true,
+  "empty106BuildDirectoriesRemoved": true,
+  "ownedReleaseStagingRemoved": true,
+  "macBrowserCloneAuditNewClones": [],
+  "availableBytesAfterCleanup": 41695629312,
+  "installedUserApplicationOrProcessesChanged": false,
+  "userDataOrUpdatesStagingChanged": false,
+  "scope": "Only owned .106 release artifacts, empty .106 build directories and verified owned .107 unpacked build/staging; unrelated caches and user work preserved."
+}
