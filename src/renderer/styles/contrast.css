@@ -31,7 +31,7 @@ body,
   border-color: var(--disabled-border);
 }
 .topbar nav {
-  gap: 6px;
+  gap: var(--topbar-gap);
 }
 .prototype-label {
   font-size: 13px;
@@ -316,7 +316,7 @@ input::placeholder {
 }
 .topbar {
   background: var(--surface);
-  gap: 20px;
+  gap: var(--topbar-gap);
   border-bottom: 1px solid var(--separator);
   padding-left: 96px;
   height: 66px;
