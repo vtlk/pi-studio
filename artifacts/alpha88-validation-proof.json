@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-17T07:50:24.670081+00:00",
+  "candidateVersion": "0.2.0-alpha.88",
+  "featureCommit": "e79ab66",
+  "typecheck": true,
+  "lint": true,
+  "architectureModules": 392,
+  "unitTests": {
+    "passed": 360,
+    "failed": 0
+  },
+  "isolatedUiProof": "artifacts/github-star-ui-proof.json",
+  "isolatedUiProofSha256": "80e2937108dcbdf34b052f9555f0c50b68a7d23598df10235e58577bfb0041f8",
+  "physicalMacAcceptance": false,
+  "windowsAcceptance": false,
+  "userBrowserOpened": false,
+  "installedApplicationReplaced": false,
+  "windowsBuilt": false,
+  "ciEnabled": false,
+  "limits": "Isolated offscreen main/preload/renderer checks simulate presentation eligibility. Clock/persistence tests are deterministic. No physical desktop permissions or working Pi sessions were changed."
+}
