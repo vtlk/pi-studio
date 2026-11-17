@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-17T06:04:24.809Z",
+  "operation": "package",
+  "before": {
+    "available": true,
+    "names": [
+      "code_sign_clone.m7EuQL",
+      "code_sign_clone.qJaeLk"
+    ]
+  },
+  "after": {
+    "available": true,
+    "names": [
+      "code_sign_clone.m7EuQL",
+      "code_sign_clone.qJaeLk"
+    ]
+  },
+  "newClones": [],
+  "noNewRetainedClonesObserved": true,
+  "processOwnershipInferred": false,
+  "browserOrProfileModified": false
+}

@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-17T06:10:33.268Z",
+  "version": "0.2.0-alpha.87",
+  "releaseId": 447617746,
+  "sourceCommit": "8b88d5bc87c6580d9513b77bf34ddfb990574877",
+  "publicUrl": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.87",
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.87-darwin-arm64.update.json",
+      "bytes": 622,
+      "digest": "sha256:45959ffb69ac5ebb86ee38cabab3b8700b553cd244b802ffab61d7d8ea299323"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.87-mac-arm64.zip",
+      "bytes": 142877484,
+      "digest": "sha256:8b3d70abe8457e762d1956f6b1b5ed46882ff3768e328c95cd0682a8c119d2f5"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.87-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "digest": "sha256:0dea2544d4aed23de6c574069b4e7a2509cbe16e839a80bac44fa74c09ca1c4b"
+    }
+  ],
+  "anonymousReleaseAndSignedMetadataVerified": true,
+  "anonymousChecksumVerified": true,
+  "anonymousZipHeaderVerified": true,
+  "productionMac86To87Offer": true,
+  "current87NoNewerOffer": true,
+  "windows86HasNoUnrequested87Offer": true,
+  "windowsBuilt": false,
+  "installedApplicationReplaced": false,
+  "guiChecksRun": false,
+  "notarized": false
+}

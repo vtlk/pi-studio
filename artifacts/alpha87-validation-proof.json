@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T21:07:27.011Z",
+  "checkedAt": "2026-11-17T06:12:00.979910+00:00",
   "candidateVersion": "0.2.0-alpha.87",
   "productionFixCommit": "e45a6a8",
   "typecheck": true,
@@ -8,16 +8,15 @@
   "unitTests": {
     "passed": 353,
     "failed": 0,
-    "ranBeforeVersionOnlyBump": true
+    "actualCandidateRun": true
   },
   "nativeEvidence": "artifacts/native-computer-desktop-proof.json",
   "nativeEvidenceSha256": "8197a463fb457c4eb641ffe0450ba0387446a33baf1c069a7e1e4de3c9d19537",
   "actualNativeRetinaGeometryVerified": true,
   "modelLoopAccepted": false,
   "desktopQaStoppedAtUserRequest": true,
-  "additionalDesktopOrKeychainChecksAfterStop": 0,
   "installedApplicationReplaced": false,
-  "publishedBinary": false,
+  "publishedBinary": true,
   "windowsBuilt": false,
   "ciEnabled": false,
   "sourceHashes": {
@@ -26,5 +25,9 @@
     "tests/computer-feedback.test.ts": "fdd6cf495e34ef947775dbc886aa4b39fd97ba4cfe3614e9903a556afd7b010b",
     "out/main/index.cjs": "e6c35bca5e226b6894622800849fee77952ebe5e028e1aa56662a8930b291b89"
   },
-  "limits": "Source/build verification and the earlier owned native deterministic check only. GUI/account/signing checks are deferred to avoid more permission dialogs. Existing Mac and Windows downloads stay on alpha.86."
+  "limits": "Published signed Mac maintenance release; CLI and actual archive verification only. Full native visual-model/Spaces/multi-display and Windows acceptance remain open. The installed working app was not replaced.",
+  "publishedVersion": "0.2.0-alpha.87",
+  "packageSourceCommit": "8b88d5bc87c6580d9513b77bf34ddfb990574877",
+  "normalCertificateSigningCompleted": true,
+  "additionalDesktopGuiChecks": 0
 }
