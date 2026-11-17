@@ -31,6 +31,7 @@ export interface UpdateReadiness {
 export interface UpdateStartupInfo {
   phase: 'starting' | 'committed' | 'restored' | 'aborting' | 'recovery-required';
   token: string;
+  initialized?: boolean;
   message?: string;
   view?: UpdateView;
   folder?: string;

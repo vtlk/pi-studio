@@ -5,6 +5,7 @@ import { desktopChannels as c } from '../../shared/contracts.ts';
 const reads = new Set<string>([
   c.getTheme,
   c.getLanguage,
+  c.getGitHubStar,
   c.getInfo,
   c.loadStudio,
   c.getStartup,
@@ -35,5 +36,26 @@ export class StartupAdmission {
   assertAllowed(channel: string) {
     if (this.held && !reads.has(channel))
       throw new Error(t('StartupAdmission.studioIsVerifyingTheUpdateWaitFor'));
+  }
+}
+
+/** Existing ledgers are already durable. History backfill is optional work, not startup health. */
+export function holdStartup(
+  admission: StartupAdmission,
+  accounting: { hold(): { release(): void } },
+) {
+  const unlock = admission.hold();
+  try {
+    const paused = accounting.hold();
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      paused.release();
+      unlock();
+    };
+  } catch (error) {
+    unlock();
+    throw error;
   }
 }

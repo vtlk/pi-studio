@@ -13,6 +13,7 @@ import { updateHelperNode } from './updateRuntime.ts';
 import { acquireInstallation } from './InstallationAdmission.ts';
 import { saveUpdateView } from './UpdateViewStore.ts';
 import { desktopInvocationGate, desktopStartupAdmission } from '../ipc/desktopInvoke.ts';
+import { holdStartup } from './StartupAdmission.ts';
 import { managedPiPath, piNode } from '../pi/platform.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import type { Startup } from '../pi/Startup.ts';
@@ -54,7 +55,9 @@ export function registerNativeUpdates(o: Options) {
     o.browser.assertUpdateIdle();
   };
   const releaseStartup =
-    o.boot?.read().phase === 'starting' ? desktopStartupAdmission.hold() : () => {};
+    o.boot?.read().phase === 'starting'
+      ? holdStartup(desktopStartupAdmission, o.accounting)
+      : () => {};
   const enabled =
     app.isPackaged &&
     ['darwin', 'win32'].includes(process.platform) &&

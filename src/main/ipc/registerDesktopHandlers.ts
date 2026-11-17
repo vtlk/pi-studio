@@ -176,10 +176,10 @@ export function registerDesktopHandlers(
   setUpdateQuitGuard(() => {
     if (updates.installing) {
       updates.quitPrevented();
-      return true;
+      return 'keep';
     }
     const phase = options.startup?.read().phase;
-    return !!phase && !['committed', 'restored'].includes(phase);
+    return phase && !['committed', 'restored'].includes(phase) ? 'close' : undefined;
   });
   registerGracefulQuit(
     [team, runs, setup, computer],

@@ -27,7 +27,7 @@ module.exports.configureQaRuntime = () => {
 };
 
 // Scope the constructor override to our compiled entry. Production Electron is unchanged.
-module.exports.loadOffscreenMain = (mainEntry) => {
+module.exports.loadOffscreenMain = (mainEntry, overrides = {}) => {
   module.exports.configureQaRuntime();
   // Offscreen QA must not appear as a second Studio in the user's Dock or app switcher.
   if (process.platform === 'darwin') electron.app.setActivationPolicy('accessory');
@@ -56,6 +56,7 @@ module.exports.loadOffscreenMain = (mainEntry) => {
   }
   const replacement = new Proxy(electron, {
     get(target, key) {
+      if (Object.hasOwn(overrides, key)) return overrides[key];
       return key === 'BrowserWindow' ? OffscreenWindow : Reflect.get(target, key);
     },
   });

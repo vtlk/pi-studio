@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-17T16:01:08.533Z",
+  "realCompiledMainPreloadRenderer": true,
+  "syntheticPrivatePathBoundTransaction": true,
+  "windowCreatedBeforeStudioMetadataRead": true,
+  "offscreenWithoutFocus": true,
+  "noHealthBeforeMetadataHydration": true,
+  "savedAgentsViewRestored": true,
+  "realStartupHealthAcknowledgement": true,
+  "authenticatedAbortClosesDespiteBeforeUnload": true,
+  "noForcedExit": true,
+  "forbiddenLaunchesAndDialogs": 0,
+  "userAppOrDataChanged": false,
+  "actualProcessExit": true
+}

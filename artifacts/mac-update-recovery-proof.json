@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-11-17T16:06:53.699808+00:00",
+  "failedUpdate": {
+    "from": "0.2.0-alpha.91",
+    "to": "0.2.0-alpha.92",
+    "status": "recovery-required",
+    "reason": "new-application-still-running"
+  },
+  "officialRollback": {
+    "result": "rolled-back",
+    "restoredVersion": "0.2.0-alpha.91",
+    "allRecordedOldHelperAndStartupProcessesDeadBeforeRecovery": true,
+    "applicationDirectoryIdentitiesAndPreviousInventoryChecked": true,
+    "previousDeepStrictCodesignVerified": true,
+    "protectedFileHashesCompared": 103,
+    "unchangedProtectedFiles": 103,
+    "jsonlHistories": 79,
+    "singleRestoredMainProcess": true,
+    "visibleNativeMainWindowObserved": true,
+    "userProcessesSignalledOrKilled": 0,
+    "userSettingsOrHistoriesRestoredFromBackups": false
+  },
+  "diagnosis": {
+    "publishedMainWindowNotCreatedUntilStudioMetadataCompletes": true,
+    "pendingHealthFlushPreviouslyBlockedClose": true,
+    "firstRegressionTestFailedBeforeFix": true,
+    "correctedRealMainPreloadRendererBootPassed": true,
+    "currentProjectBoundSessions": 69,
+    "oneReadonlyNativeUsageProbeMs": 1148,
+    "full69SessionBackfillWasNotRunByDiagnostics": true
+  },
+  "scope": "Recovery and isolated regressions; not acceptance of a new real user update."
+}

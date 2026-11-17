@@ -58,7 +58,7 @@ export function UpdatesProvider({
     if (state?.maintenanceError) setOpen(true);
   }, [state?.maintenanceError]);
   useEffect(() => {
-    if (!startupToken || restored === startupToken) return;
+    if (!startupToken || state?.startup?.initialized === false || restored === startupToken) return;
     const view =
       !state?.startup?.folder || state.startup.folder === bootstrap?.folder
         ? state?.startup?.view

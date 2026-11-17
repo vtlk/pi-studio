@@ -32,6 +32,7 @@ export class NativeUpdates {
   private closed = false;
   private started = false;
   private initialization?: Promise<void>;
+  private initialized = false;
   private reportedStartup = false;
   private maintenanceError?: string;
   private manualCheckToken?: string;
@@ -48,9 +49,11 @@ export class NativeUpdates {
   private async initializeOnce() {
     if (this.options.startup) {
       await this.options.startup.start();
+      if (this.options.startup.read().phase === 'aborting') return;
       this.startupFolder = await this.options.folder();
       this.view = await restoreUpdateView(this.options.startup.job, this.startupFolder);
     }
+    this.initialized = true;
     this.tick();
   }
   read(): UpdateState {
@@ -65,7 +68,13 @@ export class NativeUpdates {
       maintenanceError: this.maintenanceError,
       manualCheckToken: this.manualCheckToken,
       startup: startup
-        ? { ...startup.read(), token: this.token, view: this.view, folder: this.startupFolder }
+        ? {
+            ...startup.read(),
+            token: this.token,
+            initialized: this.initialized,
+            view: this.view,
+            folder: this.startupFolder,
+          }
         : undefined,
     };
   }
@@ -96,10 +105,12 @@ export class NativeUpdates {
     return this.options.coordinator?.request() ?? Promise.resolve();
   }
   report(ready: UpdateReadiness) {
+    if (this.closed) return Promise.resolve();
     if (ready?.manualCheckToken && ready.manualCheckToken === this.manualCheckToken)
       this.manualCheckToken = undefined;
     if (this.options.startup?.read().phase === 'starting') {
       if (
+        this.initialized &&
         !this.preparing &&
         !this.reportedStartup &&
         ready?.saved === true &&
@@ -181,7 +192,12 @@ export class NativeUpdates {
     this.closed = true;
     clearInterval(this.timer);
     this.options.startup?.close();
-    await this.preparing?.catch(() => undefined);
+    const phase = this.options.startup?.read().phase;
+    // This replacement has never accepted edits. Waiting for its health flush here would
+    // prevent the later controllers from cancelling backfill, and block the helper's rollback.
+    if (phase && !['committed', 'restored'].includes(phase))
+      void this.preparing?.catch(() => undefined);
+    else await this.preparing?.catch(() => undefined);
     await this.options.coordinator?.close();
   }
 }

@@ -4,8 +4,44 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { InvocationGate } from '../src/main/updates/InvocationGate.ts';
 import { acquireInstallation } from '../src/main/updates/InstallationAdmission.ts';
-import { StartupAdmission } from '../src/main/updates/StartupAdmission.ts';
+import { StartupAdmission, holdStartup } from '../src/main/updates/StartupAdmission.ts';
 import { desktopChannels as c } from '../src/shared/contracts.ts';
+import { UsageRecovery } from '../src/main/accounting/UsageRecovery.ts';
+import type { StudioStore, StudioService } from '../src/main/storage/StudioStore.ts';
+
+test('fresh update startup pauses history backfill until health commits, without losing future recovery', async () => {
+  const admission = new StartupAdmission();
+  let scheduled = 0;
+  const store = {
+    bootstrap: () => ({ sections: { piPath: 'inert-no-probe' } }),
+    projects: {
+      list: () => {
+        scheduled++;
+        return [];
+      },
+    },
+  } as unknown as StudioStore;
+  const accounting = new UsageRecovery({} as StudioService, 'unused', () => 'inert-no-probe');
+  const release = holdStartup(admission, accounting);
+  accounting.schedule(store);
+  await accounting.flush();
+  assert.equal(scheduled, 0, 'Passive startup reads must not enqueue all legacy histories');
+  assert.throws(() => admission.assertAllowed(c.launchAgent));
+  release();
+  release();
+  admission.assertAllowed(c.launchAgent);
+  accounting.schedule(store);
+  assert.equal(scheduled, 1, 'Normal background recovery resumes after startup commit');
+  accounting.close();
+  assert.throws(() =>
+    holdStartup(admission, {
+      hold: () => {
+        throw Error('pause failed');
+      },
+    }),
+  );
+  admission.assertAllowed(c.saveSection);
+});
 
 test('installation holds all run hosts and accounting before async cleanup; failure unwinds without losing future work', async () => {
   const events: string[] = [],
@@ -91,6 +127,7 @@ test('startup permits hydration/status reads but denies launch, user edits, auth
   for (const read of [
     c.loadStudio,
     c.getInfo,
+    c.getGitHubStar,
     c.readProject,
     c.readOutput,
     c.getStartup,

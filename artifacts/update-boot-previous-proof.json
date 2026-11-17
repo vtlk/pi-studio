@@ -1,0 +1,8 @@
+{
+  "checkedAt": "2026-11-17T15:53:12.235Z",
+  "previousVersion": "0.2.0-alpha.93",
+  "publishedMainReproducesInvisibleStartupWhileMetadataIsPending": true,
+  "userAppOrDataChanged": false,
+  "ownedFixtureExitUsedToStopBlockedCase": true,
+  "actualProcessExit": true
+}

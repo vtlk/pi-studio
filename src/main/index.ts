@@ -84,7 +84,6 @@ async function startStudio() {
       updates = value;
     },
   });
-  await updates?.initialize();
   const rebuildMenu = () =>
     registerNativeMenu(() => {
       createStudioWindow().focus();
@@ -108,6 +107,8 @@ async function startStudio() {
   desktopReady = true;
   createStudioWindow();
   app.on('activate', createStudioWindow);
+  // Project hydration and update-view restoration must not hide the entire application window.
+  await updates?.initialize();
 }
 void startStudio().catch((error: unknown) => {
   console.error(

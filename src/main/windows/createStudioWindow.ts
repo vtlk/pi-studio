@@ -5,8 +5,8 @@ import { atomicJson } from '../storage/files.ts';
 import { RendererRecovery } from './RendererRecovery.ts';
 
 let studioWindow: BrowserWindow | undefined;
-let updateQuitGuard: (() => boolean) | undefined;
-export function setUpdateQuitGuard(guard: () => boolean) {
+let updateQuitGuard: (() => 'keep' | 'close' | undefined) | undefined;
+export function setUpdateQuitGuard(guard: () => 'keep' | 'close' | undefined) {
   updateQuitGuard = guard;
 }
 export function createStudioWindow(): BrowserWindow {
@@ -60,7 +60,15 @@ export function createStudioWindow(): BrowserWindow {
   window.webContents.on('will-prevent-unload', (event) => {
     closing = false; // A cancelled close must not disable later renderer recovery.
     // Installation cancellation must keep the window, without opening an OS dialog.
-    if (updateQuitGuard?.()) return;
+    const updatePolicy = updateQuitGuard?.();
+    if (updatePolicy === 'close') {
+      // The replacement is still inert and has never admitted user edits. Its own
+      // beforeunload handler must not veto the installer's authenticated rollback.
+      closing = true;
+      event.preventDefault();
+      return;
+    }
+    if (updatePolicy === 'keep') return;
     const choice = dialog.showMessageBoxSync(window, {
       type: 'warning',
       message: t('createStudioWindow.changesHaveNotBeenSaved'),

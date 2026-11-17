@@ -10,6 +10,66 @@ import { resolveUpdateStartup } from '../src/main/updates/UpdateStartup.ts';
 import { NativeUpdates } from '../src/main/updates/NativeUpdates.ts';
 
 const test = process.platform === 'win32' ? nativeTest.skip : nativeTest;
+test(
+  'an aborted fresh startup can quit while its health flush is still pending',
+  { timeout: 3000 },
+  async (t) => {
+    const f = await transactionFixture(t);
+    await mkdir(dirname(f.p.previous), { recursive: true });
+    await rename(f.target, f.p.previous);
+    await rename(f.next, f.target);
+    await mkdir(f.p.startups);
+    await atomicJson(f.p.active, { id: f.job.id, target: f.target });
+    const resolved = await resolveUpdateStartup({
+      appRoot: f.target,
+      executable: executable(f.target, 'darwin'),
+      version: f.job.version,
+      userData: f.userData,
+      argv: [`--pistudio-update=${f.job.id}`],
+      quit: () => {},
+    });
+    assert.ok(resolved.startup);
+    let finish!: () => void;
+    const pending = new Promise<void>((done) => {
+      finish = done;
+    });
+    const updates = new NativeUpdates({
+      startup: resolved.startup,
+      version: f.job.version,
+      userData: f.userData,
+      target: f.target,
+      folder: async () => f.userData,
+      flush: () => pending,
+      releaseStartup: () => {},
+      quit: () => {},
+    });
+    t.after(async () => {
+      finish();
+      await updates.close();
+    });
+    await updates.initialize();
+    const work = updates.report({
+      saved: true,
+      hydrated: true,
+      startupToken: updates.read().startup!.token,
+    });
+    await atomicJson(f.p.abort, { nonce: f.job.nonce });
+    await resolved.startup.poll();
+    assert.equal(updates.read().startup?.phase, 'aborting');
+    const result = await Promise.race([
+      updates.close().then(() => 'closed'),
+      new Promise((done) => setTimeout(() => done('blocked'), 150)),
+    ]);
+    finish();
+    await work;
+    assert.equal(
+      result,
+      'closed',
+      'Rollback must not wait for the background work whose cancellation happens after close',
+    );
+    assert.equal(await exists(f.p.health), false);
+  },
+);
 test('an uncertain cleanup is visible and explicit retry removes only known staging after the conflict is resolved', async (t) => {
   const f = await transactionFixture(t);
   await mkdir(dirname(f.p.result), { recursive: true });
