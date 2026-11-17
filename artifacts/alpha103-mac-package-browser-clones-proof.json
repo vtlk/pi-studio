@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-17T21:01:06.773Z",
+  "operation": "package",
+  "before": {
+    "available": true,
+    "names": [
+      "code_sign_clone.0c5Oyi"
+    ]
+  },
+  "after": {
+    "available": true,
+    "names": [
+      "code_sign_clone.0c5Oyi"
+    ]
+  },
+  "newClones": [],
+  "noNewRetainedClonesObserved": true,
+  "processOwnershipInferred": false,
+  "browserOrProfileModified": false
+}
