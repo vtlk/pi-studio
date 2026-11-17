@@ -770,7 +770,7 @@ try {
   assert.equal(await js('window.__qa.calls.otherLaunches+window.__qa.calls.assistant'), 0);
   // Failure to prepare Pi cannot be bypassed into the working UI.
   await cdp('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?startup-error=1` });
-  await until(`document.body.textContent.includes('QA startup')`);
+  await until(`document.body?.textContent?.includes('QA startup')`);
   assert.equal(await js(`!!document.querySelector('.app-shell')`), false);
   assert.equal(
     await js(
