@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-11-17T14:03:22.933095+00:00",
+  "version": "0.2.0-alpha.92",
+  "onboardingSourceCommits": [
+    "98bf47e1",
+    "11122eef"
+  ],
+  "unitTestsPassed": 393,
+  "typecheck": true,
+  "build": true,
+  "lint": true,
+  "architectureModules": 399,
+  "architectureCyclesOrBoundaryViolations": 0,
+  "isolatedOnboardingUi": {
+    "proof": "onboarding-ui-proof.json",
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "languages": [
+      "ru",
+      "en"
+    ],
+    "nativePlatformAcceptance": false
+  },
+  "userApplicationOrDataChanged": false
+}

@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-17T14:02:42.894Z",
+  "missingConnectionAndModelsIncludingAssistant": true,
+  "completedCircleYellowAndTextStruck": true,
+  "centeredWithoutHorizontalOverflow": true,
+  "scopedAssistantDuplicateClicksBlocked": true,
+  "headingAndTaskListOnly": true,
+  "assistantActionBelongsToMcpRow": true,
+  "helperErrorsUseSharedDialog": true,
+  "automaticHideAndReturn": true,
+  "importOpensOnboardingAfterProfileHydration": true,
+  "completedTasksExpireAfterTwoHours": true,
+  "unresolvedTasksRemain": true,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "userAppOrDataChanged": false,
+  "realPiOrAuthOrBrowserConsentLaunches": 0,
+  "nativePlatformAcceptance": false
+}
