@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-17T17:51:40.817Z",
+  "version": "0.2.0-alpha.98",
+  "sourceCommit": "3097a4c28e96e902f980b078ec662be9b3dec1c6",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.98",
+  "platforms": [
+    {
+      "platform": "darwin",
+      "from": "0.2.0-alpha.97",
+      "offeredVersion": "0.2.0-alpha.98",
+      "archive": {
+        "name": "Pi-Studio-0.2.0-alpha.98-mac-arm64.zip",
+        "bytes": 142905372,
+        "unpackedBytes": 324064337,
+        "sha256": "69ebfdfdef3475ae8eb80bf2ee18938d857bffe2254dd47f0529c974f6a2236f"
+      },
+      "signedManifestChecksumAndAnonymousOfferVerified": true,
+      "current98HasNoNewerOffer": true,
+      "archivePrefixMatched": true
+    },
+    {
+      "platform": "win32",
+      "from": "0.2.0-alpha.97",
+      "offeredVersion": "0.2.0-alpha.98",
+      "archive": {
+        "name": "Pi-Studio-0.2.0-alpha.98-win-x64.zip",
+        "bytes": 171467871,
+        "unpackedBytes": 411474660,
+        "sha256": "24eaba0783226606998e0494720c5649b6304922fe8a4141ef7121c56165706b"
+      },
+      "signedManifestChecksumAndAnonymousOfferVerified": true,
+      "current98HasNoNewerOffer": true,
+      "archivePrefixMatched": true
+    }
+  ],
+  "allSixRemoteAssetSizesAndDigestsVerified": true,
+  "releasePageHttp": 200,
+  "actionsEnabled": false,
+  "installedApplicationOrUserDataChanged": false,
+  "nativeWindowsAcceptance": false,
+  "notarized": false,
+  "windowsAuthenticodeSigned": false
+}

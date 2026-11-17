@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-11-17T17:53:51.082234+00:00",
+  "version": "0.2.0-alpha.98",
+  "oldLocalRelease97BytesRemoved": 314370030,
+  "onlyCurrentPairOfLocalReleaseArchives": true,
+  "ownedUnpacked98MacBuildRemoved": true,
+  "emptyOldAlpha85StagingRemoved": true,
+  "windowsExtractionRemovedByBuilder": true,
+  "newRetainedChromeClones": 0,
+  "userAppOrDataModified": false
+}
