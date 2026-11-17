@@ -1,18 +1,16 @@
 {
-  "checkedAt": "2026-11-17T12:23:13.159Z",
+  "checkedAt": "2026-11-17T14:05:15.538Z",
   "operation": "package",
   "before": {
     "available": true,
     "names": [
-      "code_sign_clone.m7EuQL",
-      "code_sign_clone.qJaeLk"
+      "code_sign_clone.0c5Oyi"
     ]
   },
   "after": {
     "available": true,
     "names": [
-      "code_sign_clone.m7EuQL",
-      "code_sign_clone.qJaeLk"
+      "code_sign_clone.0c5Oyi"
     ]
   },
   "newClones": [],
