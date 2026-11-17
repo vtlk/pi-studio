@@ -1591,5 +1591,10 @@
   "error.windowsTerminal.processChanged": "The Windows Pi process changed. Closing cancelled.",
   "error.windowsTerminal.pidReused": "The Windows Pi PID was reused.",
   "error.deleteAgentData.agentFolderExpected": "Expected an agent folder.",
-  "error.outputs.outsideAgentOutput": "The file is outside the agent output folder."
+  "error.outputs.outsideAgentOutput": "The file is outside the agent output folder.",
+  "githubStar.title": "Please give us a star on GitHub",
+  "githubStar.open": "Open GitHub",
+  "githubStar.later": "Later",
+  "githubStar.writeError": "Could not save the GitHub reminder preference.",
+  "githubStar.openError": "Could not open GitHub. Reminders are disabled."
 }

@@ -97,7 +97,8 @@
     "test:themes": "npm run build && node scripts/smoke-themes.cjs",
     "test:ui-controls": "npm run build && node scripts/smoke-ui-controls.cjs",
     "test:languages": "npm run build && node scripts/smoke-languages.cjs",
-    "test:computer-native": "node scripts/smoke-native-computer.cjs"
+    "test:computer-native": "node scripts/smoke-native-computer.cjs",
+    "test:github-star": "npm run build && node scripts/smoke-github-star.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,0 +1,32 @@
+{
+  "phases": [
+    {
+      "checkedAt": "2026-11-17T07:47:25.462Z",
+      "hiddenMainWindowIneligible": true,
+      "presentationEligibilitySimulated": true,
+      "otherModalDeferred": true,
+      "exactlyTwoButtons": true,
+      "russianAndEnglish": true,
+      "darkAndLight": true,
+      "keyboardFocusTrap": true,
+      "escapeMeansLater": true,
+      "focusReturned": true,
+      "realPreferencesAndPreload": true,
+      "openerCalls": 0,
+      "physicalMacAcceptance": false,
+      "windowsAcceptance": false,
+      "userDataUntouched": true
+    },
+    {
+      "phase": "open",
+      "fixedUrlOpenerOnce": true,
+      "openerFailureKeepsDisabled": true,
+      "persistedOptOut": true
+    },
+    {
+      "phase": "disabled",
+      "permanentOptOutAfterRestart": true,
+      "openerCalls": 0
+    }
+  ]
+}

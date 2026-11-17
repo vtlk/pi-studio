@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Explicit user authorization (2026-11-17, STAR-01): implement the GitHub star reminder. Main counts accumulated running time including background, excluding sleep/exit; persist app-wide outside studios. After 3 hours, defer the shared localized Modal until Studio is active and other dialogs close, never focus/open a browser from a timer. Exactly Open GitHub / Later: Later resets 3 hours, Open persists permanent opt-out before the fixed repository opener, including opener failure. No GitHub account/star checks. Use isolated clock/preferences/opener tests; do not disturb user Pi work.
+
 - Latest user branch policy (2026-11-17): consolidate development into one `main` branch locally and on GitHub. Do not create persistent helper/task branches unless explicitly requested; use a temporary detached worktree for isolation and remove it after its changes are integrated. Preserve merged commits and the current resource/workspace rules; do not restore retired features from older branch contents.
 
 - Latest user continuation (2026-11-17): «какое вмешательство пользователя? давай делать». Continue clear implementation, normal macOS packaging/signing with the existing identity, CLI verification and authorized GitHub publication; do not stop all work for optional/manual acceptance. Avoid repeating desktop capture/GUI permission probes that caused dialogs. Publication is authorized; replacing the installed working app still needs the existing separate per-update consent. Windows builds remain request-only.

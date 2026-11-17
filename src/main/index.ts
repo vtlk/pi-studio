@@ -1,5 +1,6 @@
 import { app, protocol, nativeTheme } from 'electron';
 import { LanguagePreferences } from './appearance/LanguagePreferences';
+import { GitHubStarReminder } from './github-star/GitHubStarReminder';
 import { ThemePreferences } from './appearance/ThemePreferences';
 import { join } from 'node:path';
 import { realpath } from 'node:fs/promises';
@@ -75,6 +76,7 @@ async function startStudio() {
     ),
   );
   const service = registerDesktopHandlers({
+    githubStar: await GitHubStarReminder.load(join(app.getPath('userData'), 'github-star.json')),
     appearance,
     language,
     startup: boot.startup,

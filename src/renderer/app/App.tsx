@@ -24,6 +24,7 @@ import { RunFailureNotice } from '@/features/launch/ui/RunFailureNotice';
 import { UpdateBootstrap } from '@/features/updates/UpdateBootstrap';
 import { UpdatesProvider } from '@/features/updates/Updates';
 import { UpdateWorkspace } from '@/features/updates/UpdateWorkspace';
+import { GitHubStarReminder } from '@/features/github-star/GitHubStarReminder';
 
 const pages = {
   project: ProjectView,
@@ -46,6 +47,7 @@ function StudioShell() {
         </div>
       </main>
       <DialogView />
+      <GitHubStarReminder />
     </div>
   );
 }

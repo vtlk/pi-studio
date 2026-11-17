@@ -1591,5 +1591,10 @@
   "error.windowsTerminal.processChanged": "Процесс Windows Pi изменился. Закрытие отменено.",
   "error.windowsTerminal.pidReused": "PID Windows Pi был переиспользован.",
   "error.deleteAgentData.agentFolderExpected": "Ожидалась папка агента.",
-  "error.outputs.outsideAgentOutput": "Файл не находится в output агента."
+  "error.outputs.outsideAgentOutput": "Файл не находится в output агента.",
+  "githubStar.title": "Пожалуйста, поставьте нам звёздочку на GitHub",
+  "githubStar.open": "Открыть GitHub",
+  "githubStar.later": "Позже",
+  "githubStar.writeError": "Не удалось сохранить настройку напоминания о GitHub.",
+  "githubStar.openError": "Не удалось открыть GitHub. Напоминания отключены."
 }

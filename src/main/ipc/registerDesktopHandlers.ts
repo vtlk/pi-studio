@@ -51,8 +51,11 @@ import type { ThemePreferences } from '../appearance/ThemePreferences';
 import type { LanguagePreferences } from '../appearance/LanguagePreferences';
 import { registerLanguage } from '../appearance/registerLanguage';
 import { registerAppearance } from '../appearance/registerAppearance';
+import type { GitHubStarReminder } from '../github-star/GitHubStarReminder';
+import { registerGitHubStar } from '../github-star/registerGitHubStar';
 export function registerDesktopHandlers(
   options: {
+    githubStar?: GitHubStarReminder;
     appearance?: ThemePreferences;
     language?: LanguagePreferences;
     startup?: UpdateStartup;
@@ -61,6 +64,9 @@ export function registerDesktopHandlers(
 ): StudioService {
   if (options.language) registerLanguage(options.language, caller);
   if (options.appearance) registerAppearance(options.appearance, caller);
+  const githubStar = options.githubStar
+    ? registerGitHubStar(options.githubStar, caller)
+    : undefined;
   const service = new StudioService(
     join(app.getPath('userData'), 'workspace.json'),
     join(app.getPath('videos'), 'Pi Studio'),
@@ -187,6 +193,7 @@ export function registerDesktopHandlers(
       team,
       ...(options.language ? [options.language] : []),
       ...(options.appearance ? [options.appearance] : []),
+      ...(githubStar ? [githubStar] : []),
     ],
     {
       close: () => updates.close(),

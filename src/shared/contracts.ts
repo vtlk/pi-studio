@@ -36,8 +36,17 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getGitHubStar(): Promise<import('./githubStar').GitHubStarState>;
+  chooseGitHubStar(
+    choice: import('./githubStar').GitHubStarChoice,
+  ): Promise<import('./githubStar').GitHubStarState>;
+  onGitHubStarChanged(
+    listener: (state: import('./githubStar').GitHubStarState) => void,
+  ): () => void;
   getLanguage(): Promise<import('./i18n/locale').LanguageState>;
-  setLanguage(language: import('./i18n/locale').Language): Promise<import('./i18n/locale').LanguageState>;
+  setLanguage(
+    language: import('./i18n/locale').Language,
+  ): Promise<import('./i18n/locale').LanguageState>;
   onLanguageChanged(listener: (state: import('./i18n/locale').LanguageState) => void): () => void;
   getTheme(): Promise<import('./appearance').ThemeState>;
   setTheme(theme: import('./appearance').ThemeChoice): Promise<import('./appearance').ThemeState>;
@@ -138,6 +147,9 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getGitHubStar: 'studio:github-star-state',
+  chooseGitHubStar: 'studio:github-star-choice',
+  githubStarChanged: 'studio:github-star-changed',
   getLanguage: 'studio:language',
   setLanguage: 'studio:language-set',
   languageChanged: 'studio:language-changed',
