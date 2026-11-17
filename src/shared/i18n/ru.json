@@ -1678,7 +1678,7 @@
   "Chat.confirm": "Подтвердить",
   "Chat.title": "Чат с {{name}}",
   "Chat.closeProcess": "Завершить процесс Pi",
-  "Chat.closeProcessDescription": "Завершить процесс Pi этого агента? Текущая работа остановится. Сохранённый диалог и файлы останутся.",
+  "Chat.closeProcessDescription": "Завершить процесс Pi этого агента? Текущая работа остановится. Сохранённый диалог и файлы останутся. Сообщения в очереди ещё не записаны в диалог.",
   "Chat.hide": "Скрыть чат — Pi продолжит работу",
   "Chat.messages": "Сообщения диалога",
   "Chat.historyTruncated": "Показаны последние 1000 сообщений контекста. Полная сохранённая сессия остаётся на диске.",
@@ -1749,5 +1749,9 @@
   "ToolCard.arguments": "Параметры",
   "ToolCard.result": "Результат",
   "ToolCard.toolName": "Инструмент",
-  "error.privateDirectory.couldNotProtectTheUpdate": "Не удалось ограничить доступ к папке обновления. Проверьте права на каталог установки."
+  "error.privateDirectory.couldNotProtectTheUpdate": "Не удалось ограничить доступ к папке обновления. Проверьте права на каталог установки.",
+  "Chat.pendingMessages": "Сообщения в очереди",
+  "Chat.queuedSteer": "Steer · в очереди",
+  "Chat.queuedFollowUp": "После задачи · в очереди",
+  "Chat.queueUndelivered": "Не доставлено · процесс Pi недоступен"
 }

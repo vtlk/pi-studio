@@ -10,6 +10,8 @@ export interface RpcEvent {
   data?: RpcData;
   error?: string;
   message?: unknown;
+  steering?: unknown;
+  followUp?: unknown;
   assistantMessageEvent?: {
     type: string;
     contentIndex?: number;

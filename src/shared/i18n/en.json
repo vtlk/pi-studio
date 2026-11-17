@@ -1678,7 +1678,7 @@
   "Chat.confirm": "Confirm",
   "Chat.title": "Chat with {{name}}",
   "Chat.closeProcess": "Stop Pi process",
-  "Chat.closeProcessDescription": "Stop this agent’s Pi process? Current work will stop. The saved dialogue and files will remain.",
+  "Chat.closeProcessDescription": "Stop this agent’s Pi process? Current work will stop. The saved dialogue and files will remain. Queued messages have not yet been saved to the dialogue.",
   "Chat.hide": "Hide chat — Pi keeps running",
   "Chat.messages": "Dialogue messages",
   "Chat.historyTruncated": "Showing the latest 1,000 context messages. The complete saved session remains on disk.",
@@ -1749,5 +1749,9 @@
   "ToolCard.arguments": "Arguments",
   "ToolCard.result": "Result",
   "ToolCard.toolName": "Tool",
-  "error.privateDirectory.couldNotProtectTheUpdate": "Could not restrict access to the update folder. Check permissions on the installation directory."
+  "error.privateDirectory.couldNotProtectTheUpdate": "Could not restrict access to the update folder. Check permissions on the installation directory.",
+  "Chat.pendingMessages": "Queued messages",
+  "Chat.queuedSteer": "Steer · queued",
+  "Chat.queuedFollowUp": "After the task · queued",
+  "Chat.queueUndelivered": "Not delivered · Pi process unavailable"
 }

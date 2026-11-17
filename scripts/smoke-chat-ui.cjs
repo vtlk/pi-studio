@@ -27,6 +27,10 @@ async function parent() {
       'chat-ui-proof.json',
       'chat-ru-light.png',
       'chat-en-dark.png',
+      'queue-ru-light.png',
+      'queue-ru-dark.png',
+      'queue-en-light.png',
+      'queue-en-dark.png',
       'refresh-ru-light.png',
       'refresh-en-dark.png',
       'tools-ru-light.png',
@@ -220,6 +224,14 @@ async function child() {
     },
     'studio:chat-send': (_, request) => {
       sends++;
+      if (request.text === 'UI_STEER' || request.text === 'UI_FOLLOWUP') {
+        assert.equal(request.behavior, request.text === 'UI_STEER' ? 'steer' : 'followUp');
+        state.queue ??= { steering: [], followUp: [] };
+        state.queue[request.behavior === 'steer' ? 'steering' : 'followUp'].push(request.text);
+        state.revision++;
+        send('studio:chat-changed', target);
+        return;
+      }
       assert.equal(request.text, 'UI_MESSAGE');
       state.messages.push({
         id: 'user',
@@ -491,7 +503,9 @@ async function child() {
         true,
       );
     }
-    await js(`(()=>{const e=document.querySelector('.pi-chat-composer textarea');e.scrollTop=e.scrollHeight;})()`);
+    await js(
+      `(()=>{const e=document.querySelector('.pi-chat-composer textarea');e.scrollTop=e.scrollHeight;})()`,
+    );
     composerLayouts.push(composerLayout);
 
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -578,6 +592,109 @@ async function child() {
   state.revision++;
   send('studio:chat-changed', target);
   await until(`!!document.querySelector('.pi-chat-working')`);
+  await js(
+    `document.querySelector('.pi-chat-composer [role="combobox"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`,
+  );
+  await until(`!!document.querySelector('[role="option"]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="option"]')).find(e=>e.textContent==='Update the current task').click()`,
+  );
+  await until(`!document.querySelector('[role="option"]')`);
+  for (let i = 0; i < 2; i++) {
+    await js(
+      `(()=>{const e=document.querySelector('.pi-chat-composer textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'UI_STEER');e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+    );
+    await until(`document.querySelector('.pi-chat-composer textarea').value==='UI_STEER'`);
+    await js(
+      `document.querySelector('.pi-chat-composer textarea').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`,
+    );
+    await until(
+      `document.querySelectorAll('[data-queue-kind="steering"]').length===${i + 1}&&document.querySelector('.pi-chat-composer textarea').value===''`,
+    );
+  }
+  await js(
+    `window.studio.sendChat({...${JSON.stringify(target)},text:'UI_FOLLOWUP',behavior:'followUp'})`,
+  );
+  await until(`document.querySelectorAll('[data-queue-kind="followUp"]').length===1`);
+  for (const [lang, mode] of [
+    ['ru', 'light'],
+    ['ru', 'dark'],
+    ['en', 'light'],
+    ['en', 'dark'],
+  ]) {
+    await js(
+      `window.studio.setLanguage(${JSON.stringify(lang)});window.studio.setTheme(${JSON.stringify(mode)})`,
+    );
+    await until(
+      `document.documentElement.lang===${JSON.stringify(lang)}&&document.documentElement.dataset.theme===${JSON.stringify(mode)}`,
+    );
+    const text = await js(`document.querySelector('.pi-chat-queued').innerText`);
+    assert.match(text, lang === 'ru' ? /Steer · в очереди/ : /Steer · queued/);
+    assert.match(text, lang === 'ru' ? /После задачи · в очереди/ : /After the task · queued/);
+    assert.equal(
+      await js(
+        `Array.from(document.querySelectorAll('.pi-chat-message:not([data-queue-kind])')).some(e=>e.textContent.includes('UI_STEER'))`,
+      ),
+      false,
+    );
+    await js(`document.querySelector('.pi-chat-transcript').scrollTop=1e9`);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await writeFile(
+      join(root, `queue-${lang}-${mode}.png`),
+      (await windows.webContents.capturePage()).toPNG(),
+    );
+  }
+  await js(`document.querySelector('.pi-chat-header button:last-child').click()`);
+  await until(`!document.querySelector('.pi-chat-panel')`);
+  await js(`document.querySelector('.pi-process-indicator').click()`);
+  await until(`!!document.querySelector('.pi-process-row')`);
+  await js(`document.querySelector('.pi-process-row').click()`);
+  await until(`document.querySelectorAll('[data-queue-kind="steering"]').length===2`);
+  assert.equal(launches, 1, 'Reopen keeps the existing native queue without launch');
+  // Native delivery removes exactly one identical queue item and adds exactly one history message.
+  state.queue.steering.shift();
+  state.messages.push({
+    id: 'delivered-steer',
+    role: 'user',
+    parts: [{ type: 'text', text: 'UI_STEER' }],
+  });
+  state.revision++;
+  send('studio:chat-changed', target);
+  await until(`document.querySelectorAll('[data-queue-kind="steering"]').length===1`);
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('.pi-chat-message:not([data-queue-kind])')).filter(e=>e.textContent.includes('UI_STEER')).length`,
+    ),
+    1,
+  );
+  for (const lang of ['ru', 'en']) {
+    await js(`window.studio.setLanguage(${JSON.stringify(lang)})`);
+    await until(`document.documentElement.lang===${JSON.stringify(lang)}`);
+    await js(`document.querySelector('.pi-chat-header button').click()`);
+    await until(`!!document.querySelector('[role="alertdialog"]')`);
+    assert.match(
+      await js(`document.querySelector('[role="alertdialog"]').innerText`),
+      lang === 'ru'
+        ? /Сообщения в очереди ещё не записаны в диалог/
+        : /Queued messages have not yet been saved to the dialogue/,
+    );
+    await js(`document.querySelector('[role="alertdialog"] .dialog-footer button').click()`);
+    await until(`!document.querySelector('[role="alertdialog"]')`);
+  }
+  state.phase = 'closed';
+  state.revision++;
+  send('studio:chat-changed', target);
+  for (const lang of ['ru', 'en']) {
+    await js(`window.studio.setLanguage(${JSON.stringify(lang)})`);
+    await until(
+      `document.documentElement.lang===${JSON.stringify(lang)}&&document.querySelector('.pi-chat-queued')?.textContent.includes(${JSON.stringify(lang === 'ru' ? 'Не доставлено · процесс Pi недоступен' : 'Not delivered · Pi process unavailable')})`,
+    );
+  }
+  state.phase = 'ready';
+  state.queue = { steering: [], followUp: [] };
+  state.revision++;
+  send('studio:chat-changed', target);
+  await until(`!document.querySelector('.pi-chat-queued')`);
   await new Promise((resolve) => setTimeout(resolve, 250));
   await writeFile(
     join(root, 'chat-en-dark.png'),
@@ -672,6 +789,8 @@ async function child() {
           'preview-sized sliding panel',
           'footer/overflow geometry',
           'equal message-bubble vertical padding',
+          'authoritative native queue visible after composer steer sends, duplicates preserved',
+          'queued steer/follow-up translated in RU/EN/light/dark and delivery avoids duplicate history',
           'tool calls/results paired once by native ID',
           'success collapsed; initial and arriving errors auto-open',
           'manual collapse survives SDK message ID replacement',

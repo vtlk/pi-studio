@@ -12,6 +12,7 @@ import { useChatPanels } from './ChatPanels.context';
 import { useChat } from './useChat';
 import { ChatExtensionDialog } from './ChatExtensionDialog';
 import { ChatTranscript } from './ChatTranscript';
+import { ChatQueuedMessages } from './ChatQueuedMessages';
 import './chat.css';
 
 export function ChatPanel({
@@ -68,6 +69,7 @@ export function ChatPanel({
     setSending(true);
     setError('');
     const text = draft;
+    stick.current = true;
     try {
       await window.studio.sendChat({
         ...target,
@@ -78,7 +80,6 @@ export function ChatPanel({
       updateDraft('');
       await window.studio.releaseReferenceFiles(references.map((item) => item.id));
       setReferences([]);
-      stick.current = true;
     } catch (error) {
       setError(error instanceof Error ? error.message : t('Chat.commandFailed'));
     } finally {
@@ -145,6 +146,7 @@ export function ChatPanel({
       >
         {state?.historyTruncated && <p className="subtle">{t('Chat.historyTruncated')}</p>}
         {state && <ChatTranscript messages={state.messages} name={name} working={state.working} />}
+        {state && <ChatQueuedMessages queue={state.queue} phase={state.phase} />}
         {opening && (
           <div className="pi-chat-loading" role="status">
             <LoaderCircle className="project-launch-spinner" size={24} aria-hidden="true" />
@@ -152,9 +154,13 @@ export function ChatPanel({
             <small>{t('Chat.openingHint')}</small>
           </div>
         )}
-        {!opening && ready && !state?.messages.length && (
-          <p className="pi-chat-empty">{t('Chat.firstMessage')}</p>
-        )}
+        {!opening &&
+          ready &&
+          !state?.messages.length &&
+          !state?.queue?.steering.length &&
+          !state?.queue?.followUp.length && (
+            <p className="pi-chat-empty">{t('Chat.firstMessage')}</p>
+          )}
         {state?.working && (
           <div className="pi-chat-working" role="status">
             <LoaderCircle size={16} className="project-launch-spinner" aria-hidden="true" />

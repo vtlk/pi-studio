@@ -47,6 +47,13 @@ test('idle Pi processes and dormant automatic modes allow update; real work and 
   first.embedded!.state.working = true;
   assert.throws(() => guard.assertIdle());
   first.embedded!.state.working = false;
+  first.embedded!.state.queue = { steering: ['Accepted but not delivered'], followUp: [] };
+  assert.throws(
+    () => guard.assertIdle(),
+    undefined,
+    'A pending accepted message must survive update admission',
+  );
+  first.embedded!.state.queue = { steering: [], followUp: [] };
   first.status = 'running';
   assert.throws(() => guard.assertIdle());
   first.status = 'ready';

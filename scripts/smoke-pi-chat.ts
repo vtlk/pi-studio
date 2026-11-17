@@ -235,7 +235,50 @@ try {
     'Working process also reused',
   );
   await host.sendChat({ ...target(), text: 'CHAT_A2: Follow up.', behavior: 'followUp' });
+  await host.sendChat({
+    ...target(),
+    text: 'CHAT_STEER: Change the current task.',
+    behavior: 'steer',
+  });
+  await until(
+    () =>
+      host.chat(target())?.queue?.steering.includes('CHAT_STEER: Change the current task.') &&
+      host.chat(target())?.queue?.followUp.includes('CHAT_A2: Follow up.'),
+    'Native queue_update exposes accepted steer and follow-up immediately',
+  );
+  assert.equal(
+    host
+      .chat(target())
+      ?.messages.some(
+        (message) =>
+          message.role === 'user' &&
+          message.parts.some((part) => part.text?.includes('CHAT_STEER')),
+      ),
+    false,
+    'Queued input is not synthetic history',
+  );
+  await host.launch({ ...target(), autoContinue: false });
+  assert.equal(
+    host.chat(target())?.queue?.steering.length,
+    1,
+    'Reopening the existing process preserves its native queue',
+  );
   release('CHAT_A1');
+  await until(() => waiting.has('CHAT_STEER'), 'Steer is consumed before follow-up');
+  assert.equal(host.chat(target())?.queue?.steering.length, 0);
+  assert.equal(host.chat(target())?.queue?.followUp.length, 1);
+  assert.equal(
+    host
+      .chat(target())
+      ?.messages.filter(
+        (message) =>
+          message.role === 'user' &&
+          message.parts.some((part) => part.text?.includes('CHAT_STEER')),
+      ).length,
+    1,
+    'Steer enters actual history exactly once',
+  );
+  release('CHAT_STEER');
   await until(() => waiting.has('CHAT_A2'), 'Queued follow-up starts');
   release('CHAT_A2');
   release('CHAT_B1');
@@ -322,7 +365,8 @@ try {
           'idle/working process reuse',
           'parallel agents',
           'streaming',
-          'follow-up queue',
+          'authoritative steer/follow-up queue visible before delivery and retained on reopen',
+          'steer delivered before follow-up, exactly once in native history',
           'exact session restore and JSONL bytes',
           'selected model/Skill/Project MCP',
           'extension UI round-trip',

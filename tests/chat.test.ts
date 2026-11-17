@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { EmbeddedChat } from '../src/main/pi/EmbeddedChat.ts';
-import { projectChatMessage } from '../src/main/pi/chatProjection.ts';
+import { projectChatMessage, projectChatQueue } from '../src/main/pi/chatProjection.ts';
 import { RunLifecycle } from '../src/main/pi/RunLifecycle.ts';
 import { RunChats } from '../src/main/pi/RunChats.ts';
 import { runKey, type LiveRun } from '../src/main/pi/RunTypes.ts';
@@ -57,7 +57,10 @@ test('owned RPC child preserves Unicode/CRLF, authoritative messages, extension 
       else if(cmd.type==='abort')response();
       else if(cmd.type==='extension_ui_response'){output({type:'extension_ui_request',id:'note',method:'notify',message:'ANSWER:'+cmd.value});output({id:pending,type:'response',success:true,data:{disposition:'handled'}});}
       else if(cmd.type==='prompt'){
-        if(cmd.message==='dialog'){pending=cmd.id;output({type:'extension_ui_request',id:'dialog',method:'select',title:'Choice',options:['A','B']});}
+        if(cmd.message==='queue'){output({type:'queue_update',steering:['DUP','DUP'],followUp:['NEXT']});response({disposition:'queued'});}
+        else if(cmd.message==='consume'){output({type:'queue_update',steering:['DUP'],followUp:['NEXT']});output({type:'message_start',message:{role:'user',content:'DUP'}});output({type:'message_end',message:{role:'user',content:'DUP'}});response({disposition:'handled'});}
+        else if(cmd.message==='clear'){output({type:'queue_update',steering:[],followUp:[]});response({disposition:'handled'});}
+        else if(cmd.message==='dialog'){pending=cmd.id;output({type:'extension_ui_request',id:'dialog',method:'select',title:'Choice',options:['A','B']});}
         else if(cmd.message==='expire'){output({type:'extension_ui_request',id:'expired',method:'input',title:'Timed',timeout:10});response({disposition:'handled'});}
         else if(cmd.message==='crash')process.exit(7);
         else {response({disposition:'started'});output({type:'agent_start'});output({type:'message_start',message:{role:'assistant',content:[]}});
@@ -89,6 +92,21 @@ test('owned RPC child preserves Unicode/CRLF, authoritative messages, extension 
       !chat.state.working &&
       chat.snapshot().messages[0]?.parts[0]?.text === 'Final Привет\u2028world',
   );
+  await chat.send('queue', [], 'steer');
+  assert.deepEqual(chat.snapshot().queue, { steering: ['DUP', 'DUP'], followUp: ['NEXT'] });
+  assert.equal(
+    chat.snapshot().messages.some((message) => message.parts.some((part) => part.text === 'DUP')),
+    false,
+  );
+  await chat.send('consume');
+  assert.deepEqual(chat.snapshot().queue, { steering: ['DUP'], followUp: ['NEXT'] });
+  assert.equal(
+    chat.snapshot().messages.filter((message) => message.parts.some((part) => part.text === 'DUP'))
+      .length,
+    1,
+  );
+  await chat.send('clear');
+  assert.deepEqual(chat.snapshot().queue, { steering: [], followUp: [] });
   const send = chat.send('dialog');
   await until(() => chat.snapshot().dialog);
   assert.throws(() => chat.answer({ ...target, id: 'dialog', value: 'foreign' }));
@@ -148,4 +166,13 @@ test('a dead background child is never recounted from a reused PID; closed trans
   chats.forget(target);
   assert.equal(chats.chat(target), null);
   assert.equal(chats.root(target), undefined);
+});
+
+test('native queue projection preserves duplicate texts and Unicode, rejects arbitrary objects', () => {
+  assert.deepEqual(
+    projectChatQueue(['Same', 'Same', '<script>inert</script>\u2028Привет'], ['Next']),
+    { steering: ['Same', 'Same', '<script>inert</script>\u2028Привет'], followUp: ['Next'] },
+  );
+  assert.throws(() => projectChatQueue([{ credential: 'hidden' }], []));
+  assert.throws(() => projectChatQueue([], undefined));
 });

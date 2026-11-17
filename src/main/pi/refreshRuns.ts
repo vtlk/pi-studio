@@ -37,6 +37,8 @@ export function refreshRunSnapshot(
         working:
           live.status === 'running' ||
           live.embedded?.state.working === true ||
+          !!live.embedded?.state.queue?.steering.length ||
+          !!live.embedded?.state.queue?.followUp.length ||
           state.sending(projectId, agentId),
       },
     ];

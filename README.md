@@ -143,6 +143,8 @@ Pi conversations open inside Studio in a sliding chat panel beside the project f
 
 The chat resize grip stays below the text area so it cannot cover the last line. Tool calls show a compact action summary with their result in one card. Details start collapsed; errors open automatically and can be collapsed manually. An authorized update waits for active tasks and unsaved edits, then closes idle Pi processes and continues the normal restart automatically; dialogues remain saved.
 
+Steer and follow-up messages appear immediately in the native queue with a pending label, then move into the saved dialogue when Pi receives them. Identical messages stay distinct, and hiding/reopening the chat keeps the queue visible.
+
 Interrupted update downloads resume when you retry, including after restarting Studio. This is available once alpha.93 is installed.
 
 ## Quick start

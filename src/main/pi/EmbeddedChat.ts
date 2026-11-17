@@ -6,7 +6,7 @@ import type { ChatAnswer, ChatDialog, ChatState, ChatTarget } from '../../shared
 import { t } from '../../shared/i18n/index.ts';
 import { piEnvironment } from './platform.ts';
 import { findWindowsBash } from './windowsBash.ts';
-import { chatText, projectChatMessage } from './chatProjection.ts';
+import { chatText, projectChatMessage, projectChatQueue } from './chatProjection.ts';
 
 import type { RpcData, RpcEvent } from './ChatRpc.ts';
 
@@ -277,7 +277,9 @@ export class EmbeddedChat {
       else request.reject(new Error(chatText(event.error, 4000) || t('Chat.commandFailed')));
       return;
     }
-    if (event.type === 'message_start')
+    if (event.type === 'queue_update')
+      this.state.queue = projectChatQueue(event.steering, event.followUp);
+    else if (event.type === 'message_start')
       this.state.messages.push(projectChatMessage(event.message, randomUUID()));
     else if (event.type === 'message_update') {
       const message = this.state.messages.at(-1),

@@ -31,12 +31,17 @@ export interface ChatDialog {
   prefill?: string;
   expiresAt?: number;
 }
+export interface ChatQueue {
+  steering: string[];
+  followUp: string[];
+}
 export interface ChatState extends ChatTarget {
   runId: string;
   phase: 'opening' | 'ready' | 'closed' | 'error';
   working: boolean;
   revision: number;
   messages: ChatMessage[];
+  queue?: ChatQueue;
   dialog?: ChatDialog;
   notification?: string;
   editorText?: { id: string; text: string };

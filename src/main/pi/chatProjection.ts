@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatPart } from '../../shared/chat.ts';
+import type { ChatMessage, ChatPart, ChatQueue } from '../../shared/chat.ts';
 
 const limit = 1_000_000;
 export const chatText = (value: unknown, max = limit) =>
@@ -59,4 +59,14 @@ export function projectChatMessage(value: unknown, id: string): ChatMessage {
       : {}),
     ...(message.errorMessage ? { error: chatText(message.errorMessage, 4000) } : {}),
   };
+}
+
+/** queue_update carries complete authoritative queues, including repeated identical messages. */
+export function projectChatQueue(steering: unknown, followUp: unknown): ChatQueue {
+  const texts = (value: unknown) => {
+    if (!Array.isArray(value) || value.some((item) => typeof item !== 'string'))
+      throw new Error('Invalid Pi queue update');
+    return value.map((item) => chatText(item));
+  };
+  return { steering: texts(steering), followUp: texts(followUp) };
 }

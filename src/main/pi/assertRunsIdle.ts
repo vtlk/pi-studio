@@ -15,7 +15,10 @@ export function assertRunsIdle(
     [...live].some(
       (run) =>
         (!projectId || run.run.record.projectId === projectId) &&
-        (run.status === 'running' || run.embedded?.state.working === true),
+        (run.status === 'running' ||
+          run.embedded?.state.working === true ||
+          !!run.embedded?.state.queue?.steering.length ||
+          !!run.embedded?.state.queue?.followUp.length),
     )
   )
     throw new Error(t('error.assertRunsIdle.waitForPiToFinish'));

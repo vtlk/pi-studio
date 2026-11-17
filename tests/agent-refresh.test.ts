@@ -241,3 +241,23 @@ test('refresh fingerprints include live prompts and assigned resource config but
     original,
   );
 });
+
+test('accepted queued input requires stop consent even while the model is idle', async () => {
+  const f = fixture(false);
+  f.state.live.get('project/a')!.embedded!.state.queue = {
+    steering: ['Pending steer'],
+    followUp: [],
+  };
+  await assert.rejects(
+    refreshRuns(
+      f.state,
+      'project',
+      ['a'],
+      [f.review],
+      [],
+      { revision: 'r', running: [] },
+      async () => f.result,
+    ),
+  );
+  assert.deepEqual(f.stopped, []);
+});

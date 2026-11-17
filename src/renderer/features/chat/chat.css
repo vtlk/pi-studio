@@ -393,3 +393,13 @@
     transition: none;
   }
 }
+.pi-chat-queued .pi-chat-role {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pi-chat-queued-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
