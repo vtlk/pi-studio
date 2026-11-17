@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-17T18:41:22.846Z",
+  "version": "0.2.0-alpha.99",
+  "pi": "1.5.2",
+  "realPiSdkAndProductionBridge": true,
+  "realAdministrationMcpTool": "mcp__pi_studio__install_skill_from_url",
+  "realPublicGitHubHttpsDownload": "https://github.com/anthropics/skills/tree/main/skills/pdf",
+  "resolvedGitHubCommit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+  "downloadedArchiveSha256": "694fef34c4b618ad3995937bb2c30b846a0f7a930d606db1ac5dd4e5486d5d4a",
+  "localSyntheticModelOnly": true,
+  "paidModelRequests": 0,
+  "exactAgentAssignmentAndCompanionFiles": true,
+  "openingAndResumeSendNothing": true,
+  "connectionsPromptsModelsAndExistingProjectPreserved": true,
+  "downloadedProgramsExecuted": false,
+  "userStudioOrProcessesChanged": false,
+  "windowsNativeAcceptance": false,
+  "limitation": "Real Pi/HTTPS/MCP on macOS with a loopback model. No Terminal/UI, native Windows or external account acceptance.",
+  "ownedTemporaryStudioRemoved": true
+}
