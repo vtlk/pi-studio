@@ -155,6 +155,58 @@ async function child() {
     }
     assert.equal(initial.canPresent, false); // Real hidden offscreen window is ineligible.
     assert.equal(await js(`!!(${reminder})`), false);
+    // Exercise the actual main controller and preload with native event/state inputs.
+    // Override queries only: never raise, minimize or focus an OS window during QA.
+    await js(
+      `Object.defineProperty(document,'visibilityState',{configurable:true,get:()=> 'hidden'}); void 0;`,
+    );
+    let presentation = { visible: true, focused: true, minimized: false, enabled: true };
+    const original = {
+      isVisible: window.isVisible.bind(window),
+      isFocused: window.isFocused.bind(window),
+      isMinimized: window.isMinimized.bind(window),
+      isEnabled: window.isEnabled.bind(window),
+    };
+    window.isVisible = () => presentation.visible;
+    window.isFocused = () => presentation.focused;
+    window.isMinimized = () => presentation.minimized;
+    window.isEnabled = () => presentation.enabled;
+    let unwantedWindowActivations = 0;
+    window.show = window.focus = () => {
+      unwantedWindowActivations++;
+    };
+    const controllerCases = [];
+    for (const [event, patch, expected] of [
+      ['focus', {}, true],
+      ['blur', { focused: false }, false],
+      ['focus', { focused: true }, true],
+      ['minimize', { minimized: true }, false],
+      ['restore', { minimized: false }, true],
+      ['hide', { visible: false }, false],
+      ['show', { visible: true }, true],
+      ['blur', { enabled: false }, false],
+      ['focus', { enabled: true }, true],
+    ]) {
+      presentation = { ...presentation, ...patch };
+      window.emit(event);
+      const status = await js('window.studio.getGitHubStar()');
+      assert.equal(status.canPresent, expected, event);
+      controllerCases.push({ event, canPresent: status.canPresent });
+    }
+    for (const [event, expected] of [
+      ['sheet-begin', false],
+      ['sheet-begin', false],
+      ['sheet-end', false],
+      ['sheet-end', true],
+    ]) {
+      window.emit(event);
+      assert.equal((await js('window.studio.getGitHubStar()')).canPresent, expected, event);
+      controllerCases.push({ event, canPresent: expected });
+    }
+    assert.equal(await js(`!!(${reminder})`), false);
+    assert.equal(unwantedWindowActivations, 0);
+    Object.assign(window, original);
+    window.emit('hide');
     await js(
       `Object.defineProperty(document,'visibilityState',{configurable:true,get:()=> 'visible'}); window.qaReturn=document.querySelector('.topbar button') || document.querySelector('button'); window.qaReturn.focus(); const blocker=document.createElement('section'); blocker.id='qa-other-modal'; blocker.setAttribute('aria-modal','true'); document.body.append(blocker);`,
     );
@@ -232,6 +284,9 @@ async function child() {
         escapeMeansLater: true,
         focusReturned: true,
         realPreferencesAndPreload: true,
+        mainControllerCases: controllerCases,
+        nativeStateQueriesSimulatedWithoutOsActions: true,
+        unwantedWindowActivations,
         openerCalls: opened.length,
         physicalMacAcceptance: false,
         windowsAcceptance: false,

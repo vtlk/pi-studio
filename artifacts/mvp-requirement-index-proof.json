@@ -366,6 +366,18 @@
       "alpha88-release-proof.json": "c013ba7c7b18454097c53a46ff475d815405d93fb1ecd7b08d9b4f7194132eac",
       "alpha88-security-audit-proof.json": "cf531e5be2ec66a149c80000dc7c63fef1264b4a0c69c4a7513deef058b30dd4",
       "release-package-0.2.0-alpha.88-proof.json": "ca67442cb4a26e0f6da10bef9e3cbad424ac2484db554cf918480826be3b55bb"
-    }
+    },
+    "evidenceSnapshotCommit": "a51131be59d5b87dd4b930ce4e217fa4237d5666"
+  },
+  "latestFollowUpVerification": {
+    "checkedAt": "2026-11-17T08:19:49.448015+00:00",
+    "appRuntimeChanged": false,
+    "publishedVersion": "0.2.0-alpha.88",
+    "installedVersionReadFromActualBundle": "0.2.0-alpha.87",
+    "githubStarControllerTransitions": 13,
+    "windowShowOrFocusCalls": 0,
+    "nativeQueriesSimulated": true,
+    "physicalPlatformAcceptance": false,
+    "evidenceSha256": "163a8c87ac97c4d234f0f443ee933957ad21800eedf3e7bbdc4e693a50ce33c2"
   }
 }
