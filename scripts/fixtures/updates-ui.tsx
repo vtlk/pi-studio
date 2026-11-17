@@ -9,6 +9,11 @@ import { WorkspaceContext } from '../../src/renderer/features/project/model/Work
 import { TooltipProvider } from '../../src/renderer/shared/ui/Tooltip';
 import { Modal } from '../../src/renderer/shared/ui/Modal';
 import '../../src/renderer/styles/index.css';
+import { i18n } from '../../src/shared/i18n/index';
+void i18n.changeLanguage('ru');
+Object.assign(window, {
+  __updateQaLanguage: (language: string) => i18n.changeLanguage(language).then(() => true),
+});
 
 function Workbench() {
   const { frozen } = useUpdates();

@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-17T20:51:20.857106+00:00",
+  "version": "0.2.0-alpha.103",
+  "reportedFailure": "Encoded WindowsIdentity.GetCurrent().User.Value while update modal showed Verifying package",
+  "fix": "System32/whoami.exe CSV SID lookup, strict one-row validation, System32/icacls.exe SID grants, bounded hidden execution, localized fail-closed errors",
+  "tests": {
+    "total": 486,
+    "passed": 485,
+    "skippedNativePermissionProbe": 1,
+    "failed": 0
+  },
+  "buildTypecheckLint": true,
+  "architectureModules": 441,
+  "actualModalRussianAndEnglishErrorsAndRetry": true,
+  "stagingAclProtectionPreserved": true,
+  "nativeWindowsAcceptance": false,
+  "userApplicationOrDataChanged": false
+}

@@ -170,6 +170,41 @@ const read = (code) => window.webContents.executeJavaScript(code);
   });
   await until(`document.querySelector('[role="dialog"][aria-label="Обновление Pi Studio"]')`);
   assert.equal(requests, 0);
+  for (const language of ['ru', 'en']) {
+    const catalog = require('../src/shared/i18n/' + language + '.json');
+    await read(`window.__updateQaLanguage(${JSON.stringify(language)})`);
+    state = { ...state, phase: 'verifying', message: undefined };
+    await until(
+      `document.querySelector('[data-update-dialog] [role="status"]')?.textContent===${JSON.stringify(catalog['UpdateAction.verifyingPackage'])}`,
+    );
+    for (const key of [
+      'error.privateDirectory.couldNotDetermineTheUpdate',
+      'error.privateDirectory.couldNotProtectTheUpdate',
+    ]) {
+      state = { ...state, phase: 'error', message: catalog[key] };
+      await until(
+        `document.querySelector('[data-update-dialog] [role="alert"]')?.textContent===${JSON.stringify(catalog[key])}`,
+      );
+      assert.equal(
+        await read(
+          `document.querySelector('[data-update-dialog]').textContent.includes('EncodedCommand')`,
+        ),
+        false,
+      );
+      assert.equal(
+        await read(
+          `[...document.querySelectorAll('[data-update-dialog] button')].some(button=>button.textContent===${JSON.stringify(catalog['StartupGate.retry'])})`,
+        ),
+        true,
+      );
+    }
+  }
+  await read(`window.__updateQaLanguage('ru')`);
+  state = { ...state, phase: 'available', message: undefined };
+  await until(
+    `[...document.querySelectorAll('[data-update-dialog] button')].some(button=>button.textContent==='Обновить') && !document.querySelector('[data-update-dialog] [role="alert"]')`,
+  );
+
   await read(
     `[...document.querySelectorAll('[data-update-dialog] button')].find(b=>b.textContent==='Позже').click()`,
   );
@@ -280,6 +315,8 @@ const read = (code) => window.webContents.executeJavaScript(code);
     laterDoesNotDownload: true,
     explicitRequestOnce: true,
     progressAndError: true,
+    windowsStagingErrorsReplaceVerifyingInlineInRussianAndEnglish: true,
+    windowsStagingErrorOffersRetryWithoutEncodedCommand: true,
     transientDialogBlocksReady: true,
     tokenFlushAcknowledged: true,
     applicationInertDuringLease: true,
