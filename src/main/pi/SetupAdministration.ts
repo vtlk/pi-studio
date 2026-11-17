@@ -96,6 +96,8 @@ export class SetupAdministration {
             folder,
             args.source,
             typeof args.name === 'string' ? args.name : undefined,
+            signal,
+            (store) => assertAdministrationScope(store, run),
           ),
           loadedInAgentSession: false,
         };

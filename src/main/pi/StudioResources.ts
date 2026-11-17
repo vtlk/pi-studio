@@ -4,9 +4,10 @@ import { dirname } from 'node:path';
 import { piEnvironment, piNode } from './platform.ts';
 import { realpath } from 'node:fs/promises';
 import { missingMcpExecutable } from '../onboarding/mcpExecutable.ts';
-import type { StudioService } from '../storage/StudioStore.ts';
+import type { StudioService, StudioStore } from '../storage/StudioStore.ts';
 import type { Resource, ResourceCheck } from '../../shared/resources.ts';
 import { inspectSkill } from '../storage/skills.ts';
+import { publishResource } from './publishResource.ts';
 import {
   nativeResourceOperation,
   type NativeResourceRequest,
@@ -57,8 +58,13 @@ export class StudioResources {
       };
     });
   }
-  private call(path: string, request: NativeResourceRequest) {
-    return (this.options.operation ?? nativeResourceOperation)(path, this.options.script, request);
+  private call(path: string, request: NativeResourceRequest, signal?: AbortSignal) {
+    return (this.options.operation ?? nativeResourceOperation)(
+      path,
+      this.options.script,
+      request,
+      signal,
+    );
   }
   /** No process execution or secret decryption. Revisions invalidate previously successful checks. */
   async onboardingProbe(id: string, folder: string) {
@@ -94,31 +100,14 @@ export class StudioResources {
     const scope = await this.scope(folder);
     return this.call(scope.piPath, { action: 'inspect-runtime', cwd: folder });
   }
-  private async publish(folder: string, resource: Resource, replaceName = false) {
-    return this.service.serialize(async () => {
-      const store = await this.service.load();
-      if (store.folder !== folder)
-        throw new Error(t('error.studioResources.theStudioChangedTheResource'));
-      const current = (store.bootstrap().sections.resources ?? []) as Resource[];
-      const old = current.find(
-        (item) => item.kind === resource.kind && item.source === resource.source,
-      );
-      const saved = {
-        ...resource,
-        credential:
-          old?.credential === 'keychain:pistudio-mcp' ? old.credential : resource.credential,
-        ...(old?.mcpSecretNames ? { mcpSecretNames: old.mcpSecretNames } : {}),
-        name: old && !replaceName ? old.name : resource.name,
-        description: resource.description || old?.description || '',
-        version: resource.version || old?.version || '',
-        ...(old ? { id: old.id, createdAt: old.createdAt } : {}),
-      };
-      await store.saveSection('resources', [
-        saved,
-        ...current.filter((item) => item.id !== saved.id),
-      ]);
-      return saved;
-    });
+  private publish(
+    folder: string,
+    resource: Resource,
+    replaceName = false,
+    signal?: AbortSignal,
+    authorize?: (store: StudioStore) => Promise<void>,
+  ) {
+    return publishResource(this.service, folder, resource, replaceName, signal, authorize);
   }
   async configureMcp(folder: string, args: Record<string, unknown>) {
     if (
@@ -178,14 +167,26 @@ export class StudioResources {
       !!displayName?.trim(),
     );
   }
-  async installPackage(folder: string, sourceValue: unknown, displayName?: string) {
+  async installPackage(
+    folder: string,
+    sourceValue: unknown,
+    displayName?: string,
+    signal?: AbortSignal,
+    authorize?: (store: StudioStore) => Promise<void>,
+  ) {
+    signal?.throwIfAborted();
     const source = packageSource(sourceValue);
     const scope = await this.scope(folder);
-    const result = await this.call(scope.piPath, {
-      action: 'install-package',
-      cwd: folder,
-      source,
-    });
+    const result = await this.call(
+      scope.piPath,
+      {
+        action: 'install-package',
+        cwd: folder,
+        source,
+      },
+      signal,
+    );
+    signal?.throwIfAborted();
     return this.publish(
       folder,
       {
@@ -203,6 +204,8 @@ export class StudioResources {
         check: { status: result.status ?? 'unavailable', checkedAt: Date.now() },
       },
       !!displayName?.trim(),
+      signal,
+      authorize,
     );
   }
   async check(id: string, expectedFolder?: string): Promise<ResourceCheck> {
