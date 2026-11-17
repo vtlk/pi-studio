@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { parseDocument } from 'yaml';
 import { readText } from './files.ts';
 import { record } from './validation.ts';
+import type { StudioStore } from './StudioStore.ts';
 import type { Resource, SkillDocument } from '../../shared/resources.ts';
 
 export function parseSkill(content: string) {
@@ -68,4 +69,14 @@ export async function importSkill(source: string, existing: Resource[]): Promise
     contents: '',
     createdAt: previous?.createdAt ?? Date.now(),
   };
+}
+export async function importLocalSkill(store: StudioStore, args: Record<string, unknown>) {
+  if (typeof args.path !== 'string') throw Error(t('error.setupAdministration.aFullSkillPathIs'));
+  const resources = store.bootstrap().sections.resources as Resource[];
+  const resource = await importSkill(args.path, resources);
+  await store.saveSection('resources', [
+    resource,
+    ...resources.filter((item) => item.id !== resource.id),
+  ]);
+  return { resource, loadedInAgentSession: false };
 }

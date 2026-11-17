@@ -4,7 +4,7 @@ import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 import { randomUUID } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { parseAgent, stableId } from '../storage/validation.ts';
-import { importSkill } from '../storage/skills.ts';
+import { importLocalSkill } from '../storage/skills.ts';
 import type { Agent, CapabilityKind } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
 import type { PiModelCatalog } from '../../shared/models.ts';
@@ -16,6 +16,7 @@ import type { Connection } from '../../shared/connections.ts';
 import { builtinResources, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
 import { requiredBuiltinMcpIds } from '../../shared/builtinAssignments.ts';
 import { assertAdministrationScope } from './administrationScope.ts';
+import { RemoteSkillInstaller } from '../skills/RemoteSkillInstaller.ts';
 import {
   endpointProviderId,
   parseModelEndpoint,
@@ -27,18 +28,22 @@ export class SetupAdministration {
   private readonly catalog: () => Promise<PiModelCatalog>;
   private readonly native?: StudioResources;
   private readonly teamImports?: TeamImportTools;
+  private readonly remoteSkills: RemoteSkillInstaller;
   constructor(
     service: StudioService,
     catalog: () => Promise<PiModelCatalog>,
     native?: StudioResources,
     teamImports?: TeamImportTools,
+    remoteSkills = new RemoteSkillInstaller(service),
   ) {
     this.service = service;
     this.catalog = catalog;
     this.native = native;
     this.teamImports = teamImports;
+    this.remoteSkills = remoteSkills;
   }
-  async call(run: PreparedRun, name: string, args: Record<string, unknown>) {
+  async call(run: PreparedRun, name: string, args: Record<string, unknown>, signal?: AbortSignal) {
+    if (name === 'install_skill_from_url') return this.remoteSkills.install(run, args, signal);
     if (
       [
         'list_team_imports',
@@ -196,16 +201,7 @@ export class SetupAdministration {
         ]);
         return { connection, authorization: 'not_checked' };
       }
-      if (name === 'import_skill') {
-        if (typeof args.path !== 'string')
-          throw new Error(t('error.setupAdministration.aFullSkillPathIs'));
-        const resource = await importSkill(args.path, resources);
-        await store.saveSection('resources', [
-          resource,
-          ...resources.filter((item) => item.id !== resource.id),
-        ]);
-        return { resource, loadedInAgentSession: false };
-      }
+      if (name === 'import_skill') return importLocalSkill(store, args);
       if (name === 'configure_team') return configureTeam(store, args);
       if (name === 'configure_agent') {
         const old =

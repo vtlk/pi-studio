@@ -1650,5 +1650,17 @@
   "error.computerSupport.permissionParametersUnavailable": "Параметры запроса разрешений недоступны агенту.",
   "error.computerSupport.visualModelRequired": "Computer Use требует модель с поддержкой изображений.",
   "error.computerSupport.actionUnconfirmed": "Computer Use не подтвердил результат действия. Автоматического повтора или переключения в foreground нет. Получите свежий снимок перед следующим действием.",
-  "computerOverlay.agent": "Агент"
+  "computerOverlay.agent": "Агент",
+  "error.remoteSkill.url": "Укажите публичную ссылку GitHub или HTTPS-ссылку на ZIP без встроенных учётных данных.",
+  "error.remoteSkill.download": "Не удалось скачать скил. Проверьте ссылку и доступ к сети; для закрытого источника используйте публичную ссылку на ZIP или локальный импорт.",
+  "error.remoteSkill.size": "Превышен лимит архива скила: 50 МБ при скачивании, 200 МБ после распаковки, 20 МБ на файл и 4096 записей.",
+  "error.remoteSkill.path": "Укажите точный относительный путь к папке скила без выхода из архива и несовместимых с Windows имён.",
+  "error.remoteSkill.ref": "Не удалось определить ветку, тег или коммит GitHub. Проверьте ссылку или явно укажите ref.",
+  "error.remoteSkill.archive": "ZIP скила повреждён или содержит небезопасные, конфликтующие либо неподдерживаемые пути и файлы.",
+  "error.remoteSkill.cancelled": "Установка скила отменена.",
+  "error.remoteSkill.agents": "Выберите одного или нескольких существующих агентов по их точным стабильным ID.",
+  "error.remoteSkill.hash": "Некорректный SHA-256 архива скила или несовпадение с ожидаемым значением.",
+  "error.remoteSkill.noSkill": "По выбранному пути не найден SKILL.md. Выберите папку существующего скила.",
+  "error.remoteSkill.collision": "Скил с таким именем уже существует. Используйте его ID в assign_resource или выберите другой скил; существующие файлы сохранены.",
+  "error.remoteSkill.duplicateRequest": "Запрос с таким ID уже выполняется. Дождитесь его завершения или отмените его."
 }

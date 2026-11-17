@@ -229,7 +229,7 @@ export class RunHost {
             live.run.teamDelivery = undefined;
           await this.dependencies.observed?.(live.run, event);
         },
-        (name, args) => this.lifecycle.tool(live, name, args),
+        (name, args, signal) => this.lifecycle.tool(live, name, args, signal),
         typeof tools === 'function' ? () => tools(run) : tools,
         this.dependencies.mcpGroups?.(run),
       );

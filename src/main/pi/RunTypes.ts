@@ -31,10 +31,19 @@ export interface RunDependencies {
   activityChanged?: (run: PreparedRun, working: boolean) => void;
   accounting?: (run: PreparedRun, sample: unknown) => Promise<void>;
   accountingLost?: (run: PreparedRun) => Promise<void>;
-  tool?: (run: PreparedRun, name: string, args: Record<string, unknown>) => Promise<unknown>;
+  tool?: (
+    run: PreparedRun,
+    name: string,
+    args: Record<string, unknown>,
+    signal?: AbortSignal,
+  ) => Promise<unknown>;
   observed?: (run: PreparedRun, event: ChannelEvent) => Promise<void>;
   serviceAgent?: boolean;
-  failureChanged?: (run: PreparedRun, failure?: RunFailure, terminalDetail?: TerminalCloseDetail) => void;
+  failureChanged?: (
+    run: PreparedRun,
+    failure?: RunFailure,
+    terminalDetail?: TerminalCloseDetail,
+  ) => void;
   completed?: (
     run: PreparedRun,
     outputs: Awaited<ReturnType<typeof validateCompletedOutputs>>,

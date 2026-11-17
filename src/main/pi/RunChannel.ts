@@ -1,3 +1,4 @@
+import { callSessionTool } from './callSessionTool.ts';
 import { createServer, type ServerResponse, type IncomingMessage } from 'node:http';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 
@@ -19,7 +20,7 @@ interface Lease {
   token: string;
   envelope: SessionEnvelope;
   event: (event: ChannelEvent) => Promise<void>;
-  tool: (name: string, args: Record<string, unknown>) => Promise<unknown>;
+  tool: (name: string, args: Record<string, unknown>, signal: AbortSignal) => Promise<unknown>;
   tools: readonly SessionTool[] | (() => readonly SessionTool[]);
   groups: readonly SessionMcpGroup[];
   calls: Map<string, AbortController>;
@@ -300,21 +301,14 @@ export class RunChannel {
               response.off('close', disconnect);
             }
           } else {
-            const keepAlive = ['generate_image', 'install_package'].includes(params.name)
-              ? keepMcpAlive(request, response)
-              : undefined;
-            try {
-              result = {
-                content: [
-                  {
-                    type: 'text',
-                    text: JSON.stringify(await lease.tool(params.name, params.arguments ?? {})),
-                  },
-                ],
-              };
-            } finally {
-              clearInterval(keepAlive);
-            }
+            result = await callSessionTool(
+              lease,
+              params.name,
+              params.arguments ?? {},
+              rpcId,
+              response,
+              () => keepMcpAlive(request, response),
+            );
           }
         } catch (error) {
           result = {

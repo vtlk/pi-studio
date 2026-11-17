@@ -55,7 +55,7 @@ test('launch failure reaches the caller with the named MCP rather than a nonexis
   assert.match(failure!.message, /Не подключены MCP: elevenlabs/);
   assert.equal(failure!.message.includes('Подробности доступны'), false);
 });
-test('unlimited native client deadline is confined to the authenticated app-owned team entry', () => {
+test('unlimited native client deadline is confined to authenticated app-owned team/internal entries', () => {
   const bootstrap = { url: 'http://127.0.0.1:123/session/owned', token: 'probe-token' };
   const owned = {
     name: 'team',
@@ -73,4 +73,18 @@ test('unlimited native client deadline is confined to the authenticated app-owne
   assert.equal(result[0].config.timeout, Infinity);
   assert.equal(owned.config.timeout, 120, 'Input envelope/JSON config is unchanged');
   assert.deepEqual(result.slice(1), [external, other, wrong]);
+  const internal = {
+    ...owned,
+    name: 'pi_studio',
+    source: 'Pi Studio internal',
+    config: { ...owned.config, url: bootstrap.url + '/mcp', timeout: 1200 },
+  };
+  assert.equal(studioMcpDeadlines([internal], bootstrap)[0].config.timeout, Infinity);
+  assert.equal(
+    studioMcpDeadlines(
+      [{ ...internal, config: { ...internal.config, headers: { Authorization: 'Bearer wrong' } } }],
+      bootstrap,
+    )[0].config.timeout,
+    1200,
+  );
 });

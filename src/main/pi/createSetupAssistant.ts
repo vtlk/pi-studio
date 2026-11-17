@@ -157,6 +157,6 @@ export function createSetupAssistant(service: StudioService, options: Options) {
       return { ...run.project, agents: [run.agent] };
     },
     read: async (run) => ({ ...run.project, agents: [run.agent] }),
-    tool: (run, name, args) => administration.call(run, name, args),
+    tool: (run, name, args, signal) => administration.call(run, name, args, signal),
   });
 }

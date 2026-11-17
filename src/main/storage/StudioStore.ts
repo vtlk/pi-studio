@@ -23,6 +23,7 @@ import { teamAgents } from '../../shared/agentTeams.ts';
 import { reconcileTeams } from './agentCatalog.ts';
 import { snapshotAgent } from './validation.ts';
 import type { Resource } from '../../shared/resources.ts';
+import { assignedSkillSections } from './assignDownloadedSkill.ts';
 
 export class StudioStore {
   private sections: StudioSections = {};
@@ -187,6 +188,14 @@ export class StudioStore {
       )
     )
       throw new Error(t('error.studioStore.theSystemAssistantIsExcluded2'));
+    await atomicJson(await safePath(this.folder, '.pistudio/studio.json'), {
+      schemaVersion: 1,
+      sections,
+    });
+    this.sections = sections;
+  }
+  async addAssignedSkill(resource: Resource, agentIds: string[]) {
+    const sections = assignedSkillSections(this.sections, resource, agentIds);
     await atomicJson(await safePath(this.folder, '.pistudio/studio.json'), {
       schemaVersion: 1,
       sections,

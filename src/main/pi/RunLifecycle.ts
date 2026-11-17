@@ -213,7 +213,7 @@ export class RunLifecycle {
       );
     }
   }
-  async tool(live: LiveRun, name: string, args: Record<string, unknown>) {
+  async tool(live: LiveRun, name: string, args: Record<string, unknown>, signal?: AbortSignal) {
     if (name === 'web_search') return searchWeb(args.query);
     if (name === 'get_run_context')
       return {
@@ -251,7 +251,7 @@ export class RunLifecycle {
         readyAfter: 'agent_settled',
       };
     }
-    if (this.dependencies.tool) return this.dependencies.tool(live.run, name, args);
+    if (this.dependencies.tool) return this.dependencies.tool(live.run, name, args, signal);
     throw new Error('Tool unavailable');
   }
 }

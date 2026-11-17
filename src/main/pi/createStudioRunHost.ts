@@ -81,14 +81,14 @@ export function createStudioRunHost(service: StudioService, options: Options) {
       service.serialize(async () => {
         await (await service.load()).accounting.lost(run);
       }),
-    tool: async (run, name, args) => {
+    tool: async (run, name, args, signal) => {
       if (administrativeTools.some((tool) => tool.name === name)) {
         if (
           !hasBuiltinMcp(run.agent.profile, 'pistudio-administration') ||
           !(await permissions.get(run)?.('pistudio-administration'))
         )
           throw new Error(t('builtin.assignmentDisabled'));
-        return administration.call(run, name, args);
+        return administration.call(run, name, args, signal);
       }
       if (['generate_image', 'get_image_operation'].includes(name) && options.images)
         return options.images.tool(run, name, args);
