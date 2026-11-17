@@ -6,6 +6,8 @@ export function Disclosure({
   label,
   children,
   defaultOpen = false,
+  chevronPosition,
+  separator,
   icon,
   toggle,
   locked,
@@ -16,6 +18,8 @@ export function Disclosure({
   label: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  chevronPosition?: ListRowProps['chevronPosition'];
+  separator?: ListRowProps['separator'];
   icon?: ListRowProps['icon'];
   toggle?: ListRowProps['toggle'];
   locked?: ListRowProps['locked'];
@@ -39,6 +43,8 @@ export function Disclosure({
         actions={actions}
         id={triggerId}
         expanded={open}
+        chevronPosition={chevronPosition}
+        separator={separator}
         controls={contentId}
         onClick={() => setOpen((value) => !value)}
       />

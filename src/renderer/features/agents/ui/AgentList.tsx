@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import type { TeamWorkspaceMode } from '../../../../shared/agentTeams';
 import { useState } from 'react';
 import { FileInput, FileOutput, Pencil, Trash2 } from 'lucide-react';
-import { TeamIcon } from './TeamIcon';
 import { Disclosure } from '@/shared/ui/Disclosure';
 import { ActionMenu } from '@/shared/ui/ActionMenu';
 import { useConfirm } from '@/shared/model/Confirm';
@@ -78,7 +77,8 @@ export function AgentList() {
           <div className="agent-team" key={team.id} data-team-id={team.id}>
             <Disclosure
               label={team.name}
-              icon={TeamIcon}
+              chevronPosition="start"
+              separator
               defaultOpen
               actions={
                 <>
