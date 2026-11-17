@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-11-16T17:59:58.490Z",
+  "checkedAt": "2026-11-17T12:16:29.413Z",
   "nativeMain": true,
   "packagedEntry": false,
-  "version": "0.2.0-alpha.85",
+  "version": "0.2.0-alpha.91",
   "isolatedOffscreen": true,
   "emptyNoFallback": true,
   "twoIndependentTeams": true,
@@ -11,6 +11,7 @@
   "projectExplicitSelection": true,
   "projectScopedToSelectedTeam": true,
   "workspaceModeCreateAndEditThroughSharedSelect": true,
+  "workspaceDialogLiveRuEn": true,
   "workspaceModePersistsAcrossReloadAndUndo": true,
   "sharedProjectCreatesNoOutputOrAgentNamedWorkFolders": true,
   "confirmationCancel": true,

@@ -365,7 +365,7 @@ const timeout = setTimeout(() => {
   );
   await click('Экспорт команды агентов');
   await until(
-    `document.querySelector('.settings-content [role="status"]')?.textContent.includes('Пакет сохранён')`,
+    `document.querySelector('.settings-content [role="status"]')?.textContent.trim()==='Команда сохранена.'`,
   );
   assert.ok((await readFile(packagePath)).length > 0);
   const beforeImport = await load();

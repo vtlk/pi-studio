@@ -69,7 +69,9 @@ export async function checkGitHubReleases(options: {
       options.signal,
       options.fetch,
     );
-    const data: unknown = JSON.parse((await boundedBody(response, 4 * 1024 ** 2)).toString('utf8'));
+    const data: unknown = JSON.parse(
+      (await boundedBody(response, 4 * 1024 ** 2, options.signal)).toString('utf8'),
+    );
     if (!Array.isArray(data))
       throw new Error(t('error.githubReleases.githubReturnedAnInvalidRelease'));
     releases.push(...data.filter((item) => release(item, options.target)));
@@ -86,7 +88,7 @@ export async function checkGitHubReleases(options: {
       throw new Error(t('error.githubReleases.invalidUpdateMetadataSize'));
     const manifestUrl = releaseAssetUrl(item.tag_name, name);
     const response = await githubResponse(manifestUrl, options.signal, options.fetch);
-    const bytes = await boundedBody(response, maxManifestBytes);
+    const bytes = await boundedBody(response, maxManifestBytes, options.signal);
     if (bytes.length !== metadata.size)
       throw new Error(t('error.githubReleases.updateMetadataChangedWhileBeing'));
     const manifest = verifyManifest(bytes, options.publicKey);

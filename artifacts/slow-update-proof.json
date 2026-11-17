@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-17T12:19:16.016Z",
+  "elapsedMs": 64079.244083000005,
+  "progressCalls": 64,
+  "bytes": 361,
+  "productionDownloadVerifier": true,
+  "actualFetchStreamExceeds60Seconds": true,
+  "signatureHashArchiveAndContentVerified": true,
+  "transportEndpoint": "Owned loopback fixture only; production URL allowlist is unchanged",
+  "ephemeralQaSigningKeyOnly": true,
+  "userAppOrDataChanged": false,
+  "archiveExecuted": false,
+  "temporaryFixtureRemoved": true
+}

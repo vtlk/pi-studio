@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-17T12:22:02.644404+00:00",
+  "candidateVersion": "0.2.0-alpha.91",
+  "reportedIssues": [
+    "Mac update timeout",
+    "Windows session lease inspection fails on one PC; launch works on another",
+    "Export succeeded but displayed unwanted dependency warnings"
+  ],
+  "changes": [
+    "60-second connection/header deadline is cleared after headers; body uses per-read inactivity and preserves explicit abort",
+    "Proven-dead PIDs skip CIM; live Windows inspection gets 15 seconds and structured identity; unknown/denied errors remain fail-closed",
+    "Successful export shows only Team saved; no dependency dump or irrelevant import-report action; package metadata unchanged"
+  ],
+  "unitTestsPassed": 385,
+  "focusedNetworkLeaseAndUpdateTestsPassed": 18,
+  "lint": true,
+  "typecheckAndBuild": true,
+  "architectureModules": 394,
+  "slowStreamElapsedMs": 64079.244083000005,
+  "slowStreamUsesRealFetchAndProductionVerifier": true,
+  "exportUiActualFileAndQuietToastVerified": true,
+  "userAppOrDataChangedByChecks": false,
+  "nativeSecondWindowsPcVerifiedAfterFix": false,
+  "userMacUpdatedByDeveloper": false,
+  "evidenceSha256": {
+    "slow-update-proof.json": "6d51458118b402cf9b89901ef3678daf0721c0fcff6f784ceb6165b1e310dec1",
+    "agent-teams-proof.json": "9de423bbef143734d7f56d9565c3005f2b8d7ea998b588042afe583a562625f8"
+  }
+}

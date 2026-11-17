@@ -48,8 +48,17 @@ module.exports = async ({
     await clearToast();
     await openTeamMenu(team.id);
     await chooseTeamAction('Экспорт команды');
-    await until(`document.querySelector('.toast')?.textContent.includes('Пакет сохранён')`);
+    await until(`document.querySelector('.toast')?.textContent.trim()==='Команда сохранена.'`);
     const packet = JSON.parse(gunzipSync(await readFile(packagePath)).toString());
+    assert.ok(
+      packet.manifest.requirements.length > 0,
+      'Portable setup metadata remains in the package',
+    );
+    assert.equal(
+      await js(`!!document.querySelector('.toast .toast-action')`),
+      false,
+      'Successful export does not offer an irrelevant import report',
+    );
     assert.equal(packet.manifest.team.name, 'Одинаковое имя');
     assert.deepEqual(
       packet.manifest.agents.map((a) => a.name),

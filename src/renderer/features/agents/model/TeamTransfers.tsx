@@ -72,7 +72,11 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
           : t('TeamTransfers.packageSavedTaskDeliveryIsUnconfirmedIt'))
     );
   };
-  const action = async (task: () => Promise<string | undefined>, notify = false) => {
+  const action = async (
+    task: () => Promise<string | undefined>,
+    notify = false,
+    offerImportReport = true,
+  ) => {
     if (active.current || !window.studio || !folder) return;
     active.current = true;
     epoch.current++;
@@ -98,13 +102,18 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     if (!mounted.current || !text) return;
     setMessage(text);
     if (notify)
-      demo(text, {
-        label: uiText('TeamTransfers.report'),
-        onClick: () => {
-          setDetails(true);
-          void refreshReports();
-        },
-      });
+      demo(
+        text,
+        offerImportReport
+          ? {
+              label: uiText('TeamTransfers.report'),
+              onClick: () => {
+                setDetails(true);
+                void refreshReports();
+              },
+            }
+          : undefined,
+      );
   };
   const value: TeamTransfersValue = {
     busy,
@@ -113,20 +122,17 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     message,
     reports,
     exportTeam: (id, notify) =>
-      action(async () => {
-        // The stable ID is captured by the row, not inferred from a label or selected profile.
-        if (!teams.some((team) => team.id === id))
-          throw new Error(t('TeamTransfers.theTeamIsUnavailable'));
-        const result = await window.studio!.exportAgentTeam({ folder: folder!, teamId: id });
-        return result
-          ? t('TeamTransfers.packageSaved', {
-              value1: result.requirements.length
-                ? t('TeamTransfers.externalDependenciesAreListedInTheManifest') +
-                  result.requirements.join(' ')
-                : '',
-            })
-          : undefined;
-      }, notify),
+      action(
+        async () => {
+          // The stable ID is captured by the row, not inferred from a label or selected profile.
+          if (!teams.some((team) => team.id === id))
+            throw new Error(t('TeamTransfers.theTeamIsUnavailable'));
+          const result = await window.studio!.exportAgentTeam({ folder: folder!, teamId: id });
+          return result ? t('TeamTransfers.teamSaved') : undefined;
+        },
+        notify,
+        false,
+      ),
     importTeam: (notify) =>
       action(async () => {
         const result = await window.studio!.importAgentTeam(folder!);

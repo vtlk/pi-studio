@@ -37,69 +37,116 @@ export async function githubResponse(
   signal: AbortSignal,
   request: FetchUpdate = fetch,
   now = Date.now(),
+  headerTimeoutMs = 60_000,
 ) {
   let url = new URL(address);
-  const timeout = AbortSignal.any([signal, AbortSignal.timeout(60_000)]);
-  for (let redirects = 0; redirects <= 5; redirects++) {
-    timeout.throwIfAborted();
-    if (!allowed(url)) throw new Error(t('error.githubTransport.updateSourceNotAllowed'));
-    const response = await request(url, {
-      redirect: 'manual',
-      signal: timeout,
-      credentials: 'omit',
-      headers: {
-        Accept:
-          url.hostname === 'api.github.com'
-            ? 'application/vnd.github+json'
-            : 'application/octet-stream',
-      },
-    });
-    if ([301, 302, 303, 307, 308].includes(response.status)) {
-      await response.body?.cancel();
-      const location = response.headers.get('location');
-      if (!location || redirects === 5)
-        throw new Error(t('error.githubTransport.invalidUpdateRedirect'));
-      url = new URL(location, url);
-      continue;
+  const deadline = new AbortController();
+  const timeout = AbortSignal.any([signal, deadline.signal]);
+  const timer = setTimeout(
+    () => deadline.abort(new UpdateNetworkError(t('error.githubTransport.headerTimeout'))),
+    headerTimeoutMs,
+  );
+  try {
+    for (let redirects = 0; redirects <= 5; redirects++) {
+      timeout.throwIfAborted();
+      if (!allowed(url)) throw new Error(t('error.githubTransport.updateSourceNotAllowed'));
+      const response = await request(url, {
+        redirect: 'manual',
+        signal: timeout,
+        credentials: 'omit',
+        headers: {
+          Accept:
+            url.hostname === 'api.github.com'
+              ? 'application/vnd.github+json'
+              : 'application/octet-stream',
+        },
+      });
+      if ([301, 302, 303, 307, 308].includes(response.status)) {
+        await response.body?.cancel();
+        const location = response.headers.get('location');
+        if (!location || redirects === 5)
+          throw new Error(t('error.githubTransport.invalidUpdateRedirect'));
+        url = new URL(location, url);
+        continue;
+      }
+      if (!response.ok) {
+        await response.body?.cancel();
+        const wait = response.headers.get('retry-after');
+        const reset = Number(response.headers.get('x-ratelimit-reset')) * 1000;
+        const retryAt = wait
+          ? /^\d+$/.test(wait)
+            ? now + Number(wait) * 1000
+            : Date.parse(wait)
+          : reset;
+        throw new UpdateNetworkError(
+          response.status === 404
+            ? t('error.githubTransport.releasesUnavailableTheRepositoryMay')
+            : [403, 429].includes(response.status)
+              ? t('error.githubTransport.githubTemporarilyRateLimitedUpdate')
+              : t('error.githubTransport.couldNotRetrieveTheUpdate', {
+                  value1: response.status,
+                }),
+          Number.isFinite(retryAt) && retryAt > now
+            ? Math.min(retryAt, now + 24 * 3600_000)
+            : undefined,
+        );
+      }
+      if (Number(response.headers.get('content-length')) > maxArchiveBytes) {
+        await response.body?.cancel();
+        throw new Error(t('error.githubTransport.theUpdateFileExceedsThe'));
+      }
+      return response;
     }
-    if (!response.ok) {
-      await response.body?.cancel();
-      const wait = response.headers.get('retry-after');
-      const reset = Number(response.headers.get('x-ratelimit-reset')) * 1000;
-      const retryAt = wait
-        ? /^\d+$/.test(wait)
-          ? now + Number(wait) * 1000
-          : Date.parse(wait)
-        : reset;
-      throw new UpdateNetworkError(
-        response.status === 404
-          ? t('error.githubTransport.releasesUnavailableTheRepositoryMay')
-          : [403, 429].includes(response.status)
-            ? t('error.githubTransport.githubTemporarilyRateLimitedUpdate')
-            : t('error.githubTransport.couldNotRetrieveTheUpdate', {
-                value1: response.status,
-              }),
-        Number.isFinite(retryAt) && retryAt > now
-          ? Math.min(retryAt, now + 24 * 3600_000)
-          : undefined,
-      );
-    }
-    if (Number(response.headers.get('content-length')) > maxArchiveBytes) {
-      await response.body?.cancel();
-      throw new Error(t('error.githubTransport.theUpdateFileExceedsThe'));
-    }
-    return response;
+    throw new Error(t('error.githubTransport.tooManyUpdateRedirects'));
+  } finally {
+    // A response can keep streaming for minutes. Do not abort its healthy body after 60 seconds.
+    clearTimeout(timer);
   }
-  throw new Error(t('error.githubTransport.tooManyUpdateRedirects'));
 }
-export async function boundedBody(response: Response, limit: number) {
+
+/** Bound inactivity per read, while allowing a slow download to keep making progress. */
+export function readUpdateChunk(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal?: AbortSignal,
+  idleTimeoutMs = 60_000,
+) {
+  signal?.throwIfAborted();
+  return new Promise<ReadableStreamReadResult<Uint8Array>>((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+    };
+    const fail = (error: unknown) => {
+      cleanup();
+      reject(error);
+      void reader.cancel(error).catch(() => undefined);
+    };
+    const abort = () => fail(signal?.reason);
+    const timer = setTimeout(
+      () => fail(new UpdateNetworkError(t('error.githubTransport.downloadIdleTimeout'))),
+      idleTimeoutMs,
+    );
+    signal?.addEventListener('abort', abort, { once: true });
+    reader.read().then(
+      (result) => {
+        cleanup();
+        resolve(result);
+      },
+      (error) => {
+        cleanup();
+        reject(error);
+      },
+    );
+  });
+}
+export async function boundedBody(response: Response, limit: number, signal?: AbortSignal) {
   if (!response.body) throw new Error(t('error.githubTransport.githubReturnedAnEmptyResponse'));
   const reader = response.body.getReader();
   let size = 0;
   const chunks: Uint8Array[] = [];
   try {
     while (true) {
-      const chunk = await reader.read();
+      const chunk = await readUpdateChunk(reader, signal);
       if (chunk.done) break;
       size += chunk.value.length;
       if (size > limit) throw new Error(t('error.githubTransport.theUpdateResponseExceedsThe'));

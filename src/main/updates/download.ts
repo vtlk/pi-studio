@@ -3,7 +3,12 @@ import { createHash } from 'node:crypto';
 import { open, rm, statfs } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { VerifiedUpdate } from './githubReleases.ts';
-import { boundedBody, githubResponse, type FetchUpdate } from './githubTransport.ts';
+import {
+  boundedBody,
+  githubResponse,
+  readUpdateChunk,
+  type FetchUpdate,
+} from './githubTransport.ts';
 import { maxManifestBytes, verifyManifest } from './manifest.ts';
 import { inspectUpdateArchive } from './archive.ts';
 
@@ -28,7 +33,10 @@ export async function downloadVerifiedUpdate(options: {
     throw new Error(t('error.download.notEnoughFreeSpaceFor'));
   // Revalidate the signed metadata after the user's explicit choice, including asset revocation.
   const response = await githubResponse(update.manifestUrl, signal, options.fetch);
-  const current = verifyManifest(await boundedBody(response, maxManifestBytes), options.publicKey);
+  const current = verifyManifest(
+    await boundedBody(response, maxManifestBytes, signal),
+    options.publicKey,
+  );
   if (JSON.stringify(current) !== JSON.stringify(update.manifest))
     throw new Error(t('error.download.theReleaseChangedCheckFor'));
   const archive = await githubResponse(update.archiveUrl, signal, options.fetch);
@@ -49,7 +57,7 @@ export async function downloadVerifiedUpdate(options: {
     let received = 0;
     while (true) {
       signal.throwIfAborted();
-      const chunk = await reader.read();
+      const chunk = await readUpdateChunk(reader, signal);
       if (chunk.done) break;
       received += chunk.value.length;
       if (received > expected.bytes)
