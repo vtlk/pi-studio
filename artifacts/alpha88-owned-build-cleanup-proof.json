@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-17T08:10:45.012307+00:00",
+  "ownedPackagingAppRemoved": true,
+  "temporaryDetachedAuditWorktreeRemoved": true,
+  "installedAppUntouched": true,
+  "currentReleaseArchivesRetained": [
+    "0.2.0-alpha.88 darwin-arm64",
+    "0.2.0-alpha.86 win32-x64"
+  ],
+  "cacheSizesMiB": {
+    "dependencies": 508,
+    "releases": 300,
+    "browserQaRuntime": 222,
+    "auditTools": 20
+  },
+  "freeBytesAfterCleanup": 1636474880,
+  "otherDiskGrowthAttribution": "Not established; these retained caches do not account for several GiB of growth",
+  "userProjectsOrBrowserProfilesDeleted": false
+}

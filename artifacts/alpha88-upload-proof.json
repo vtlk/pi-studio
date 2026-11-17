@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-17T07:53:16.632656+00:00",
+  "version": "0.2.0-alpha.88",
+  "releaseId": 448306901,
+  "sourceCommit": "cc0f264f5c6b8f01c7b10e171a4dc4dd4f537714",
+  "draftAtVerification": true,
+  "allThreeRemoteSizesAndDigestsMatchLocal": true,
+  "assets": [
+    {
+      "name": "Pi-Studio-0.2.0-alpha.88-darwin-arm64.update.json",
+      "bytes": 622,
+      "digest": "sha256:96ce0bc47086fea612c3bb7578e113002fdc3c0c96a87fe0f601124af7c85274"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.88-mac-arm64.zip",
+      "bytes": 142881089,
+      "digest": "sha256:375bd943868d0cdbd1567450ed01ed5d0ef4df24037cf136f9d118ef33324e5a"
+    },
+    {
+      "name": "Pi-Studio-0.2.0-alpha.88-mac-arm64.zip.sha256",
+      "bytes": 105,
+      "digest": "sha256:ff75891295c478cabe46cc2b52029a5008cb3da0790499171bdbb434bdd7f999"
+    }
+  ]
+}

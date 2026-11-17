@@ -1,7 +1,7 @@
 {
   "checkedAt": "2026-11-16T21:10:35.856Z",
   "headAtAudit": "4fd44dd531942a3a55a8041b60b623f61ae5c1d4",
-  "backlogUniqueIdCount": 213,
+  "backlogUniqueIdCount": 214,
   "backlogIds": [
     "AG-01",
     "AG-02",
@@ -167,6 +167,7 @@
     "SND-01",
     "SND-02",
     "SND-03",
+    "STAR-01",
     "TEAM-01",
     "TEAM-02",
     "TEAM-03",
@@ -233,6 +234,7 @@
     "PRJ-19",
     "REL-01",
     "REL-03",
+    "STAR-01",
     "TEAM-07",
     "TEAM-08",
     "TEAM-09",
@@ -319,7 +321,7 @@
   ],
   "backlogSha256": "4a25c3de5429788301402aec0221306c4f7e15fefd6af72e348cbe3c3e9dd052",
   "auditSha256": "d01233e5f89248d2f9548c97ef876874bb34eb64e2da47ca54a06c1a08a53c58",
-  "installedVersion": "0.2.0-alpha.86",
+  "installedVersion": "0.2.0-alpha.87",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
   "scope": "Requirement-index and supersession reconciliation with explicitly bounded read evidence, not a new runtime test or completion proof. Full specification text stays local and ignored.",
@@ -331,7 +333,7 @@
     "end-to-end real GitHub installation/final accepted release",
     "final distribution rights review with known cache/provenance limitations"
   ],
-  "publishedVersion": "0.2.0-alpha.86",
+  "publishedVersion": "0.2.0-alpha.88",
   "promptFitPublishedVersion": "0.2.0-alpha.86",
   "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
   "publishedWindowsVersion": "0.2.0-alpha.86",
@@ -346,7 +348,24 @@
   "desktopQaDeferredByUser": true,
   "nativePermissionProbePrompts": false,
   "nativeModelLoopAccepted": false,
-  "preparedCandidateVersion": "0.2.0-alpha.87",
-  "preparedCandidateStatus": "draft-no-assets",
-  "signingDeferredToAvoidSystemDialogs": true
+  "preparedCandidateVersion": "0.2.0-alpha.88",
+  "preparedCandidateStatus": "Published and anonymously verified; installation awaits separate consent",
+  "signingDeferredToAvoidSystemDialogs": false,
+  "latestIncrementalReleaseVerification": {
+    "checkedAt": "2026-11-17T08:10:45.010386+00:00",
+    "sourceCommit": "cc0f264f5c6b8f01c7b10e171a4dc4dd4f537714",
+    "feature": "STAR-01",
+    "unitTests": 360,
+    "physicalDesktopAcceptance": false,
+    "userDataChanged": false,
+    "backlogSha256": "605460ace27c3ed53f7f1d56d1bcfbf309e36bb4097b3b7fdb531e0ae8b6de0e",
+    "auditSha256": "f1cd557aa5ec274bd13c3b05b41c669260ddbb2bd03c3ec57ae4d04c0ae1d24b",
+    "evidence": {
+      "github-star-ui-proof.json": "80e2937108dcbdf34b052f9555f0c50b68a7d23598df10235e58577bfb0041f8",
+      "alpha88-validation-proof.json": "9551a0c84c47e8c6dc50ef90c1bd6805dad6b1b6288931da2721b5518e6a0f87",
+      "alpha88-release-proof.json": "c013ba7c7b18454097c53a46ff475d815405d93fb1ecd7b08d9b4f7194132eac",
+      "alpha88-security-audit-proof.json": "cf531e5be2ec66a149c80000dc7c63fef1264b4a0c69c4a7513deef058b30dd4",
+      "release-package-0.2.0-alpha.88-proof.json": "ca67442cb4a26e0f6da10bef9e3cbad424ac2484db554cf918480826be3b55bb"
+    }
+  }
 }
