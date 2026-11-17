@@ -436,7 +436,8 @@ async function child() {
   state.revision++;
   send('studio:chat-changed', target);
   await until(`document.querySelector(${JSON.stringify(card('new-error'))}).open`);
-  const toolLocales = [];
+  const toolLocales = [],
+    composerLayouts = [];
   for (const [lang, mode] of [
     ['ru', 'light'],
     ['ru', 'dark'],
@@ -460,6 +461,39 @@ async function child() {
     const body = await js(`document.querySelector(${JSON.stringify(card('new-error'))}).innerText`);
     assert.match(body, lang === 'ru' ? /Параметры.*Результат/s : /Arguments.*Result/s);
     toolLocales.push({ language: lang, theme: mode, titles });
+    await js(
+      `(()=>{const e=document.querySelector('.pi-chat-composer textarea');e.focus();Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,Array.from({length:20},(_,i)=>'Строка / Line '+i).join(String.fromCharCode(10)));e.dispatchEvent(new Event('input',{bubbles:true}));e.setSelectionRange(e.value.length,e.value.length);})()`,
+    );
+    await windows.webContents.insertText(' LAST_VISIBLE');
+    await until(
+      `document.querySelector('.pi-chat-composer textarea').value.endsWith(' LAST_VISIBLE')`,
+    );
+    const composerLayout = await js(
+      `(()=>{const e=document.querySelector('.pi-chat-composer textarea'),g=e.parentElement.querySelector('.textarea-resize-handle'),r=e.getBoundingClientRect(),h=g.getBoundingClientRect();e.scrollTop=e.scrollHeight;return{language:document.documentElement.lang,theme:document.documentElement.dataset.theme,fieldBottom:r.bottom,gripTop:h.top,fieldHeight:r.height,scrollable:e.scrollHeight>e.clientHeight,gripLabel:g.getAttribute('aria-label')}})()`,
+    );
+    assert.ok(composerLayout.scrollable);
+    assert.ok(
+      composerLayout.fieldBottom <= composerLayout.gripTop,
+      'Resize grip stays outside the actual text viewport',
+    );
+    assert.equal(
+      composerLayout.gripLabel,
+      lang === 'ru' ? 'Изменить высоту поля' : 'Resize field height',
+    );
+    for (const key of ['ArrowDown', 'Home', 'End', 'ArrowUp']) {
+      await js(
+        `document.querySelector('.pi-chat-composer .textarea-resize-handle').dispatchEvent(new KeyboardEvent('keydown',{key:${JSON.stringify(key)},bubbles:true}))`,
+      );
+      assert.equal(
+        await js(
+          `(()=>{const e=document.querySelector('.pi-chat-composer textarea'),g=e.parentElement.querySelector('.textarea-resize-handle');return e.getBoundingClientRect().bottom<=g.getBoundingClientRect().top})()`,
+        ),
+        true,
+      );
+    }
+    await js(`(()=>{const e=document.querySelector('.pi-chat-composer textarea');e.scrollTop=e.scrollHeight;})()`);
+    composerLayouts.push(composerLayout);
+
     await new Promise((resolve) => setTimeout(resolve, 200));
     await writeFile(
       join(root, `tools-${lang}-${mode}.png`),
@@ -469,6 +503,9 @@ async function child() {
   await js(`window.studio.setLanguage('ru');window.studio.setTheme('light')`);
   await until(
     `document.documentElement.lang==='ru'&&document.documentElement.dataset.theme==='light'`,
+  );
+  await js(
+    `(()=>{const e=document.querySelector('.pi-chat-composer textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'');e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
   );
   const geometry = await js(
     `(()=>{const chat=document.querySelector('.pi-chat-panel').getBoundingClientRect(),pane=document.querySelector('.output-preview-pane').getBoundingClientRect(),footer=document.querySelector('.pi-chat-composer').getBoundingClientRect();return{chat:{x:chat.x,y:chat.y,width:chat.width,height:chat.height},pane:{x:pane.x,y:pane.y,width:pane.width,height:pane.height},footerBottom:footer.bottom,chatBottom:chat.bottom,overflow:document.documentElement.scrollWidth>innerWidth}})()`,
@@ -640,6 +677,7 @@ async function child() {
           'manual collapse survives SDK message ID replacement',
           'historical incomplete tools stay inactive; output remains inert',
           'tool summary/details translated in RU/EN and both themes',
+          'multiline composer scroll and keyboard resize keep grip outside text viewport in RU/EN/light/dark',
           'RU/EN refresh confirmation and cancel without mutation',
           'refresh consent carries exact run and task sequence',
           'RU/EN in light/dark',
@@ -654,6 +692,7 @@ async function child() {
         spacing,
         refreshScreens,
         toolLocales,
+        composerLayouts,
       },
       null,
       2,

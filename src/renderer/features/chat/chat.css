@@ -151,7 +151,22 @@
   max-height: 45%;
   overflow: auto;
 }
+.pi-chat-composer .ui-textarea-control {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--field-border);
+  background: var(--surface);
+}
+/* The native caret scrolls within the textarea viewport. Keep the grip outside it. */
+.pi-chat-composer .textarea-resize-handle {
+  position: static;
+  flex-shrink: 0;
+  border-radius: 0;
+}
 .pi-chat-composer .ui-textarea {
+  border: 0;
+  padding-bottom: 8px;
+  height: 80px;
   min-height: 66px;
   max-height: 160px;
   font-size: 14px;
@@ -248,9 +263,6 @@
   .pi-chat-panel {
     animation: none;
   }
-}
-.pi-chat-composer .ui-textarea {
-  height: 80px;
 }
 .pi-chat-composer .reference-attachments-compact {
   flex: 0 1 auto;
