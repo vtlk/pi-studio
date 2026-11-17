@@ -1748,5 +1748,6 @@
   "ToolCard.argumentsUnavailable": "Arguments are unavailable.",
   "ToolCard.arguments": "Arguments",
   "ToolCard.result": "Result",
-  "ToolCard.toolName": "Tool"
+  "ToolCard.toolName": "Tool",
+  "error.privateDirectory.couldNotProtectTheUpdate": "Could not restrict access to the update folder. Check permissions on the installation directory."
 }

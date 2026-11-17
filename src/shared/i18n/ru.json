@@ -1748,5 +1748,6 @@
   "ToolCard.argumentsUnavailable": "Параметры пока недоступны.",
   "ToolCard.arguments": "Параметры",
   "ToolCard.result": "Результат",
-  "ToolCard.toolName": "Инструмент"
+  "ToolCard.toolName": "Инструмент",
+  "error.privateDirectory.couldNotProtectTheUpdate": "Не удалось ограничить доступ к папке обновления. Проверьте права на каталог установки."
 }
