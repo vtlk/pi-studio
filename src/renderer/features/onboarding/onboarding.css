@@ -7,18 +7,19 @@
 }
 .onboarding-content {
   width: 100%;
-  max-width: 800px;
+  max-width: 960px;
 }
 .onboarding-content > h1 {
   margin-bottom: 10px;
 }
 .onboarding-list {
   list-style: none;
-  margin: 28px 0;
+  margin: 24px 0 0;
   padding: 0;
 }
 .onboarding-list > li {
-  display: flex;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
   gap: 18px;
   padding: 17px 0;
@@ -53,19 +54,10 @@
   text-decoration: line-through;
   color: var(--text-dim);
 }
-.onboarding-assistant {
+.onboarding-task-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 22px;
-}
-.onboarding-assistant > .button {
-  white-space: normal;
-  text-align: left;
-}
-.onboarding-message {
-  margin-top: 20px;
+  align-items: center;
+  gap: 8px;
 }
 .onboarding-spinner {
   animation: onboarding-spin 1s linear infinite;
@@ -80,9 +72,13 @@
     animation: none;
   }
 }
-@media (max-width: 650px) {
+@media (max-width: 760px) {
   .onboarding-list > li {
     gap: 12px;
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+  .onboarding-task-actions {
+    grid-column: 2;
     flex-wrap: wrap;
   }
   .onboarding-task-label {

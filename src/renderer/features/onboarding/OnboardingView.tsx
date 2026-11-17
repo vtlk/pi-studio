@@ -1,4 +1,4 @@
-import { Circle, Check, LoaderCircle, Wrench } from 'lucide-react';
+import { Circle, Check, LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { t, i18n } from '../../../shared/i18n';
 import { validateAgentModel } from '../../../shared/modelConfiguration';
@@ -11,6 +11,8 @@ import { ResourceActions } from '@/features/resources/ui/ResourceActions';
 import { useNavigation } from '@/shared/model/Navigation';
 import { Button } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
+import { Tooltip } from '@/shared/ui/Tooltip';
+import { SetupAssistantError } from '@/features/setup-assistant/ui/SetupAssistantError';
 import { useState } from 'react';
 import { agentName } from '@/shared/model/localizedProfiles';
 import './onboarding.css';
@@ -33,14 +35,10 @@ export function OnboardingView() {
     setAgentTab('Модель');
     navigate('agents');
   };
-  const pendingTeamIds = new Set(
-    tasks.filter((task) => !task.complete).flatMap((task) => task.teamIds ?? []),
-  );
   return (
     <section className="onboarding-page" aria-labelledby="onboarding-heading">
       <div className="onboarding-content">
         <h1 id="onboarding-heading">{t('Onboarding.title')}</h1>
-        <p className="subtle">{t('Onboarding.description')}</p>
         <ul className="onboarding-list" aria-label={t('Onboarding.tasks')}>
           {tasks.map((task) => {
             const systemAgent = systemAgents.find((agent) => agent.id === task.agentId);
@@ -67,67 +65,59 @@ export function OnboardingView() {
                 </span>
                 <div className="onboarding-task-content">
                   <span className="onboarding-task-label">{label}</span>
-                  {task.teamIds?.length ? (
-                    <span className="subtle">
-                      {task.teamIds
-                        .flatMap((id) => teams.find((team) => team.id === id)?.name ?? [])
-                        .join(', ')}
-                    </span>
-                  ) : null}
                 </div>
                 {!task.complete && (
-                  <Button
-                    onClick={() => {
-                      if (task.kind === 'connection') openSettings('connections');
-                      else if (task.agentId) openModel(task.agentId);
-                      else if (resources.some((item) => item.id === task.resourceId))
-                        setResourceId(task.resourceId!);
-                      else openSettings('mcps');
-                    }}
-                  >
-                    {t('Onboarding.configure')}
-                  </Button>
+                  <div className="onboarding-task-actions">
+                    <Button
+                      onClick={() => {
+                        if (task.kind === 'connection') openSettings('connections');
+                        else if (task.agentId) openModel(task.agentId);
+                        else if (resources.some((item) => item.id === task.resourceId))
+                          setResourceId(task.resourceId!);
+                        else openSettings('mcps');
+                      }}
+                    >
+                      {t('Onboarding.configure')}
+                    </Button>
+                    {(task.teamIds ?? []).map((teamId) => {
+                      const report = transfers.reports.find((report) => report.teamId === teamId);
+                      const team = teams.find((team) => team.id === teamId);
+                      if (!report || !team) return null;
+                      return (
+                        <Tooltip
+                          key={teamId}
+                          label={t('Onboarding.assistant', { name: team.name })}
+                        >
+                          <Button
+                            className="onboarding-assistant"
+                            disabled={transfers.busy || !transfers.available || !assistant}
+                            busy={transfers.busy}
+                            onClick={() =>
+                              assistantReady
+                                ? void transfers.continueImport(report.id)
+                                : assistant && openModel(assistant.id)
+                            }
+                          >
+                            {transfers.busy && (
+                              <LoaderCircle
+                                size={17}
+                                className="onboarding-spinner"
+                                aria-hidden="true"
+                              />
+                            )}
+                            {t('Onboarding.withAssistant')}
+                          </Button>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
                 )}
               </li>
             );
           })}
         </ul>
-        {teams
-          .filter((team) => pendingTeamIds.has(team.id))
-          .map((team) => {
-            const report = transfers.reports.find((report) => report.teamId === team.id);
-            if (!report) return null;
-            return (
-              <div className="onboarding-assistant" key={team.id}>
-                <Button
-                  kind="primary"
-                  disabled={transfers.busy || !transfers.available}
-                  busy={transfers.busy}
-                  onClick={() =>
-                    assistantReady
-                      ? void transfers.continueImport(report.id)
-                      : assistant && openModel(assistant.id)
-                  }
-                >
-                  {transfers.busy ? (
-                    <LoaderCircle size={17} className="onboarding-spinner" aria-hidden="true" />
-                  ) : (
-                    <Wrench size={17} aria-hidden="true" />
-                  )}
-                  {assistantReady
-                    ? t('Onboarding.assistant', { name: team.name })
-                    : t('Onboarding.configureAssistant')}
-                </Button>
-                <p className="subtle">{t('Onboarding.assistantDescription')}</p>
-              </div>
-            );
-          })}
-        {transfers.message && (
-          <p role="status" className="onboarding-message">
-            {transfers.message}
-          </p>
-        )}
       </div>
+      <SetupAssistantError error={transfers.error} onClose={transfers.clearError} />
       {resource && (
         <Modal
           title={resource.name}

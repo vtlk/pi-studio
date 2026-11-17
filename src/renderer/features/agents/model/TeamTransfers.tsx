@@ -19,6 +19,8 @@ export interface TeamTransfersValue {
   refreshReports(): Promise<void>;
   available: boolean;
   message: string;
+  error: string;
+  clearError(): void;
   reports: TeamImportReport[];
   exportTeam(id: string, notify?: boolean): Promise<void>;
   importTeam(notify?: boolean): Promise<void>;
@@ -33,6 +35,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   const folder = bootstrap?.folder;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [reports, setReports] = useState<TeamImportReport[]>([]);
   const [loaded, setLoaded] = useState(!window.studio);
   const [configure, setConfigure] = useState('');
@@ -79,7 +82,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
       setDetails(false);
       setConfigure(result.assistantId);
     }
-    return (
+    const message =
       result.message ??
       (result.outcome === 'pending' && result.report.handoff === 'pending'
         ? t('Onboarding.imported')
@@ -87,19 +90,27 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
           ? t('TeamTransfers.packageSavedTheAssistantIsOpenTo')
           : result.outcome === 'needs_configuration'
             ? t('TeamTransfers.packageSavedConfigureTheAssistantSModel')
-            : t('TeamTransfers.packageSavedTaskDeliveryIsUnconfirmedIt'))
-    );
+            : t('TeamTransfers.packageSavedTaskDeliveryIsUnconfirmedIt'));
+    if (
+      result.outcome === 'busy' ||
+      result.outcome === 'uncertain' ||
+      (result.outcome === 'pending' && result.message)
+    )
+      setError(message);
+    return message;
   };
   const action = async (
     task: () => Promise<string | undefined>,
     notify = false,
     offerImportReport = true,
+    reportError?: (message: string) => void,
   ) => {
     if (active.current || !window.studio || !folder) return;
     active.current = true;
     epoch.current++;
     setBusy(true);
     setMessage('');
+    reportError?.('');
     let text: string | undefined;
     try {
       if (!(await saveNow())) throw new Error(t('TeamTransfers.waitForSettingsToFinishSaving'));
@@ -110,6 +121,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
         error instanceof Error
           ? error.message.replace(/^Error invoking remote method '[^']+': (?:Error: )?/, '')
           : t('TeamTransfers.theOperationDidNotComplete');
+      reportError?.(text);
     } finally {
       active.current = false;
       if (mounted.current) {
@@ -136,6 +148,8 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   const value: TeamTransfersValue = {
     busy,
     loaded,
+    error,
+    clearError: () => setError(''),
     refreshReports,
     available: !!window.studio && !!folder,
     message,
@@ -159,10 +173,15 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
         return result && mounted.current ? receive(result) : undefined;
       }, notify),
     continueImport: (id) =>
-      action(async () => {
-        const result = await window.studio!.continueTeamImport({ folder: folder!, id });
-        return mounted.current ? receive(result) : undefined;
-      }),
+      action(
+        async () => {
+          const result = await window.studio!.continueTeamImport({ folder: folder!, id });
+          return mounted.current ? receive(result) : undefined;
+        },
+        false,
+        true,
+        setError,
+      ),
   };
   return (
     <TeamTransfersContext.Provider value={value}>

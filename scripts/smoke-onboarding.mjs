@@ -186,6 +186,7 @@ try {
     const reports = [report];
     const clone = (value) => structuredClone(value);
     let finish,
+      rejectAssistant,
       theme = 'light';
     window.__qa = {
       state,
@@ -218,6 +219,9 @@ try {
           assistantId: assistant.id,
           outcome: 'opened',
         });
+      },
+      failAssistant() {
+        rejectAssistant?.(Error('QA helper failure'));
       },
     };
     window.studio = new Proxy(
@@ -300,8 +304,9 @@ try {
           if (request.folder !== state.folder || request.id !== report.id)
             throw Error('Wrong team scope');
           calls.assistant++;
-          return new Promise((resolve) => {
+          return new Promise((resolve, reject) => {
             finish = resolve;
+            rejectAssistant = reject;
           });
         },
         launchAgent: async () => {
@@ -355,6 +360,16 @@ try {
   );
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===4`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelector('.onboarding-content').children).map(e=>e.tagName)`,
+    ),
+    ['H1', 'UL'],
+  );
+  assert.equal(
+    await js(`document.querySelector('button.onboarding-assistant').closest('li').dataset.taskId`),
+    'mcp:qa-mcp',
+  );
   await js(
     `document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
   );
@@ -398,14 +413,22 @@ try {
   };
   await screenshot('onboarding-light.png');
   await js(
-    `(()=>{const button=document.querySelector('.onboarding-assistant button');button.click();button.click()})()`,
+    `(()=>{const button=document.querySelector('button.onboarding-assistant');button.click();button.click()})()`,
   );
   await until(
-    `document.querySelector('.onboarding-assistant button')?.getAttribute('aria-busy')==='true'`,
+    `document.querySelector('button.onboarding-assistant')?.getAttribute('aria-busy')==='true'`,
   );
   assert.equal(await js('window.__qa.calls.assistant'), 1);
+  await js('window.__qa.failAssistant()');
+  await until(
+    `document.querySelector('[role="alertdialog"]')?.textContent.includes('QA helper failure')`,
+  );
+  await js(`document.querySelector('[role="alertdialog"] button').click()`);
+  await until(`!document.querySelector('[role="alertdialog"]')`);
+  await js(`document.querySelector('button.onboarding-assistant').click()`);
+  await until(`window.__qa.calls.assistant===2`);
   await js('window.__qa.finishAssistant()');
-  await until(`!document.querySelector('.onboarding-assistant button')?.disabled`);
+  await until(`!document.querySelector('button.onboarding-assistant')?.disabled`);
   await js(
     `window.__qa.state.sections.resources[0].check={status:'available',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
   );
@@ -476,7 +499,7 @@ try {
   assert.equal(await js('window.__qa.calls.imports'), 1);
   assert.equal(
     await js('window.__qa.calls.assistant'),
-    1,
+    2,
     'Import itself must not launch the assistant',
   );
   assert.equal(await js('window.__qa.calls.otherLaunches'), 0);
@@ -487,12 +510,14 @@ try {
     completedCircleYellowAndTextStruck: true,
     centeredWithoutHorizontalOverflow: true,
     scopedAssistantDuplicateClicksBlocked: true,
+    headingAndTaskListOnly: true,
+    assistantActionBelongsToMcpRow: true,
+    helperErrorsUseSharedDialog: true,
     automaticHideAndReturn: true,
     importOpensOnboardingAfterProfileHydration: true,
     completedTasksExpireAfterTwoHours: true,
     unresolvedTasksRemain: true,
     themes: ['light', 'dark'],
-    languages: ['ru', 'en'],
     languages: ['ru', 'en'],
     userAppOrDataChanged: false,
     realPiOrAuthOrBrowserConsentLaunches: 0,
