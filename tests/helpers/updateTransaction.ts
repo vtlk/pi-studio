@@ -24,13 +24,20 @@ export async function until<T>(read: () => Promise<T>, accept: (value: T) => boo
   }
   throw new Error('Owned update transaction condition timed out.');
 }
-export async function transactionFixture(t: TestContext, mode = 'ok') {
+export async function transactionFixture(
+  t: TestContext,
+  mode = 'ok',
+  platform: 'darwin' | 'win32' = 'darwin',
+) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-tx-«тест» $()-')));
   let cleanup = async () => {
     await rm(root, { recursive: true, force: true });
   };
   t.after(() => cleanup());
-  const target = join(root, 'Pi Studio.app'),
+  const appName = platform === 'darwin' ? 'Pi Studio.app' : 'Pi Studio';
+  const resourcePath = platform === 'darwin' ? 'Contents/Resources/app' : 'resources/app';
+  const executablePath = platform === 'darwin' ? 'Contents/MacOS/Pi Studio' : 'Pi Studio.exe';
+  const target = join(root, appName),
     userData = join(root, 'UserData');
   const id = randomUUID(),
     nonce = randomUUID();
@@ -42,14 +49,14 @@ export async function transactionFixture(t: TestContext, mode = 'ok') {
   const executableSource = (version: string, selectedMode: string) => `
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
-import {paths,atomicJson,authenticated} from ${JSON.stringify(protocol)};
+import {paths,atomicJson,authenticated,executable} from ${JSON.stringify(protocol)};
 const args=process.argv.slice(2), data=args.find(arg=>arg.startsWith('--pistudio-user-data=')).split('=').slice(1).join('=');
 const failed=args.some(arg=>arg.startsWith('--pistudio-update-failed='));
 if(failed){const failedId=args.find(arg=>arg.startsWith('--pistudio-update-failed=')).split('=')[1];const job=JSON.parse(await readFile(join(data,'updates/transactions',failedId+'.json'),'utf8'));await atomicJson(join(data,'OLD_REOPENED'),{nonce:job.nonce,pid:process.pid,version:${JSON.stringify(version)}});process.exit(0);}
 const id=args.find(arg=>arg.startsWith('--pistudio-update=')).split('=')[1];
 const job=JSON.parse(await readFile(join(data,'updates/transactions',id+'.json'),'utf8')), p=paths(job);
 await mkdir(p.startups,{recursive:true});
-const report={nonce:job.nonce,pid:process.pid,version:${JSON.stringify(version)},exe:job.target+'/Contents/MacOS/Pi Studio'};
+const report={nonce:job.nonce,pid:process.pid,version:${JSON.stringify(version)},exe:executable(job.target,job.platform)};
 await atomicJson(join(p.startups,process.pid+'.json'),report);
 if(${JSON.stringify(selectedMode)}==='crash')process.exit(41);
 if(${JSON.stringify(selectedMode)}==='ok')await atomicJson(p.health,report);
@@ -61,25 +68,25 @@ setInterval(async()=>{
 `;
   const shellQuote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'";
   async function app(path: string, version: string, selectedMode: string) {
-    await mkdir(join(path, 'Contents/MacOS'), { recursive: true });
-    await mkdir(join(path, 'Contents/Resources/app'), { recursive: true });
-    const script = join(path, 'Contents/Resources/app/fixture.mjs');
+    if (platform === 'darwin') await mkdir(join(path, 'Contents/MacOS'), { recursive: true });
+    await mkdir(join(path, resourcePath), { recursive: true });
+    const script = join(path, resourcePath, 'fixture.mjs');
     await writeFile(script, executableSource(version, selectedMode));
     // Relative lookup survives the actual app-folder rename. Only owned fixture code is executed.
     await writeFile(
-      join(path, 'Contents/MacOS/Pi Studio'),
-      `#!/bin/sh\nexec ${shellQuote(process.execPath)} "$(dirname "$0")/../Resources/app/fixture.mjs" "$@"\n`,
+      join(path, executablePath),
+      `#!/bin/sh\nexec ${shellQuote(process.execPath)} "$(dirname "$0")/${platform === 'darwin' ? '../Resources/app' : 'resources/app'}/fixture.mjs" "$@"\n`,
       { mode: 0o700 },
     );
     await writeFile(
-      join(path, 'Contents/Resources/app/package.json'),
+      join(path, resourcePath, 'package.json'),
       JSON.stringify({ name: 'pi-video-studio', version }),
     );
-    await writeInventory(path, 'darwin');
+    await writeInventory(path, platform);
     return path;
   }
   await app(target, '0.2.0-alpha.76', 'old');
-  const next = await app(join(stage, 'next/Pi Studio.app'), '0.2.0-alpha.77', mode);
+  const next = await app(join(stage, 'next', appName), '0.2.0-alpha.77', mode);
   const oldIdentity = await identity(target),
     newIdentity = await identity(next);
   const parent = spawn(process.execPath, ['-e', "process.stdin.on('data',()=>process.exit(0))"], {
@@ -91,7 +98,7 @@ setInterval(async()=>{
     schema: 1,
     id,
     nonce,
-    platform: 'darwin',
+    platform,
     oldPid: parent.pid!,
     oldVersion: '0.2.0-alpha.76',
     version: '0.2.0-alpha.77',
@@ -149,7 +156,9 @@ setInterval(async()=>{
         });
         if (
           command.includes(root) &&
-          command.includes('/Resources/app/fixture.mjs') &&
+          command.includes(
+            platform === 'darwin' ? '/Resources/app/fixture.mjs' : '/resources/app/fixture.mjs',
+          ) &&
           (command.includes(`--pistudio-update=${id}`) ||
             command.includes(`--pistudio-update-failed=${id}`))
         ) {

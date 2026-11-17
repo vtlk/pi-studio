@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-17T10:32:09.895882+00:00",
+  "unitTestsPassed": 370,
+  "unitTestsFailed": 0,
+  "testLogSha256": "eee2af220ce6a27c65ebf942b8dcae17b631ae8e69fe00158af79dd185585105",
+  "newRetentionTests": [
+    "darwin package layout",
+    "win32 package layout"
+  ],
+  "realHelperProcessesUsed": true,
+  "checkedSuccessfulUpdateRemoves": [
+    "previous application",
+    "owned staging",
+    "downloaded archive",
+    "active pointer",
+    "transaction journal"
+  ],
+  "unrelatedMaterialAndUserDataPreserved": true,
+  "executablesInFixtures": "Owned POSIX shell launchers only",
+  "nativeWindowsAcceptance": false,
+  "actualMacUserUpdateProof": "artifacts/alpha89-user-update-cleanup-proof.json",
+  "installedAppOrUserDataChangedByTests": false
+}

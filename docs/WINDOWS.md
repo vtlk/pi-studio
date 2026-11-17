@@ -16,7 +16,13 @@ Agent dialogues require Windows Terminal. Pi's Bash tool requires Git for Window
 (Git Bash). These external applications are not silently installed; WSL is not used.
 
 Projects, canonical Pi dialogues and application settings are stored separately
-from the program folder. For a manual update, finish agent work, quit Studio and
+from the program folder. Prefer “Check for updates…” in the application menu.
+After a confirmed successful startup, the updater removes the previous program,
+its downloaded ZIP and temporary installation folder. Failed or incomplete
+recovery can retain the previous program and report an error. Native Windows
+update/locking behavior remains unverified.
+
+For a manual update, finish agent work, quit Studio and
 its Pi dialogues, and replace only the application files. Preserve your studio
 folder and Windows user profile. Always extract the complete new ZIP.
 

@@ -1,0 +1,92 @@
+{
+  "checkedAt": "2026-11-17T10:31:10.846903+00:00",
+  "version": "0.2.0-alpha.89",
+  "observedInstalledRuntimeVersion": "0.2.0-alpha.89",
+  "installationPerformedByCodex": false,
+  "userChoseBuiltInUpdater": true,
+  "uiCycleObserved": false,
+  "compiledPayloadFilesCompared": 14,
+  "compiledPayloadHashes": [
+    {
+      "path": "Contents/Resources/app/out/renderer/branding/pi-studio-icon.png",
+      "sha256": "cf4c971c13c31a17d50821a95a0ce984e9b2916ba34a297e895692919d6d1a1e"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/index.html",
+      "sha256": "ebd3f1a14d3d1ff0822b49c125c450775ea63426347d7ac13a87baace5eb0d9c"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/computer-overlay.html",
+      "sha256": "fa2b112c5db3dcada26de256a43b84efd09ca672103364383c404a735fc7184c"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/third-party-packages.json",
+      "sha256": "d18984a5b91238e30c1d976b2d9c42099071bc8e5acf28966cb2c579b28a3679"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/native-build.json",
+      "sha256": "f4d8c0465bd5b1d60842cb8050289e3b0759bdce65a169fd94618992b5b237c8"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/THIRD_PARTY_NOTICES.txt",
+      "sha256": "76d1927eb3cf0ddf4a80aeb283ecd3b7320150f6c2de6c56cf19353f3eeba7a7"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/third-party-license-sources.md",
+      "sha256": "66b17d359d75061bb4a699a107169eccbc615ad37a3beeb9c204ce0c02297e75"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/assets/index-BX8_yIWn.css",
+      "sha256": "7fcfaff4fa77f4b2fd8d4e0b1b381b4f37c299a6105e7c11bf7ff236adee18b7"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/assets/computerOverlay-R6GaQua8.js",
+      "sha256": "1a88cd62b0fa21f9b6fd7587321cb62a05f5109487305ecabdf51afa3211d194"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/assets/index-C2AP9r6o.js",
+      "sha256": "99e3405b1199abed22ca6836db1ec2e7fdd245781d510a9b2c3084090f55387c"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/assets/jsx-runtime-BC1Co0wn.js",
+      "sha256": "c40b8909e851954df42fc628cf7a723ac2f9d51967f0e34284582318845f6bf3"
+    },
+    {
+      "path": "Contents/Resources/app/out/renderer/assets/computerOverlay-D4XerZf1.css",
+      "sha256": "ab472b94c49f662a944a16d17b08c98e1da658ce83e8b3c9194c0733b4c409da"
+    },
+    {
+      "path": "Contents/Resources/app/out/main/index.cjs",
+      "sha256": "08c957cec7ac6cacfdb31f68e5a5f4a58385fe6f3ac696d2ed254a4a0a99eda1"
+    },
+    {
+      "path": "Contents/Resources/app/out/preload/index.cjs",
+      "sha256": "f76778ec29374d731251e66aee06acdde23fe94444da3d477d64e61f04cc150a"
+    }
+  ],
+  "comparisonSource": "Previously verified signed published Mac alpha.89 archive",
+  "protectedUserDataClaim": "No immediate pre-user-update baseline; no unchanged-data claim made",
+  "sourceOrUserDataChangedByThisCheck": false,
+  "windowsBuilt": false,
+  "notarized": false,
+  "userConfirmedUpdateSucceeded": true,
+  "deepStrictSignatureVerified": true,
+  "publisherTeam": "2N3G6XT5H9",
+  "runningInstalledMainProcesses": 1,
+  "installedMainPid": 50530,
+  "updateStartupArgumentObserved": true,
+  "helperResultStatus": "committed",
+  "helperResultReason": "startup-confirmed",
+  "previousVersion": "0.2.0-alpha.88",
+  "applicationSiblingUpdateStagesRemaining": 0,
+  "updateDownloadDirectoriesRemaining": 0,
+  "unfinishedTransactionJournals": 0,
+  "activeTransactionPointerRemaining": false,
+  "oldApplicationRetainedByUpdater": false,
+  "diagnosticResultRecords": {
+    "count": 2,
+    "totalBytes": 448,
+    "containsApplicationCopies": false
+  },
+  "dataComparisonLimit": "No immediate pre-update baseline; no unchanged-user-data claim made"
+}
