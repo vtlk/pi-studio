@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-17T10:38:25.268Z",
+  "version": "0.2.0-alpha.89",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.89",
+  "sourceCommit": "a6d463f73417be0c5555c3407cdcf12491c85539",
+  "archive": {
+    "name": "Pi-Studio-0.2.0-alpha.89-win-x64.zip",
+    "bytes": 171443983,
+    "unpackedBytes": 411374928,
+    "sha256": "435e59d662a70417da8ae0806bb4db6e0c7d4c5b65a7dad74e945645cf1decf7"
+  },
+  "allSixRemoteAssetSizesAndDigestsVerified": true,
+  "anonymousProductionWindowsUpdater86to89": true,
+  "currentWindows89HasNoNewerOffer": true,
+  "currentMac89HasNoNewerOffer": true,
+  "signedManifestAndChecksumVerified": true,
+  "anonymousZipRangeAndHeaderVerified": true,
+  "compiledPayloadMatchesMacFiles": 14,
+  "windowsAuthenticodeSigned": false,
+  "nativeWindowsAcceptance": false,
+  "installedApplicationOrUserDataChanged": false,
+  "temporaryWindowsPackagingRemoved": true
+}

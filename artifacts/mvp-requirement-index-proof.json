@@ -321,7 +321,7 @@
   ],
   "backlogSha256": "4a25c3de5429788301402aec0221306c4f7e15fefd6af72e348cbe3c3e9dd052",
   "auditSha256": "d01233e5f89248d2f9548c97ef876874bb34eb64e2da47ca54a06c1a08a53c58",
-  "installedVersion": "0.2.0-alpha.88",
+  "installedVersion": "0.2.0-alpha.89",
   "fullMvpAchieved": false,
   "sourceOrUserDataChanged": false,
   "scope": "Requirement-index and supersession reconciliation with explicitly bounded read evidence, not a new runtime test or completion proof. Full specification text stays local and ignored.",
@@ -333,10 +333,10 @@
     "native Windows updater and final accepted release; real Mac GitHub cycle verified in alpha.88",
     "final distribution rights review with known cache/provenance limitations"
   ],
-  "publishedVersion": "0.2.0-alpha.88",
+  "publishedVersion": "0.2.0-alpha.89",
   "promptFitPublishedVersion": "0.2.0-alpha.86",
   "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
-  "publishedWindowsVersion": "0.2.0-alpha.86",
+  "publishedWindowsVersion": "0.2.0-alpha.89",
   "nativeWindowsAcceptance": false,
   "nativeWindowsHostUnavailableByUserReply": true,
   "nativeAcceptancePlanLocalOnly": true,
@@ -348,8 +348,8 @@
   "desktopQaDeferredByUser": true,
   "nativePermissionProbePrompts": false,
   "nativeModelLoopAccepted": false,
-  "preparedCandidateVersion": "0.2.0-alpha.88",
-  "preparedCandidateStatus": "Published, installed through the actual GitHub updater and opened; exact protected data preserved",
+  "preparedCandidateVersion": "0.2.0-alpha.89",
+  "preparedCandidateStatus": "Published for Mac arm64 and Windows x64; user confirmed successful built-in Mac update; actual post-update cleanup inspected",
   "signingDeferredToAvoidSystemDialogs": false,
   "latestIncrementalReleaseVerification": {
     "checkedAt": "2026-11-17T08:10:45.010386+00:00",
@@ -398,5 +398,26 @@
     "proof": "artifacts/published-assets-audit-resolution-proof.json",
     "sha256": "065793d527d40b469c0b7df6d24c1ccca8eb56665f67c4c36cc55e42866c66ca",
     "notLegalOrNativePlatformAcceptance": true
+  },
+  "releaseDeliveryPolicy": "Publish both platforms at every new release; user applies the built-in updater; no proactive installation/closing/restart",
+  "latestReleaseAndCleanupVerification": {
+    "checkedAt": "2026-11-17T10:38:54.509058+00:00",
+    "unitTestsPassed": 370,
+    "originalRendererExitReasonVerified": false,
+    "rendererRecoveryEventSimulated": true,
+    "userConfirmedInstalledMacVersion": "0.2.0-alpha.89",
+    "oldInstalledApplicationOrStagingRetained": false,
+    "updaterDownloadsRemaining": 0,
+    "unfinishedTransactions": 0,
+    "noPreUserUpdateDataBaseline": true,
+    "actualWindowsHostAvailable": false,
+    "proofSha256": {
+      "alpha89-user-update-cleanup-proof.json": "8352ad36137c71aa87812fc6386484bd49608540818250e07fbd89458035d18f",
+      "update-retention-proof.json": "13a1a9644633ffae13a1dcc9a80c194c298c49ce5a48fca0bdb5d8cd40fb99a1",
+      "alpha89-windows-release-proof.json": "fee29aabf286b9a586964eb6af5669c5ad53663d90b504b70c33001d56853871",
+      "alpha89-both-platforms-security-audit-proof.json": "b9ca00d4f6e37cb021430967a57bbf75420fc04b1534c3d2a54c79feab77403a",
+      "release-package-0.2.0-alpha.89-proof.json": "86081c5147497ac90ed0913723001677090d7c31afe5adc07ef9a8879c75a7ee",
+      "renderer-recovery-proof.json": "8529af44ca16c3d9dc9e48e0c9db1ec3e53432e40d409f94ed6d1c488fd52047"
+    }
   }
 }
