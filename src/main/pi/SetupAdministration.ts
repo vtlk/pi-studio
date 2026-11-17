@@ -58,6 +58,7 @@ export class SetupAdministration {
       return this.teamImports.call(run, name, args);
     }
     const resourceTools = [
+      'get_runtime',
       'configure_mcp',
       'import_mcp',
       'install_package',
@@ -71,6 +72,7 @@ export class SetupAdministration {
         await assertAdministrationScope(store, run);
         return store.folder;
       });
+      if (name === 'get_runtime') return this.native.runtimeInfo(folder);
       if (name === 'configure_mcp')
         return {
           resource: await this.native.configureMcp(folder, args),

@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { writeSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { npmSettings, runtimeInformation, withNodeCommand } from './node-tools.mjs';
+import { assertPiResources } from './package-resources.mjs';
 
 let connection;
 process.once('SIGTERM', () => {
@@ -41,7 +43,9 @@ try {
     enabled: entry.config.enabled !== false,
   });
   let result;
-  if (request.action === 'list-mcp') {
+  if (request.action === 'inspect-runtime') {
+    result = { runtime: runtimeInformation() };
+  } else if (request.action === 'list-mcp') {
     const config = loaded();
     result = { servers: config.servers.map(metadata), invalidEntries: config.errors.length };
   } else if (request.action === 'configure-mcp') {
@@ -59,7 +63,7 @@ try {
       const runtime = await import(new URL('./extensions/mcp/runtime.js', sdkUrl).href);
       let models;
       connection = new runtime.McpServerConnection({
-        entry,
+        entry: withNodeCommand(entry),
         cwd,
         createTransport: runtime.createDefaultTransport,
         credentials: new runtime.McpOAuthCredentialStore(),
@@ -100,7 +104,7 @@ try {
     const manager = new DefaultPackageManager({
       cwd,
       agentDir,
-      settingsManager: SettingsManager.inMemory({ packages: [] }),
+      settingsManager: SettingsManager.inMemory({ packages: [], ...npmSettings() }),
     });
     const paths = await manager.resolveExtensionSources([request.source], { temporary: true });
     const resources = ['extensions', 'skills', 'prompts', 'themes'].flatMap((kind) =>
@@ -108,7 +112,9 @@ try {
         .filter((item) => item.enabled)
         .map((item) => ({ kind, path: item.path, root: item.metadata.packageRoot })),
     );
-    if (paths.installFailures?.length || !resources.length) throw new Error();
+    if (paths.installFailures?.length)
+      throw Object.assign(new Error(), { category: 'package-install-failed' });
+    await assertPiResources(paths);
     let version = '';
     const root = resources.find((item) => item.root)?.root;
     if (root) {
@@ -128,7 +134,11 @@ try {
   } else throw new Error();
   // Dedicated pipe: npm/server output and credentials can never become a tool/UI result.
   writeSync(3, JSON.stringify({ ok: true, result }));
-} catch {
-  writeSync(3, JSON.stringify({ ok: false }));
+} catch (error) {
+  // Never forward npm/server stderr or raw exceptions: these may contain credentials.
+  const category = ['not-pi-package', 'package-install-failed'].includes(error?.category)
+    ? error.category
+    : undefined;
+  writeSync(3, JSON.stringify({ ok: false, category }));
   process.exitCode = 1;
 }

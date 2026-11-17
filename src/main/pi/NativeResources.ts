@@ -7,9 +7,16 @@ import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
 import { transferTimeouts } from '../network/transfer.ts';
 import { findGit } from './git.ts';
+import { findWindowsBash } from './windowsBash.ts';
 
 export interface NativeResourceRequest {
-  action: 'list-mcp' | 'configure-mcp' | 'check-mcp' | 'install-package' | 'check-package';
+  action:
+    | 'inspect-runtime'
+    | 'list-mcp'
+    | 'configure-mcp'
+    | 'check-mcp'
+    | 'install-package'
+    | 'check-package';
   cwd: string;
   name?: string;
   config?: Record<string, unknown>;
@@ -17,6 +24,14 @@ export interface NativeResourceRequest {
   source?: string;
 }
 export interface NativeResourceResult {
+  runtime?: {
+    platform: string;
+    arch: string;
+    nodeVersion: string;
+    npmVersion?: string;
+    commands: Record<string, { command: string; args: string[] }>;
+    bash?: { available: boolean; command?: string };
+  };
   status?: 'available' | 'needs_auth' | 'unavailable' | 'disabled';
   name?: string;
   transport?: string;
@@ -40,11 +55,13 @@ export async function nativeResourceOperation(
   const sdk = await resolvePiSdk(await realpath(pi.path));
   const node = await piNode(pi.path);
   const git = process.platform === 'win32' ? await findGit() : undefined;
+  const bash =
+    process.platform === 'win32' ? await findWindowsBash().catch(() => undefined) : '/bin/bash';
   const env = piEnvironment(
     dirname(node),
     process.env,
     process.platform,
-    git ? [dirname(git)] : [],
+    [git, bash].filter((path): path is string => !!path).map(dirname),
   );
   return new Promise((resolve, reject) => {
     const child = spawn(node, [script, sdk], {
@@ -107,8 +124,23 @@ export async function nativeResourceOperation(
     child.once('close', (code) => {
       clearTimeout(forceKill);
       try {
-        const message = JSON.parse(output) as { ok: boolean; result: NativeResourceResult };
-        if (code !== 0 || !message.ok || !message.result) throw new Error();
+        const message = JSON.parse(output) as {
+          ok: boolean;
+          result: NativeResourceResult;
+          category?: string;
+        };
+        if (code !== 0 || !message.ok || !message.result) {
+          const key =
+            message.category === 'not-pi-package'
+              ? 'error.nativeResources.notPiPackage'
+              : message.category === 'package-install-failed'
+                ? 'error.nativeResources.packageInstallFailed'
+                : 'error.nativeResources.piCouldNotPerformThe';
+          finish(new Error(t(key)));
+          return;
+        }
+        if (message.result.runtime)
+          message.result.runtime.bash = { available: !!bash, ...(bash ? { command: bash } : {}) };
         finish(undefined, message.result);
       } catch {
         finish(new Error(t('error.nativeResources.piCouldNotPerformThe')));

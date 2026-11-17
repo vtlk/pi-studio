@@ -1751,5 +1751,7 @@
   "Chat.queuedSteer": "Steer · в очереди",
   "Chat.queuedFollowUp": "После задачи · в очереди",
   "Chat.queueUndelivered": "Не доставлено · процесс Pi недоступен",
-  "error.runHost.theNextAgentDidNotAccept": "Следующий агент не принял задание. Цепочка приостановлена."
+  "error.runHost.theNextAgentDidNotAccept": "Следующий агент не принял задание. Цепочка приостановлена.",
+  "error.nativeResources.notPiPackage": "В пакете нет расширений, навыков, промптов или тем Pi. Обычная npm-библиотека или CLI не является плагином Pi. Для MCP-сервера используйте configure_mcp, check_resource и assign_resource. Перед выводами о Node/npm вызовите get_runtime. В каталог Studio ничего не добавлено.",
+  "error.nativeResources.packageInstallFailed": "Pi не смог установить запрошенный пакет. Проверьте официальный источник/версию, доступ к сети и фактические Node/npm/Git через get_runtime. Эта ошибка не означает, что Node отсутствует. В каталог Studio ничего не добавлено."
 }

@@ -13,6 +13,7 @@ import { studioSessionTerminal } from './terminal-title.mjs';
 import { studioMcpDeadlines } from './mcp-deadlines.mjs';
 import { openingFailure, openingFailureText } from './opening-failure.mjs';
 import { sessionRequest } from './session-request.mjs';
+import { npmSettings, withNodeCommand } from './node-tools.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -30,7 +31,8 @@ export async function runSession(bootstrapPath) {
   const event = (data) => {
     const result = queue.then(async () => {
       const result = await request('event', data);
-      if (result.language === 'en' || result.language === 'ru') bootstrap.language = result.language;
+      if (result.language === 'en' || result.language === 'ru')
+        bootstrap.language = result.language;
       return result;
     });
     queue = result.catch(() => {});
@@ -278,6 +280,7 @@ export async function runSession(bootstrapPath) {
       });
     };
     const settings = SettingsManager.inMemory({
+      ...npmSettings(),
       packages: [],
       extensions: [],
       skills: [],
@@ -324,7 +327,10 @@ export async function runSession(bootstrapPath) {
             createToolSearchExtension(),
             createMcpExtension({
               loadConfig: () => ({ servers, errors: [] }),
-              createTransport: observeMcpTransport(createDefaultTransport, statuses),
+              createTransport: observeMcpTransport(
+                (entry, ...args) => createDefaultTransport(withNodeCommand(entry), ...args),
+                statuses,
+              ),
               updateConfig: () => {
                 throw new Error(
                   'Edit resource assignments in Pi Studio; OAuth sign-in is available in /mcp.',

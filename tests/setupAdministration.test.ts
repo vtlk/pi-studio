@@ -12,6 +12,50 @@ import type { Agent } from '../src/shared/studio.ts';
 import type { Connection } from '../src/shared/connections.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
 import { teamMcpId } from '../src/shared/builtinResources.ts';
+import { StudioResources } from '../src/main/pi/StudioResources.ts';
+
+test('runtime inspection uses the scoped native runtime without model selection or configuration changes', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-runtime-admin-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
+  const store = await service.load();
+  const before = store.bootstrap().sections;
+  let calls = 0;
+  const runtime = {
+    platform: 'win32',
+    arch: 'x64',
+    nodeVersion: 'v22.22.1',
+    commands: { node: { command: 'D:\\Pi Studio\\node.exe', args: [] } },
+  };
+  const native = new StudioResources(service, {
+    script: '',
+    piPath: () => 'native-pi',
+    operation: async (_path, _script, request) => {
+      assert.equal(request.action, 'inspect-runtime');
+      assert.equal(request.cwd, store.folder);
+      calls++;
+      return { runtime };
+    },
+  });
+  const admin = new SetupAdministration(
+    service,
+    async () => {
+      throw new Error('Runtime inspection must not call the model catalog');
+    },
+    native,
+  );
+  assert.deepEqual(
+    await admin.call(
+      { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun,
+      'get_runtime',
+      {},
+    ),
+    { runtime },
+  );
+  await assert.rejects(admin.call({ projectRoot: root } as PreparedRun, 'get_runtime', {}));
+  assert.equal(calls, 1);
+  assert.deepEqual(store.bootstrap().sections, before);
+});
 
 test('setup tools change only current constructor/catalog links and never snapshots or instruction copies', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-setup-admin-'));
@@ -139,8 +183,12 @@ test('setup tools change only current constructor/catalog links and never snapsh
     resourceId: 'pistudio-administration',
     kind: 'mcps',
   });
-  assert.equal((store.bootstrap().sections.agents as Agent[])
-    .find((agent) => agent.id === created.agentId)!.mcps.includes('pistudio-administration'), true);
+  assert.equal(
+    (store.bootstrap().sections.agents as Agent[])
+      .find((agent) => agent.id === created.agentId)!
+      .mcps.includes('pistudio-administration'),
+    true,
+  );
   assert.deepEqual((await store.projects.read(project.id)).agents, snapshot);
   const metadata = JSON.stringify(await admin.call(run, 'list_configuration', {}));
   assert.equal(metadata.includes('Changed current role'), false);
@@ -156,7 +204,10 @@ test('setup tools change only current constructor/catalog links and never snapsh
     }),
   );
   await service.open(join(root, 'another-studio'));
-  await assert.rejects(admin.call(run, 'configure_agent', { name: 'Wrong scope' }), /не назначен|отключён/);
+  await assert.rejects(
+    admin.call(run, 'configure_agent', { name: 'Wrong scope' }),
+    /не назначен|отключён/,
+  );
   assert.deepEqual((await service.load()).bootstrap().sections.agents, []);
 });
 test('administrative tools are scoped separately from every production lease', () => {

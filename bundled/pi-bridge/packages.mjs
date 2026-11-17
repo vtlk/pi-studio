@@ -1,4 +1,5 @@
 /** Resolve requested packages once with native Pi, then load their exact resources in this session. */
+import { assertPiResources } from './package-resources.mjs';
 export async function resolveAssignedPackages(sdk, cwd, settingsManager, assigned) {
   const empty = { extensions: [], skills: [], prompts: [], themes: [] };
   if (!assigned.length) return empty;
@@ -15,6 +16,7 @@ export async function resolveAssignedPackages(sdk, cwd, settingsManager, assigne
     throw new Error(
       'A selected Pi package could not be installed; the session will not run without it.',
     );
+  await assertPiResources(result);
   const all = Object.keys(empty).flatMap((kind) => result[kind].filter((item) => item.enabled));
   if (assigned.some((source) => !all.some((item) => item.metadata.source === source.source)))
     throw new Error(

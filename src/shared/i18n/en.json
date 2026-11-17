@@ -1751,5 +1751,7 @@
   "Chat.queuedSteer": "Steer · queued",
   "Chat.queuedFollowUp": "After the task · queued",
   "Chat.queueUndelivered": "Not delivered · Pi process unavailable",
-  "error.runHost.theNextAgentDidNotAccept": "The next agent did not accept the task. The chain is paused."
+  "error.runHost.theNextAgentDidNotAccept": "The next agent did not accept the task. The chain is paused.",
+  "error.nativeResources.notPiPackage": "This package contains no Pi extensions, skills, prompts or themes. An ordinary npm CLI/library is not a Pi plugin. For an MCP server use configure_mcp, check_resource and assign_resource. Check get_runtime before diagnosing Node/npm; nothing was added to the Studio catalog.",
+  "error.nativeResources.packageInstallFailed": "Pi could not install the requested package. Check its official source/version, network access and get_runtime for the actual Node/npm/Git environment. This error does not establish that Node is missing. Nothing was added to the Studio catalog."
 }

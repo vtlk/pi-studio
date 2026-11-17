@@ -85,6 +85,10 @@ export class StudioResources {
     const scope = await this.scope(folder);
     return this.call(scope.piPath, { action: 'list-mcp', cwd: folder });
   }
+  async runtimeInfo(folder: string) {
+    const scope = await this.scope(folder);
+    return this.call(scope.piPath, { action: 'inspect-runtime', cwd: folder });
+  }
   private async publish(folder: string, resource: Resource, replaceName = false) {
     return this.service.serialize(async () => {
       const store = await this.service.load();
