@@ -26,6 +26,10 @@ async function parent() {
     for (const file of [
       'chat-ui-proof.json',
       'chat-ru-light.png',
+      'agents-chat-ru-light.png',
+      'agents-chat-ru-dark.png',
+      'agents-chat-en-light.png',
+      'agents-chat-en-dark.png',
       'chat-en-dark.png',
       'queue-ru-light.png',
       'queue-ru-dark.png',
@@ -76,6 +80,30 @@ async function child() {
     plugins: [],
     model,
   };
+  const assistant = {
+    ...agent,
+    id: 'qa-assistant',
+    name: 'Помощник настройки',
+    systemRole: 'assistant',
+  };
+  const assistantTarget = { projectId: 'pi-setup-assistant', agentId: assistant.id };
+  const assistantState = {
+    ...assistantTarget,
+    runId: 'helper-run',
+    phase: 'ready',
+    working: false,
+    revision: 1,
+    messages: [
+      {
+        id: 'helper-history',
+        role: 'assistant',
+        parts: [{ type: 'text', text: 'HELPER_HISTORY' }],
+      },
+    ],
+    model: model.id,
+    thinkingLevel: 'medium',
+  };
+  let helperOpens = 0;
   const project = {
     sourceTeamId: 'qa-team',
     schemaVersion: 1,
@@ -98,7 +126,7 @@ async function child() {
   };
   const sections = {
     agents: [agent],
-    systemAgents: [],
+    systemAgents: [assistant],
     resources: [],
     connections: [
       {
@@ -192,7 +220,23 @@ async function child() {
       refreshEdited = false;
       return { projects: [project], trashProjects: [] };
     },
-    'studio:chat-get': () => state,
+    'studio:chat-get': (_, request) =>
+      request.projectId === assistantTarget.projectId ? assistantState : state,
+    'studio:setup-assistant': () => {
+      helperOpens++;
+      processes = [
+        {
+          ...assistantTarget,
+          runId: 'helper-run',
+          pid: 32124,
+          agentName: assistant.name,
+          working: false,
+          embedded: true,
+        },
+      ];
+      send('studio:chat-opened', assistantTarget);
+      return { runId: 'helper-run' };
+    },
     'studio:pi-processes': () => processes,
     'studio:launch-agent': (_, request) => {
       launches++;
@@ -789,6 +833,110 @@ async function child() {
   );
   await until(`!document.querySelector('.agent-diff')`);
   assert.equal(refreshCalls.length, 1);
+  await clickText('Agents');
+  await until(`!!document.querySelector('.agents-workspace')`);
+  await js(`document.querySelector('[data-system-role="assistant"] .agent-helper-launch').click()`);
+  await until(
+    `document.querySelectorAll('.pi-chat-panel').length===1&&document.querySelector('.pi-chat-panel').innerText.includes('HELPER_HISTORY')`,
+  );
+  await js(
+    `(()=>{const e=document.querySelector('.pi-chat-composer textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'HELPER_DRAFT');e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+  );
+  await until(`document.querySelector('.pi-chat-composer textarea').value==='HELPER_DRAFT'`);
+  const assistantLayouts = [];
+  const measureAssistant = async () =>
+    js(
+      `(()=>{const rect=e=>{const r=e.getBoundingClientRect();return{x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}},chat=rect(document.querySelector('.pi-chat-panel')),editor=rect(document.querySelector('.agent-editor')),list=rect(document.querySelector('.agent-stages')),workspace=rect(document.querySelector('.agents-workspace'));return{chat,editor,list,workspace,overflow:document.documentElement.scrollWidth>innerWidth,sidebarAccessible:!!document.elementFromPoint(list.right-10,list.y+60)?.closest('.agent-stages'),panels:document.querySelectorAll('.pi-chat-panel').length}})()`,
+    );
+  const checkAssistant = async () => {
+    await until(
+      `Math.abs(document.querySelector('.pi-chat-panel').getBoundingClientRect().x-document.querySelector('.agent-editor').getBoundingClientRect().x)<0.1`,
+    );
+    const r = await measureAssistant();
+    assert.equal(r.chat.x, r.list.right);
+    assert.equal(r.chat.x, r.editor.x);
+    assert.equal(r.chat.width, r.editor.width);
+    assert.equal(r.chat.y, r.workspace.y);
+    assert.equal(r.chat.bottom, r.workspace.bottom);
+    assert.equal(r.sidebarAccessible, true);
+    assert.equal(r.overflow, false);
+    assert.equal(r.panels, 1);
+    return r;
+  };
+  for (const [lang, mode] of [
+    ['ru', 'light'],
+    ['ru', 'dark'],
+    ['en', 'light'],
+    ['en', 'dark'],
+  ]) {
+    await js(
+      `window.studio.setLanguage(${JSON.stringify(lang)});window.studio.setTheme(${JSON.stringify(mode)})`,
+    );
+    await until(
+      `document.documentElement.lang===${JSON.stringify(lang)}&&document.documentElement.dataset.theme===${JSON.stringify(mode)}`,
+    );
+    assert.equal(
+      await js(`document.querySelector('.pi-chat-header h2').textContent`),
+      lang === 'ru' ? 'Помощник настройки' : 'Setup assistant',
+    );
+    assert.equal(
+      await js(`document.querySelector('.agent-list-group-heading').textContent`),
+      lang === 'ru' ? 'Мои команды' : 'My teams',
+    );
+    for (const [width, height] of [
+      [1080, 480],
+      [1280, 740],
+      [1760, 740],
+    ]) {
+      windows.setContentSize(width, height);
+      await until(`innerWidth===${width}&&innerHeight===${height}`);
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      const layout = await checkAssistant();
+      assistantLayouts.push({ language: lang, theme: mode, width, height, ...layout });
+      assert.equal(
+        await js(`document.querySelector('.pi-chat-composer textarea').value`),
+        'HELPER_DRAFT',
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await writeFile(
+      join(root, `agents-chat-${lang}-${mode}.png`),
+      (await windows.webContents.capturePage()).toPNG(),
+    );
+  }
+  windows.setContentSize(1280, 740);
+  await until(`innerWidth===1280`);
+  send('studio:run-failure', {
+    ...target,
+    projectRoot: join(bootstrap.folder, 'projects/chat-project'),
+    agentName: 'QA',
+    failure: 'network',
+  });
+  await until(`!!document.querySelector('.run-failure-notice')`);
+  await checkAssistant();
+  await js(`document.querySelector('.run-failure-notice button').click()`);
+  await until(`!document.querySelector('.run-failure-notice')`);
+  // Navigating moves the panel between its page-specific hosts without opening Pi again.
+  await clickText('Projects');
+  await until(
+    `!!document.querySelector('.pi-chat-standalone')&&!document.querySelector('.agents-workspace')`,
+  );
+  assert.equal(
+    await js(`document.querySelector('.pi-chat-composer textarea').value`),
+    'HELPER_DRAFT',
+  );
+  assert.equal(
+    await js(`Math.round(document.querySelector('.pi-chat-panel').getBoundingClientRect().width)`),
+    800,
+  );
+  await clickText('Agents');
+  await until(`!!document.querySelector('.agents-workspace > .pi-chat-panel')`);
+  await checkAssistant();
+  assert.equal(
+    await js(`document.querySelector('.pi-chat-composer textarea').value`),
+    'HELPER_DRAFT',
+  );
+  assert.equal(helperOpens, 1, 'Page navigation reuses the same helper process');
   assert.ok(!errors.length, errors.join('\n'));
   await writeFile(
     join(root, 'chat-ui-proof.json'),
@@ -801,6 +949,8 @@ async function child() {
           `${loadingHoldMs / 1000}-second loading spinner`,
           'one launch for double click',
           'preview-sized sliding panel',
+          'Agents helper chat reaches the team-column edge at 1080/1280/1760px, short height and RU/EN/light/dark',
+          'team column remains clickable; one chat; notification-aware bounds; navigation preserves helper draft and process',
           'footer/overflow geometry',
           'equal message-bubble vertical padding',
           'authoritative native queue visible after composer steer sends, duplicates preserved',
@@ -828,6 +978,7 @@ async function child() {
         refreshScreens,
         toolLocales,
         composerLayouts,
+        assistantLayouts,
       },
       null,
       2,

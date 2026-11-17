@@ -145,6 +145,8 @@ The chat resize grip stays below the text area so it cannot cover the last line.
 
 Steer and follow-up messages appear immediately in the native queue with a pending label, then move into the saved dialogue when Pi receives them. Identical messages stay distinct, and hiding/reopening the chat keeps the queue visible.
 
+On the Agents page, the assistant chat fills the editor pane up to the team list, keeping the list accessible. Resizing the window or switching sections preserves the live conversation and draft.
+
 Interrupted update downloads resume when you retry, including after restarting Studio. This is available once alpha.93 is installed.
 
 ## Quick start

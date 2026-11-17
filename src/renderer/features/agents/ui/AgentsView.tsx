@@ -1,3 +1,4 @@
+import { SetupChatPanel } from '@/features/chat/SetupChatPanel';
 import { AgentList } from './AgentList';
 import { AgentProfileEditor } from './AgentProfileEditor';
 
@@ -8,6 +9,7 @@ export function AgentsView() {
         <AgentList />
       </aside>
       <AgentProfileEditor />
+      <SetupChatPanel inline />
     </div>
   );
 }

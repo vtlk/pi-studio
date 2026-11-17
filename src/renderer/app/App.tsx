@@ -50,7 +50,7 @@ function StudioShell() {
         <div className="main-scroll">
           <Page />
         </div>
-        <SetupChatPanel />
+        {page !== 'agents' && <SetupChatPanel />}
       </main>
       <DialogView />
       <GitHubStarReminder />
