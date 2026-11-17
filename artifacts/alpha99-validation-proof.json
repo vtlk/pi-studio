@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0-alpha.99",
+  "reviewedCommits": [
+    "c700931"
+  ],
+  "tests": {
+    "total": 465,
+    "passed": 464,
+    "failed": 0,
+    "skipped": 1,
+    "skip": "Opt-in native permission probe; no system dialogs"
+  },
+  "architectureModules": 416,
+  "onboardingRuEnLightDark": true,
+  "gitBashRegistryPathsAndChildEnvironment": true,
+  "portableGitCmdPath": true,
+  "gitExeAloneRejected": true,
+  "missingBashPreventsUnusableTerminal": true,
+  "allPost98SourceReviewed": true,
+  "nativeWindowsAcceptance": false,
+  "userAppOrDataChanged": false
+}

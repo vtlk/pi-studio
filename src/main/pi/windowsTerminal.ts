@@ -2,7 +2,7 @@ import { t } from '../../shared/i18n/index.ts';
 import { ensureWindowsProfile } from './terminal-close/windowsProfile.ts';
 import { execFile, spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
-import { basename, delimiter, dirname, join } from 'node:path';
+import { basename, delimiter, join, win32 } from 'node:path';
 import { promisify } from 'node:util';
 import { piEnvironment } from './platform.ts';
 import { powershellArguments, powershellLiteral, windowsPowershell } from './windowsShell.ts';
@@ -10,6 +10,7 @@ import { findWindowsBash } from './windowsBash.ts';
 
 const execute = promisify(execFile);
 interface TerminalDependencies {
+  bash?: () => Promise<string>;
   execute?: (
     file: string,
     args: string[],
@@ -70,7 +71,10 @@ export async function openWindowsSession(
   const name = basename(bootstrap, '.json');
   if (!/^[a-zA-Z0-9_-]{1,128}$/.test(name))
     throw new Error(t('error.windowsTerminal.invalidPiWindowId'));
-  const env = piEnvironment(dirname(node));
+  const bash = await (dependencies.bash ?? findWindowsBash)();
+  // Pi 1.5.2 resolves bash.exe on PATH after checking standard Git locations.
+  // Keep the private Node first, then the discovered native shell (including registry installs).
+  const env = piEnvironment(win32.dirname(node), process.env, 'win32', [win32.dirname(bash)]);
   const script = `$env:PATH = ${powershellLiteral(env.PATH)}; $env:PI_TELEMETRY = '0'; $env:PI_OFFLINE = '1'; & ${powershellLiteral(node)} ${powershellLiteral(bridge)} ${powershellLiteral(bootstrap)}; exit $LASTEXITCODE`;
   await launchVisibleTerminal(
     await (dependencies.terminal ?? terminal)(),
@@ -117,7 +121,7 @@ export async function focusWindowsSession(pid: number, dependencies: TerminalDep
 export async function openWindowsShellCommand(
   command: string,
   title = 'Pi Studio',
-  dependencies: TerminalDependencies & { bash?: () => Promise<string> } = {},
+  dependencies: TerminalDependencies = {},
 ) {
   const bash = await (dependencies.bash ?? findWindowsBash)();
   const script = `& ${powershellLiteral(bash)} '-lc' ${powershellLiteral(command)}; exit $LASTEXITCODE`;

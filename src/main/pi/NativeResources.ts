@@ -6,6 +6,7 @@ import { realpath } from 'node:fs/promises';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
 import { transferTimeouts } from '../network/transfer.ts';
+import { findGit } from './git.ts';
 
 export interface NativeResourceRequest {
   action: 'list-mcp' | 'configure-mcp' | 'check-mcp' | 'install-package' | 'check-package';
@@ -38,6 +39,13 @@ export async function nativeResourceOperation(
   if (!pi.supported) throw new Error(t('error.nativeResources.theSupportedPiIsRequired'));
   const sdk = await resolvePiSdk(await realpath(pi.path));
   const node = await piNode(pi.path);
+  const git = process.platform === 'win32' ? await findGit() : undefined;
+  const env = piEnvironment(
+    dirname(node),
+    process.env,
+    process.platform,
+    git ? [dirname(git)] : [],
+  );
   return new Promise((resolve, reject) => {
     const child = spawn(node, [script, sdk], {
       windowsHide: true,
@@ -45,7 +53,7 @@ export async function nativeResourceOperation(
       stdio: ['pipe', 'ignore', 'ignore', 'pipe'],
       detached: true,
       env: {
-        ...piEnvironment(dirname(node)),
+        ...env,
         PI_TELEMETRY: '0',
       },
     });

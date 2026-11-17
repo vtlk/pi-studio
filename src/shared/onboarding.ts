@@ -139,7 +139,7 @@ export function onboardingTasks(
       tasks.unshift({
         id: 'git',
         kind: 'git',
-        name: '',
+        name: options.readiness.gitBash ? 'Git Bash' : 'Git',
         complete: options.readiness.git === 'ready',
         checking: options.readiness.git === 'checking',
       });

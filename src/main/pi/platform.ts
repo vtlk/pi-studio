@@ -15,6 +15,7 @@ export function piEnvironment(
   directory: string,
   input: NodeJS.ProcessEnv = process.env,
   platform: NodeJS.Platform = process.platform,
+  toolDirectories: string[] = [],
 ): NodeJS.ProcessEnv & { PATH: string } {
   const env = { ...input };
   const paths = Object.keys(env).filter((key) => key.toLowerCase() === 'path');
@@ -27,6 +28,7 @@ export function piEnvironment(
     ...new Set(
       [
         directory,
+        ...toolDirectories,
         ...inherited.split(platform === 'win32' ? ';' : ':'),
         ...(platform === 'win32' ? windowsGitDirectories(input) : []),
         ...(platform === 'darwin' ? ['/opt/homebrew/bin', '/usr/local/bin'] : []),

@@ -70,7 +70,13 @@ export class OnboardingReadiness {
         force,
       );
     };
-    const result: Snapshot = { folder, terminal: 'ready', connections: {}, mcps: {} };
+    const result: Snapshot = {
+      folder,
+      terminal: 'ready',
+      gitBash: this.dependencies.windows,
+      connections: {},
+      mcps: {},
+    };
     if (this.dependencies.runtimeReady && !this.dependencies.runtimeReady()) {
       this.checks.retain(keys);
       for (const connection of scope.connections)

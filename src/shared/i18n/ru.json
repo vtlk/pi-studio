@@ -1636,7 +1636,7 @@
   "error.download.invalidPartial": "Не удалось безопасно продолжить загрузку обновления.",
   "error.download.networkInterrupted": "Не удалось завершить загрузку обновления. Проверьте подключение к интернету.",
   "error.download.partialSaved": "Загрузка прервана. Скачанная часть сохранена и будет использована при повторном обновлении.",
-  "Onboarding.git": "Установить Git",
+  "Onboarding.git": "Установить {{name}}",
   "Onboarding.gitDownloadFailed": "Не удалось открыть страницу установки Git.",
   "ComputerResourceStatus.checkUnavailable": "Не удалось проверить доступ Computer Use. Повторите проверку.",
   "ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp": "Проверка Computer Use доступна в приложении для компьютера.",

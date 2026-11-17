@@ -11,6 +11,7 @@ export interface OnboardingReadiness {
   folder: string;
   terminal: 'checking' | 'ready' | 'missing';
   git?: 'checking' | 'ready' | 'missing';
+  gitBash?: boolean;
   connections: Record<string, ConnectionReadiness>;
   mcps: Record<string, McpReadiness>;
   computer?: ComputerState;

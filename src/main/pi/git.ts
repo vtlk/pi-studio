@@ -1,6 +1,8 @@
 import { access, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { posix, win32 } from 'node:path';
+import { windowsGitInstallRoots } from './windowsGitRegistry.ts';
+import { findWindowsBash } from './windowsBash.ts';
 
 const values = (env: NodeJS.ProcessEnv, name: string) =>
   Object.entries(env)
@@ -29,6 +31,7 @@ export async function findGit(
       return false;
     }
   },
+  installedRoots: () => Promise<string[]> = windowsGitInstallRoots,
 ) {
   const windows = platform === 'win32',
     path = windows ? win32 : posix;
@@ -54,4 +57,26 @@ export async function findGit(
     visited.add(key);
     if (await available(file)) return file;
   }
+  if (windows) {
+    for (const root of await installedRoots()) {
+      for (const part of ['cmd', 'bin']) {
+        const file = win32.join(root, part, 'git.exe');
+        if (visited.has(file.toLowerCase())) continue;
+        visited.add(file.toLowerCase());
+        if (await available(file)) return file;
+      }
+    }
+  }
+}
+
+/** Pi's Windows command tool needs native Git Bash; git.exe alone is insufficient. */
+export async function gitRequirementReady(
+  platform: NodeJS.Platform = process.platform,
+  env: NodeJS.ProcessEnv = process.env,
+  available?: (file: string) => Promise<boolean>,
+  installedRoots: () => Promise<string[]> = windowsGitInstallRoots,
+) {
+  return platform === 'win32'
+    ? !!(await findWindowsBash(env, available, installedRoots).catch(() => undefined))
+    : !!(await findGit(platform, env, available, installedRoots));
 }

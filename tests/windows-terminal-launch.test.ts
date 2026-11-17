@@ -47,6 +47,7 @@ test('Pi session opens a visible Terminal and keeps paths as encoded literal dat
   await openWindowsSession(node, bridge, bootstrap, 'Помощник; "Настройка"\n', {
     terminal: async () => wt,
     profile: async () => profile,
+    bash: async () => "E:\\Программы O'Brien $x\\Git\\bin\\bash.exe",
     spawn: child.create,
   });
   assert.equal(calls.length, 1);
@@ -72,6 +73,10 @@ test('Pi session opens a visible Terminal and keeps paths as encoded literal dat
   const decoded = Buffer.from(call.args.at(-1)!, 'base64').toString('utf16le');
   assert.ok(decoded.includes(`& 'C:/Users/O''Brien $x/Node/node.exe' '${bridge}' '${bootstrap}'`));
   assert.ok(decoded.includes("$env:PI_TELEMETRY = '0'"));
+  assert.ok(
+    decoded.includes(";E:\\Программы O''Brien $x\\Git\\bin;"),
+    'Discovered native Bash is passed to the Pi child on PATH',
+  );
   assert.ok(decoded.includes('exit $LASTEXITCODE'));
 });
 
@@ -133,6 +138,7 @@ test('a missing Terminal remains an explicit launch error, without a substitute 
   await assert.rejects(
     openWindowsSession('node', 'session.mjs', `${id}.json`, 'Pi', {
       profile: async () => profile,
+      bash: async () => "E:\\Программы O'Brien $x\\Git\\bin\\bash.exe",
       terminal: async () => {
         throw Error('Windows Terminal not found');
       },
@@ -153,9 +159,29 @@ test('a Terminal spawn failure is propagated rather than reported as a successfu
     openWindowsSession('node', 'session.mjs', `${id}.json`, 'Pi', {
       terminal: async () => wt,
       profile: async () => profile,
+      bash: async () => "E:\\Программы O'Brien $x\\Git\\bin\\bash.exe",
       spawn: child.create,
     }),
     /Cannot create Terminal/,
   );
   assert.equal(child.unreferenced(), false);
+});
+
+test('missing Git Bash prevents opening an unusable Pi terminal', async () => {
+  let launches = 0;
+  await assert.rejects(
+    openWindowsSession('C:/Pi/node.exe', 'session.mjs', `${id}.json`, 'Pi', {
+      profile: async () => profile,
+      terminal: async () => wt,
+      bash: async () => {
+        throw Error('Git Bash not found');
+      },
+      spawn: (() => {
+        launches++;
+        throw Error('must not launch');
+      }) as unknown as typeof spawn,
+    }),
+    /Git Bash not found/,
+  );
+  assert.equal(launches, 0);
 });

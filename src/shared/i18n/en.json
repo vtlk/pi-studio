@@ -1636,7 +1636,7 @@
   "error.download.invalidPartial": "The update download could not be resumed safely.",
   "error.download.networkInterrupted": "The update download was interrupted. Check your internet connection.",
   "error.download.partialSaved": "Download interrupted. The downloaded portion is saved and will be reused when you retry the update.",
-  "Onboarding.git": "Install Git",
+  "Onboarding.git": "Install {{name}}",
   "Onboarding.gitDownloadFailed": "Could not open the Git installation page.",
   "ComputerResourceStatus.checkUnavailable": "Could not check Computer Use access. Retry the check.",
   "ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp": "Computer Use checks are available in the desktop app.",

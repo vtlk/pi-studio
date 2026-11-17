@@ -298,6 +298,7 @@ try {
             folder,
             terminal: window.__qa.terminal,
             git: window.__qa.git,
+            gitBash: !!window.__qa.gitBash,
             connections: Object.fromEntries(
               state.sections.connections
                 .filter((c) => c.purpose !== 'images')
@@ -830,11 +831,20 @@ try {
   );
   await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
   await js(
-    `window.__qa.configureImages();window.__qa.terminal='missing';window.__qa.git='missing';window.dispatchEvent(new Event('focus'))`,
+    `window.__qa.configureImages();window.__qa.terminal='missing';window.__qa.git='missing';window.__qa.gitBash=true;window.dispatchEvent(new Event('focus'))`,
   );
   await until(
     `document.querySelector('[data-task-id="images"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='false'&&document.querySelector('[data-task-id="git"]')?.dataset.complete==='false'`,
   );
+  assert.equal(await js(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent`), 'Установить Git Bash');
+  await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+  await until(`!!document.querySelector('[role="menuitemradio"][lang="en"]')`);
+  await js(`document.querySelector('[role="menuitemradio"][lang="en"]').click()`);
+  await until(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent==='Install Git Bash'`);
+  await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+  await until(`!!document.querySelector('[role="menuitemradio"][lang="ru"]')`);
+  await js(`document.querySelector('[role="menuitemradio"][lang="ru"]').click()`);
+  await until(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent==='Установить Git Bash'`);
   assert.equal(await js('window.__qa.calls.gitDownloads'), 0);
   await js(`document.querySelector('[data-task-id="git"] button').click()`);
   assert.equal(await js('window.__qa.calls.gitDownloads'), 1);
@@ -999,6 +1009,7 @@ try {
     revokedPermissionsReopenTaskWithoutConsent: true,
     terminalDownloadOnlyOnExplicitClick: true,
     gitTaskTracksInstallationAndDownloadRequiresClick: true,
+    windowsSetupSpecificallyChecksAndLabelsGitBash: true,
     windowsComputerStatusUsesWindowsContractWithoutReinstallAdvice: true,
     imagesRequirementFollowsConfiguration: true,
     mandatoryPiHasNoSkip: true,
