@@ -25,6 +25,9 @@
   align-items: center;
   height: 100%;
 }
+.topbar nav > button {
+  white-space: nowrap;
+}
 .prototype-label {
   margin-left: auto;
   color: var(--text-dim);

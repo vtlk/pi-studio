@@ -68,116 +68,122 @@ export function AgentList() {
   };
   return (
     <nav className="section-menu" aria-label={t('AgentList.agentBuilder')}>
-      <h2 className="agent-list-group-heading column-heading">{t('AgentList.myTeams')}</h2>
-      {teams.map((team, teamIndex) => {
-        const profiles = team.agentIds.flatMap(
-          (id) => agents.find((agent) => agent.id === id) ?? [],
-        );
-        return (
-          <div className="agent-team" key={team.id} data-team-id={team.id}>
-            <Disclosure
-              label={team.name}
-              chevronPosition="start"
-              separator
-              defaultOpen
-              actions={
-                <>
-                  <IconButton
-                    title={t('AgentList.settingsForTeam', { value1: team.name })}
-                    className="team-rename"
-                    onClick={() =>
-                      setNaming({ id: team.id, name: team.name, workspaceMode: team.workspaceMode })
-                    }
-                  >
-                    <Pencil size={16} />
-                  </IconButton>
-                  <ActionMenu
-                    label={t('AgentList.actionsForTeam', { value1: team.name })}
-                    className="team-actions-menu"
-                    disabled={transfer.busy}
-                    actions={[
-                      {
-                        label: t('AgentList.importTeam'),
-                        icon: FileInput,
-                        disabled: !transfer.available,
-                        onSelect: () => void transfer.importTeam(true),
-                      },
-                      {
-                        label: t('AgentList.exportTeam'),
-                        icon: FileOutput,
-                        disabled: !transfer.available,
-                        onSelect: () => void transfer.exportTeam(team.id, true),
-                      },
-                      {
-                        label: t('AgentList.deleteTeam'),
-                        icon: Trash2,
-                        separator: true,
-                        danger: true,
-                        onSelect: () =>
-                          confirm({
-                            title: uiText('AgentList.deleteTeam2', { value1: team.name }),
-                            description: uiText('AgentList.theTeamAndItsAgentsWillBe'),
-                            onConfirm: () => {
-                              removeTeam(team.id);
-                              demo(uiText('AgentList.teamDeleted', { value1: team.name }), {
-                                label: uiText('useResourceUnlink.undo'),
-                                onClick: () => restoreTeam(team, profiles, teamIndex),
-                              });
-                            },
-                          }),
-                      },
-                    ]}
-                  />
-                </>
-              }
-            >
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={reorder}
-                accessibility={{
-                  screenReaderInstructions: {
-                    draggable: t('AgentList.spacePicksUpAnAgentArrowKeys'),
-                  },
-                }}
-              >
-                <SortableContext items={profiles} strategy={verticalListSortingStrategy}>
-                  {profiles.map((agent, index) => (
-                    <AgentListItem
-                      key={agent.id}
-                      agent={agent}
-                      position={index + 1}
-                      selected={selectedAgent?.id === agent.id}
-                      onSelect={() => setAgentId(agent.id)}
-                      onDelete={() => {
-                        removeAgent(agent.id);
-                        demo(
-                          uiText('AgentList.agentRemovedFromTheBuilder', { value1: agent.name }),
-                          {
-                            label: uiText('useResourceUnlink.undo'),
-                            onClick: () => restoreAgent(agent, index, team.id),
-                          },
-                        );
-                      }}
+      <div className="agent-teams-scroll">
+        <h2 className="agent-list-group-heading column-heading">{t('AgentList.myTeams')}</h2>
+        {teams.map((team, teamIndex) => {
+          const profiles = team.agentIds.flatMap(
+            (id) => agents.find((agent) => agent.id === id) ?? [],
+          );
+          return (
+            <div className="agent-team" key={team.id} data-team-id={team.id}>
+              <Disclosure
+                label={team.name}
+                chevronPosition="start"
+                separator
+                defaultOpen
+                actions={
+                  <>
+                    <IconButton
+                      title={t('AgentList.settingsForTeam', { value1: team.name })}
+                      className="team-rename"
+                      onClick={() =>
+                        setNaming({
+                          id: team.id,
+                          name: team.name,
+                          workspaceMode: team.workspaceMode,
+                        })
+                      }
+                    >
+                      <Pencil size={16} />
+                    </IconButton>
+                    <ActionMenu
+                      label={t('AgentList.actionsForTeam', { value1: team.name })}
+                      className="team-actions-menu"
+                      disabled={transfer.busy}
+                      actions={[
+                        {
+                          label: t('AgentList.importTeam'),
+                          icon: FileInput,
+                          disabled: !transfer.available,
+                          onSelect: () => void transfer.importTeam(true),
+                        },
+                        {
+                          label: t('AgentList.exportTeam'),
+                          icon: FileOutput,
+                          disabled: !transfer.available,
+                          onSelect: () => void transfer.exportTeam(team.id, true),
+                        },
+                        {
+                          label: t('AgentList.deleteTeam'),
+                          icon: Trash2,
+                          separator: true,
+                          danger: true,
+                          onSelect: () =>
+                            confirm({
+                              title: uiText('AgentList.deleteTeam2', { value1: team.name }),
+                              description: uiText('AgentList.theTeamAndItsAgentsWillBe'),
+                              onConfirm: () => {
+                                removeTeam(team.id);
+                                demo(uiText('AgentList.teamDeleted', { value1: team.name }), {
+                                  label: uiText('useResourceUnlink.undo'),
+                                  onClick: () => restoreTeam(team, profiles, teamIndex),
+                                });
+                              },
+                            }),
+                        },
+                      ]}
                     />
-                  ))}
-                </SortableContext>
-              </DndContext>
-              <AddArea
-                className="agent-team-add"
-                label={t('AgentList.addAnAgentTo', { value1: team.name })}
-                onClick={() => addAgent(team.id)}
-              />
-            </Disclosure>
-          </div>
-        );
-      })}
-      <AddArea
-        label={t('AgentList.createTeam')}
-        showLabel
-        className="agent-team-create"
-        onClick={() => setNaming({})}
-      />
+                  </>
+                }
+              >
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={reorder}
+                  accessibility={{
+                    screenReaderInstructions: {
+                      draggable: t('AgentList.spacePicksUpAnAgentArrowKeys'),
+                    },
+                  }}
+                >
+                  <SortableContext items={profiles} strategy={verticalListSortingStrategy}>
+                    {profiles.map((agent, index) => (
+                      <AgentListItem
+                        key={agent.id}
+                        agent={agent}
+                        position={index + 1}
+                        selected={selectedAgent?.id === agent.id}
+                        onSelect={() => setAgentId(agent.id)}
+                        onDelete={() => {
+                          removeAgent(agent.id);
+                          demo(
+                            uiText('AgentList.agentRemovedFromTheBuilder', { value1: agent.name }),
+                            {
+                              label: uiText('useResourceUnlink.undo'),
+                              onClick: () => restoreAgent(agent, index, team.id),
+                            },
+                          );
+                        }}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+                <AddArea
+                  className="agent-team-add"
+                  label={t('AgentList.addAnAgentTo', { value1: team.name })}
+                  onClick={() => addAgent(team.id)}
+                />
+              </Disclosure>
+            </div>
+          );
+        })}
+        <AddArea
+          label={t('AgentList.createTeam')}
+          showLabel
+          className="agent-team-create"
+          onClick={() => setNaming({})}
+        />
+      </div>
       {naming && (
         <TeamNameDialog
           name={naming.name}
@@ -189,35 +195,37 @@ export function AgentList() {
           }}
         />
       )}
-      <h2 className="agent-list-group-heading column-heading">{t('AgentList.system')}</h2>
-      {systemAgents.map((agent, index) => (
-        <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
-          <Tooltip
-            label={agentName(agent) || t('AgentList.untitled')}
-            onlyWhenTruncated
-            overflowSelector=".agent-list-name"
-          >
-            <button
-              type="button"
-              className={cx(
-                'section-menu-item',
-                'agent-list-item',
-                selectedAgent?.id === agent.id && 'active',
-              )}
-              data-enabled={agent.enabled}
-              aria-label={t('AgentList.summary', {
-                value1: agentName(agent) || t('AgentList.untitled'),
-                value2: agent.enabled ? t('AgentList.enabled') : t('AgentList.disabled'),
-              })}
-              aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
-              onClick={() => setAgentId(agent.id)}
+      <div className="agent-system-list">
+        <h2 className="agent-list-group-heading column-heading">{t('AgentList.system')}</h2>
+        {systemAgents.map((agent, index) => (
+          <div className="agent-list-entry" key={agent.id} data-system-role={agent.systemRole}>
+            <Tooltip
+              label={agentName(agent) || t('AgentList.untitled')}
+              onlyWhenTruncated
+              overflowSelector=".agent-list-name"
             >
-              <AgentListLabel agent={agent} position={index + 1} />
-            </button>
-          </Tooltip>
-          {agent.systemRole === 'assistant' && <SetupAssistantAction enabled={agent.enabled} />}
-        </div>
-      ))}
+              <button
+                type="button"
+                className={cx(
+                  'section-menu-item',
+                  'agent-list-item',
+                  selectedAgent?.id === agent.id && 'active',
+                )}
+                data-enabled={agent.enabled}
+                aria-label={t('AgentList.summary', {
+                  value1: agentName(agent) || t('AgentList.untitled'),
+                  value2: agent.enabled ? t('AgentList.enabled') : t('AgentList.disabled'),
+                })}
+                aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
+                onClick={() => setAgentId(agent.id)}
+              >
+                <AgentListLabel agent={agent} position={index + 1} />
+              </button>
+            </Tooltip>
+            {agent.systemRole === 'assistant' && <SetupAssistantAction enabled={agent.enabled} />}
+          </div>
+        ))}
+      </div>
     </nav>
   );
 }
