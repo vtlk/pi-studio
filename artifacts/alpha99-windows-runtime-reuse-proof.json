@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0-alpha.99",
+  "baselineVersion": "0.2.0-alpha.98",
+  "baselineSignedManifestAndFullArchiveHashVerified": true,
+  "baselineCrcAndInventoryVerified": true,
+  "unchangedPackagingRecipeAndDependencyLockExceptVersion": true,
+  "pinnedElectronAndCuaRuntimePreserved": true,
+  "allOutAndBundledDirectoriesReplacedFromCurrentSource": true,
+  "unchangedRuntimeAndDependencyEntriesCompared": 647,
+  "newCrcAndInventoryVerified": true,
+  "sha256": "a82f862caac6c24037c98eb65cedfde4fd20170069bdd1d9069a6a4f8789cdc5",
+  "nativeWindowsAcceptance": false,
+  "executedWindowsPrograms": false,
+  "ownedStagingRemoved": true
+}
