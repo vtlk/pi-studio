@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-11-17T13:25:01.074830+00:00",
+  "version": "0.2.0-alpha.91",
+  "installation": "explicitly requested manual replacement of alpha.89 because its updater times out",
+  "installedApplication": {
+    "packageVersion": "0.2.0-alpha.91",
+    "macArm64": true,
+    "deepStrictCodesignVerified": true,
+    "teamIdentifier": "2N3G6XT5H9",
+    "compiledFilesMatchingPublishedArchive": 14,
+    "archiveSha256": "0bfea13dcf61a81cceeb1af03730fb3c21a5a007f7e17881468746562f2ddd9f"
+  },
+  "preservation": {
+    "protectedFileCount": 103,
+    "jsonlCount": 79,
+    "unchangedImmediatelyAfterReplacementBeforeReopen": 103,
+    "unchangedAcrossFinalReopen": 103,
+    "changedAcrossFinalReopen": 0,
+    "sameSelectedStudio": true,
+    "messagesSent": 0,
+    "agentsLaunched": 0,
+    "preReplacementVerification": "Recorded in preceding installation phase; private baseline no longer available for another comparison."
+  },
+  "runtime": {
+    "mainProcessCount": 1,
+    "previousPid50530Running": false,
+    "aboutVersionPreviouslyObserved": "0.2.0-alpha.91",
+    "finalReopenObservedByProcess": true
+  },
+  "cleanup": {
+    "manualApplicationStages": 0,
+    "previousApplicationBackupCreated": false,
+    "currentReleaseArchivesOnly": true
+  },
+  "browserClones": {
+    "installationAuditNewRetainedCount": 0,
+    "finalReopenBeforeCount": 1,
+    "finalReopenAfterCount": 1,
+    "finalReopenNewRetainedCount": 0,
+    "unknownClonesDeleted": 0,
+    "browserProfilesModified": false
+  },
+  "limitations": [
+    "Final reopened window not inspected through desktop automation in this phase.",
+    "Second Windows PC alpha.91 acceptance remains pending.",
+    "Manual replacement does not establish old alpha.89 updater acceptance."
+  ]
+}
