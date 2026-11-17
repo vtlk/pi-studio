@@ -56,7 +56,11 @@ function fixture() {
     pid: 12345,
   } as LiveRun;
   const map = new Map([['p/next', live]]);
-  const dependencies = { embedded: true, read: async () => live.run.project } as RunDependencies;
+  const dependencies = {
+    embedded: true,
+    read: async () => live.run.project,
+    update: async () => live.run.project,
+  } as RunDependencies;
   const chats = new RunChats(
     map,
     dependencies,
@@ -169,4 +173,19 @@ test('native refusal/handled input is not accepted as a started chain task and r
       assert.equal(f.stops(), 0);
     }
   }
+});
+
+test('a native preflight refusal after the input hook does not leave the idle recipient falsely running', async () => {
+  const f = fixture();
+  f.chat.send = async () => {
+    f.live.sequence++;
+    f.live.status = 'running';
+    throw Error('Native preflight rejected');
+  };
+  await assert.rejects(f.run(), /Native preflight rejected/);
+  assert.equal(f.live.status, 'waiting');
+  assert.equal(f.live.request.autoContinue, false);
+  assert.equal(f.live.automaticCheck, undefined);
+  assert.equal(f.stops(), 0);
+  assert.equal(f.chat.state.messages, f.history);
 });
