@@ -125,7 +125,7 @@ if (!process.versions.electron) {
     originalHandle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA: no Pi/model calls' })
+        ? () => ({ phase: 'ready', message: 'QA: no Pi/model calls' })
         : name === 'studio:launch-agent' || name === 'studio:setup-assistant'
           ? () => {
               forbidden++;
@@ -250,8 +250,9 @@ if (!process.versions.electron) {
     metadataReleased = true;
     releaseMetadata();
     await until(() => fs.existsSync(join(stage, 'health.json')));
-    const text = await window.webContents.executeJavaScript(`document.body.innerText`);
-    assert(/мои команды|my teams/i.test(text), text);
+    await until(() =>
+      window.webContents.executeJavaScript(`/мои команды|my teams/i.test(document.body.innerText)`),
+    );
     assert(requests.some((r) => r.saved && r.hydrated));
     assert.equal(JSON.parse(fs.readFileSync(join(stage, 'health.json'), 'utf8')).pid, process.pid);
     await window.webContents.executeJavaScript(

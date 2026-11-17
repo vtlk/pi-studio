@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-17T16:14:09.633610+00:00",
+  "version": "0.2.0-alpha.95",
+  "unitTests": {
+    "passed": 426,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typescript": true,
+  "eslint": true,
+  "architectureModules": 405,
+  "nativeBootProof": "update-boot-proof.json",
+  "previousPublishedReproduction": "update-boot-previous-proof.json",
+  "recoveryProof": "mac-update-recovery-proof.json",
+  "installedWorkingAppReplaced": false,
+  "nativeWindowsAcceptance": false
+}
