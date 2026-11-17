@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-17T23:03:43.693836+00:00",
+  "version": "0.2.0-alpha.108",
+  "runtimeSourceCommit": "326ec17592c45c9f73ee36594799cfe302871199",
+  "tests": {
+    "total": 501,
+    "passed": 500,
+    "skippedOptInNativePermission": 1,
+    "failed": 0
+  },
+  "architectureModules": 443,
+  "typecheckAndLint": true,
+  "realPiRuntimeInspection": true,
+  "realNpmAndNpxLocalMcpConnections": true,
+  "offlineIsolatedNpmCacheOnly": true,
+  "ordinaryCliNotRegisteredAsPiPluginRuEn": true,
+  "windowsUnicodeSpacePathsAndLiteralArgsControlled": true,
+  "explicitExecutablesCustomPathPreserved": true,
+  "runtimeInspectionAdministrationScoped": true,
+  "existingUserHelperRolePreservedWithCurrentGuidance": true,
+  "nativeWindowsAcceptance": false,
+  "userApplicationOrDataChanged": false,
+  "onboardingUsesRealNodeDistributionWithoutProcessExecution": true
+}

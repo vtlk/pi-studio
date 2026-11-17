@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-17T23:12:24.549Z",
+  "version": "0.2.0-alpha.108",
+  "sourceCommit": "326ec17592c45c9f73ee36594799cfe302871199",
+  "exactBundledSourcesComparedOnBothPlatforms": [
+    "node-tools.mjs",
+    "package-resources.mjs",
+    "setup-guidance.mjs",
+    "prompt.mjs",
+    "resources.mjs",
+    "packages.mjs",
+    "session.mjs"
+  ],
+  "installedApplicationOrUserDataChanged": false
+}
