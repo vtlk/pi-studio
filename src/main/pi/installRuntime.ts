@@ -14,6 +14,7 @@ import {
 } from './runtimeConfig.ts';
 import { managedPiPath, piEnvironment } from './platform.ts';
 import { powershellArguments, powershellLiteral, windowsPowershell } from './windowsShell.ts';
+import { readTransferChunk, requestTransfer, transferTimeouts } from '../network/transfer.ts';
 
 type Progress = (state: StartupState) => void;
 export { command as runtimeCommand, downloadNode as downloadNodeRuntime };
@@ -67,14 +68,22 @@ async function command(
       stdio: 'ignore',
       signal,
     });
+    let failure: Error | undefined;
     const timer = setTimeout(() => {
-      child.kill();
-      reject(new Error(t('installRuntime.piInstallationTimedOutTryAgain')));
-    }, options.timeout ?? 180_000);
-    child.once('error', reject);
+      failure = new Error(t('installRuntime.piInstallationTimedOutTryAgain'));
+      child.kill('SIGKILL');
+    }, options.timeout ?? transferTimeouts.unpack);
+    child.once('error', (error) => {
+      clearTimeout(timer);
+      failure ??= error;
+      // Wait for a started child to close before the caller removes its owned staging.
+      if (child.pid) child.kill('SIGKILL');
+      else reject(failure);
+    });
     child.once('close', (code) => {
       clearTimeout(timer);
-      if (code === 0) resolve();
+      if (failure) reject(failure);
+      else if (code === 0) resolve();
       else reject(new Error(t('installRuntime.couldNotInstallPiComponentsCheckYour')));
     });
   });
@@ -85,9 +94,9 @@ async function downloadNode(
   signal: AbortSignal,
   update: Progress,
 ) {
-  const response = await fetch(
+  const response = await requestTransfer(
     `https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-${process.platform === 'win32' ? `win-${arch}.zip` : `darwin-${arch}.tar.gz`}`,
-    { redirect: 'error', signal: AbortSignal.any([signal, AbortSignal.timeout(120_000)]) },
+    { redirect: 'error', signal },
   );
   if (!response.ok || !response.body)
     throw new Error(t('installRuntime.couldNotDownloadPiComponentsCheckYour'));
@@ -98,7 +107,7 @@ async function downloadNode(
   let received = 0;
   try {
     while (true) {
-      const result = await reader.read();
+      const result = await readTransferChunk(reader, signal);
       if (result.done) break;
       const chunk = result.value;
       signal.throwIfAborted();
@@ -206,6 +215,7 @@ export async function installPiRuntime(
       signal,
       {
         cwd: packages,
+        timeout: transferTimeouts.packageInstall,
         env: piEnvironment(
           join(stage, windows ? 'node' : 'node/bin'),
           windows

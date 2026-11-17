@@ -4,6 +4,8 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { tmpdir, homedir } from 'node:os';
 import { join, resolve, extname, sep } from 'node:path';
+import en from '../src/shared/i18n/en.json' with { type: 'json' };
+import ru from '../src/shared/i18n/ru.json' with { type: 'json' };
 
 // Uses only the installed, isolated headless shell. Never launches the system browser or Electron.
 const executable =
@@ -198,6 +200,8 @@ try {
     const clone = (value) => structuredClone(value);
     let finish,
       rejectAssistant,
+      finishVisible,
+      rejectVisible,
       theme = 'light';
     window.__qa = {
       state,
@@ -211,6 +215,12 @@ try {
       },
       browser: { headlessInstalled: false, headedInstalled: false, headedSupported: true },
       images: 'not_ready',
+      visibleInstalls: 0,
+      rejectVisible(message) { rejectVisible?.(Error(message)); },
+      finishVisible() {
+        this.browser.headedInstalled = true;
+        finishVisible?.(clone(this.browser));
+      },
       authorize() {
         this.authorized = true;
       },
@@ -311,6 +321,10 @@ try {
           return clone(window.__qa.computer);
         },
         getBrowserState: async () => clone(window.__qa.browser),
+        installVisibleBrowser: async () => {
+          window.__qa.visibleInstalls++;
+          return new Promise((resolve, reject) => { finishVisible = resolve; rejectVisible = reject; });
+        },
         installResource: async (id) => {
           if (id !== 'pistudio-browser') throw Error('Wrong install scope');
           calls.installs++;
@@ -492,6 +506,37 @@ try {
   await until(
     `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
+  // Exercise the real browser status component, including translated network errors, without
+  // downloading a component, opening a window, probing permissions or accessing personal data.
+  const browserTimeoutChecks = [];
+  for (const [language, catalog] of [['ru', ru], ['en', en]]) {
+    if (language === 'en') {
+      await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+      await until(`!!document.querySelector('[role="menuitemradio"][lang="en"]')`);
+      await js(`document.querySelector('[role="menuitemradio"][lang="en"]').click()`);
+    }
+    await js(`Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Агенты','Agents'].includes(b.textContent.trim())).click()`);
+    await until(`!!document.querySelector('[data-system-role="assistant"] button')`);
+    await js(`document.querySelector('[data-system-role="assistant"] button').click()`);
+    await js(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='MCP').click()`);
+    const browserRow = `Array.from(document.querySelectorAll('[data-builtin-mcp]')).find(e=>e.textContent.includes(${JSON.stringify(language === 'ru' ? 'Pi Studio · Браузер' : 'Pi Studio · Browser')}))`;
+    await until(`!!(${browserRow})`);
+    await js(`(()=>{const trigger=(${browserRow}).querySelector('.disclosure-trigger');if(trigger.getAttribute('aria-expanded')==='false')trigger.click()})()`);
+    const installLabel = catalog['BrowserResourceStatus.installVisibleBrowser'];
+    await until(`(${browserRow}).innerText.includes(${JSON.stringify(installLabel)})`);
+    for (const key of ['error.transfer.headerTimeout', 'error.transfer.idleTimeout']) {
+      await js(`Array.from((${browserRow}).querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(installLabel)}).click()`);
+      assert.equal(await js(`Array.from((${browserRow}).querySelectorAll('.resource-native-actions button')).every(b=>b.disabled)`), true);
+      await js(`window.__qa.rejectVisible(${JSON.stringify(catalog[key])})`);
+      await until(`(${browserRow}).querySelector('[role="status"]')?.textContent===${JSON.stringify(catalog[key])}`);
+      assert.equal(await js(`Array.from((${browserRow}).querySelectorAll('.resource-native-actions button')).every(b=>!b.disabled)`), true);
+      browserTimeoutChecks.push({ language, key, visibleError: true, retryEnabled: true });
+    }
+  }
+  assert.equal(await js('window.__qa.visibleInstalls'), 4);
+  await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+  await until(`!!document.querySelector('[role="menuitemradio"][lang="ru"]')`);
+  await js(`document.querySelector('[role="menuitemradio"][lang="ru"]').click()`);
   await checkSidebar('ru');
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===4`);
@@ -811,6 +856,7 @@ try {
   const proof = {
     checkedAt: new Date().toISOString(),
     sidebarChecks,
+    browserTimeoutChecks,
     missingConnectionAndModelsIncludingAssistant: true,
     realAuthorizationRequired: true,
     creationTasksLastAndImmediatelyRemoved: true,

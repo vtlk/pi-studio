@@ -1599,6 +1599,8 @@
   "rendererRecovery.detail": "Интерфейс снова завершился. Можно повторить открытие окна. Агенты продолжают работать.",
   "rendererRecovery.retry": "Восстановить окно",
   "rendererRecovery.close": "Закрыть окно",
+  "error.transfer.headerTimeout": "Сервер загрузки не ответил за 60 секунд. Проверьте подключение и повторите попытку.",
+  "error.transfer.idleTimeout": "Сервер не передаёт данные загрузки уже 60 секунд. Проверьте подключение и повторите попытку.",
   "error.githubTransport.headerTimeout": "GitHub не ответил вовремя. Проверьте подключение и повторите обновление.",
   "error.githubTransport.downloadIdleTimeout": "Загрузка остановилась: GitHub долго не передаёт данные. Проверьте подключение и повторите обновление.",
   "error.sessionLease.windowsProcessCheckTimedOut": "Windows не ответила на проверку процесса Pi за 15 секунд. Закройте диалог этого агента, если он открыт, и повторите запуск.",

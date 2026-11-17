@@ -1599,6 +1599,8 @@
   "rendererRecovery.detail": "The interface stopped again. You can retry opening the window. Agents continue running.",
   "rendererRecovery.retry": "Restore window",
   "rendererRecovery.close": "Close window",
+  "error.transfer.headerTimeout": "The download server did not respond within 60 seconds. Check your connection and try again.",
+  "error.transfer.idleTimeout": "The server has not sent download data for 60 seconds. Check your connection and try again.",
   "error.githubTransport.headerTimeout": "GitHub did not respond in time. Check your connection and retry the update.",
   "error.githubTransport.downloadIdleTimeout": "The download stalled: GitHub has not sent data for a while. Check your connection and retry the update.",
   "error.sessionLease.windowsProcessCheckTimedOut": "Windows did not respond to the Pi process check within 15 seconds. Close this agent’s dialogue if it is open, then try launching again.",

@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { chmod, mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
+import { transferTimeouts } from '../network/transfer.ts';
 import { atomicJson, isMissing } from '../storage/files.ts';
 import { AGENT_BROWSER_VERSION, browserArchive, browserExecutable } from './browserVersions.ts';
 import { windowsTar } from '../pi/windowsShell.ts';
@@ -61,6 +62,7 @@ export async function installAgentBrowser(
     const tar = process.platform === 'win32' ? windowsTar() : '/usr/bin/tar';
     const { stdout: entries } = await execute(tar, ['-tzf', archive], {
       signal,
+      timeout: transferTimeouts.unpack,
       maxBuffer: 100000,
     });
     const files = entries.trim().split('\n');
@@ -71,6 +73,7 @@ export async function installAgentBrowser(
       throw new Error(t('error.installAgentBrowser.theBrowserComponentIsMissing'));
     const { stdout: binary } = await execute(tar, ['-xOzf', archive, binaries[0]], {
       signal,
+      timeout: transferTimeouts.unpack,
       encoding: 'buffer',
       maxBuffer: limit,
     });

@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
+import { transferTimeouts } from '../network/transfer.ts';
 import { atomicJson, isMissing } from '../storage/files.ts';
 import {
   CHROME_VERSION,
@@ -88,7 +89,7 @@ export async function installChrome(
         : ['-xk', archive, unpacked],
       {
         signal,
-        timeout: 60000,
+        timeout: transferTimeouts.unpack,
         maxBuffer: 100000,
       },
     );

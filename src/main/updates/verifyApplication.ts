@@ -33,8 +33,9 @@ async function ordinaryFile(root: string, path: string) {
     throw new Error(t('error.verifyApplication.invalidAppStructureInThe'));
 }
 export async function designatedRequirement(root: string) {
-  await execute('/usr/bin/codesign', ['--verify', '--deep', '--strict', root], { timeout: 30000 });
-  const result = await execute('/usr/bin/codesign', ['-d', '-r-', root]);
+  // Full bundle verification traverses hundreds of MB, including on a cold/slow disk.
+  await execute('/usr/bin/codesign', ['--verify', '--deep', '--strict', root], { timeout: 120000 });
+  const result = await execute('/usr/bin/codesign', ['-d', '-r-', root], { timeout: 10000 });
   const requirement = result.stdout.split('designated => ')[1]?.trim();
   if (!requirement || /^cdhash\b/.test(requirement))
     throw new Error(t('error.verifyApplication.theAppHasNoPermanent'));
@@ -69,17 +70,16 @@ export async function verifyApplication(
     await execute(
       '/usr/bin/codesign',
       ['--verify', '--deep', '--strict', `-R=${requirement}`, candidate],
-      { timeout: 30000 },
+      { timeout: 120000 },
     );
-    const { stdout: id } = await execute('/usr/bin/plutil', [
-      '-extract',
-      'CFBundleIdentifier',
-      'raw',
-      '-o',
-      '-',
-      join(candidate, 'Contents/Info.plist'),
-    ]);
-    const { stdout: architectures } = await execute('/usr/bin/lipo', ['-archs', executable]);
+    const { stdout: id } = await execute(
+      '/usr/bin/plutil',
+      ['-extract', 'CFBundleIdentifier', 'raw', '-o', '-', join(candidate, 'Contents/Info.plist')],
+      { timeout: 10000 },
+    );
+    const { stdout: architectures } = await execute('/usr/bin/lipo', ['-archs', executable], {
+      timeout: 10000,
+    });
     if (
       id.trim() !== 'studio.pi.desktop' ||
       !architectures

@@ -3,16 +3,17 @@ import { validatePngBytes } from '../storage/png.ts';
 import type { ImageReference } from './imageReferences.ts';
 
 import { ImagesApiError, imagesApiFailure } from './imageApiError.ts';
+import { readTransferChunk, transferTimeouts } from '../network/transfer.ts';
 export { ImagesApiError } from './imageApiError.ts';
 
-async function readBody(response: Response, limit: number) {
+async function readBody(response: Response, limit: number, signal?: AbortSignal) {
   if (!response.body) throw new Error(t('error.imagesApi.emptyImagesApiResponse'));
   const reader = response.body.getReader(),
     chunks: Uint8Array[] = [];
   let length = 0;
   try {
     for (;;) {
-      const item = await reader.read();
+      const item = await readTransferChunk(reader, signal);
       if (item.done) break;
       length += item.value.length;
       if (length > limit) throw new Error(t('error.imagesApi.theImagesApiResponseExceeds'));
@@ -21,6 +22,7 @@ async function readBody(response: Response, limit: number) {
     return JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>;
   } finally {
     await reader.cancel().catch(() => {});
+    reader.releaseLock();
   }
 }
 async function apiError(response: Response, catalog = false): Promise<never> {
@@ -117,6 +119,11 @@ export class ImagesApi {
         ),
       );
     }
+    // Paid generation may take several minutes. Keep one bounded operation and no automatic retry.
+    const operationSignal = AbortSignal.any([
+      signal,
+      AbortSignal.timeout(transferTimeouts.imageGeneration),
+    ]);
     try {
       response = await this.request(
         `https://api.openai.com/v1/images/${multipart ? 'edits' : 'generations'}`,
@@ -128,7 +135,7 @@ export class ImagesApi {
             ...(!multipart ? { 'Content-Type': 'application/json' } : {}),
           },
           body: multipart ?? JSON.stringify(payload),
-          signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
+          signal: operationSignal,
         },
       );
     } catch {
@@ -138,7 +145,7 @@ export class ImagesApi {
     }
     if (!response.ok) return apiError(response);
     try {
-      const body = await readBody(response, 48 * 1024 ** 2);
+      const body = await readBody(response, 48 * 1024 ** 2, operationSignal);
       const data = body.data;
       if (
         !Array.isArray(data) ||

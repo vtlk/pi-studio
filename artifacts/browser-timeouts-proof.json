@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-17T17:08:50.471Z",
+  "checks": [
+    {
+      "progressiveDownloadMs": 190094,
+      "sha256Verified": true
+    },
+    {
+      "route": "stall",
+      "failedAfterMs": 60016,
+      "ownedStageRemoved": true
+    },
+    {
+      "route": "headers",
+      "failedAfterMs": 60015,
+      "ownedStageRemoved": true
+    }
+  ],
+  "browserOrInstalledAppStarted": false,
+  "userDataChanged": false
+}

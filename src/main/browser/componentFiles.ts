@@ -2,6 +2,7 @@ import { t } from '../../shared/i18n/index.ts';
 import { constants } from 'node:fs';
 import { open, lstat, rm, rename } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { requestTransfer, readTransferChunk } from '../network/transfer.ts';
 
 /** Publish a fully verified replacement; explicit reinstall repairs an incomplete/corrupt own cache. */
 export async function publishBrowserComponent(
@@ -92,12 +93,18 @@ export async function downloadBrowserComponent(
   request: typeof fetch = fetch,
 ) {
   signal.throwIfAborted();
-  const response = await request(url, {
-    redirect: 'error',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
-  });
-  if (!response.ok || !response.body)
+  const response = await requestTransfer(
+    url,
+    {
+      redirect: 'error',
+      signal,
+    },
+    request,
+  );
+  if (!response.ok || !response.body) {
+    await response.body?.cancel().catch(() => {});
     throw new Error(t('error.componentFiles.couldNotDownloadTheBrowser'));
+  }
   const reader = response.body.getReader(),
     hash = createHash(expected.algorithm);
   let file: Awaited<ReturnType<typeof open>> | undefined;
@@ -105,7 +112,7 @@ export async function downloadBrowserComponent(
   try {
     file = await open(path, 'wx', 0o600);
     for (;;) {
-      const item = await reader.read();
+      const item = await readTransferChunk(reader, signal);
       if (item.done) break;
       signal.throwIfAborted();
       received += item.value.length;
@@ -116,6 +123,7 @@ export async function downloadBrowserComponent(
     }
   } finally {
     await reader.cancel().catch(() => {});
+    reader.releaseLock();
     await file?.close();
   }
   if (hash.digest(expected.encoding) !== expected.hash)

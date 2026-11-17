@@ -105,6 +105,20 @@ function json(response: ServerResponse, status: number, value: unknown) {
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
   response.end(JSON.stringify(value));
 }
+/** Send headers immediately and keep the HTTP transport alive during a bounded long operation. */
+function keepMcpAlive(request: IncomingMessage, response: ServerResponse) {
+  if (!request.headers.accept?.includes('text/event-stream')) return;
+  response.setHeader('Content-Type', 'text/event-stream');
+  response.setHeader('Cache-Control', 'no-store');
+  response.writeHead(200);
+  response.write(': waiting for operation\n\n');
+  const timer = setInterval(() => {
+    if (!response.destroyed && !response.writableEnded)
+      response.write(': waiting for operation\n\n');
+  }, 15000);
+  timer.unref();
+  return timer;
+}
 async function body(request: IncomingMessage) {
   const chunks: Buffer[] = [];
   let length = 0;
@@ -271,19 +285,7 @@ export class RunChannel {
             response.once('close', disconnect);
             const waiting =
               group.name === 'team' && ['say_to', 'say_to_agent'].includes(params.name);
-            let keepAlive: ReturnType<typeof setInterval> | undefined;
-            if (waiting && request.headers.accept?.includes('text/event-stream')) {
-              response.setHeader('Content-Type', 'text/event-stream');
-              response.setHeader('Cache-Control', 'no-store');
-              response.writeHead(200);
-              response.write(': waiting for agent\n\n');
-              // Keep the native HTTP client's idle/header deadlines out of a live agent wait.
-              keepAlive = setInterval(() => {
-                if (!response.destroyed && !response.writableEnded)
-                  response.write(': waiting for agent\n\n');
-              }, 15000);
-              keepAlive.unref();
-            }
+            const keepAlive = waiting ? keepMcpAlive(request, response) : undefined;
             try {
               result = await group.call(
                 params.name,
@@ -298,14 +300,21 @@ export class RunChannel {
               response.off('close', disconnect);
             }
           } else {
-            result = {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify(await lease.tool(params.name, params.arguments ?? {})),
-                },
-              ],
-            };
+            const keepAlive = ['generate_image', 'install_package'].includes(params.name)
+              ? keepMcpAlive(request, response)
+              : undefined;
+            try {
+              result = {
+                content: [
+                  {
+                    type: 'text',
+                    text: JSON.stringify(await lease.tool(params.name, params.arguments ?? {})),
+                  },
+                ],
+              };
+            } finally {
+              clearInterval(keepAlive);
+            }
           }
         } catch (error) {
           result = {

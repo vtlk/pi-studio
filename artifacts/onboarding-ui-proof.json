@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-17T16:47:21.855Z",
+  "checkedAt": "2026-11-17T17:10:21.236Z",
   "sidebarChecks": [
     {
       "language": "ru",
@@ -22,6 +22,32 @@
       "systemSectionPinned": true,
       "translatedHeadings": true,
       "navigationLabelsNoWrap": true
+    }
+  ],
+  "browserTimeoutChecks": [
+    {
+      "language": "ru",
+      "key": "error.transfer.headerTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    },
+    {
+      "language": "ru",
+      "key": "error.transfer.idleTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    },
+    {
+      "language": "en",
+      "key": "error.transfer.headerTimeout",
+      "visibleError": true,
+      "retryEnabled": true
+    },
+    {
+      "language": "en",
+      "key": "error.transfer.idleTimeout",
+      "visibleError": true,
+      "retryEnabled": true
     }
   ],
   "missingConnectionAndModelsIncludingAssistant": true,

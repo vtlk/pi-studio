@@ -134,7 +134,9 @@ export async function runSession(bootstrapPath) {
           url: `${bootstrap.url}/mcp`,
           headers: { Authorization: `Bearer ${bootstrap.token}` },
           exposure: 'direct',
-          timeout: 240,
+          // Images own a ten-minute deadline; native package installation owns fifteen minutes.
+          // Leave room for preparation/saving; these calls send SSE heartbeats while waiting.
+          timeout: 1200,
         },
       },
     ],

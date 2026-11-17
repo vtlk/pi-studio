@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.96",
+  "version": "0.2.0-alpha.97",
   "private": true,
   "description": "Pi Studio — харнес для конвейерных производств на базе команд агентов Pi",
   "type": "module",
@@ -102,6 +102,7 @@
     "test:renderer-recovery": "npm run build && node scripts/smoke-renderer-recovery.cjs",
     "test:helper-launch": "npm run build && node scripts/smoke-helper-launch.cjs",
     "test:slow-update": "node --experimental-strip-types scripts/smoke-slow-update.ts",
+    "test:slow-browser": "node --experimental-strip-types scripts/smoke-slow-browser.ts",
     "test:onboarding": "npm run build && node scripts/smoke-onboarding.mjs",
     "test:update-boot": "npm run build && node scripts/smoke-update-boot.cjs"
   },

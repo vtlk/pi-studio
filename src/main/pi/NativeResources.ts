@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { realpath } from 'node:fs/promises';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
+import { transferTimeouts } from '../network/transfer.ts';
 
 export interface NativeResourceRequest {
   action: 'list-mcp' | 'configure-mcp' | 'check-mcp' | 'install-package' | 'check-package';
@@ -78,7 +79,7 @@ export async function nativeResourceOperation(
         stop();
         finish(new Error(t('error.nativeResources.piDidNotFinishThe')));
       },
-      request.action === 'install-package' ? 180000 : 45000,
+      request.action === 'install-package' ? transferTimeouts.packageInstall : 45000,
     );
     function finish(error?: Error, value?: NativeResourceResult) {
       if (finished) return;
