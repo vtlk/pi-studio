@@ -125,7 +125,7 @@ process.on('unhandledRejection', fail);
   };
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) =>
-    handle(name, name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action);
+    handle(name, name === 'studio:startup' ? () => ({ phase: 'ready', message: 'QA' }) : action);
   const loaded = new Promise((r) =>
     app.once('browser-window-created', (_, window) => {
       window.hide();

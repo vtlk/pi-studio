@@ -40,7 +40,7 @@ const timeout = setTimeout(() => {
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:save-section'
           ? (...args) => {
               if (refuseSaves) throw Error('QA save unavailable');

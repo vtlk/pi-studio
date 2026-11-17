@@ -202,6 +202,9 @@ export class TeamImportTools {
           ...state.report,
           handoff: current.state.report.handoff === 'sent' ? 'sent' : state.report.handoff,
           ...(current.state.report.mcpHandoff === 'sent' ? { mcpHandoff: 'sent' } : {}),
+          ...(current.state.report.mcpReady === undefined
+            ? {}
+            : { mcpReady: current.state.report.mcpReady }),
         },
       });
     });

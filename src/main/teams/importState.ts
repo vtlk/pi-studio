@@ -45,14 +45,19 @@ export async function readImport(store: StudioStore, id: string) {
     throw new Error(t('error.importState.importedPackageReferencesAreInvalid'));
   // Derive links from validated package mappings, including packages written before Onboarding.
   state.report.teamName = store.agentCatalog().teams.find((team) => team.id === teamId)!.name;
+  state.report.requiresImages = data.manifest.tools?.images === true;
   state.report.mcps = data.manifest.resources
-    .filter((resource) => resource.kind === 'mcps' && !resource.source.startsWith('builtin:'))
+    .filter((resource) => resource.kind === 'mcps')
     .map((resource) => {
       const inferred = describeMcpAuthorization(resource.mcp ?? {});
       return {
         resourceId: state.resourceMap[resource.id],
-        authorization:
-          inferred.required === 'yes' ? inferred : (resource.authorization ?? inferred),
+        name: resource.name,
+        authorization: resource.source.startsWith('builtin:')
+          ? { required: 'no' as const, methods: [], fields: [] }
+          : inferred.required === 'yes'
+            ? inferred
+            : (resource.authorization ?? inferred),
       };
     });
   return { root, state, data };

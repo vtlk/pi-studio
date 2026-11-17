@@ -49,7 +49,7 @@ async function child() {
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:setup-assistant'
           ? () => {
               launches++;

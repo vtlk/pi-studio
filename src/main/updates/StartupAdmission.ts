@@ -23,6 +23,7 @@ const reads = new Set<string>([
   c.readAuthLogin,
   c.getComputerState,
   c.getBrowserState,
+  c.getOnboardingReadiness,
 ]);
 export class StartupAdmission {
   private held = false;

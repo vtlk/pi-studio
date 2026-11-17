@@ -6,6 +6,8 @@ import { useTeamTransfers } from '@/features/agents/model/TeamTransfers';
 import { useStorage } from '@/shared/storage/Storage';
 import { useNavigation } from '@/shared/model/Navigation';
 import { OnboardingContext } from './Onboarding.context';
+import { useReadiness } from './useReadiness';
+import { useWorkspace } from '@/features/project/model/Workspace';
 import {
   onboardingTasks,
   reconcileOnboarding,
@@ -18,11 +20,45 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { resources } = useResources();
   const { reports, loaded } = useTeamTransfers();
   const { bootstrap } = useStorage();
+  const { projects } = useWorkspace();
+  const readiness = useReadiness(
+    bootstrap?.folder,
+    JSON.stringify([
+      connections,
+      teams.map((team) => team.id),
+      resources.map((resource) => [
+        resource.id,
+        resource.source,
+        resource.credential,
+        resource.mcpSecretNames,
+      ]),
+    ]),
+  );
   const { page, navigate } = useNavigation();
   const key = `pistudio:onboarding:v1:${bootstrap?.folder ?? 'preview'}`;
   const candidates = useMemo(
-    () => onboardingTasks([...agents, ...systemAgents], teams, connections, resources, reports),
-    [agents, systemAgents, teams, connections, resources, reports],
+    () =>
+      onboardingTasks([...agents, ...systemAgents], teams, connections, resources, reports, {
+        projectCount: projects.length,
+        readinessError: readiness.error,
+        readiness:
+          readiness.state ??
+          (window.studio
+            ? { folder: bootstrap?.folder ?? '', terminal: 'ready', connections: {}, mcps: {} }
+            : undefined),
+      }),
+    [
+      agents,
+      systemAgents,
+      teams,
+      connections,
+      resources,
+      reports,
+      projects.length,
+      readiness.state,
+      readiness.error,
+      bootstrap?.folder,
+    ],
   );
   const [history, setHistory] = useState(() => {
     try {
@@ -34,10 +70,19 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [now, setNow] = useState(Date.now);
   const records = useMemo(() => {
     const current = reconcileOnboarding(history, candidates, now);
-    return loaded
-      ? current
-      : [...current, ...history.filter((record) => record.id.startsWith('mcp:'))];
-  }, [history, candidates, now, loaded]);
+    return [
+      ...current,
+      ...history.filter(
+        (record) =>
+          !current.some((item) => item.id === record.id) &&
+          ((!loaded && record.id.startsWith('mcp:')) ||
+            (!readiness.state &&
+              (record.id === 'images' ||
+                record.id === 'terminal' ||
+                record.id.startsWith('connection:')))),
+      ),
+    ];
+  }, [history, candidates, now, loaded, readiness.state]);
   const tasks = candidates.filter((task) => records.some((record) => record.id === task.id));
   const visible = tasks.some((task) => !task.complete);
   const serialized = JSON.stringify(records);
@@ -60,10 +105,20 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     };
   }, []);
   useEffect(() => {
-    if (page === 'onboarding' && !visible) navigate('projects');
+    if (page !== 'onboarding' || visible) return;
+    // Finishing auth must not unmount an editor with a draft or dismiss an active consent flow.
+    const leave = () => {
+      if (!document.querySelector('[aria-modal="true"]')) navigate('projects');
+    };
+    leave();
+    const observer = new MutationObserver(leave);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [page, visible, navigate]);
   return (
-    <OnboardingContext.Provider value={{ tasks, visible }}>{children}</OnboardingContext.Provider>
+    <OnboardingContext.Provider value={{ tasks, visible, readiness: readiness.state }}>
+      {children}
+    </OnboardingContext.Provider>
   );
 }
 

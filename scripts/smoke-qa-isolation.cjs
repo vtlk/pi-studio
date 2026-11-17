@@ -50,7 +50,7 @@ process.on('unhandledRejection', fail);
   writeFileSync(join(data, 'workspace.json'), JSON.stringify({ folder: studio }));
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) =>
-    handle(name, name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action);
+    handle(name, name === 'studio:startup' ? () => ({ phase: 'ready', message: 'QA' }) : action);
   const loaded = new Promise((done) =>
     app.once('browser-window-created', (_, window) =>
       window.webContents.once('did-finish-load', () => done(window)),

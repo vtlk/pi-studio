@@ -27,7 +27,7 @@ const deadline = setTimeout(() => {
     handle(
       channel,
       channel === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : channel === 'studio:model-catalog'
           ? () => ({ providers: [], models: [] })
           : channel === 'studio:load'

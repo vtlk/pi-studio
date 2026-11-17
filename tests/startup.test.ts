@@ -18,7 +18,7 @@ const ready: PiCheck = {
 async function settled(startup: Startup) {
   for (let i = 0; i < 100; i++) {
     const state = startup.read();
-    if (['ready', 'error', 'skipped'].includes(state.phase)) return state;
+    if (['ready', 'error'].includes(state.phase)) return state;
     await new Promise((resolve) => setTimeout(resolve, 2));
   }
   throw new Error('Startup did not settle');
@@ -67,7 +67,7 @@ test('only a missing Pi triggers installation; broken and unsupported installs a
   }
   assert.equal(installs, 1);
 });
-test('skip cancels installation and late completion cannot reopen or change the studio', async () => {
+test('mandatory startup has no skip; closing cancels installation and late completion cannot reopen the studio', async () => {
   let complete!: (value: PiCheck) => void;
   let signal!: AbortSignal;
   const startup = new Startup({
@@ -85,11 +85,12 @@ test('skip cancels installation and late completion cannot reopen or change the 
   });
   startup.read();
   while (!complete) await new Promise((resolve) => setTimeout(resolve, 2));
-  startup.skip();
+  assert.equal('skip' in startup, false);
+  startup.close();
   assert.equal(signal.aborted, true);
   complete(ready);
   await new Promise((resolve) => setTimeout(resolve, 2));
-  assert.equal(startup.read().phase, 'skipped');
+  assert.notEqual(startup.read().phase, 'ready');
   assert.equal(startup.path, '');
 });
 test('locked runtime rejects changed versions and unverified packages before filesystem changes', async (t) => {

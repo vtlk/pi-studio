@@ -32,7 +32,7 @@ process.on('unhandledRejection', fail);
   writeFileSync(join(folder, '.pistudio/usage.json'), JSON.stringify({ schemaVersion: 1, projectId: 'usage-project', legacy: false, agents: { agent: { legacy: false, seen: ['a'.repeat(32)], duration: measure(754000), tokens, costs: { USD: { sum: .04, estimated: true } }, unknownCost: 0 }, second: { legacy: false, seen: [], duration: measure(0), tokens: Object.fromEntries(Object.keys(tokens).map(key => [key, measure(0)])), costs: {}, unknownCost: 0 } } }));
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) => handle(name,
-    name === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) :
+    name === 'studio:startup' ? () => ({ phase: 'ready', message: 'QA' }) :
     name === 'studio:model-catalog' ? () => ({ providers: [], models: [] }) :
     name === 'studio:list-project-usage' ? async event => {
       const saved = await action(event);

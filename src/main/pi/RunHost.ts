@@ -283,6 +283,7 @@ export class RunHost {
       live: this.live,
       retiring: this.retiring,
       lifecycle: this.lifecycle,
+      opening: this.opening,
       dependencies: this.dependencies,
       remove: (id) => this.channel.remove(id),
     });

@@ -12,6 +12,7 @@ import { desktopChannels } from '../../shared/contracts';
 import type { TeamPackageRequest } from '../../shared/teamPackage';
 import { encodePackage, packageLimit } from './packageCodec';
 import { exportTeam } from './exportTeam';
+import { nativeMcpConfig } from '../pi/nativeMcp';
 import { importTeam } from './importTeam';
 import { listImports } from './importState';
 import { handoffTeamImport } from './handoffTeamImport';
@@ -50,6 +51,8 @@ export function registerTeamHandlers(
           request.teamId,
           sections.resources as Resource[],
           sections.connections as Connection[],
+          nativeMcpConfig,
+          sections.imageTool as { connectionId?: string; modelId?: string } | undefined,
         );
       });
       await atomicFile(result.filePath, encodePackage(data));

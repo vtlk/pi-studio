@@ -51,7 +51,7 @@ process.on('unhandledRejection', fail);
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:browser-install-visible'
           ? () => {
               visibleInstallRequests++;

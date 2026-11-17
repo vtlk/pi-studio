@@ -97,7 +97,7 @@ const deadline = setTimeout(() => {
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:connection-status'
           ? () => ({ connectionId: account.id, provider: account.providerId, status: 'ready' })
           : name === 'studio:launch-agent'

@@ -73,7 +73,7 @@ async function child() {
     if (channel === 'studio:github-star-state') getState = action;
     handle(
       channel,
-      channel === 'studio:startup' ? () => ({ phase: 'skipped', message: 'QA' }) : action,
+      channel === 'studio:startup' ? () => ({ phase: 'ready', message: 'QA' }) : action,
     );
   };
   const loaded = new Promise((done) =>

@@ -13,7 +13,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
     message: t('StartupGate.checkingPi'),
   });
   const [error, setError] = useState('');
-  const settled = ['ready', 'skipped', 'error'].includes(state.phase) || !!error;
+  const settled = ['ready', 'error'].includes(state.phase) || !!error;
   const refresh = useCallback(async () => {
     try {
       setState(await getStudioApi().getStartup());
@@ -27,7 +27,7 @@ export function StartupGate({ children }: { children: ReactNode }) {
     const timer = setInterval(() => void refresh(), 400);
     return () => clearInterval(timer);
   }, [refresh, settled]);
-  if (!window.studio || state.phase === 'ready' || state.phase === 'skipped') return children;
+  if (!window.studio || state.phase === 'ready') return children;
   const failed = !!error || state.phase === 'error';
   return (
     <StartupScreen message={error || state.message} progress={state.progress} error={failed}>
@@ -65,18 +65,6 @@ export function StartupGate({ children }: { children: ReactNode }) {
           </Button>
         </>
       )}
-      <Button
-        onClick={async () => {
-          try {
-            setError('');
-            setState(await getStudioApi().skipStartup());
-          } catch {
-            setError(t('StartupGate.couldNotOpenTheStudioTryAgain'));
-          }
-        }}
-      >
-        {t('StartupGate.openWithoutPi')}
-      </Button>
     </StartupScreen>
   );
 }

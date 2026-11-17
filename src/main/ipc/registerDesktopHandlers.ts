@@ -53,6 +53,7 @@ import { registerLanguage } from '../appearance/registerLanguage';
 import { registerAppearance } from '../appearance/registerAppearance';
 import type { GitHubStarReminder } from '../github-star/GitHubStarReminder';
 import { registerGitHubStar } from '../github-star/registerGitHubStar';
+import { registerOnboardingHandlers } from '../onboarding/registerOnboardingHandlers';
 export function registerDesktopHandlers(
   options: {
     githubStar?: GitHubStarReminder;
@@ -131,6 +132,11 @@ export function registerDesktopHandlers(
     script: join(__dirname, '../../bundled/pi-bridge/resources.mjs'),
     piPath: () => startup.path,
   });
+  const onboarding = registerOnboardingHandlers(
+    service,
+    { modelConnections, resources, computer, browser, imageConnections, startup },
+    caller,
+  );
   const teamImports = createTeamImportTools(service, resources, {
     userData: app.getPath('userData'),
     bridgeDirectory: join(__dirname, '../../bundled/pi-bridge'),
@@ -190,6 +196,7 @@ export function registerDesktopHandlers(
       setup,
       browser,
       usageRecovery,
+      onboarding,
       team,
       ...(options.language ? [options.language] : []),
       ...(options.appearance ? [options.appearance] : []),

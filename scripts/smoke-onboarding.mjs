@@ -125,6 +125,8 @@ try {
     mobile: false,
   });
   function fixture() {
+    const fresh = new URL(location.href).searchParams.has('fresh');
+    const startupError = new URL(location.href).searchParams.has('startup-error');
     const agent = {
       id: 'qa-agent',
       name: 'QA agent',
@@ -157,16 +159,18 @@ try {
       check: { status: 'needs_auth', checkedAt: 1 },
     };
     const state = {
-      folder: '/isolated-onboarding-fixture',
+      folder: fresh ? '/isolated-onboarding-fresh' : '/isolated-onboarding-fixture',
       sections: {
         connections: [],
-        agentCatalog: { teams: [team], agents: [agent] },
+        agentCatalog: { teams: fresh ? [] : [team], agents: fresh ? [] : [agent] },
         systemAgents: [assistant],
-        resources: [mcp],
+        resources: fresh ? [] : [mcp],
         piPath: '',
         baseInstruction: '',
       },
-      projects: [],
+      projects: fresh
+        ? []
+        : [{ id: 'qa-existing-project', name: 'Existing project', createdAt: 1, agents: [] }],
       trashProjects: [],
       warnings: [],
     };
@@ -182,8 +186,15 @@ try {
         { resourceId: mcp.id, authorization: { required: 'yes', methods: ['oauth'], fields: [] } },
       ],
     };
-    const calls = { assistant: 0, otherLaunches: 0, imports: 0 };
-    const reports = [report];
+    const calls = {
+      assistant: 0,
+      otherLaunches: 0,
+      imports: 0,
+      permissions: 0,
+      installs: 0,
+      terminalDownloads: 0,
+    };
+    const reports = fresh ? [] : [report];
     const clone = (value) => structuredClone(value);
     let finish,
       rejectAssistant,
@@ -191,6 +202,31 @@ try {
     window.__qa = {
       state,
       calls,
+      authorized: false,
+      terminal: 'ready',
+      computer: {
+        version: 'QA',
+        phase: 'permissions_required',
+        permissions: { accessibility: false, screenRecording: false },
+      },
+      browser: { headlessInstalled: false, headedInstalled: false, headedSupported: true },
+      images: 'not_ready',
+      authorize() {
+        this.authorized = true;
+      },
+      configureImages() {
+        state.sections.imageTool = { connectionId: 'qa-images', modelId: 'qa-image' };
+        state.sections.connections.push({
+          id: 'qa-images',
+          name: 'Images',
+          purpose: 'images',
+          providerId: 'openai',
+          endpoint: '',
+          account: '',
+          createdAt: 1,
+        });
+        this.images = 'ready';
+      },
       configureModels() {
         state.sections.connections = [
           {
@@ -210,7 +246,7 @@ try {
           reasoning: 'off',
           temperature: '',
         };
-        state.sections.agentCatalog.agents[0].model = { ...model };
+        for (const agent of state.sections.agentCatalog.agents) agent.model = { ...model };
         state.sections.systemAgents[0].model = { ...model };
       },
       finishAssistant() {
@@ -232,13 +268,79 @@ try {
         setTheme: async (next) => ({ theme: (theme = next), preference: next, revision: 1 }),
         getInfo: async () => ({ platform: 'darwin', version: 'QA', runtimeConnected: true }),
         getUpdateState: async () => ({ phase: 'idle', currentVersion: 'QA' }),
-        getStartup: async () => ({ phase: 'skipped', message: 'QA' }),
+        getStartup: async () => ({
+          phase: startupError ? 'error' : 'ready',
+          message: 'QA startup',
+        }),
         getGitHubStar: async () => ({
           due: false,
           disabled: false,
           revision: 0,
           canPresent: false,
         }),
+        getOnboardingReadiness: async ({ folder }) => {
+          if (folder !== state.folder) throw Error('Wrong readiness scope');
+          return clone({
+            folder,
+            terminal: window.__qa.terminal,
+            connections: Object.fromEntries(
+              state.sections.connections
+                .filter((c) => c.purpose !== 'images')
+                .map((c) => [c.id, window.__qa.authorized ? 'ready' : 'not_ready']),
+            ),
+            mcps: Object.fromEntries(
+              state.sections.resources.map((r) => [r.id, r.check?.status || 'missing']),
+            ),
+            computer: reports.some((r) => r.mcps.some((m) => m.resourceId === 'pistudio-computer'))
+              ? window.__qa.computer
+              : undefined,
+            browser: reports.some((r) => r.mcps.some((m) => m.resourceId === 'pistudio-browser'))
+              ? window.__qa.browser
+              : undefined,
+            images: reports.some((r) => r.requiresImages) ? window.__qa.images : undefined,
+          });
+        },
+        getComputerState: async () => clone(window.__qa.computer),
+        requestComputerPermissions: async () => {
+          calls.permissions++;
+          window.__qa.computer = {
+            version: 'QA',
+            phase: 'ready',
+            permissions: { accessibility: true, screenRecording: true },
+          };
+          return clone(window.__qa.computer);
+        },
+        getBrowserState: async () => clone(window.__qa.browser),
+        installResource: async (id) => {
+          if (id !== 'pistudio-browser') throw Error('Wrong install scope');
+          calls.installs++;
+          window.__qa.browser.headlessInstalled = true;
+        },
+        openTerminalDownload: async () => {
+          calls.terminalDownloads++;
+        },
+        readImageConnection: async () => ({
+          keyStored: window.__qa.images === 'ready',
+          authentication: window.__qa.images === 'ready' ? 'ready' : 'unchecked',
+          modelIds: ['qa-image'],
+        }),
+        projectCommand: async (request) => {
+          if (request.kind !== 'create') throw Error('Wrong project command');
+          const project = {
+            id: 'qa-created-project',
+            name: request.name,
+            sourceTeamId: request.teamId,
+            createdAt: Date.now(),
+            agents: request.agents.map((profile) => ({
+              profile,
+              outputPath: 'qa-output',
+              entries: [],
+            })),
+          };
+          state.projects.push(project);
+          return clone({ projects: state.projects, trashProjects: [], selectedId: project.id });
+        },
+        readProject: async (id) => clone(state.projects.find((project) => project.id === id)),
         loadStudio: async () => clone(state),
         saveSection: async (key, value) => {
           state.sections[key] = clone(value);
@@ -251,7 +353,7 @@ try {
             ...agent,
             id: 'qa-imported-agent',
             name: 'New imported agent',
-            mcps: ['qa-imported-mcp'],
+            mcps: ['qa-imported-mcp', 'pistudio-computer', 'pistudio-browser'],
             model: { ...agent.model, connectionId: '' },
           };
           const importedTeam = {
@@ -276,7 +378,14 @@ try {
             id: 'qa-second-import',
             teamId: importedTeam.id,
             teamName: importedTeam.name,
-            mcps: [{ ...report.mcps[0], resourceId: importedMcp.id }],
+            mcps: [
+              { ...report.mcps[0], resourceId: importedMcp.id },
+              ...['pistudio-computer', 'pistudio-browser'].map((resourceId) => ({
+                resourceId,
+                authorization: { required: 'no', methods: [], fields: [] },
+              })),
+            ],
+            requiresImages: true,
           };
           reports.push(importedReport);
           return { report: clone(importedReport), assistantId: assistant.id, outcome: 'pending' };
@@ -398,7 +507,22 @@ try {
   );
   await open();
   await js('window.__qa.configureModels();window.dispatchEvent(new Event("focus"))');
-  await until(`document.querySelectorAll('.onboarding-list li[data-complete="true"]').length===3`);
+  await until(`document.querySelectorAll('.onboarding-list li[data-complete="true"]').length>=3`);
+  await until(
+    `document.querySelector('[data-task-id="connection:qa-connection"]')?.dataset.complete==='false'`,
+  );
+  await js(`document.querySelector('button.onboarding-assistant').click()`);
+  await until(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`);
+  assert.equal(
+    await js('window.__qa.calls.assistant'),
+    0,
+    'Missing helper authorization opens the exact connection editor',
+  );
+  await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
+  await js('window.__qa.authorize();window.dispatchEvent(new Event("focus"))');
+  await until(
+    `document.querySelector('[data-task-id="connection:qa-connection"]')?.dataset.complete==='true'`,
+  );
   const style = await js(
     `(()=>{const row=document.querySelector('.onboarding-list li[data-complete="true"]');const b=document.querySelector('.onboarding-content').getBoundingClientRect();return {color:getComputedStyle(row.querySelector('.onboarding-status')).backgroundColor,strike:getComputedStyle(row.querySelector('.onboarding-task-label')).textDecorationLine,center:b.x+b.width/2,viewport:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth}})()`,
   );
@@ -429,12 +553,26 @@ try {
   await until(`window.__qa.calls.assistant===2`);
   await js('window.__qa.finishAssistant()');
   await until(`!document.querySelector('button.onboarding-assistant')?.disabled`);
+  await js(`window.__qa.authorized=false;window.dispatchEvent(new Event('focus'))`);
+  await until(
+    `document.querySelector('[data-task-id="connection:qa-connection"]')?.dataset.complete==='false'`,
+  );
   await js(
     `window.__qa.state.sections.resources[0].check={status:'available',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
   );
+  await js(`document.querySelector('[data-task-id="connection:qa-connection"] button').click()`);
+  await until(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`);
+  await js(`window.__qa.authorize();window.dispatchEvent(new Event('focus'))`);
   await until(
     `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
   );
+  assert.equal(
+    await js(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`),
+    true,
+    'Finishing setup must preserve the open editor until explicitly closed',
+  );
+  await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
+  await until(`!document.querySelector('.onboarding-page')`);
   assert.equal(await js(`!!document.querySelector('.onboarding-page')`), false);
   await js(
     `window.__qa.state.sections.resources[0].check={status:'needs_auth',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
@@ -443,7 +581,7 @@ try {
     `Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
   );
   await open();
-  await until(`document.querySelectorAll('.onboarding-list li').length===4`);
+  await until(`document.querySelector('[data-task-id="mcp:qa-mcp"]')?.dataset.complete==='false'`);
   await js(
     `(()=>{const now=Date.now()+2*60*60*1000+60000;Date.now=()=>now;window.dispatchEvent(new Event('focus'))})()`,
   );
@@ -502,11 +640,156 @@ try {
     2,
     'Import itself must not launch the assistant',
   );
+  await until(
+    `!!document.querySelector('[data-task-id="mcp:pistudio-computer"]')&&!!document.querySelector('[data-task-id="mcp:pistudio-browser"]')&&!!document.querySelector('[data-task-id="images"]')`,
+  );
+  assert.equal(
+    await js(
+      'window.__qa.calls.permissions+window.__qa.calls.installs+window.__qa.calls.terminalDownloads',
+    ),
+    0,
+  );
+  await js(`document.querySelector('[data-task-id="mcp:pistudio-computer"] button').click()`);
+  await until(`!!document.querySelector('[data-computer-status]')`);
+  await js(
+    `Array.from(document.querySelectorAll('[data-computer-status] button')).find(b=>b.textContent.trim()==='Разрешить доступ').click()`,
+  );
+  await until(`window.__qa.calls.permissions===1`);
+  await until(
+    `document.querySelector('[data-task-id="mcp:pistudio-computer"]')?.dataset.complete==='true'`,
+  );
+  await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
+  await js(`document.querySelector('[data-task-id="mcp:pistudio-browser"] button').click()`);
+  await until(
+    `!!Array.from(document.querySelectorAll('[role="dialog"] button')).find(b=>b.textContent.trim()==='Установить компоненты браузера')`,
+  );
+  await js(
+    `Array.from(document.querySelectorAll('[role="dialog"] button')).find(b=>b.textContent.trim()==='Установить компоненты браузера').click()`,
+  );
+  await until(`window.__qa.calls.installs===1`);
+  await until(
+    `document.querySelector('[data-task-id="mcp:pistudio-browser"]')?.dataset.complete==='true'`,
+  );
+  await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
+  await js(
+    `window.__qa.configureImages();window.__qa.terminal='missing';window.dispatchEvent(new Event('focus'))`,
+  );
+  await until(
+    `document.querySelector('[data-task-id="images"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='false'`,
+  );
+  assert.equal(await js('window.__qa.calls.terminalDownloads'), 0);
+  await js(`document.querySelector('[data-task-id="terminal"] button').click()`);
+  assert.equal(await js('window.__qa.calls.terminalDownloads'), 1);
+  await js(
+    `window.__qa.terminal='ready';window.__qa.computer.phase='permissions_required';window.__qa.computer.permissions={accessibility:false,screenRecording:false};window.dispatchEvent(new Event('focus'))`,
+  );
+  await until(
+    `document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="mcp:pistudio-computer"]')?.dataset.complete==='false'`,
+  );
+  assert.equal(await js('window.__qa.calls.permissions'), 1, 'Polling never requests consent');
+  await screenshot('onboarding-imported-resources.png');
+  // A separate empty studio verifies actual create dialogs and ordering, without manually ticking a task.
+  await cdp('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?fresh=1` });
+  await until(
+    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.textContent.trim()==='Onboarding')`,
+  );
+  await open();
+  await until(`document.querySelectorAll('.onboarding-list li').length===5`);
+  assert.deepEqual(
+    await js(
+      `Array.from(document.querySelectorAll('.onboarding-list li')).slice(-3).map(e=>e.dataset.taskId)`,
+    ),
+    ['create-team', 'create-agent', 'create-project'],
+  );
+  await screenshot('onboarding-fresh.png');
+  await js(`document.querySelector('[data-task-id="create-team"] button').click()`);
+  await until(`!!document.querySelector('[role="dialog"] input[aria-label="Название команды"]')`);
+  await js(`document.querySelector('[role="dialog"] input').focus()`);
+  await cdp('Input.insertText', { text: 'Fresh team' });
+  await js(
+    `Array.from(document.querySelectorAll('[role="dialog"] .dialog-footer button')).find(b=>b.textContent.trim()==='Создать').click()`,
+  );
+  await until(
+    `!document.querySelector('[role="dialog"]')&&!document.querySelector('[data-task-id="create-team"]')`,
+  );
+  await js(`document.querySelector('[data-task-id="create-agent"] button').click()`);
+  await until(`!!document.querySelector('.agent-editor')`);
+  await until(
+    `document.querySelector('[data-save-state]')?.dataset.saveState==='idle'&&!document.querySelector('.storage-error')`,
+  );
+  await until(
+    `!!document.querySelector('[data-save-state="idle"]')&&!document.querySelector('.storage-error')`,
+  );
+  await open();
+  await until(`!document.querySelector('[data-task-id="create-agent"]')`);
+  await js(
+    `window.__qa.configureModels();window.__qa.authorize();window.dispatchEvent(new Event('focus'))`,
+  );
+  await until(
+    `Array.from(document.querySelectorAll('.onboarding-list li[data-complete="false"]')).length===1&&!!document.querySelector('[data-task-id="create-project"]')`,
+  );
+  assert.equal(
+    await js(`document.querySelector('.onboarding-list li:last-child').dataset.taskId`),
+    'create-project',
+  );
+  await js(`document.querySelector('[data-task-id="create-project"] button').click()`);
+  await until(`!!document.querySelector('[role="dialog"] input[aria-label="Название проекта"]')`);
+  await js(`document.querySelector('[role="dialog"] input').focus()`);
+  await cdp('Input.insertText', { text: 'Fresh project' });
+  await js(
+    `document.querySelector('[role="dialog"] [role="combobox"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
+  );
+  await until(`!!document.querySelector('[role="option"]')`);
+  await js(`document.querySelector('[role="option"]').focus()`);
+  await cdp('Input.dispatchKeyEvent', {
+    type: 'keyDown',
+    key: 'Enter',
+    code: 'Enter',
+    windowsVirtualKeyCode: 13,
+    nativeVirtualKeyCode: 13,
+  });
+  await cdp('Input.dispatchKeyEvent', {
+    type: 'keyUp',
+    key: 'Enter',
+    code: 'Enter',
+    windowsVirtualKeyCode: 13,
+    nativeVirtualKeyCode: 13,
+  });
+  await until(
+    `Array.from(document.querySelectorAll('[role="dialog"] .dialog-footer button')).some(b=>b.textContent.trim()==='Создать'&&!b.disabled)`,
+  );
+  await js(
+    `Array.from(document.querySelectorAll('[role="dialog"] .dialog-footer button')).find(b=>b.textContent.trim()==='Создать').click()`,
+  );
+  await until(
+    `!document.querySelector('[role="dialog"]')&&!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.textContent.trim()==='Onboarding')`,
+  );
+  assert.equal(await js('window.__qa.state.projects.length'), 1);
+  assert.equal(await js('window.__qa.calls.otherLaunches+window.__qa.calls.assistant'), 0);
+  // Failure to prepare Pi cannot be bypassed into the working UI.
+  await cdp('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?startup-error=1` });
+  await until(`document.body.textContent.includes('QA startup')`);
+  assert.equal(await js(`!!document.querySelector('.app-shell')`), false);
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('button')).some(b=>/без Pi|without Pi/i.test(b.textContent))`,
+    ),
+    false,
+  );
+
   assert.equal(await js('window.__qa.calls.otherLaunches'), 0);
   assert.deepEqual(errors, []);
   const proof = {
     checkedAt: new Date().toISOString(),
     missingConnectionAndModelsIncludingAssistant: true,
+    realAuthorizationRequired: true,
+    creationTasksLastAndImmediatelyRemoved: true,
+    projectCreationEndsOnboardingWithoutLaunchingPi: true,
+    importedBuiltinPermissionsAndComponents: true,
+    revokedPermissionsReopenTaskWithoutConsent: true,
+    terminalDownloadOnlyOnExplicitClick: true,
+    imagesRequirementFollowsConfiguration: true,
+    mandatoryPiHasNoSkip: true,
     completedCircleYellowAndTextStruck: true,
     centeredWithoutHorizontalOverflow: true,
     scopedAssistantDuplicateClicksBlocked: true,

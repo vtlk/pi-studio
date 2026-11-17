@@ -36,6 +36,11 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getOnboardingReadiness(request: {
+    folder: string;
+    refresh?: boolean;
+  }): Promise<import('./onboardingReadiness').OnboardingReadiness>;
+  openTerminalDownload(): Promise<void>;
   getGitHubStar(): Promise<import('./githubStar').GitHubStarState>;
   chooseGitHubStar(
     choice: import('./githubStar').GitHubStarChoice,
@@ -114,7 +119,6 @@ export interface DesktopApi {
   answerAuthLogin(id: string, promptId: string, answer: string): Promise<void>;
   getStartup(): Promise<StartupState>;
   retryStartup(): Promise<StartupState>;
-  skipStartup(): Promise<StartupState>;
   chooseStartupPi(): Promise<StartupState | null>;
   getModelCatalog(request?: ModelConnectionRequest): Promise<PiModelCatalog>;
   discoverConnectionModels(request: ModelConnectionRequest): Promise<string[]>;
@@ -147,6 +151,8 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getOnboardingReadiness: 'studio:onboarding-readiness',
+  openTerminalDownload: 'studio:terminal-download',
   getGitHubStar: 'studio:github-star-state',
   chooseGitHubStar: 'studio:github-star-choice',
   githubStarChanged: 'studio:github-star-changed',
@@ -210,7 +216,6 @@ export const desktopChannels = {
   answerAuthLogin: 'studio:auth-answer',
   getStartup: 'studio:startup',
   retryStartup: 'studio:startup-retry',
-  skipStartup: 'studio:startup-skip',
   chooseStartupPi: 'studio:startup-choose',
   getModelCatalog: 'studio:model-catalog',
   runFailure: 'studio:run-failure',

@@ -13,6 +13,8 @@ import type { Resource } from '../src/shared/resources.ts';
 import type { TeamImportReport } from '../src/shared/teamPackage.ts';
 import { teamMcpSetupPrompt } from '../src/main/teams/handoffTeamImport.ts';
 import { parseUpdateView } from '../src/main/updates/UpdateViewStore.ts';
+import type { OnboardingReadiness } from '../src/shared/onboardingReadiness.ts';
+import { browserMcp, computerMcp } from '../src/shared/builtinResources.ts';
 
 const connection: Connection = {
   id: 'local',
@@ -265,4 +267,134 @@ test('update view preserves Onboarding and rejects arbitrary pages', () => {
     projectId: undefined,
   });
   assert.deepEqual(parseUpdateView({ page: 'unknown' }), { page: 'projects' });
+});
+
+test('creation tasks are last, exclude the service assistant, disappear immediately and never add a Play task', () => {
+  const assistant = {
+    ...ready(agent),
+    id: 'assistant',
+    mcps: [],
+    systemRole: 'assistant' as const,
+  };
+  const state: OnboardingReadiness = {
+    folder: '/fixture',
+    terminal: 'ready',
+    connections: { [connection.id]: 'ready' },
+    mcps: {},
+  };
+  const start = onboardingTasks([assistant], [], [connection], [], [], {
+    readiness: state,
+    projectCount: 0,
+  });
+  assert.deepEqual(
+    start.slice(-3).map((task) => [task.kind, task.complete]),
+    [
+      ['create-team', false],
+      ['create-agent', false],
+      ['create-project', false],
+    ],
+  );
+  const initial = reconcileOnboarding([], start, 1);
+  const withTeam = onboardingTasks([assistant], [team], [connection], [], [], {
+    readiness: state,
+    projectCount: 0,
+  });
+  assert.equal(
+    reconcileOnboarding(initial, withTeam, 2).some((task) => task.id === 'create-team'),
+    false,
+  );
+  const complete = onboardingTasks([assistant, ready(agent)], [team], [connection], [], [], {
+    readiness: state,
+    projectCount: 1,
+  });
+  assert.deepEqual(reconcileOnboarding(initial, complete, 3), []);
+  assert.equal(
+    complete.some((task) => String(task.kind).includes('play')),
+    false,
+  );
+  const imagesOnly = onboardingTasks(
+    [assistant],
+    [],
+    [{ ...connection, purpose: 'images' }],
+    [],
+    [],
+  );
+  assert.equal(imagesOnly.find((task) => task.id === 'connection')?.complete, false);
+});
+
+test('authorization is independent of a saved connection; imported built-ins follow live permissions/components and manual resources stay out', () => {
+  const profile = { ...ready(agent), mcps: ['mcp', browserMcp.id, computerMcp.id, 'manual'] };
+  const imported: TeamImportReport = {
+    ...report,
+    mcps: [
+      ...report.mcps!,
+      ...[browserMcp.id, computerMcp.id, 'pistudio-project'].map((resourceId) => ({
+        resourceId,
+        authorization: { required: 'no' as const, methods: [], fields: [] },
+      })),
+    ],
+  };
+  const state: OnboardingReadiness = {
+    folder: '/fixture',
+    terminal: 'missing',
+    connections: { [connection.id]: 'not_ready' },
+    mcps: { mcp: 'missing' },
+    computer: { version: 'qa', phase: 'permissions_required' },
+    browser: { headedInstalled: false, headlessInstalled: false, headedSupported: true },
+    images: 'not_ready',
+  };
+  const candidates = () =>
+    onboardingTasks(
+      [profile],
+      [team],
+      [connection],
+      [{ ...resource, check: { status: 'available', checkedAt: 1 } }],
+      [imported],
+      { readiness: state, projectCount: 0 },
+    );
+  let tasks = candidates();
+  assert.equal(tasks.find((task) => task.id === `connection:${connection.id}`)?.complete, false);
+  assert.equal(tasks.find((task) => task.id === 'mcp:mcp')?.kind, 'mcp-install');
+  assert.equal(tasks.find((task) => task.kind === 'computer')?.complete, false);
+  assert.equal(tasks.find((task) => task.kind === 'browser')?.complete, false);
+  assert.equal(
+    tasks.some((task) => task.resourceId === 'manual' || task.resourceId === 'pistudio-project'),
+    false,
+  );
+  state.terminal = 'ready';
+  state.connections[connection.id] = 'ready';
+  state.mcps.mcp = 'available';
+  state.computer = { version: 'qa', phase: 'ready' };
+  state.browser.headlessInstalled = true;
+  state.images = 'ready';
+  tasks = candidates();
+  assert.ok(
+    tasks.filter((task) => !task.kind.startsWith('create-')).every((task) => task.complete),
+  );
+  state.computer.phase = 'permissions_required';
+  state.mcps.mcp = 'needs_auth';
+  assert.equal(candidates().find((task) => task.kind === 'computer')?.complete, false);
+  assert.equal(candidates().find((task) => task.id === 'mcp:mcp')?.complete, false);
+  assert.equal(
+    onboardingTasks([profile], [team], [connection], [], [], {
+      readiness: { ...state, computer: undefined, browser: undefined, images: undefined },
+      projectCount: 1,
+    }).some((task) => task.resourceId),
+    false,
+  );
+});
+
+test('a background recheck preserves the original completion time, but confirmed revocation resets it', () => {
+  const pending = {
+    id: 'mcp:server',
+    kind: 'mcp-check' as const,
+    name: 'Server',
+    complete: false,
+    checking: true,
+  };
+  const history = [{ id: pending.id, completedAt: 123 }];
+  assert.deepEqual(reconcileOnboarding(history, [pending], 500), history);
+  assert.deepEqual(reconcileOnboarding(history, [{ ...pending, checking: false }], 500), [
+    { id: pending.id },
+  ]);
 });

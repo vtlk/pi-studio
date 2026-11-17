@@ -19,10 +19,6 @@ export function registerStartupHandlers(
     caller(event);
     return startup.retry();
   });
-  handleDesktopInvoke(desktopChannels.skipStartup, (event) => {
-    caller(event);
-    return startup.skip();
-  });
   handleDesktopInvoke(desktopChannels.chooseStartupPi, async (event) => {
     const result = await dialog.showOpenDialog(caller(event), {
       title: t('registerStartupHandlers.chooseInstalledPi'),

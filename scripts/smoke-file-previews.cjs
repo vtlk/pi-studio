@@ -28,7 +28,7 @@ const deadline = setTimeout(() => {
     handle(
       name,
       name === 'studio:startup'
-        ? () => ({ phase: 'skipped', message: 'QA' })
+        ? () => ({ phase: 'ready', message: 'QA' })
         : name === 'studio:read-output'
           ? async (event, request) => {
               if (removeOnRead && request.path.endsWith('gone.txt')) {
