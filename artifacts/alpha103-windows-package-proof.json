@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-17T20:59:43.475Z",
+  "version": "0.2.0-alpha.103",
+  "sourceCommit": "a790521c30ab5b0cd0606e560adc408978acebfe",
+  "archive": {
+    "name": "Pi-Studio-0.2.0-alpha.103-win-x64.zip",
+    "bytes": 171501562,
+    "unpackedBytes": 411617182,
+    "sha256": "61b3c1f5986ce02d3c15fb95d46e1722850c556381b6011ecaf6208e69666523"
+  },
+  "ed25519FullShaAndStructureVerified": true,
+  "allZipCrcs": true,
+  "allCompiledFilesCompared": 14,
+  "normalPinnedOfficialElectronAndCuaPackaging": true,
+  "nativeWindowsAcceptance": false,
+  "executedProgramsFromArchive": false
+}
