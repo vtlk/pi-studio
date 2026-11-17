@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-11-17T22:23:20.431Z",
+  "pi": "1.5.2",
+  "realPiSdkProductionBridgeAndMcp": true,
+  "localSyntheticModelOnly": true,
+  "paidModelRequests": 0,
+  "reports": [
+    {
+      "mode": "idle",
+      "requests": 11,
+      "samePidForEachReusedRecipient": true,
+      "sameSessionAndJsonlPrefix": true,
+      "oneTaskNoReplay": true,
+      "busyRecipientPreservedAndNoLateRetry": false,
+      "nativeWindowsAcceptance": false
+    },
+    {
+      "mode": "busy",
+      "requests": 5,
+      "samePidForEachReusedRecipient": false,
+      "sameSessionAndJsonlPrefix": false,
+      "oneTaskNoReplay": false,
+      "busyRecipientPreservedAndNoLateRetry": true,
+      "nativeWindowsAcceptance": false
+    }
+  ],
+  "userStudioOrProcessesChanged": false,
+  "terminalOrDesktopPermissionsUsed": false,
+  "ownedTemporaryStudioRemoved": true
+}

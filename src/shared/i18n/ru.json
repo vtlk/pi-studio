@@ -1750,5 +1750,6 @@
   "Chat.pendingMessages": "Сообщения в очереди",
   "Chat.queuedSteer": "Steer · в очереди",
   "Chat.queuedFollowUp": "После задачи · в очереди",
-  "Chat.queueUndelivered": "Не доставлено · процесс Pi недоступен"
+  "Chat.queueUndelivered": "Не доставлено · процесс Pi недоступен",
+  "error.runHost.theNextAgentDidNotAccept": "Следующий агент не принял задание. Цепочка приостановлена."
 }

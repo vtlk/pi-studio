@@ -455,7 +455,7 @@ test(
 );
 
 test(
-  'an automatic chain never replaces an independently opened idle or running next dialogue',
+  'a legacy terminal chain does not replace an independently opened next dialogue',
   { timeout: 15000 },
   async (t) => {
     for (const running of [false, true]) {

@@ -1,5 +1,6 @@
 import { i18n, t } from '../../shared/i18n/index.ts';
 import { EmbeddedChat } from './EmbeddedChat.ts';
+import { reuseIdleChain } from './reuseIdleChain.ts';
 import { chatInput } from './chatInput.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
 import type { TeamDelivery } from '../team-mcp/types.ts';
@@ -71,6 +72,15 @@ export async function openRun(
     state.assertUnchanged(request.projectId);
     continuation?.check();
     const active = state.live.get(key);
+    if (
+      active?.embedded?.alive &&
+      active.embedded.state.phase === 'ready' &&
+      automaticMessage &&
+      continuation &&
+      !teamDelivery
+    ) {
+      return await reuseIdleChain(state, request, active, automaticMessage, continuation);
+    }
     if (active?.embedded?.alive && active.embedded.state.phase === 'ready' && !automaticMessage) {
       if (request.firstMessage !== undefined)
         throw new Error(t('error.runHost.theAgentAlreadyHasAn'));
@@ -237,7 +247,9 @@ export async function openRun(
       clearTimeout(timer);
     }
   } catch (error) {
-    state.chats.failed(request, current, error);
+    // A refused handoff belongs to the source chain, not to the recipient's existing chat.
+    if (!(continuation && automaticMessage && !current && state.live.get(key)?.embedded?.alive))
+      state.chats.failed(request, current, error);
     if (!current && prepared) state.dependencies.closed?.(prepared);
     if (current) {
       current.embedded?.stop();

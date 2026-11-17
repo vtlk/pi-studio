@@ -71,6 +71,7 @@ export interface LiveRun {
   chain?: symbol;
   continueAfterSequence?: number;
   automaticCheck?: () => void;
+  preserveProcessOnAdmissionCancel?: boolean;
   userMessage?: string;
   completion?: Awaited<ReturnType<typeof validateCompletedOutputs>>;
   blocked: boolean;

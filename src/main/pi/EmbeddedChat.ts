@@ -201,6 +201,7 @@ export class EmbeddedChat {
     );
     if (data?.disposition === 'started') this.state.working = true;
     this.touch();
+    return data?.disposition;
   }
   async abort() {
     await this.command('abort', {}, 120_000);

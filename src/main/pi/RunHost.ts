@@ -57,7 +57,11 @@ export class RunHost {
           try {
             automaticCheck?.();
           } catch (error) {
-            if (error instanceof ContinuationCancelled && live) {
+            if (
+              error instanceof ContinuationCancelled &&
+              live &&
+              !live.preserveProcessOnAdmissionCancel
+            ) {
               live.fail(error);
               if (process.platform === 'win32') live.stop?.();
               else if (live.pid && processAlive(live.pid)) process.kill(live.pid, 'SIGTERM');
@@ -69,7 +73,10 @@ export class RunHost {
         await dependencies.beforeRequest?.(run);
         this.assertAgentAvailable(run.project.id, run.agent.profile.id);
         check();
-        if (live) live.automaticCheck = undefined;
+        if (live) {
+          live.automaticCheck = undefined;
+          live.preserveProcessOnAdmissionCancel = undefined;
+        }
       },
     });
     this.monitor.unref();

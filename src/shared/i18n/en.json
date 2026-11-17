@@ -1750,5 +1750,6 @@
   "Chat.pendingMessages": "Queued messages",
   "Chat.queuedSteer": "Steer · queued",
   "Chat.queuedFollowUp": "After the task · queued",
-  "Chat.queueUndelivered": "Not delivered · Pi process unavailable"
+  "Chat.queueUndelivered": "Not delivered · Pi process unavailable",
+  "error.runHost.theNextAgentDidNotAccept": "The next agent did not accept the task. The chain is paused."
 }
