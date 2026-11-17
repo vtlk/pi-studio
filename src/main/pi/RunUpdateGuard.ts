@@ -28,6 +28,10 @@ export class RunUpdateGuard {
     if (
       [...this.live.values()].some(
         (live) =>
+          // Only a validated, pending handoff is work. An armed but waiting/failed
+          // dialogue has nothing to continue until a new explicit user request.
+          live.status === 'ready' &&
+          !live.blocked &&
           live.request.autoContinue &&
           live.chain &&
           this.chains.get(live.run.project.id) === live.chain,

@@ -223,6 +223,7 @@ try {
     'Live streamed text reaches chat',
   );
   assert.equal(host.chat(target())?.working, true);
+  assert.throws(() => host.updates.assertIdle(), undefined, 'Running chat defers an update');
   await host.launch({ ...target('b'), autoContinue: false });
   await host.sendChat({ ...target('b'), text: 'CHAT_B1: Reply once.' });
   await until(() => waiting.has('CHAT_B1'), 'Second agent works concurrently');
@@ -289,6 +290,26 @@ try {
   await host.abortChat(target());
   await until(() => !host.chat(target())?.working, 'Abort settles without closing process');
   assert.equal(host.processes().length, 2);
+  await until(() => {
+    try {
+      host.updates.assertIdle();
+      return true;
+    } catch {
+      return false;
+    }
+  }, 'Idle SDK chats permit the update after lifecycle persistence');
+  const historyBeforeUpdate = await readFile(path);
+  const lease = host.updates.hold();
+  await assert.rejects(host.sendChat({ ...target(), text: 'CHAT_MUST_NOT_START' }));
+  await lease.drainIdle();
+  assert.equal(host.processes().length, 0, 'Update closes only the owned idle SDK processes');
+  assert.deepEqual(
+    await readFile(path),
+    historyBeforeUpdate,
+    'Idle update shutdown preserves exact JSONL',
+  );
+  lease.verify();
+  lease.release();
   assert.ok(!fixtureError);
   console.log(
     JSON.stringify(
@@ -309,6 +330,8 @@ try {
           'abort without exit',
           'per-message attachments preserve source files',
           'process exit count',
+          'update waits for busy chats and drains owned idle processes',
+          'update shutdown preserves exact JSONL and blocks new input',
         ],
       },
       null,
@@ -321,5 +344,5 @@ try {
   host.close();
   server.closeAllConnections();
   await new Promise<void>((resolve) => server.close(() => resolve()));
-  await rm(root, { recursive: true, force: true });
+  await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }

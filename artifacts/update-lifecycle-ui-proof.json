@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-11-16T01:46:34.299Z",
-  "version": "0.2.0-alpha.75",
+  "checkedAt": "2026-11-17T20:37:37.685Z",
+  "version": "0.2.0-alpha.102",
   "scope": "Actual complete application in accessory offscreen Electron, disk-backed isolated studio and production preload; controlled updater IPC states, not an installed update or GitHub acceptance.",
   "initialApplicationFrozen": true,
   "exactOlderProjectRestored": true,

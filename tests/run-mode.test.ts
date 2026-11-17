@@ -483,7 +483,9 @@ test(
   async (t) => {
     const f = await fixture(t);
     await f.launch(true);
-    assert.throws(() => f.host.updates.hold(), /цепочки/);
+    const dormant = f.host.updates.hold();
+    dormant.verify();
+    dormant.release(); // An idle armed dialogue is no longer active chain work.
     await f.launch(false);
     await f.request();
     assert.throws(() => f.host.updates.hold(), /Дождитесь/);

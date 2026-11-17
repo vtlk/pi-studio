@@ -13,7 +13,9 @@ export function assertRunsIdle(
     opening.size ||
     [...retiring].some((key) => !projectId || key.startsWith(`${projectId}/`)) ||
     [...live].some(
-      (run) => (!projectId || run.run.record.projectId === projectId) && run.status === 'running',
+      (run) =>
+        (!projectId || run.run.record.projectId === projectId) &&
+        (run.status === 'running' || run.embedded?.state.working === true),
     )
   )
     throw new Error(t('error.assertRunsIdle.waitForPiToFinish'));

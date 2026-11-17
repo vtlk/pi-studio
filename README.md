@@ -141,6 +141,8 @@ Browser installation now allows slow downloads to continue while data arrives, w
 
 Pi conversations open inside Studio in a sliding chat panel beside the project files. Existing dialogues, selected models, Skills and MCP assignments are preserved. The panel streams replies and tool results, supports attachments, queued messages and stopping current work, and shows a loading spinner during cold starts. A yellow indicator in the upper right counts Studio-owned Pi processes, including waiting processes; hiding a chat leaves its process available for quick reopening. Refreshing agent settings restarts only changed open chats and asks before stopping active tasks; dialogues remain saved.
 
+Tool calls show a compact action summary with their result in one card. Details start collapsed; errors open automatically and can be collapsed manually. An authorized update waits for active tasks and unsaved edits, then closes idle Pi processes and continues the normal restart automatically; dialogues remain saved.
+
 Interrupted update downloads resume when you retry, including after restarting Studio. This is available once alpha.93 is installed.
 
 ## Quick start
