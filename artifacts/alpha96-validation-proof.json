@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-17T16:41:06.333Z",
+  "checkedAt": "2026-11-17T16:50:11.221865+00:00",
   "version": "0.2.0-alpha.96",
   "unitTests": {
     "passed": 431,
@@ -11,5 +11,16 @@
   "architectureModules": 406,
   "build": true,
   "nativeWindowsAcceptance": false,
-  "installedUserApplicationChanged": false
+  "installedUserApplicationChanged": false,
+  "sourceCommit": "168c464bd50c1afedffb981f3a21b202f2cef99e",
+  "onboardingAndPinnedSidebarProof": "artifacts/onboarding-ui-proof.json",
+  "supportedUiLanguagesChecked": [
+    "ru",
+    "en"
+  ],
+  "headlessUiUsesOnlyIsolatedPinnedChromium": true,
+  "legacyAgentLayoutHarness": {
+    "result": "failed",
+    "reason": "Legacy harness assumes Russian on an English OS before its current geometry assertions. Current RU/EN sidebar and no-wrap behavior are verified by the onboarding headless harness; remaining old assertions were not run."
+  }
 }

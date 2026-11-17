@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-17T16:49:03.077Z",
+  "version": "0.2.0-alpha.96",
+  "sourceCommit": "168c464bd50c1afedffb981f3a21b202f2cef99e",
+  "baselineVersion": "0.2.0-alpha.95",
+  "baselineArchiveSha256": "a9cbd898a1a286d745123cc11b2754bb7bb20c860464fbb1df2d8b1970d5a0c2",
+  "baselineProductionEd25519AndArchiveHashVerified": true,
+  "baselineAllCrcAndInventoryVerified": true,
+  "unchangedDependenciesLockAndBundledSources": true,
+  "unmodifiedRuntimeAndDependencyFilesCompared": 649,
+  "newCompiledPayloadFromCurrentSource": true,
+  "windowsDocumentationCopiedFromCurrentSource": true,
+  "newInventoryAndSignedMetadata": true,
+  "nativeWindowsAcceptance": false
+}
