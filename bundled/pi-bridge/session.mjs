@@ -28,7 +28,11 @@ export async function runSession(bootstrapPath) {
   const request = sessionRequest(bootstrap);
   let queue = Promise.resolve();
   const event = (data) => {
-    const result = queue.then(() => request('event', data));
+    const result = queue.then(async () => {
+      const result = await request('event', data);
+      if (result.language === 'en' || result.language === 'ru') bootstrap.language = result.language;
+      return result;
+    });
     queue = result.catch(() => {});
     return result;
   };
@@ -144,6 +148,7 @@ export async function runSession(bootstrapPath) {
   );
   const requiredServers = servers.map((server) => server.name);
   let runtime,
+    disposeRuntime,
     accounting,
     heartbeat,
     accountingTimer,
@@ -199,7 +204,7 @@ export async function runSession(bootstrapPath) {
     clearInterval(heartbeat);
     clearInterval(accountingTimer);
     clearInterval(bindingTimer);
-    await runtime?.dispose();
+    await disposeRuntime?.();
     await accounting?.close().catch(() => {});
     await event({ type: 'stopped' }).catch(() => {});
   }
@@ -239,7 +244,9 @@ export async function runSession(bootstrapPath) {
           if (isTeam) teamRequestAdmitted = true;
         } catch {
           ctx.ui.notify(
-            'Studio недоступна или выполняется операция с папкой проекта. Запрос не отправлен. Повторите после восстановления связи или завершения операции.',
+            bootstrap.language === 'ru'
+              ? 'Studio недоступна или выполняется операция с папкой проекта. Запрос не отправлен. Повторите после восстановления связи или завершения операции.'
+              : 'Studio is unavailable or project files are being changed. The request was not sent. Try again after the connection is restored or the operation finishes.',
             'error',
           );
           return { action: 'handled' };
@@ -371,6 +378,8 @@ export async function runSession(bootstrapPath) {
       agentDir: getAgentDir(),
       sessionManager: sessions,
     });
+    disposeRuntime = runtime.dispose.bind(runtime);
+    if (bootstrap.embedded) runtime.dispose = close;
     if (!envelope.serviceAgent) {
       accounting = new RuntimeAccounting(runtime.session, event);
       await accounting.flush().catch(() => {});
@@ -397,7 +406,16 @@ export async function runSession(bootstrapPath) {
         .then(teamReceipt)
         .catch(() => {});
     }, 100);
-    if (bootstrap.headless) {
+    if (bootstrap.embedded) {
+      // Reuse Pi's supported custom-interface protocol and extension UI adapter.
+      // The host waits for get_state before admitting the first prompt.
+      const rpc = sdk.runRpcMode(runtime);
+      void rpc.catch(() => {});
+      await waitForMcp(statuses, requiredServers, 120_000);
+      await event({ type: 'opened' });
+      await bindWrittenSession();
+      await rpc;
+    } else if (bootstrap.headless) {
       openingStage = 'resources';
       await runtime.session.bindExtensions({});
       await waitForMcp(statuses, requiredServers);

@@ -7,6 +7,28 @@ import { themeState, type ThemeState } from '../shared/appearance';
 import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 
 const desktopApi: DesktopApi = {
+  getChat: (target) => ipcRenderer.invoke(desktopChannels.getChat, target),
+  sendChat: (request) => ipcRenderer.invoke(desktopChannels.sendChat, request),
+  abortChat: (target) => ipcRenderer.invoke(desktopChannels.abortChat, target),
+  answerChat: (answer) => ipcRenderer.invoke(desktopChannels.answerChat, answer),
+  closeChat: (target) => ipcRenderer.invoke(desktopChannels.closeChat, target),
+  listPiProcesses: () => ipcRenderer.invoke(desktopChannels.listPiProcesses),
+  onChatChanged: (listener) => {
+    const receive = (_event: unknown, target: import('../shared/chat').ChatTarget) => {
+      if (target && typeof target.projectId === 'string' && typeof target.agentId === 'string')
+        listener(target);
+    };
+    ipcRenderer.on(desktopChannels.chatChanged, receive);
+    return () => ipcRenderer.removeListener(desktopChannels.chatChanged, receive);
+  },
+  onChatOpened: (listener) => {
+    const receive = (_event: unknown, target: import('../shared/chat').ChatTarget) => {
+      if (target && typeof target.projectId === 'string' && typeof target.agentId === 'string')
+        listener(target);
+    };
+    ipcRenderer.on(desktopChannels.chatOpened, receive);
+    return () => ipcRenderer.removeListener(desktopChannels.chatOpened, receive);
+  },
   getOnboardingReadiness: (request) =>
     ipcRenderer.invoke(desktopChannels.getOnboardingReadiness, request),
   openTerminalDownload: () => ipcRenderer.invoke(desktopChannels.openTerminalDownload),

@@ -17,7 +17,7 @@ export function registerProjectActions(
   mutation: {
     change: <T>(projectId: string, action: () => Promise<T>) => Promise<T>;
     stopSession: (projectId: string, agentId: string) => Promise<void>;
-    cleared: (projectId: string, agentId: string) => void;
+    cleared: (projectId: string, agentId: string, target: DeleteAgentDataRequest['target']) => void;
   },
 ) {
   handleDesktopInvoke(desktopChannels.copyOutput, (event, request: CopyOutputRequest) => {
@@ -50,7 +50,7 @@ export function registerProjectActions(
         return service.serialize(async () => {
           const store = await service.load();
           const project = await deleteAgentData(store, request, (path) => shell.trashItem(path));
-          mutation.cleared(request.projectId, request.agentId);
+          mutation.cleared(request.projectId, request.agentId, request.target);
           return store.accounting.enrich(project);
         });
       });

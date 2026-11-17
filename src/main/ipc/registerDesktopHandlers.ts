@@ -54,6 +54,8 @@ import { registerAppearance } from '../appearance/registerAppearance';
 import type { GitHubStarReminder } from '../github-star/GitHubStarReminder';
 import { registerGitHubStar } from '../github-star/registerGitHubStar';
 import { registerOnboardingHandlers } from '../onboarding/registerOnboardingHandlers';
+import { registerChatHandlers } from '../pi/registerChatHandlers';
+import { notifyChatChanged, notifyChatOpened } from '../pi/notifyChat';
 export function registerDesktopHandlers(
   options: {
     githubStar?: GitHubStarReminder;
@@ -143,6 +145,8 @@ export function registerDesktopHandlers(
     piPath: () => startup.path,
   });
   const runs = createStudioRunHost(service, {
+    embedded: true,
+    chatChanged: notifyChatChanged,
     activity,
     resources,
     teamImports,
@@ -154,6 +158,9 @@ export function registerDesktopHandlers(
     piPath: () => startup.path,
   });
   const setup = createSetupAssistant(service, {
+    embedded: true,
+    chatChanged: notifyChatChanged,
+    chatOpened: notifyChatOpened,
     team,
     teamImports,
     computer,
@@ -226,6 +233,7 @@ export function registerDesktopHandlers(
     });
   }
   registerReferenceHandlers(service, references, caller);
+  registerChatHandlers(service, runs, setup, caller);
   registerImageHandlers(imageConnections, caller);
   handleDesktopInvoke(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);
@@ -239,7 +247,8 @@ export function registerDesktopHandlers(
           (agent) => agent.systemRole === 'assistant',
         )!.id,
     );
-    await setup.launch({ projectId: 'pi-setup-assistant', agentId: id, autoContinue: false });
+    const target = { projectId: 'pi-setup-assistant', agentId: id };
+    await setup.launch({ ...target, autoContinue: false });
   });
   registerResourceHandlers(resources, caller);
   registerTeamHandlers(service, setup, caller);
@@ -326,7 +335,8 @@ export function registerDesktopHandlers(
       return runs.withProjectChange(projectId, false, action);
     },
     stopSession: (projectId, agentId) => runs.stopAgent(projectId, agentId),
-    cleared: (projectId, agentId) => runs.outputsCleared(projectId, agentId),
+    cleared: (projectId, agentId, target) =>
+      runs.outputsCleared(projectId, agentId, target !== 'files'),
   });
   return service;
 }

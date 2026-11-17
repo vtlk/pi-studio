@@ -34,6 +34,7 @@ interface Dependencies {
   imageStatus(folder: string, id: string): Promise<ImageConnectionStatus>;
   checkImages(folder: string, id: string): Promise<ImageConnectionStatus>;
   terminal(): Promise<boolean>;
+  terminalRequired?: boolean;
   git(): Promise<boolean>;
   windows: boolean;
   runtimeReady?: () => boolean;
@@ -73,6 +74,7 @@ export class OnboardingReadiness {
     const result: Snapshot = {
       folder,
       terminal: 'ready',
+      ...(this.dependencies.terminalRequired === false ? { terminalRequired: false } : {}),
       gitBash: this.dependencies.windows,
       connections: {},
       mcps: {},
@@ -83,7 +85,7 @@ export class OnboardingReadiness {
         if (connection.purpose !== 'images') result.connections[connection.id] = 'checking';
       return result;
     }
-    if (this.dependencies.windows)
+    if (this.dependencies.windows && this.dependencies.terminalRequired !== false)
       result.terminal = read(
         'terminal',
         '',

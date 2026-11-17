@@ -17,6 +17,7 @@ import { Tooltip } from '@/shared/ui/Tooltip';
 import { SearchablePreview } from './SearchablePreview';
 import { getPreviewKind } from '../model/previewCapabilities';
 import { AgentProfileEditor } from '@/features/agents/ui/AgentProfileEditor';
+import { ChatPanel } from '@/features/chat/ChatPanel';
 
 export function AgentOutputsView({
   agent,
@@ -24,12 +25,14 @@ export function AgentOutputsView({
   onTreeWidthChange,
   settingsAgentId,
   onCloseSettings,
+  chatOpen = false,
 }: {
   agent: ProjectAgent;
   treeWidth: number;
   onTreeWidthChange: (value: number) => void;
   settingsAgentId: string | null;
   onCloseSettings: () => void;
+  chatOpen?: boolean;
 }) {
   useTranslation(undefined, { i18n });
   const { selectedProject } = useWorkspace();
@@ -65,7 +68,7 @@ export function AgentOutputsView({
         </div>
         <OutputFileTree
           entries={agent.entries}
-          selectedFileId={settingsAgentId ? '' : (selected?.file.id ?? '')}
+          selectedFileId={settingsAgentId || chatOpen ? '' : (selected?.file.id ?? '')}
           onSelectFile={selectFile}
         />
       </aside>
@@ -79,8 +82,8 @@ export function AgentOutputsView({
       <div className="output-preview-pane">
         <div
           className="output-preview-content"
-          inert={!!settingsAgentId}
-          aria-hidden={settingsAgentId ? true : undefined}
+          inert={!!settingsAgentId || chatOpen}
+          aria-hidden={settingsAgentId || chatOpen ? true : undefined}
         >
           <OutputToolbar
             file={selectedFile}
@@ -96,6 +99,7 @@ export function AgentOutputsView({
           <SearchablePreview
             enabled={
               !settingsAgentId &&
+              !chatOpen &&
               !!selectedFile &&
               ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile))
             }
@@ -139,6 +143,13 @@ export function AgentOutputsView({
         </div>
         {settingsAgentId && (
           <AgentProfileEditor key={settingsAgentId} agentId={settingsAgentId} inline />
+        )}
+        {chatOpen && projectId && (
+          <ChatPanel
+            key={`${projectId}/${agent.profile.id}`}
+            target={{ projectId, agentId: agent.profile.id }}
+            name={agent.profile.name}
+          />
         )}
       </div>
     </div>

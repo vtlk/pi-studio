@@ -24,6 +24,7 @@ import { createAdministration, type AdministrationOptions } from './createAdmini
 import { currentBuiltinAccess } from './currentBuiltinAccess.ts';
 import { setupTools } from './setupTools.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
+import { randomUUID } from 'node:crypto';
 
 interface Options extends AdministrationOptions {
   team?: TeamSupport;
@@ -38,6 +39,8 @@ interface Options extends AdministrationOptions {
   activity?: ProjectActivity;
   mcpSecrets?: McpSecrets;
   headless?: boolean;
+  embedded?: boolean;
+  chatChanged?: RunDependencies['chatChanged'];
   captureTerminal?: RunDependencies['captureTerminal'];
   failureChanged?: RunDependencies['failureChanged'];
   openTerminal?: typeof openSessionTerminal;
@@ -48,6 +51,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     (tool) => !productionTools.some((existing) => existing.name === tool.name),
   );
   const permissions = new WeakMap<PreparedRun, (id: string) => Promise<boolean>>();
+  const chatScopes = new WeakMap<PreparedRun, { folder: string; imageInput: boolean }>();
   const host: RunHost = new RunHost({
     mcpGroups: (run) => [
       ...(options.computer?.groups(run) ?? []),
@@ -97,6 +101,27 @@ export function createStudioRunHost(service: StudioService, options: Options) {
     bootstraps: options.bootstraps,
     bridge: options.bridge,
     headless: options.headless,
+    embedded: options.embedded,
+    chatChanged: options.chatChanged,
+    chatAttachments: (run, ids) =>
+      service.serialize(async () => {
+        const scope = chatScopes.get(run),
+          store = await service.load();
+        if (
+          !scope ||
+          scope.folder !== store.folder ||
+          !options.references ||
+          (await store.projects.directory(run.project.id)) !== run.projectRoot
+        )
+          throw new Error(t('Chat.attachmentsUnavailable'));
+        // Each send owns its input directory; a failed copy cannot remove earlier inputs.
+        const inputRun = {
+          ...run,
+          record: { ...run.record, runId: randomUUID(), attachments: undefined },
+        };
+        await options.references.attach(inputRun, ids, scope.folder, scope.imageInput);
+        return inputRun.record.attachments ?? [];
+      }),
     captureTerminal: options.captureTerminal,
     beforeAutomaticClose: (run) => options.images?.assertRunIdle(run),
     failureChanged: options.failureChanged,
@@ -173,6 +198,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           permissions.get(run)!('pistudio-computer'),
         );
         run.modelAuth = modelAuth;
+        chatScopes.set(run, { folder: store.folder, imageInput: selectedModel.imageInput });
         return { run, piPath };
       }),
     update: (run, status, session, failure) =>

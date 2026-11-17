@@ -10,6 +10,7 @@ export type McpReadiness = ResourceCheck['status'] | 'checking' | 'missing';
 export interface OnboardingReadiness {
   folder: string;
   terminal: 'checking' | 'ready' | 'missing';
+  terminalRequired?: boolean;
   git?: 'checking' | 'ready' | 'missing';
   gitBash?: boolean;
   connections: Record<string, ConnectionReadiness>;

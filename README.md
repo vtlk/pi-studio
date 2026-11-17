@@ -139,7 +139,7 @@ Choose a connection and model for the assistant, then open its conversation unde
 
 Browser installation now allows slow downloads to continue while data arrives, with separate 60-second server-response and inactivity limits. Archive extraction, package installation, image generation and application verification have appropriate operation-specific deadlines. [Timeout audit](docs/TIMEOUT_AUDIT.md).
 
-Agent startup keeps its session bridge during cold Terminal loading. Windows Terminal profile errors now appear directly with recovery instructions.
+Pi conversations open inside Studio in a sliding chat panel beside the project files. Existing dialogues, selected models, Skills and MCP assignments are preserved. The panel streams replies and tool results, supports attachments, queued messages and stopping current work, and shows a loading spinner during cold starts. A yellow indicator in the upper right counts Studio-owned Pi processes, including waiting processes; hiding a chat leaves its process available for quick reopening.
 
 Interrupted update downloads resume when you retry, including after restarting Studio. This is available once alpha.93 is installed.
 

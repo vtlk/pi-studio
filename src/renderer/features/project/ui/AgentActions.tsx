@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { IconButton } from '@/shared/ui';
 import { ActionMenu } from '@/shared/ui/ActionMenu';
-import { useStorage } from '@/shared/storage/Storage';
 import { useNotice } from '@/shared/model/Notice';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
@@ -25,6 +24,7 @@ import { validateAgentModel } from '../../../../shared/modelConfiguration';
 import { StartAgentDialog } from './StartAgentDialog';
 import { AgentConfigurationDialog } from './AgentConfigurationDialog';
 import { useProjectAgentRemoval } from '../model/useProjectAgentRemoval';
+import { useChatPanels } from '@/features/chat/ChatPanels.context';
 
 export function AgentActions({
   agent,
@@ -41,7 +41,7 @@ export function AgentActions({
 }) {
   useTranslation(undefined, { i18n });
   const { demo } = useNotice();
-  const { saveNow } = useStorage();
+  const chats = useChatPanels();
   const { setAutoContinue, selectedProject, busy } = useWorkspace();
   const { agents } = useAgentProfiles();
   const { connections } = useConnections();
@@ -79,31 +79,20 @@ export function AgentActions({
     }
     onLaunch();
     setContinueAfterRun(autoContinue);
-    if (action.kind === 'start') {
-      setStartOpen(true);
-      return;
-    }
     if (window.studio && selectedProject) {
       updateOpening(true);
       try {
-        if (!(await saveNow())) {
-          demo(uiText('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
-          return;
-        }
-        await window.studio.launchAgent({
-          projectId: selectedProject.id,
-          agentId: agent.profile.id,
+        await chats.open(
+          { projectId: selectedProject.id, agentId: agent.profile.id },
           autoContinue,
-        });
-      } catch (error) {
-        demo(
-          error instanceof Error
-            ? error.message
-            : uiText('AgentActions.couldNotResumeThePiDialogue'),
         );
       } finally {
         updateOpening(false);
       }
+      return;
+    }
+    if (action.kind === 'start') {
+      setStartOpen(true);
       return;
     }
     setAutoContinue(autoContinue);

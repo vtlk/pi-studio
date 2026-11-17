@@ -27,6 +27,8 @@ import { UpdateWorkspace } from '@/features/updates/UpdateWorkspace';
 import { GitHubStarReminder } from '@/features/github-star/GitHubStarReminder';
 import { OnboardingProvider } from '@/features/onboarding/Onboarding';
 import { OnboardingView } from '@/features/onboarding/OnboardingView';
+import { ChatPanelsProvider } from '@/features/chat/ChatPanels';
+import { SetupChatPanel } from '@/features/chat/SetupChatPanel';
 
 const pages = {
   project: ProjectView,
@@ -48,6 +50,7 @@ function StudioShell() {
         <div className="main-scroll">
           <Page />
         </div>
+        <SetupChatPanel />
       </main>
       <DialogView />
       <GitHubStarReminder />
@@ -77,21 +80,23 @@ export default function App({ useWorkspaceState, ExtraProviders = Fragment, defa
                       <ResourcesProvider initial={defaults?.resources}>
                         <AgentProfilesProvider initial={defaults?.agents}>
                           <WorkspaceProvider useWorkspaceState={useWorkspaceState}>
-                            <UpdatesProvider initial={initial}>
-                              <ExtraProviders>
-                                <LaunchProvider>
-                                  <UpdateWorkspace>
-                                    <TeamTransfersProvider>
-                                      <OnboardingProvider>
-                                        <StartupGate>
-                                          <StudioShell />
-                                        </StartupGate>
-                                      </OnboardingProvider>
-                                    </TeamTransfersProvider>
-                                  </UpdateWorkspace>
-                                </LaunchProvider>
-                              </ExtraProviders>
-                            </UpdatesProvider>
+                            <ChatPanelsProvider>
+                              <UpdatesProvider initial={initial}>
+                                <ExtraProviders>
+                                  <LaunchProvider>
+                                    <UpdateWorkspace>
+                                      <TeamTransfersProvider>
+                                        <OnboardingProvider>
+                                          <StartupGate>
+                                            <StudioShell />
+                                          </StartupGate>
+                                        </OnboardingProvider>
+                                      </TeamTransfersProvider>
+                                    </UpdateWorkspace>
+                                  </LaunchProvider>
+                                </ExtraProviders>
+                              </UpdatesProvider>
+                            </ChatPanelsProvider>
                           </WorkspaceProvider>
                         </AgentProfilesProvider>
                       </ResourcesProvider>

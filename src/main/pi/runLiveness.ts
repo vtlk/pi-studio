@@ -15,6 +15,11 @@ export async function checkRunLiveness(state: {
       ((live.pid && !processAlive(live.pid)) ||
         (!state.opening.has(key) && Date.now() - live.heartbeat > 20000))
     ) {
+      // A stalled background child remains owned and counted until it really exits.
+      if (live.embedded?.alive) {
+        live.stop?.();
+        continue;
+      }
       const cleanup = state.lifecycle.processLost(live).then(async () => {
         await state.dependencies.observed?.(live.run, { type: 'stopped' });
         state.remove(live.run.record.runId);

@@ -78,7 +78,7 @@ export function closeSuccessfulRun(
         throw new AutomaticCloseError(t('error.automaticClose.piHistoryWasNotSaved'));
       check();
       const capture = state.dependencies.captureTerminal ?? captureOwnedTab;
-      const handle = state.dependencies.headless
+      const handle = state.dependencies.headless || state.dependencies.embedded
         ? undefined
         : pid
           ? await capture(
@@ -89,7 +89,7 @@ export function closeSuccessfulRun(
               runTerminalTitle(run),
             )
           : undefined;
-      if (!state.dependencies.headless && !handle)
+      if (!state.dependencies.headless && !state.dependencies.embedded && !handle)
         throw new AutomaticCloseError(t('error.automaticClose.theExactPiWindowIs'));
       const outputs = await validateCompletedOutputs(
         run.record.output,

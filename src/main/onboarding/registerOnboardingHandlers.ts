@@ -67,6 +67,7 @@ export function registerOnboardingHandlers(
     checkImages: (folder, connectionId) =>
       dependencies.imageConnections.check({ folder, connectionId }),
     terminal: hasWindowsTerminal,
+    terminalRequired: false,
     git: gitRequirementReady,
     windows: process.platform === 'win32',
     runtimeReady: () => {

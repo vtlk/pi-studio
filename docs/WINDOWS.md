@@ -12,21 +12,20 @@ The application does not have an Authenticode signature or an installer.
 5. Configure a model connection, then create or import your agent team.
 
 Pi and its private Node runtime can be installed through the first-launch screen.
-Agent dialogues require Windows Terminal. Pi's Bash tool requires Git for Windows
-(Git Bash). Studio checks the standard machine and per-user Git installations,
-then custom Bash locations in PATH. Windows WSL aliases are excluded; if no native
-Bash is found, Studio asks you to install Git for Windows. These external
-applications are not silently installed; WSL is not used.
+Agent dialogues run inside Studio using the Pi SDK in owned background processes;
+Windows Terminal is not required for chat. Pi's Bash tool still requires native
+Git for Windows (Git Bash). Studio discovers system, per-user, portable/PATH and
+official registry install locations and passes them only to the child environment.
+WSL aliases are excluded. These dependencies are not silently installed.
 
-If an agent reports “Session bridge disconnected”, reopen it from Studio while
-Studio stays open. From alpha.94, a cold Terminal/SDK startup keeps its bridge
-through the normal launch deadline instead of losing it after 20 seconds.
-If the error specifically asks to reload the Pi Studio terminal profile, finish
-work in Windows Terminal, close its windows yourself and launch the agent from
-Studio again. Studio reports this profile error directly and does not close
-terminal windows automatically. Other rejected bridge requests include their
-HTTP status to help diagnose the failure. Native confirmation on the affected
-Windows computer is still required.
+A cold SDK/MCP startup can take 40 seconds or longer. The chat opens immediately
+with a loading spinner; repeated opening reuses an existing ready process. Hiding
+the panel keeps Pi running. The yellow process indicator includes working and
+waiting Studio-owned processes; a running process is not automatically stuck.
+The chat header offers a separate confirmed process stop, preserving the saved
+dialogue and files. A failed startup offers retry rather than creating duplicate
+processes. Actual Windows startup/input/update acceptance remains separate from
+cross-platform source and isolated macOS checks.
 
 Projects, canonical Pi dialogues and application settings are stored separately
 from the program folder. Prefer “Check for updates…” in the application menu.

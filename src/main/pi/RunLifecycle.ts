@@ -40,7 +40,13 @@ export class RunLifecycle {
     live.heartbeat = Date.now();
     if (event.type === 'hello') {
       if (!Number.isSafeInteger(event.pid) || event.pid! < 2) throw new Error('Invalid process');
-      if (process.platform === 'win32' && !this.dependencies.headless) {
+      if (live.embedded && live.embedded.child.pid !== event.pid)
+        throw new Error('Invalid owned Pi process');
+      if (
+        process.platform === 'win32' &&
+        !this.dependencies.headless &&
+        !this.dependencies.embedded
+      ) {
         const terminal = event.terminalIdentity;
         if (!validStudioTerminalIdentity(terminal)) {
           const error = new SessionEventError(t('error.runLifecycle.restartWindowsTerminalToLoad'));
@@ -89,12 +95,16 @@ export class RunLifecycle {
       };
       const project = await this.dependencies.update(live.run, live.status, live.bound);
       live.run.agent.session = live.bound;
-      live.ready({ runId: live.run.record.runId, project });
+      if (!this.dependencies.embedded || live.opened)
+        live.ready({ runId: live.run.record.runId, project });
     } else if (event.type === 'capabilities') {
       if (typeof event.executableExtensions !== 'boolean')
         throw new Error('Invalid runtime capabilities');
       this.dependencies.capabilities?.(live.run, event.executableExtensions);
-    } else if (event.type === 'opened' && this.dependencies.serviceAgent) {
+    } else if (
+      event.type === 'opened' &&
+      (this.dependencies.serviceAgent || this.dependencies.embedded)
+    ) {
       live.ready({ runId: live.run.record.runId, project: await this.dependencies.read(live.run) });
     } else if (event.type === 'request') {
       const previous = live.status;

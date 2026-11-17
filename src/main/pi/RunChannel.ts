@@ -1,4 +1,5 @@
 import { callSessionTool } from './callSessionTool.ts';
+import { i18n } from '../../shared/i18n/index.ts';
 import { createServer, type ServerResponse, type IncomingMessage } from 'node:http';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 
@@ -236,7 +237,11 @@ export class RunChannel {
       if (this.leases.get(match![1]) !== lease) return json(response, 403, { error: 'Forbidden' });
       if (match![2] === 'event') {
         await lease.event(data as unknown as ChannelEvent);
-        return json(response, 200, { ok: true, ...(lease.stopping ? { stop: true } : {}) });
+        return json(response, 200, {
+          ok: true,
+          language: i18n.language,
+          ...(lease.stopping ? { stop: true } : {}),
+        });
       }
       rpcId = data.id;
       if (!('id' in data)) {

@@ -188,3 +188,19 @@ test('liveness gives startup its launch deadline and still retires dead or disco
   assert.deepEqual(lost, ['stale', 'cold', 'dead'], 'A proven-dead startup is retired immediately');
   assert.equal(live.size, 0);
 });
+
+test('bridge diagnostics follow the current session language without recreating the transport', async (t) => {
+  const channel = new RunChannel();
+  t.after(() => channel.close());
+  const capability = await channel.add(
+    'locale',
+    { resources: { mcpServers: [] } } as never,
+    async () => {},
+    async () => ({}),
+  );
+  const bootstrap = { ...capability, token: 'wrong', language: 'en' };
+  const request = sessionRequest(bootstrap);
+  await assert.rejects(request('context'), /session bridge disconnected/);
+  bootstrap.language = 'ru';
+  await assert.rejects(request('context'), /Связь с Pi Studio прервана/);
+});

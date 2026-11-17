@@ -128,13 +128,14 @@ export function onboardingTasks(
         checking: !status || status === 'checking',
       });
     }
-    tasks.unshift({
-      id: 'terminal',
-      kind: 'terminal',
-      name: '',
-      complete: options.readiness.terminal === 'ready',
-      checking: options.readiness.terminal === 'checking',
-    });
+    if (options.readiness.terminalRequired !== false)
+      tasks.unshift({
+        id: 'terminal',
+        kind: 'terminal',
+        name: '',
+        complete: options.readiness.terminal === 'ready',
+        checking: options.readiness.terminal === 'checking',
+      });
     if (options.readiness.git !== undefined)
       tasks.unshift({
         id: 'git',

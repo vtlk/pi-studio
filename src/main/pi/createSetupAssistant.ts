@@ -32,6 +32,9 @@ interface Options {
   catalog: string;
   piPath: () => string;
   headless?: boolean;
+  embedded?: boolean;
+  chatChanged?: RunDependencies['chatChanged'];
+  chatOpened?: RunDependencies['chatOpened'];
   failureChanged?: RunDependencies['failureChanged'];
   openTerminal?: typeof openSessionTerminal;
   resources?: StudioResources;
@@ -51,6 +54,9 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     bridge: options.bridge,
     serviceAgent: true,
     headless: options.headless,
+    embedded: options.embedded,
+    chatChanged: options.chatChanged,
+    chatOpened: options.chatOpened,
     failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     tools: setupTools,

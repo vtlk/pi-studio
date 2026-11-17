@@ -10,11 +10,13 @@ import { useStorage } from '@/shared/storage/Storage';
 import { Button, IconButton } from '@/shared/ui';
 import { List, ListRow } from '@/shared/ui/ListRow';
 import { Modal } from '@/shared/ui/Modal';
+import { useChatPanels } from '@/features/chat/ChatPanels.context';
 
 export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
   useTranslation(undefined, { i18n });
   const { selectedProject, deleteAgentData, busy } = useWorkspace();
   const { isDesktop } = useStorage();
+  const chats = useChatPanels();
   const [targetProject, setTargetProject] = useState<string>();
   const shared = selectedProject?.workspaceMode === 'shared';
   const disabled =
@@ -26,7 +28,10 @@ export function DeleteAgentDataButton({ agent }: { agent: ProjectAgent }) {
     if (!targetProject || disabled) return;
     const projectId = targetProject;
     setTargetProject(undefined);
-    void deleteAgentData(projectId, agent.profile.id, target);
+    void deleteAgentData(projectId, agent.profile.id, target).then((deleted) => {
+      if (deleted !== false && target !== 'files')
+        chats.hideFor({ projectId, agentId: agent.profile.id });
+    });
   };
   return (
     <>

@@ -1,11 +1,11 @@
 /** The session capability is sent only to Studio's loopback URL; never print response bodies. */
 export function sessionRequest(bootstrap) {
-  const russian = bootstrap.language === 'ru';
   const headers = {
     Authorization: `Bearer ${bootstrap.token}`,
     'Content-Type': 'application/json',
   };
   return async (path, data) => {
+    const russian = bootstrap.language === 'ru';
     let response;
     try {
       response = await fetch(`${bootstrap.url}/${path}`, {

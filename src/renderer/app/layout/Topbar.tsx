@@ -7,6 +7,7 @@ import { UpdateAction } from '@/features/updates/UpdateAction';
 import { LanguageSelect } from '@/shared/ui/LanguageSelect';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useOnboarding } from '@/features/onboarding/Onboarding';
+import { PiProcesses } from '@/features/chat/PiProcesses';
 
 const sections: { page: Page; label: import('../../../shared/i18n').MessageKey }[] = [
   { page: 'projects', label: 'Topbar.projects' },
@@ -58,6 +59,7 @@ export function Topbar() {
           : t('Topbar.webPreviewChangesAreNotSaved')}
       </span>
       <UpdateAction />
+      <PiProcesses />
       <LanguageSelect />
       <ThemeToggle />
       <button

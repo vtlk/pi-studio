@@ -36,6 +36,14 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  getChat(target: import('./chat').ChatTarget): Promise<import('./chat').ChatState | null>;
+  sendChat(request: import('./chat').ChatSend): Promise<void>;
+  abortChat(target: import('./chat').ChatTarget): Promise<void>;
+  answerChat(answer: import('./chat').ChatAnswer): Promise<void>;
+  closeChat(target: import('./chat').ChatTarget): Promise<void>;
+  listPiProcesses(): Promise<import('./chat').PiProcessInfo[]>;
+  onChatChanged(listener: (target: import('./chat').ChatTarget) => void): () => void;
+  onChatOpened(listener: (target: import('./chat').ChatTarget) => void): () => void;
   getOnboardingReadiness(request: {
     folder: string;
     refresh?: boolean;
@@ -152,6 +160,14 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  getChat: 'studio:chat-get',
+  sendChat: 'studio:chat-send',
+  abortChat: 'studio:chat-abort',
+  answerChat: 'studio:chat-answer',
+  closeChat: 'studio:chat-close',
+  listPiProcesses: 'studio:pi-processes',
+  chatChanged: 'studio:chat-changed',
+  chatOpened: 'studio:chat-opened',
   getOnboardingReadiness: 'studio:onboarding-readiness',
   openTerminalDownload: 'studio:terminal-download',
   openGitDownload: 'studio:git-download',

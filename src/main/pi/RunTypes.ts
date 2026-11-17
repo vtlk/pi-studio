@@ -20,6 +20,13 @@ export interface RunDependencies {
   openTerminal?: typeof openSessionTerminal;
   activateTerminal?: (pid: number, title?: string) => Promise<void>;
   headless?: boolean;
+  embedded?: boolean;
+  chatChanged?: (target: import('../../shared/chat.ts').ChatTarget) => void;
+  chatOpened?: (target: import('../../shared/chat.ts').ChatTarget) => void;
+  chatAttachments?: (
+    run: PreparedRun,
+    ids: string[],
+  ) => Promise<import('../../shared/attachments.ts').SavedAttachment[]>;
   beforeAutomaticClose?: (run: PreparedRun) => void | Promise<void>;
   captureTerminal?: typeof import('./automaticClose.ts').captureOwnedTab;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
@@ -54,6 +61,7 @@ export interface LiveRun {
   run: PreparedRun;
   request: LaunchAgentRequest;
   pid?: number;
+  embedded?: import('./EmbeddedChat.ts').EmbeddedChat;
   terminalIdentity?: import('../../shared/runtime.ts').TerminalIdentity;
   stop?: () => void;
   status: AgentRunStatus;

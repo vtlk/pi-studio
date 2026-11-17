@@ -2,7 +2,8 @@ import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { File } from 'lucide-react';
+import { File, Paperclip } from 'lucide-react';
+import { IconButton } from './index';
 import { AddArea } from './AddArea';
 import { HoverDeleteButton } from './HoverDeleteButton';
 import { Tooltip } from './Tooltip';
@@ -46,10 +47,14 @@ export function ReferenceAttachments({
   value,
   onChange,
   disabled = false,
+  retainOnUnmount = false,
+  compact = false,
 }: {
   value: ReferenceAttachment[];
   onChange: (attachments: ReferenceAttachment[]) => void;
   disabled?: boolean;
+  retainOnUnmount?: boolean;
+  compact?: boolean;
 }) {
   useTranslation(undefined, { i18n });
   const input = useRef<HTMLInputElement>(null);
@@ -66,10 +71,10 @@ export function ReferenceAttachments({
       mounted.current = false;
       // StrictMode immediately remounts effects; only an actual close releases inputs.
       queueMicrotask(() => {
-        if (!mounted.current) releaseReferences(current.current);
+        if (!mounted.current && !retainOnUnmount) releaseReferences(current.current);
       });
     };
-  }, []);
+  }, [retainOnUnmount]);
   const update = (next: ReferenceAttachment[]) => {
     current.current = next;
     onChange(next);
@@ -104,7 +109,7 @@ export function ReferenceAttachments({
   };
   return (
     <div
-      className="reference-attachments"
+      className={`reference-attachments${compact ? ' reference-attachments-compact' : ''}`}
       role="group"
       aria-label={t('ReferenceAttachments.references')}
     >
@@ -130,11 +135,21 @@ export function ReferenceAttachments({
           event.target.value = '';
         }}
       />
-      <AddArea
-        label={t('ReferenceAttachments.attachReferenceFiles')}
-        disabled={disabled || choosing}
-        onClick={() => void choose()}
-      />
+      {compact ? (
+        <IconButton
+          title={t('ReferenceAttachments.attachReferenceFiles')}
+          disabled={disabled || choosing}
+          onClick={() => void choose()}
+        >
+          <Paperclip size={18} />
+        </IconButton>
+      ) : (
+        <AddArea
+          label={t('ReferenceAttachments.attachReferenceFiles')}
+          disabled={disabled || choosing}
+          onClick={() => void choose()}
+        />
+      )}
       {error && (
         <p role="alert" className="error-message">
           {error}

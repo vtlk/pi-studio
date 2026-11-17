@@ -23,10 +23,12 @@ import { UsageMetrics } from './UsageMetrics';
 import { usageAccessible } from '../model/usageFormat';
 import { Switch } from '@/shared/ui/SelectionControls';
 import { Tooltip } from '@/shared/ui/Tooltip';
+import { useChatPanels } from '@/features/chat/ChatPanels.context';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   useTranslation(undefined, { i18n });
   const { confirm } = useConfirm();
+  const chats = useChatPanels();
   const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
   const { ref, width } = useElementWidth();
@@ -42,15 +44,23 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   const [refreshOpen, setRefreshOpen] = useState(false);
   const [autoContinue, setAutoContinue] = useState(false);
   const [settingsAgentId, setSettingsAgentId] = useState<string | null>(null);
-  const closeSettings = () => setSettingsAgentId(null);
+  const closeSettings = () => {
+    setSettingsAgentId(null);
+    chats.hide();
+  };
   const openSettings = (id: string, tab?: string) => {
+    chats.hide();
     selectProfile(id);
     if (tab) setAgentTab(tab);
     setAgentId(id);
     setSettingsAgentId(id);
   };
   const selectedAgent =
-    project.agents.find((agent) => agent.profile.id === agentId) ?? project.agents[0];
+    project.agents.find(
+      (agent) =>
+        agent.profile.id ===
+        (chats.target?.projectId === project.id ? chats.target.agentId : agentId),
+    ) ?? project.agents[0];
   return (
     <div className="project-workspace">
       <div className="project-header">
@@ -167,6 +177,10 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
                 settingsAgentId === selectedAgent.profile.id ? settingsAgentId : null
               }
               onCloseSettings={closeSettings}
+              chatOpen={
+                chats.target?.projectId === project.id &&
+                chats.target.agentId === selectedAgent.profile.id
+              }
               treeWidth={treeWidth}
               onTreeWidthChange={setTreeWidth}
             />

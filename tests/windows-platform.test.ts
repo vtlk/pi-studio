@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { i18n } from '../src/shared/i18n/index.ts';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rm, symlink, copyFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -148,7 +149,11 @@ test('graceful bridge shutdown remains session-scoped and authenticated, with no
       body: JSON.stringify({ type: 'heartbeat' }),
     });
   assert.equal((await heartbeat(first, second.token)).status, 403);
-  assert.deepEqual(await (await heartbeat(first)).json(), { ok: true, stop: true });
-  assert.deepEqual(await (await heartbeat(second)).json(), { ok: true });
+  assert.deepEqual(await (await heartbeat(first)).json(), {
+    ok: true,
+    language: i18n.language,
+    stop: true,
+  });
+  assert.deepEqual(await (await heartbeat(second)).json(), { ok: true, language: i18n.language });
   assert.deepEqual(events, ['heartbeat']);
 });

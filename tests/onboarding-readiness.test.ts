@@ -89,7 +89,7 @@ test('readiness checks bound concurrency, deduplicate requests, expire successes
   assert.equal(calls, 3);
 });
 
-function fixture() {
+function fixture(terminalRequired = true) {
   const observed: boolean[] = [];
   let now = 100,
     auth: ConnectionReadiness = 'not_ready',
@@ -201,6 +201,7 @@ function fixture() {
         return { keyStored, authentication: 'ready', modelIds: ['image-model'] };
       },
       git: async () => terminal,
+      terminalRequired,
       terminal: async () => {
         counts.terminal++;
         return terminal;
@@ -348,4 +349,14 @@ test('executable probe checks filesystem/PATH only and respects executable permi
     await chmod(command, 0o644);
     assert.equal(await missingMcpExecutable({ command }, ''), true);
   }
+});
+
+test('embedded Pi chats do not probe or require Windows Terminal', async () => {
+  const data = fixture(false);
+  const readiness = await data.service.read('/fixture');
+  await flush();
+  assert.equal(readiness.terminal, 'ready');
+  assert.equal(readiness.terminalRequired, false);
+  assert.equal(data.counts.terminal, 0);
+  data.service.close();
 });

@@ -16,10 +16,11 @@ import { importSkill } from '../src/main/storage/skills.ts';
 
 const claude = process.argv.includes('--claude-code');
 const autoClose = process.argv.includes('--auto-close');
+const embedded = process.argv.includes('--embedded');
 assert.ok(!(claude && autoClose));
 const previousEnvironment = { ...process.env };
 const root = await mkdtemp(join(tmpdir(), 'pistudio-chain-local-'));
-if (autoClose) {
+if (autoClose || embedded) {
   process.env.PI_CODING_AGENT_DIR = join(root, 'NativePi');
   await mkdir(process.env.PI_CODING_AGENT_DIR, { recursive: true });
 }
@@ -270,7 +271,8 @@ const host = createStudioRunHost(service, {
     new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
   catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
   piPath: () => pi.path,
-  headless: !autoClose,
+  headless: !autoClose && !embedded,
+  embedded,
   captureTerminal: async (pid, runId, bridge) => {
     assert.ok(autoClose);
     assert.ok(pid > 1);
@@ -349,8 +351,20 @@ try {
   assert.equal(current.agents[0].runStatus, 'ready');
   assert.equal(current.agents[2].runStatus, 'ready');
   assert.equal(current.agents[1].session, undefined);
-  assert.equal(children.length, 2);
-  assert.deepEqual(await Promise.all([...children]), [0, 0]);
+  if (embedded) {
+    const end = Date.now() + 12000;
+    while (host.processes().length && Date.now() < end)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(
+      host.processes().length,
+      0,
+      'Automatic embedded stages close their actual children',
+    );
+    assert.deepEqual(captured, [], 'Embedded chains never capture a Terminal');
+  } else {
+    assert.equal(children.length, 2);
+    assert.deepEqual(await Promise.all([...children]), [0, 0]);
+  }
   if (autoClose) {
     const deadline = Date.now() + 12000;
     while (closed.length < 2 && Date.now() < deadline)
@@ -409,8 +423,14 @@ try {
     assert.ok(host.inspect(project.id, 'first'));
     await host.stopAgent(project.id, 'first');
   }
-  assert.equal(await children[2], 0);
-  assert.equal(children.length, 3);
+  if (embedded) {
+    assert.equal(host.processes().length, 1);
+    await host.stopAgent(project.id, 'first');
+    assert.equal(host.processes().length, 0);
+  } else {
+    assert.equal(await children[2], 0);
+    assert.equal(children.length, 3);
+  }
   assert.equal(requests, 6);
   assert.deepEqual(await Promise.all(selected.map((a) => messages(a.session!.path))), before);
   const reopened = await store.projects.read(project.id);
@@ -480,6 +500,7 @@ try {
     assignedPackageSkillsScoped: true,
     hardFilesystemSandbox: false,
     packagedBridge: !!process.env.PI_STUDIO_QA_BRIDGE,
+    embeddedChat: embedded,
     interactiveAutomaticClose: autoClose,
     manualSuccessRemainsOpen: autoClose,
     realQuestionRemainsOpen: autoClose,
@@ -499,11 +520,13 @@ try {
   };
   await mkdir(resolve('artifacts'), { recursive: true });
   const proofPath = resolve(
-    autoClose
-      ? 'artifacts/automatic-close-native-proof.json'
-      : claude
-        ? 'artifacts/claude-code-chain-proof.json'
-        : 'artifacts/local-chain-proof.json',
+    embedded
+      ? 'artifacts/chat-chain-native-proof.json'
+      : autoClose
+        ? 'artifacts/automatic-close-native-proof.json'
+        : claude
+          ? 'artifacts/claude-code-chain-proof.json'
+          : 'artifacts/local-chain-proof.json',
   );
   const previous = autoClose ? {} : JSON.parse(await readFile(proofPath, 'utf8').catch(() => '{}'));
   await writeFile(
@@ -516,6 +539,7 @@ try {
   );
   console.log(JSON.stringify(proof));
 } finally {
+  if (embedded) await host.drain();
   host.close();
   await Promise.allSettled(children);
   server.closeAllConnections();
