@@ -31,6 +31,12 @@
 .ui-list-row[data-expanded] {
   padding-right: 44px;
 }
+.ui-list-row[data-chevron-position='start'] {
+  padding-right: 16px;
+}
+.ui-list-row[data-separator='true'] {
+  border-bottom: 1px solid var(--line-strong);
+}
 .app-shell .ui-list-row-main {
   display: flex;
   align-items: center;
@@ -79,6 +85,13 @@
 }
 .ui-list-row[data-expanded='true'] .ui-list-row-chevron {
   transform: rotate(180deg);
+}
+.ui-list-row[data-chevron-position='start'] .ui-list-row-chevron {
+  position: static;
+  transform: rotate(-90deg);
+}
+.ui-list-row[data-chevron-position='start'][data-expanded='true'] .ui-list-row-chevron {
+  transform: none;
 }
 .ui-list-row-toggle,
 .ui-list-row-drag,

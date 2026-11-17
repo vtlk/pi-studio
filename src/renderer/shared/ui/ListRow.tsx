@@ -18,6 +18,8 @@ export interface ListRowProps {
   actions?: ReactNode;
   onClick?: () => void;
   expanded?: boolean;
+  chevronPosition?: 'start' | 'end';
+  separator?: boolean;
   controls?: string;
   id?: string;
   disabled?: boolean;
@@ -35,25 +37,31 @@ export function ListRow({
   actions,
   onClick,
   expanded,
+  chevronPosition = 'end',
+  separator = false,
   controls,
   id,
   disabled = false,
   className = '',
 }: ListRowProps) {
   const trigger = useRef<HTMLButtonElement>(null);
+  const chevron = expanded !== undefined && (
+    <ChevronDown className="ui-list-row-chevron" size={18} aria-hidden="true" />
+  );
   const content = (
     <>
+      {chevronPosition === 'start' && chevron}
       {Icon && <Icon className="ui-list-row-icon" size={20} strokeWidth={1.8} aria-hidden="true" />}
       <span className="ui-list-row-label">{label}</span>
-      {expanded !== undefined && (
-        <ChevronDown className="ui-list-row-chevron" size={18} aria-hidden="true" />
-      )}
+      {chevronPosition === 'end' && chevron}
     </>
   );
   return (
     <div
       className={`ui-list-row ${className}`}
       data-expanded={expanded}
+      data-chevron-position={expanded !== undefined ? chevronPosition : undefined}
+      data-separator={separator || undefined}
       data-clickable={!!onClick}
       data-disabled={disabled || undefined}
       onClick={(event) => {
