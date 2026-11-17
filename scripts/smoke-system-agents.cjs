@@ -146,7 +146,6 @@ const deadline = setTimeout(() => {
   await until(`!!document.querySelector('.project-header')`);
   const beforeSync = await js('window.studio.loadStudio()');
   await click('Перечитать агентов');
-  await click('Перечитать');
   await until(`document.querySelector('.agent-diff')?.textContent.includes('Уберутся из проекта')`);
   assert.ok(
     (await js(`document.querySelector('.agent-diff').textContent`)).includes('First project role'),
@@ -160,7 +159,6 @@ const deadline = setTimeout(() => {
     beforeSync.projects[0].agents,
   );
   await click('Перечитать агентов');
-  await click('Перечитать');
   await click('Применить');
   await until(`document.body.innerText.includes('Список агентов синхронизирован')`);
   const synced = await js('window.studio.loadStudio()');
@@ -172,7 +170,6 @@ const deadline = setTimeout(() => {
   await click('Вернуть удалённых');
   await until(`document.querySelectorAll('.project-agent-menu .section-menu-item').length===3`);
   await click('Перечитать агентов');
-  await click('Перечитать');
   await click('Применить');
   await until(`document.querySelectorAll('.project-agent-menu .section-menu-item').length===2`);
   assert.deepEqual(

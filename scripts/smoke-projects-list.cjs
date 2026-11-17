@@ -131,7 +131,11 @@ const timeout = setTimeout(() => {
   await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
     enabled: true,
   });
-  const js = (code) => win.webContents.executeJavaScript(code, true).catch(error => { console.error('Project list QA expression:', code); throw error; });
+  const js = (code) =>
+    win.webContents.executeJavaScript(code, true).catch((error) => {
+      console.error('Project list QA expression:', code);
+      throw error;
+    });
   const until = async (code) => {
     for (let n = 0; n < 150; n++) {
       if (await js(code)) return;
@@ -569,8 +573,8 @@ const timeout = setTimeout(() => {
   );
   assert.ok(updated.saved);
   await click('Перечитать агентов');
-  await until(`!!document.querySelector('[role="alertdialog"]')`);
-  assert.equal(await js(`!!document.querySelector('.agent-diff')`), false);
+  await until(`!!document.querySelector('.agent-diff')`);
+  assert.equal(await js(`!!document.querySelector('[role="alertdialog"]')`), false);
   await click('Отмена');
   assert.deepEqual(
     (await js('window.studio.readProject(' + JSON.stringify(created.id) + ')')).agents.map(
@@ -580,9 +584,8 @@ const timeout = setTimeout(() => {
   );
   const comparison = async () => {
     await click('Перечитать агентов');
-    await until(`!!document.querySelector('[role="alertdialog"]')`);
-    await click('Перечитать');
     await until(`!!document.querySelector('.agent-diff')`);
+    assert.equal(await js(`!!document.querySelector('[role="alertdialog"]')`), false);
   };
   await comparison();
   await until(`document.querySelector('.agent-diff').textContent.includes('New QA')`);
@@ -627,7 +630,9 @@ const timeout = setTimeout(() => {
     `Array.from(document.querySelectorAll('.project-agent-menu .section-menu-row')).find(row=>row.querySelector('.section-menu-label').textContent.endsWith('New QA')).querySelector('.project-agent-menu-trigger').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
   );
   await until(`!!document.querySelector('[role="menuitem"]')`);
-  await js(`Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==='Удалить агента из проекта').click()`);
+  await js(
+    `Array.from(document.querySelectorAll('[role="menuitem"]')).find(e=>e.textContent.trim()==='Удалить агента из проекта').click()`,
+  );
   await until(`document.querySelector('[role="alertdialog"]')?.textContent.includes('New QA')`);
   await click('Удалить');
   await until(`document.querySelectorAll('.project-agent-menu .section-menu-row').length===4`);

@@ -375,7 +375,6 @@ const deadline = setTimeout(() => {
   ]);
   assert.equal(await js(`!!(${row('refresh-added')})`), false);
   await click('Перечитать агентов');
-  await click('Перечитать');
   await until(`document.querySelector('[role="dialog"]')?.textContent.includes('refresh-added')`);
   await js(`document.querySelector('[role="dialog"] footer .primary').click()`);
   await until(`!!(${row('refresh-added')})?.querySelector('button[aria-label="Запустить"]')`);

@@ -1,4 +1,3 @@
-import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { TeamMessages } from './TeamMessages';
@@ -15,7 +14,6 @@ import { AgentOutputsView } from './AgentOutputsView';
 import { RefreshAgentsDialog } from './RefreshAgentsDialog';
 import { ResizeHandle } from '@/shared/ui/ResizeHandle';
 import { useElementWidth } from '@/shared/ui/useElementWidth';
-import { useConfirm } from '@/shared/model/Confirm';
 import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
 import { useConnections } from '@/features/connections/model/Connections';
 import { validateAgentModel } from '../../../../shared/modelConfiguration';
@@ -27,7 +25,6 @@ import { useChatPanels } from '@/features/chat/ChatPanels.context';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   useTranslation(undefined, { i18n });
-  const { confirm } = useConfirm();
   const chats = useChatPanels();
   const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
@@ -66,17 +63,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
       <div className="project-header">
         <h1>{project.name}</h1>
         {window.studio && <TeamMessages project={project} />}
-        <Button
-          kind="primary"
-          onClick={() =>
-            confirm({
-              title: uiText('ProjectView.refreshAgents'),
-              description: uiText('ProjectView.compareTheProjectWithTheAgentsPage'),
-              confirmLabel: uiText('ProjectView.refresh'),
-              onConfirm: () => setRefreshOpen(true),
-            })
-          }
-        >
+        <Button kind="primary" onClick={() => setRefreshOpen(true)}>
           <RefreshCw size={17} />
           {t('ProjectView.refreshAgents2')}
         </Button>

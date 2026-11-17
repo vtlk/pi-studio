@@ -728,9 +728,23 @@ async function child() {
   );
   await js(`document.querySelector('.pi-chat-header button:last-child').click()`);
   refreshEdited = true;
+  for (const language of ['ru', 'en']) {
+    await js(`window.studio.setLanguage(${JSON.stringify(language)})`);
+    await until(`document.documentElement.lang===${JSON.stringify(language)}`);
+    await js(`document.querySelector('.project-header .button.primary').click()`);
+    await until(`!!document.querySelector('.agent-diff')`);
+    assert.equal(await js(`document.querySelectorAll('[role="dialog"]').length`), 1);
+    assert.equal(
+      await js(`!!document.querySelector('.confirmation-backdrop')`),
+      false,
+      'Refresh immediately opens the comparison without a preliminary confirmation',
+    );
+    assert.equal(refreshCalls.length, 0, 'Opening comparison does not apply anything');
+    await js(`document.querySelector('.dialog:has(.agent-diff) .dialog-footer button').click()`);
+    await until(`!document.querySelector('.agent-diff')`);
+    assert.equal(refreshCalls.length, 0, 'Cancelling comparison does not apply or restart');
+  }
   await js(`document.querySelector('.project-header .button.primary').click()`);
-  await until(`!!document.querySelector('.confirmation-backdrop')`);
-  await js(`document.querySelector('.confirmation-backdrop .dialog-footer .primary').click()`);
   await until(`!!document.querySelector('.refresh-existing [role="switch"]')`);
   await js(`document.querySelector('.refresh-existing [role="switch"]').click()`);
   const refreshScreens = [];
@@ -809,6 +823,8 @@ async function child() {
         ],
         geometry,
         spacing,
+        refreshOpensComparisonImmediatelyInRussianAndEnglish: true,
+        refreshComparisonCancelPreservesState: true,
         refreshScreens,
         toolLocales,
         composerLayouts,

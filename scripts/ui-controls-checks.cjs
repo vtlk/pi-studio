@@ -293,12 +293,9 @@ module.exports = async ({
     await until(`!document.querySelector('[role="menu"]')`);
   }
   await click('Перечитать агентов');
-  await until(`!!document.querySelector('[role="alertdialog"]')`);
-  assert.equal(
-    await js(`document.querySelector('[role="alertdialog"]').dataset.controlsScope`),
-    'projects',
-  );
-  await inspect('confirmation');
+  await until(`!!document.querySelector('.agent-diff')`);
+  assert.equal(await js(`!!document.querySelector('[role="alertdialog"]')`), false);
+  await inspect('refresh-comparison');
   await click('Отмена');
   await named('Удаление файлов или диалогов с агентом');
   await until(`!!document.querySelector('[role="alertdialog"]')`);
