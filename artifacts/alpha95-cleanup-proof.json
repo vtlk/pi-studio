@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-17T16:21:56.784378+00:00",
+  "version": "0.2.0-alpha.95",
+  "currentLocalArchives": [
+    "darwin-arm64",
+    "win32-x64"
+  ],
+  "oldLocalRelease94BytesRemoved": 314366229,
+  "owned93ReleaseStagingRemoved": true,
+  "owned93And95UnpackedMacBuildsRemoved": true,
+  "ownedPrevious93RegressionExtractionRemoved": true,
+  "failedUserTransactionActivePointerRemoved": true,
+  "failedUserTransactionStageRemoved": true,
+  "userProjectsOrBrowsersRemoved": false,
+  "newInstalledApplicationReplacement": false
+}
