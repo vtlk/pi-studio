@@ -1,5 +1,4 @@
 import { t } from '../../shared/i18n/index.ts';
-import { mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { UpdateState, UpdateReadiness, UpdateView } from '../../shared/updates.ts';
@@ -8,7 +7,7 @@ import type { UpdateInstaller, PreparedInstallation, InstallLease } from './inst
 import { checkGitHubReleases, type VerifiedUpdate } from './githubReleases.ts';
 import { downloadVerifiedUpdate } from './download.ts';
 import { UpdateSchedule } from './UpdateSchedule.ts';
-import { atomicJson } from '../../../bundled/update-helper/protocol.mjs';
+import { prepareDownload, releaseDownload } from './cleanupDownloads.ts';
 
 interface Options {
   target: UpdateTarget;
@@ -114,7 +113,7 @@ export class UpdateCoordinator {
         this.state.message ?? t('UpdateCoordinator.aCompatibleUpdateIsNoLongerAvailable'),
       );
     const candidate = this.candidate;
-    await this.discard();
+    await this.discard(true);
     this.state = {
       ...this.state,
       phase: 'downloading',
@@ -122,19 +121,14 @@ export class UpdateCoordinator {
       message: undefined,
       prepareToken: undefined,
     };
-    await mkdir(this.options.cacheRoot, { recursive: true, mode: 0o700 });
-    this.directory = await mkdtemp(join(this.options.cacheRoot, 'download-'));
-    await atomicJson(join(this.directory, 'owner.json'), {
-      schema: 1,
-      id: randomUUID(),
-      pid: process.pid,
-    });
+    this.directory = await prepareDownload(this.options.cacheRoot, candidate.manifest);
     const file = join(this.directory, 'package.zip');
     await (this.options.download ?? downloadVerifiedUpdate)({
       update: candidate,
       publicKey: this.options.publicKey,
       destination: file,
       signal: this.abort.signal,
+      resume: true,
       progress: (downloaded) => {
         if (!this.closed) this.state = { ...this.state, downloaded };
       },
@@ -147,7 +141,7 @@ export class UpdateCoordinator {
       this.abort.signal,
     );
     this.abort.signal.throwIfAborted();
-    await rm(this.directory, { recursive: true, force: true });
+    await releaseDownload(this.directory);
     this.directory = undefined;
     this.state = {
       ...this.state,
@@ -249,7 +243,7 @@ export class UpdateCoordinator {
           : t('UpdateCoordinator.couldNotUpdatePiStudio'),
     };
     try {
-      await this.discard();
+      await this.discard(true);
       this.committed = false;
       this.state = { ...this.state, prepareToken: undefined };
     } catch {
@@ -261,7 +255,7 @@ export class UpdateCoordinator {
       };
     }
   }
-  private discard(): Promise<void> {
+  private discard(keepPartial = false): Promise<void> {
     if (this.clearing) return this.clearing;
     const prepared = this.prepared,
       directory = this.directory,
@@ -272,7 +266,7 @@ export class UpdateCoordinator {
       this.prepared = undefined;
       this.lease = undefined;
       lease?.release();
-      if (directory) await rm(directory, { recursive: true, force: true });
+      if (directory) await releaseDownload(directory, keepPartial);
       this.directory = undefined;
     })().finally(() => {
       if (this.clearing === clearing) this.clearing = undefined;
@@ -288,7 +282,7 @@ export class UpdateCoordinator {
     if (!this.committed) {
       await this.work?.catch(() => undefined);
       try {
-        await this.discard();
+        await this.discard(true);
       } catch (error) {
         this.state = {
           ...this.state,

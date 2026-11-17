@@ -10,6 +10,39 @@ import {
 const address = releaseAssetUrl('v0.2.0-alpha.91', 'package.zip');
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+test('only a validated byte range is forwarded across approved redirects, without credentials', async () => {
+  let calls = 0;
+  const request: typeof fetch = async (_, options) => {
+    calls++;
+    const headers = new Headers(options?.headers);
+    assert.equal(headers.get('Range'), 'bytes=123-');
+    assert.equal(headers.get('Accept-Encoding'), 'identity');
+    assert.equal(headers.get('Authorization'), null);
+    assert.equal(headers.get('Cookie'), null);
+    assert.equal(options?.credentials, 'omit');
+    return calls === 1
+      ? new Response(null, {
+          status: 302,
+          headers: { Location: 'https://release-assets.githubusercontent.com/owned-package' },
+        })
+      : new Response('range response');
+  };
+  const response = await githubResponse(
+    address,
+    new AbortController().signal,
+    request,
+    Date.now(),
+    1000,
+    123,
+  );
+  assert.equal(await response.text(), 'range response');
+  assert.equal(calls, 2);
+  await assert.rejects(
+    githubResponse(address, new AbortController().signal, request, Date.now(), 1000, -1),
+  );
+  assert.equal(calls, 2);
+});
+
 test('header deadline ends when headers arrive, without later aborting a healthy response body', async () => {
   let requestSignal: AbortSignal | undefined;
   const response = await githubResponse(

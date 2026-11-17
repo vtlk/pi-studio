@@ -160,7 +160,7 @@ export class NativeUpdates {
   }
   private async cleanup() {
     const results = await Promise.allSettled([
-      cleanupDownloads(join(this.options.userData, 'updates/downloads')),
+      cleanupDownloads(join(this.options.userData, 'updates/downloads'), this.options.version),
       cleanupFinishedUpdates(this.options.userData, this.options.target),
     ]);
     for (const result of results) if (result.status === 'rejected') throw result.reason;

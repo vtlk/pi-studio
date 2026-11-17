@@ -11,9 +11,13 @@ const redirectHosts = new Set([
 ]);
 export class UpdateNetworkError extends Error {
   readonly retryAt?: number;
-  constructor(message: string, retryAt?: number) {
+  readonly recoverable: boolean;
+  readonly status?: number;
+  constructor(message: string, retryAt?: number, recoverable = true, status?: number) {
     super(message);
     this.retryAt = retryAt;
+    this.recoverable = recoverable;
+    this.status = status;
   }
 }
 export type FetchUpdate = typeof fetch;
@@ -38,7 +42,13 @@ export async function githubResponse(
   request: FetchUpdate = fetch,
   now = Date.now(),
   headerTimeoutMs = 60_000,
+  rangeStart?: number,
 ) {
+  if (
+    rangeStart !== undefined &&
+    (!Number.isSafeInteger(rangeStart) || rangeStart < 0 || rangeStart > maxArchiveBytes)
+  )
+    throw new Error(t('error.download.invalidRange'));
   let url = new URL(address);
   const deadline = new AbortController();
   const timeout = AbortSignal.any([signal, deadline.signal]);
@@ -55,11 +65,17 @@ export async function githubResponse(
         signal: timeout,
         credentials: 'omit',
         headers: {
+          'Accept-Encoding': 'identity',
+          ...(rangeStart !== undefined ? { Range: `bytes=${rangeStart}-` } : {}),
           Accept:
             url.hostname === 'api.github.com'
               ? 'application/vnd.github+json'
               : 'application/octet-stream',
         },
+      }).catch((error: unknown) => {
+        timeout.throwIfAborted();
+        if (error instanceof UpdateNetworkError) throw error;
+        throw new UpdateNetworkError(t('error.download.networkInterrupted'));
       });
       if ([301, 302, 303, 307, 308].includes(response.status)) {
         await response.body?.cancel();
@@ -89,6 +105,8 @@ export async function githubResponse(
           Number.isFinite(retryAt) && retryAt > now
             ? Math.min(retryAt, now + 24 * 3600_000)
             : undefined,
+          [403, 408, 429].includes(response.status) || response.status >= 500,
+          response.status,
         );
       }
       if (Number(response.headers.get('content-length')) > maxArchiveBytes) {
@@ -134,7 +152,13 @@ export function readUpdateChunk(
       },
       (error) => {
         cleanup();
-        reject(error);
+        reject(
+          signal?.aborted
+            ? signal.reason
+            : error instanceof UpdateNetworkError
+              ? error
+              : new UpdateNetworkError(t('error.download.networkInterrupted')),
+        );
       },
     );
   });
