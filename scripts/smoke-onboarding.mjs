@@ -464,9 +464,35 @@ try {
     js(
       `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim())).click()`,
     );
+  const sidebarChecks = [];
+  const checkSidebar = async (language) => {
+    await js(`(()=>{const catalog=window.__qa.state.sections.agentCatalog;window.__qa.sidebarOriginal=structuredClone(catalog);const template=catalog.agents[0];for(let i=0;i<18;i++){const id='sidebar-qa-'+i;catalog.agents.push({...structuredClone(template),id,name:'Sidebar QA '+i});catalog.teams[0].agentIds.push(id);}window.dispatchEvent(new Event('focus'));Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['агенты','agents'].includes(b.textContent.trim().toLowerCase())).click();})()`);
+    await until(`document.querySelectorAll('.agent-team .agent-list-entry').length>=19`);
+    await cdp('Emulation.setDeviceMetricsOverride', {width:900,height:480,deviceScaleFactor:1,mobile:false});
+    await until(`innerWidth===900&&innerHeight===480`);
+    const geometry = () => js(`(()=>{const list=document.querySelector('.agent-teams-scroll'),system=document.querySelector('.agent-system-list'),r=system.getBoundingClientRect(),pane=document.querySelector('.agent-stages').getBoundingClientRect();return {systemTop:r.top,systemBottom:r.bottom,paneBottom:pane.bottom,listHeight:list.clientHeight,listScroll:list.scrollHeight,bodyOverflow:document.documentElement.scrollHeight>innerHeight+1,headings:Array.from(document.querySelectorAll('.agent-list-group-heading')).map(e=>e.textContent),nav:Array.from(document.querySelectorAll('.topbar nav button')).map(e=>({text:e.textContent,height:e.getBoundingClientRect().height,whiteSpace:getComputedStyle(e).whiteSpace}))}})()`);
+    const before=await geometry();
+    assert.ok(before.listScroll>before.listHeight);
+    assert.ok(Math.abs(before.systemBottom-before.paneBottom)<=1);
+    assert.equal(before.bodyOverflow,false);
+    assert.ok(before.nav.every(item=>item.whiteSpace==='nowrap'));
+    assert.deepEqual(before.headings,language==='ru'?['Мои команды','Системные']:['My teams','System']);
+    await js(`document.querySelector('.agent-teams-scroll').scrollTop=100000`);
+    const after=await geometry();
+    assert.equal(after.systemTop,before.systemTop);
+    assert.equal(after.systemBottom,before.systemBottom);
+    assert.ok(await js(`document.querySelector('.agent-teams-scroll').scrollTop>0`));
+    sidebarChecks.push({language,viewport:[900,480],independentTeamScroll:true,systemSectionPinned:true,translatedHeadings:true,navigationLabelsNoWrap:true});
+    await js(`window.__qa.state.sections.agentCatalog=window.__qa.sidebarOriginal;delete window.__qa.sidebarOriginal;window.dispatchEvent(new Event('focus'))`);
+    await until(`document.querySelectorAll('.agent-team .agent-list-entry').length===1`);
+    await cdp('Emulation.setDeviceMetricsOverride', {width:1100,height:840,deviceScaleFactor:1,mobile:false});
+    await open();
+    await until(`!!document.querySelector('.onboarding-page')`);
+  };
   await until(
     `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
   );
+  await checkSidebar('ru');
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===4`);
   assert.equal(await js(`document.querySelector('#onboarding-heading').textContent`), 'Начало работы');
@@ -600,6 +626,7 @@ try {
   await until(
     `document.querySelector('.onboarding-task-label')?.textContent==='Set up MCP authorization: QA MCP'`,
   );
+  await checkSidebar('en');
   await js(
     `document.querySelector('.language-select').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
   );
@@ -783,6 +810,7 @@ try {
   assert.deepEqual(errors, []);
   const proof = {
     checkedAt: new Date().toISOString(),
+    sidebarChecks,
     missingConnectionAndModelsIncludingAssistant: true,
     realAuthorizationRequired: true,
     creationTasksLastAndImmediatelyRemoved: true,

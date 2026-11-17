@@ -1,5 +1,29 @@
 {
-  "checkedAt": "2026-11-17T16:38:47.639Z",
+  "checkedAt": "2026-11-17T16:47:21.855Z",
+  "sidebarChecks": [
+    {
+      "language": "ru",
+      "viewport": [
+        900,
+        480
+      ],
+      "independentTeamScroll": true,
+      "systemSectionPinned": true,
+      "translatedHeadings": true,
+      "navigationLabelsNoWrap": true
+    },
+    {
+      "language": "en",
+      "viewport": [
+        900,
+        480
+      ],
+      "independentTeamScroll": true,
+      "systemSectionPinned": true,
+      "translatedHeadings": true,
+      "navigationLabelsNoWrap": true
+    }
+  ],
   "missingConnectionAndModelsIncludingAssistant": true,
   "realAuthorizationRequired": true,
   "creationTasksLastAndImmediatelyRemoved": true,
