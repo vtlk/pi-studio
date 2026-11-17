@@ -29,6 +29,7 @@ export async function reuseIdleChain(
   if (state.chats.sendingTo(request.projectId, request.agentId))
     throw new Error(t('error.runHost.theNextAgentIsAlready'));
   let claimed = false;
+  let started = false;
   const previous = {
     request: live.request,
     chain: live.chain,
@@ -54,7 +55,8 @@ export async function reuseIdleChain(
         live.preserveProcessOnAdmissionCancel = true;
       },
     );
-    if (disposition !== 'started') throw new Error(t('error.runHost.theNextAgentDidNotAccept'));
+    started = disposition === 'started';
+    if (!started) throw new Error(t('error.runHost.theNextAgentDidNotAccept'));
     return { runId: live.run.record.runId, project: await state.dependencies.read(live.run) };
   } catch (error) {
     if (claimed && live.sequence === sequence) Object.assign(live, previous);
@@ -63,6 +65,22 @@ export async function reuseIdleChain(
       live.request.autoContinue = false;
       live.automaticCheck = undefined;
       live.preserveProcessOnAdmissionCancel = undefined;
+      // Pi may reject auth/preflight after our input hook but before a generation starts.
+      // Do not leave that idle dialogue falsely marked as running.
+      const chat = live.embedded;
+      if (
+        !started &&
+        live.sequence === sequence + 1 &&
+        chat?.alive &&
+        chat.state.phase === 'ready' &&
+        !chat.state.working &&
+        !chat.state.queue?.steering.length &&
+        !chat.state.queue?.followUp.length &&
+        !chat.state.dialog
+      ) {
+        live.status = 'waiting';
+        await state.dependencies.update(live.run, 'waiting').catch(() => {});
+      }
     }
     throw error;
   }
