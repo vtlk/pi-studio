@@ -33,6 +33,7 @@ const timeout = setTimeout(() => {
     filePaths: cancelPicker ? [] : [packagePath],
   });
   app.setPath('userData', userData);
+  app.getPreferredSystemLanguages = () => ['ru-KZ'];
   app.setPath('videos', root);
   const handle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (name, action) =>
@@ -215,6 +216,18 @@ const timeout = setTimeout(() => {
     resolve('artifacts/team-workspace-dialog.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
+  await js('window.studio.setLanguage("en")');
+  await until(`!!document.querySelector('[aria-label="Agent working folders"]')`);
+  assert.equal(
+    await js(`document.querySelector('[aria-label="Agent working folders"]').textContent.trim()`),
+    'All agents in one folder',
+  );
+  await writeFile(
+    resolve('artifacts/team-workspace-dialog-en.png'),
+    (await window.webContents.capturePage()).toPNG(),
+  );
+  await js('window.studio.setLanguage("ru")');
+  await until(`!!document.querySelector('[aria-label="Рабочие папки агентов"]')`);
   await click('Сохранить');
   await saved();
   assert.equal((await load()).sections.agentTeams[0].workspaceMode, 'shared');
@@ -289,6 +302,28 @@ const timeout = setTimeout(() => {
     resolve('artifacts/agent-teams.png'),
     (await window.webContents.capturePage()).toPNG(),
   );
+  if (process.env.PI_STUDIO_TEAM_WORKSPACE_QA === '1') {
+    const proof = {
+      checkedAt: new Date().toISOString(),
+      isolatedOffscreen: true,
+      workspaceModeCreateAndEditThroughSharedSelect: true,
+      workspaceModePersistsAcrossReloadAndUndo: true,
+      sharedProjectCreatesNoOutputOrAgentNamedWorkFolders: true,
+      workspaceDialogLiveRuEn: true,
+      userStudioChanged: false,
+    };
+    await writeFile(
+      resolve('artifacts/team-workspace-ui-proof.json'),
+      JSON.stringify(proof, null, 2) + '\n',
+    );
+    console.log(
+      'Native team workspace UI: create/edit, shared project root, RU/EN, persistence and Undo passed.',
+    );
+    clearTimeout(timeout);
+    window.destroy();
+    app.exit(0);
+    return;
+  }
   const menuChecks = await require('./team-menu-checks.cjs')({
     js,
     until,
@@ -414,6 +449,7 @@ const timeout = setTimeout(() => {
     projectExplicitSelection: true,
     projectScopedToSelectedTeam: true,
     workspaceModeCreateAndEditThroughSharedSelect: true,
+    workspaceDialogLiveRuEn: true,
     workspaceModePersistsAcrossReloadAndUndo: true,
     sharedProjectCreatesNoOutputOrAgentNamedWorkFolders: true,
     confirmationCancel: true,
