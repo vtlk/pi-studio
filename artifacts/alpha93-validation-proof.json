@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-11-17T15:10:17.944187+00:00",
+  "version": "0.2.0-alpha.93",
+  "sourceCommit": "53ea048bbdeb84f1c61c8098cade671ef647c815",
+  "unitTestsPassed": 412,
+  "newResumeAndRangeCases": 19,
+  "realHttpFixture": {
+    "disconnects": 2,
+    "archiveRanges": [
+      null,
+      "bytes=64-",
+      "bytes=96-"
+    ],
+    "sameCoordinatorRetry": true,
+    "newCoordinatorAfterClose": true,
+    "sentArchiveBodyBytesEqualArchiveLength": true,
+    "installerOnlyPreparesAfterVerifiedCompleteArchive": true,
+    "ownedCacheRemovedAfterPreparation": true,
+    "applicationsExecuted": 0
+  },
+  "checks": {
+    "typecheck": true,
+    "build": true,
+    "lint": true,
+    "architectureModules": 398,
+    "cyclesOrBoundaryViolations": 0,
+    "onboardingRuEnBothThemesHeadless": true
+  },
+  "preservesOnNetworkFailureAndNormalExit": true,
+  "requiresExplicitRetryClick": true,
+  "oneOwnedPendingCache": true,
+  "completePrefixRehashed": true,
+  "fullFinalSha256AndZipPreflight": true,
+  "invalidRangesAndChangedSignedMetadataRejected": true,
+  "server200AndOne416RestartTested": true,
+  "unknownFilesAndLiveOwnersPreserved": true,
+  "userApplicationOrDataChanged": false,
+  "nativeWindowsAcceptance": false,
+  "includesCompletedUiCommits": [
+    "4f429ee8",
+    "530fe2fa",
+    "df85172b"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "checkedAt": "2026-11-17T15:43:00.670Z",
+  "version": "0.2.0-alpha.93",
+  "sourceCommit": "53ea048bbdeb84f1c61c8098cade671ef647c815",
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.93",
+  "platforms": [
+    {
+      "platform": "darwin",
+      "from": "0.2.0-alpha.92",
+      "offeredVersion": "0.2.0-alpha.93",
+      "archive": {
+        "name": "Pi-Studio-0.2.0-alpha.93-mac-arm64.zip",
+        "bytes": 142892425,
+        "unpackedBytes": 324011216,
+        "sha256": "4e0ea29c9cb50df45cc2eaf0cb668d2b86681188f6ce4cbe155e204d0a11c682"
+      },
+      "signedManifestChecksumAndAnonymousOfferVerified": true,
+      "current93HasNoNewerOffer": true,
+      "actualGitHubResume": {
+        "seededPrefixFromLocallyVerifiedReleaseArchive": true,
+        "prefixBytes": 141463500,
+        "range": "bytes=141463500-",
+        "responseStatus": 206,
+        "networkBodyBytes": 1428925,
+        "completeArchiveAcceptedByProductionDownloader": true,
+        "fullSha256AndZipPreflightVerified": true,
+        "applicationsExecuted": 0
+      }
+    },
+    {
+      "platform": "win32",
+      "from": "0.2.0-alpha.92",
+      "offeredVersion": "0.2.0-alpha.93",
+      "archive": {
+        "name": "Pi-Studio-0.2.0-alpha.93-win-x64.zip",
+        "bytes": 171454622,
+        "unpackedBytes": 411420897,
+        "sha256": "1566d2dc1b6e65dc9f5685d5eeba8dc3051d19287dd76f093dfa6d479f56a4e9"
+      },
+      "signedManifestChecksumAndAnonymousOfferVerified": true,
+      "current93HasNoNewerOffer": true,
+      "actualGitHubResume": {
+        "seededPrefixFromLocallyVerifiedReleaseArchive": true,
+        "prefixBytes": 169740075,
+        "range": "bytes=169740075-",
+        "responseStatus": 206,
+        "networkBodyBytes": 1714547,
+        "completeArchiveAcceptedByProductionDownloader": true,
+        "fullSha256AndZipPreflightVerified": true,
+        "applicationsExecuted": 0
+      }
+    }
+  ],
+  "allSixRemoteAssetSizesAndDigestsVerified": true,
+  "releasePageHttp": 200,
+  "actionsEnabled": false,
+  "installedApplicationOrUserDataChanged": false,
+  "nativeWindowsAcceptance": false,
+  "windowsAuthenticodeSigned": false,
+  "notarized": false,
+  "publisherDownloadQaStagingRemoved": true
+}
