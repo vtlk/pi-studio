@@ -41,6 +41,7 @@ export interface DesktopApi {
     refresh?: boolean;
   }): Promise<import('./onboardingReadiness').OnboardingReadiness>;
   openTerminalDownload(): Promise<void>;
+  openGitDownload(): Promise<void>;
   getGitHubStar(): Promise<import('./githubStar').GitHubStarState>;
   chooseGitHubStar(
     choice: import('./githubStar').GitHubStarChoice,
@@ -153,6 +154,7 @@ export interface PiCheck {
 export const desktopChannels = {
   getOnboardingReadiness: 'studio:onboarding-readiness',
   openTerminalDownload: 'studio:terminal-download',
+  openGitDownload: 'studio:git-download',
   getGitHubStar: 'studio:github-star-state',
   chooseGitHubStar: 'studio:github-star-choice',
   githubStarChanged: 'studio:github-star-changed',

@@ -24,8 +24,7 @@ export function ComputerResourceStatus() {
         setError(undefined);
       }
     } catch {
-      if (request === counter.value)
-        setError('ComputerResourceStatus.couldNotCheckMacosPermissions');
+      if (request === counter.value) setError('ComputerResourceStatus.checkUnavailable');
     }
   }, []);
   useEffect(() => {
@@ -57,15 +56,20 @@ export function ComputerResourceStatus() {
     <div className="resource-native-actions" data-computer-status>
       <p className="subtle" role="status">
         {(error && t(error)) ||
-          (state?.phase === 'unavailable' && t('ComputerResourceStatus.componentUnavailable')) ||
+          (state?.phase === 'unavailable' &&
+            t(
+              state.reason === 'check'
+                ? 'ComputerResourceStatus.checkUnavailable'
+                : 'ComputerResourceStatus.componentUnavailable',
+            )) ||
           (!window.studio
-            ? t('ComputerResourceStatus.permissionsAreAvailableInTheMacosApp')
+            ? t('ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp')
             : state?.phase === 'ready'
               ? t('ComputerResourceStatus.computerControlAccessConfirmed')
               : state
                 ? mac
                   ? t('ComputerResourceStatus.allowPiStudioAccessInMacosTo')
-                  : t('ComputerResourceStatus.computerUseAccessOnWindowsIsUnverified')
+                  : t('ComputerResourceStatus.windowsAccessRequired')
                 : t('ComputerResourceStatus.checkingPermissions'))}
       </p>
       {mac && state?.permissions && (

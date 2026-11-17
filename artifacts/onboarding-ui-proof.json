@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-17T17:10:21.236Z",
+  "checkedAt": "2026-11-17T17:27:22.678Z",
   "sidebarChecks": [
     {
       "language": "ru",
@@ -10,7 +10,8 @@
       "independentTeamScroll": true,
       "systemSectionPinned": true,
       "translatedHeadings": true,
-      "navigationLabelsNoWrap": true
+      "navigationLabelsNoWrap": true,
+      "teamChevronRightCollapsedAndDownExpanded": true
     },
     {
       "language": "en",
@@ -21,7 +22,8 @@
       "independentTeamScroll": true,
       "systemSectionPinned": true,
       "translatedHeadings": true,
-      "navigationLabelsNoWrap": true
+      "navigationLabelsNoWrap": true,
+      "teamChevronRightCollapsedAndDownExpanded": true
     }
   ],
   "browserTimeoutChecks": [
@@ -57,6 +59,8 @@
   "importedBuiltinPermissionsAndComponents": true,
   "revokedPermissionsReopenTaskWithoutConsent": true,
   "terminalDownloadOnlyOnExplicitClick": true,
+  "gitTaskTracksInstallationAndDownloadRequiresClick": true,
+  "windowsComputerStatusUsesWindowsContractWithoutReinstallAdvice": true,
   "imagesRequirementFollowsConfiguration": true,
   "mandatoryPiHasNoSkip": true,
   "completedCircleYellowAndTextStruck": true,

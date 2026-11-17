@@ -17,6 +17,7 @@ import {
   desktopStartupAdmission,
 } from '../ipc/desktopInvoke.ts';
 import { hasWindowsTerminal } from '../pi/windowsTerminal.ts';
+import { findGit } from '../pi/git.ts';
 import { listImports } from '../teams/importState.ts';
 import { OnboardingReadiness } from './OnboardingReadiness.ts';
 import { observeTeamMcpReadiness } from './observeTeamMcpReadiness.ts';
@@ -66,6 +67,7 @@ export function registerOnboardingHandlers(
     checkImages: (folder, connectionId) =>
       dependencies.imageConnections.check({ folder, connectionId }),
     terminal: hasWindowsTerminal,
+    git: async () => !!(await findGit()),
     windows: process.platform === 'win32',
     runtimeReady: () => {
       try {
@@ -97,6 +99,10 @@ export function registerOnboardingHandlers(
       await shell.openExternal(
         'https://github.com/microsoft/terminal#installing-and-running-windows-terminal',
       );
+  });
+  handleDesktopInvoke(desktopChannels.openGitDownload, async (event) => {
+    caller(event);
+    await shell.openExternal('https://git-scm.com/install/');
   });
   return readiness;
 }

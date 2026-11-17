@@ -78,6 +78,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           ((!loaded && record.id.startsWith('mcp:')) ||
             (!readiness.state &&
               (record.id === 'images' ||
+                record.id === 'git' ||
                 record.id === 'terminal' ||
                 record.id.startsWith('connection:')))),
       ),

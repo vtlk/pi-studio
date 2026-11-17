@@ -903,7 +903,7 @@
   "TeamNameDialog.renameTeam": "Переименовать команду",
   "LocalSkillInfo.state": "Состояние",
   "builtin.assistant.name": "Помощник настройки",
-  "ComputerResourceStatus.componentUnavailable": "Компонент Computer Use недоступен. Переустановите текущую версию Pi Studio.",
+  "ComputerResourceStatus.componentUnavailable": "Не удалось загрузить компонент Computer Use. Повторите проверку.",
   "auth.oauth": "OAuth · вход через браузер",
   "error.projectAccounting.thisProjectSUsageAccounting": "Учёт этого проекта ещё не загружен или папка изменилась.",
   "error.usageLedger.usageAccountingUnavailableCheckThe": "Учёт расхода недоступен: проверьте .pistudio/usage.json проекта.",
@@ -1635,5 +1635,10 @@
   "error.download.invalidRange": "Сервер вернул неверный диапазон архива обновления. Повторите загрузку.",
   "error.download.invalidPartial": "Не удалось безопасно продолжить загрузку обновления.",
   "error.download.networkInterrupted": "Не удалось завершить загрузку обновления. Проверьте подключение к интернету.",
-  "error.download.partialSaved": "Загрузка прервана. Скачанная часть сохранена и будет использована при повторном обновлении."
+  "error.download.partialSaved": "Загрузка прервана. Скачанная часть сохранена и будет использована при повторном обновлении.",
+  "Onboarding.git": "Установить Git",
+  "Onboarding.gitDownloadFailed": "Не удалось открыть страницу установки Git.",
+  "ComputerResourceStatus.checkUnavailable": "Не удалось проверить доступ Computer Use. Повторите проверку.",
+  "ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp": "Проверка Computer Use доступна в приложении для компьютера.",
+  "ComputerResourceStatus.windowsAccessRequired": "Computer Use не подтвердил доступ к UI Automation и вводу в этой сессии Windows. Проверьте текущую сессию рабочего стола и повторите проверку."
 }

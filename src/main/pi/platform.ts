@@ -2,6 +2,7 @@ import { t } from '../../shared/i18n/index.ts';
 import { access } from 'node:fs/promises';
 import { delimiter, dirname, join } from 'node:path';
 import { PI_PACKAGE } from './runtimeConfig.ts';
+import { windowsGitDirectories } from './git.ts';
 
 export function managedPiPath(root: string, platform = process.platform) {
   return platform === 'win32'
@@ -13,23 +14,25 @@ export function managedPiPath(root: string, platform = process.platform) {
 export function piEnvironment(
   directory: string,
   input: NodeJS.ProcessEnv = process.env,
+  platform: NodeJS.Platform = process.platform,
 ): NodeJS.ProcessEnv & { PATH: string } {
   const env = { ...input };
   const paths = Object.keys(env).filter((key) => key.toLowerCase() === 'path');
   const inherited = paths
     .map((key) => env[key])
     .filter(Boolean)
-    .join(delimiter);
+    .join(platform === 'win32' ? ';' : ':');
   for (const key of paths) delete env[key];
   env.PATH = [
     ...new Set(
       [
         directory,
-        ...inherited.split(delimiter),
-        ...(process.platform === 'darwin' ? ['/opt/homebrew/bin', '/usr/local/bin'] : []),
+        ...inherited.split(platform === 'win32' ? ';' : ':'),
+        ...(platform === 'win32' ? windowsGitDirectories(input) : []),
+        ...(platform === 'darwin' ? ['/opt/homebrew/bin', '/usr/local/bin'] : []),
       ].filter(Boolean),
     ),
-  ].join(delimiter);
+  ].join(platform === 'win32' ? ';' : ':');
   return { ...env, PATH: env.PATH, PI_TELEMETRY: '0' };
 }
 

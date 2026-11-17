@@ -22,6 +22,7 @@ export interface OnboardingTask {
     | 'computer'
     | 'images'
     | 'terminal'
+    | 'git'
     | 'create-team'
     | 'create-agent'
     | 'create-project'
@@ -134,6 +135,14 @@ export function onboardingTasks(
       complete: options.readiness.terminal === 'ready',
       checking: options.readiness.terminal === 'checking',
     });
+    if (options.readiness.git !== undefined)
+      tasks.unshift({
+        id: 'git',
+        kind: 'git',
+        name: '',
+        complete: options.readiness.git === 'ready',
+        checking: options.readiness.git === 'checking',
+      });
     if (options.readiness.images !== undefined)
       tasks.push({
         id: 'images',

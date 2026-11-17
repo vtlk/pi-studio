@@ -58,6 +58,12 @@ export function OnboardingView() {
         .catch(() => setActionError(t('Onboarding.terminalDownloadFailed')));
       return;
     }
+    if (task.kind === 'git') {
+      void window.studio
+        ?.openGitDownload()
+        .catch(() => setActionError(t('Onboarding.gitDownloadFailed')));
+      return;
+    }
     if (task.kind === 'create-team') {
       setCreatingTeam(true);
       return;
@@ -101,6 +107,7 @@ export function OnboardingView() {
       browser: 'Onboarding.browser',
       images: 'Onboarding.images',
       terminal: 'Onboarding.terminal',
+      git: 'Onboarding.git',
       'create-team': 'Onboarding.createTeam',
       'create-agent': 'Onboarding.createAgent',
       'create-project': 'Onboarding.createProject',

@@ -10,6 +10,7 @@ export type McpReadiness = ResourceCheck['status'] | 'checking' | 'missing';
 export interface OnboardingReadiness {
   folder: string;
   terminal: 'checking' | 'ready' | 'missing';
+  git?: 'checking' | 'ready' | 'missing';
   connections: Record<string, ConnectionReadiness>;
   mcps: Record<string, McpReadiness>;
   computer?: ComputerState;

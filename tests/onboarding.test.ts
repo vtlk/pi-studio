@@ -398,3 +398,35 @@ test('a background recheck preserves the original completion time, but confirmed
     { id: pending.id },
   ]);
 });
+
+test('missing Git automatically creates a setup task; detection completes it and removal reopens it', () => {
+  const state: OnboardingReadiness = {
+    folder: '/fixture',
+    terminal: 'ready',
+    git: 'missing',
+    connections: {},
+    mcps: {},
+  };
+  const tasks = () => onboardingTasks([], [], [], [], [], { readiness: state, projectCount: 0 });
+  const pending = reconcileOnboarding([], tasks(), 1);
+  assert.equal(tasks().find((task) => task.id === 'git')?.complete, false);
+  assert.deepEqual(
+    tasks()
+      .slice(-3)
+      .map((task) => task.id),
+    ['create-team', 'create-agent', 'create-project'],
+  );
+  assert.ok(
+    reconcileOnboarding(pending, tasks(), completedTaskLifetime + 2).some(
+      (task) => task.id === 'git',
+    ),
+  );
+  state.git = 'ready';
+  const done = reconcileOnboarding(pending, tasks(), 100);
+  assert.equal(done.find((task) => task.id === 'git')?.completedAt, 100);
+  state.git = 'missing';
+  assert.deepEqual(
+    reconcileOnboarding(done, tasks(), 200).find((task) => task.id === 'git'),
+    { id: 'git' },
+  );
+});

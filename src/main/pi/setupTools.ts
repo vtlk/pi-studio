@@ -35,7 +35,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'install_package',
     description:
-      'Resolve/install a specifically requested trusted native Pi package in its native managed cache and register a Studio catalog link. Installation can run native package-manager lifecycle scripts; do not install untrusted or unrequested sources. Use official source documentation, do not invent packages or preinstall examples. Supports native npm:/git: sources or an existing absolute local path. Session resources load only when assigned; no global auto-load declarations are added.',
+      'Resolve/install a specifically requested trusted native Pi package in its native managed cache and register a Studio catalog link. Installation can run native package-manager lifecycle scripts; do not install untrusted or unrequested sources. Use official source documentation, do not invent packages or preinstall examples. Supports native npm:/git: sources or an existing absolute local path. Git sources require Git on the computer; on Windows use Git for Windows and its Git Bash for native shell work. For an unpacked standalone skill folder use import_skill, not a made-up npm package. Session resources load only when assigned; no global auto-load declarations are added.',
     inputSchema: object({ source: string, name: string }, ['source']),
   },
   {

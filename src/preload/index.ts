@@ -10,6 +10,7 @@ const desktopApi: DesktopApi = {
   getOnboardingReadiness: (request) =>
     ipcRenderer.invoke(desktopChannels.getOnboardingReadiness, request),
   openTerminalDownload: () => ipcRenderer.invoke(desktopChannels.openTerminalDownload),
+  openGitDownload: () => ipcRenderer.invoke(desktopChannels.openGitDownload),
   getGitHubStar: () => ipcRenderer.invoke(desktopChannels.getGitHubStar),
   chooseGitHubStar: (choice) => ipcRenderer.invoke(desktopChannels.chooseGitHubStar, choice),
   onGitHubStarChanged: (listener) => {

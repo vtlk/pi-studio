@@ -2,6 +2,8 @@ import { t } from '../../shared/i18n/index.ts';
 import type { CuaDriverLike, ToolResult } from '@trycua/cua-driver';
 import type { SessionTool } from '../pi/RunChannel.ts';
 import { CursorGeometry, computerPayload } from './CursorGeometry.ts';
+import { computerPermissionsReady } from '../../shared/computer.ts';
+import { computerPermissions, ComputerPermissionCheckError } from './computerPermissions.ts';
 import {
   computerActionLabels,
   computerAgentLabel,
@@ -59,9 +61,14 @@ export class CuaRuntime {
   private readonly options: {
     feedback?: ComputerFeedback;
     driver?: () => Promise<CuaDriverLike>;
+    platform?: NodeJS.Platform;
   };
   constructor(
-    options: { feedback?: ComputerFeedback; driver?: () => Promise<CuaDriverLike> } = {},
+    options: {
+      feedback?: ComputerFeedback;
+      driver?: () => Promise<CuaDriverLike>;
+      platform?: NodeJS.Platform;
+    } = {},
   ) {
     this.options = options;
     this.feedback = options.feedback;
@@ -96,7 +103,10 @@ export class CuaRuntime {
           }),
         }),
       );
-    })();
+    })().catch((error) => {
+      this.loading = undefined;
+      throw error;
+    });
     return this.loading;
   }
   tools() {
@@ -137,23 +147,29 @@ export class CuaRuntime {
                 : ''),
           };
         });
-    })();
+    })().catch((error) => {
+      this.inventory = undefined;
+      throw error;
+    });
     return this.inventory;
   }
   async permissions() {
-    const result = await (
-      await this.driver()
-    ).callTool('check_permissions', JSON.stringify({ prompt: false, probe_direct_capture: false }));
-    if (result.isError || !result.structuredJson)
-      throw new Error(t('error.cuaRuntime.couldNotCheckComputerUse'));
-    const state = JSON.parse(result.structuredJson) as {
-      accessibility?: boolean;
-      screen_recording?: boolean;
-    };
-    return {
-      accessibility: state.accessibility === true,
-      screenRecording: state.screen_recording === true,
-    };
+    const driver = await this.driver();
+    const platform = this.options.platform ?? process.platform;
+    try {
+      const result = await driver.callTool(
+        'check_permissions',
+        JSON.stringify(
+          platform === 'darwin'
+            ? { prompt: false, probe_direct_capture: false }
+            : { prompt: false },
+        ),
+      );
+      if (result.isError) throw Error();
+      return computerPermissions(result.structuredJson, platform);
+    } catch {
+      throw new ComputerPermissionCheckError(t('error.cuaRuntime.couldNotCheckComputerUse'));
+    }
   }
   call(session: string, name: string, args: Record<string, unknown>, signal: AbortSignal) {
     const task = this.tail.then(async () => {
@@ -168,7 +184,7 @@ export class CuaRuntime {
           content: [{ type: 'text', text: JSON.stringify(await this.permissions()) }],
         } as ComputerResult;
       const permissions = await this.permissions();
-      if (!permissions.accessibility || !permissions.screenRecording) {
+      if (!computerPermissionsReady(permissions)) {
         this.feedback?.release(session);
         return error(
           process.platform === 'win32'

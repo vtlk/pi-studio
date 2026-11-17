@@ -34,6 +34,7 @@ interface Dependencies {
   imageStatus(folder: string, id: string): Promise<ImageConnectionStatus>;
   checkImages(folder: string, id: string): Promise<ImageConnectionStatus>;
   terminal(): Promise<boolean>;
+  git(): Promise<boolean>;
   windows: boolean;
   runtimeReady?: () => boolean;
   run?<T>(action: () => Promise<T>): Promise<T>;
@@ -84,6 +85,12 @@ export class OnboardingReadiness {
           (await this.dependencies.terminal()) ? ('ready' as const) : ('missing' as const),
         'checking',
       );
+    result.git = read(
+      'git',
+      '',
+      async () => ((await this.dependencies.git()) ? ('ready' as const) : ('missing' as const)),
+      'checking',
+    );
     for (const connection of scope.connections) {
       if (connection.purpose === 'images') continue;
       result.connections[connection.id] = read<ConnectionReadiness>(
@@ -107,7 +114,7 @@ export class OnboardingReadiness {
           '',
           () => this.dependencies.computer(),
           undefined,
-          2000,
+          this.dependencies.windows ? 10000 : 2000,
         );
       } else if (resourceId === browserMcp.id) {
         result.browser = read<BrowserState | undefined>(

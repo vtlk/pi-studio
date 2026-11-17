@@ -2,7 +2,8 @@ import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { CuaRuntime } from './CuaRuntime.ts';
-import { cuaVersion, type ComputerState } from '../../shared/computer.ts';
+import { cuaVersion, computerPermissionsReady, type ComputerState } from '../../shared/computer.ts';
+import { ComputerPermissionCheckError } from './computerPermissions.ts';
 import { computerMcp } from '../../shared/builtinResources.ts';
 import { hasBuiltinMcp } from '../../shared/builtinAssignments.ts';
 import { atomicJson } from '../storage/files.ts';
@@ -43,16 +44,18 @@ export class ComputerSupport {
       return {
         version: cuaVersion,
         permissions,
-        phase:
-          permissions.accessibility && permissions.screenRecording
-            ? 'ready'
-            : 'permissions_required',
+        phase: computerPermissionsReady(permissions) ? 'ready' : 'permissions_required',
       };
-    } catch {
+    } catch (error) {
       return {
         version: cuaVersion,
         phase: 'unavailable',
-        message: t('ComputerResourceStatus.componentUnavailable'),
+        reason: error instanceof ComputerPermissionCheckError ? 'check' : 'component',
+        message: t(
+          error instanceof ComputerPermissionCheckError
+            ? 'ComputerResourceStatus.checkUnavailable'
+            : 'ComputerResourceStatus.componentUnavailable',
+        ),
       };
     }
   }

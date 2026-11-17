@@ -195,6 +195,7 @@ try {
       permissions: 0,
       installs: 0,
       terminalDownloads: 0,
+      gitDownloads: 0,
     };
     const reports = fresh ? [] : [report];
     const clone = (value) => structuredClone(value);
@@ -208,6 +209,7 @@ try {
       calls,
       authorized: false,
       terminal: 'ready',
+      git: 'ready',
       computer: {
         version: 'QA',
         phase: 'permissions_required',
@@ -216,7 +218,9 @@ try {
       browser: { headlessInstalled: false, headedInstalled: false, headedSupported: true },
       images: 'not_ready',
       visibleInstalls: 0,
-      rejectVisible(message) { rejectVisible?.(Error(message)); },
+      rejectVisible(message) {
+        rejectVisible?.(Error(message));
+      },
       finishVisible() {
         this.browser.headedInstalled = true;
         finishVisible?.(clone(this.browser));
@@ -293,6 +297,7 @@ try {
           return clone({
             folder,
             terminal: window.__qa.terminal,
+            git: window.__qa.git,
             connections: Object.fromEntries(
               state.sections.connections
                 .filter((c) => c.purpose !== 'images')
@@ -323,12 +328,18 @@ try {
         getBrowserState: async () => clone(window.__qa.browser),
         installVisibleBrowser: async () => {
           window.__qa.visibleInstalls++;
-          return new Promise((resolve, reject) => { finishVisible = resolve; rejectVisible = reject; });
+          return new Promise((resolve, reject) => {
+            finishVisible = resolve;
+            rejectVisible = reject;
+          });
         },
         installResource: async (id) => {
           if (id !== 'pistudio-browser') throw Error('Wrong install scope');
           calls.installs++;
           window.__qa.browser.headlessInstalled = true;
+        },
+        openGitDownload: async () => {
+          calls.gitDownloads++;
         },
         openTerminalDownload: async () => {
           calls.terminalDownloads++;
@@ -480,32 +491,69 @@ try {
     );
   const sidebarChecks = [];
   const checkSidebar = async (language) => {
-    await js(`(()=>{const catalog=window.__qa.state.sections.agentCatalog;window.__qa.sidebarOriginal=structuredClone(catalog);const template=catalog.agents[0];for(let i=0;i<18;i++){const id='sidebar-qa-'+i;catalog.agents.push({...structuredClone(template),id,name:'Sidebar QA '+i});catalog.teams[0].agentIds.push(id);}window.dispatchEvent(new Event('focus'));Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['агенты','agents'].includes(b.textContent.trim().toLowerCase())).click();})()`);
+    await js(
+      `(()=>{const catalog=window.__qa.state.sections.agentCatalog;window.__qa.sidebarOriginal=structuredClone(catalog);const template=catalog.agents[0];for(let i=0;i<18;i++){const id='sidebar-qa-'+i;catalog.agents.push({...structuredClone(template),id,name:'Sidebar QA '+i});catalog.teams[0].agentIds.push(id);}window.dispatchEvent(new Event('focus'));Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['агенты','agents'].includes(b.textContent.trim().toLowerCase())).click();})()`,
+    );
     await until(`document.querySelectorAll('.agent-team .agent-list-entry').length>=19`);
-    await cdp('Emulation.setDeviceMetricsOverride', {width:900,height:480,deviceScaleFactor:1,mobile:false});
+    await cdp('Emulation.setDeviceMetricsOverride', {
+      width: 900,
+      height: 480,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
     await until(`innerWidth===900&&innerHeight===480`);
-    const geometry = () => js(`(()=>{const list=document.querySelector('.agent-teams-scroll'),system=document.querySelector('.agent-system-list'),r=system.getBoundingClientRect(),pane=document.querySelector('.agent-stages').getBoundingClientRect();return {systemTop:r.top,systemBottom:r.bottom,paneBottom:pane.bottom,listHeight:list.clientHeight,listScroll:list.scrollHeight,bodyOverflow:document.documentElement.scrollHeight>innerHeight+1,headings:Array.from(document.querySelectorAll('.agent-list-group-heading')).map(e=>e.textContent),nav:Array.from(document.querySelectorAll('.topbar nav button')).map(e=>({text:e.textContent,height:e.getBoundingClientRect().height,whiteSpace:getComputedStyle(e).whiteSpace}))}})()`);
-    const before=await geometry();
-    assert.ok(before.listScroll>before.listHeight);
-    assert.ok(Math.abs(before.systemBottom-before.paneBottom)<=1);
-    assert.equal(before.bodyOverflow,false);
-    assert.ok(before.nav.every(item=>item.whiteSpace==='nowrap'));
-    assert.deepEqual(before.headings,language==='ru'?['Мои команды','Системные']:['My teams','System']);
+    const geometry = () =>
+      js(
+        `(()=>{const list=document.querySelector('.agent-teams-scroll'),system=document.querySelector('.agent-system-list'),r=system.getBoundingClientRect(),pane=document.querySelector('.agent-stages').getBoundingClientRect();return {systemTop:r.top,systemBottom:r.bottom,paneBottom:pane.bottom,listHeight:list.clientHeight,listScroll:list.scrollHeight,bodyOverflow:document.documentElement.scrollHeight>innerHeight+1,headings:Array.from(document.querySelectorAll('.agent-list-group-heading')).map(e=>e.textContent),nav:Array.from(document.querySelectorAll('.topbar nav button')).map(e=>({text:e.textContent,height:e.getBoundingClientRect().height,whiteSpace:getComputedStyle(e).whiteSpace}))}})()`,
+      );
+    const before = await geometry();
+    assert.ok(before.listScroll > before.listHeight);
+    assert.ok(Math.abs(before.systemBottom - before.paneBottom) <= 1);
+    assert.equal(before.bodyOverflow, false);
+    assert.ok(before.nav.every((item) => item.whiteSpace === 'nowrap'));
+    assert.deepEqual(
+      before.headings,
+      language === 'ru' ? ['Мои команды', 'Системные'] : ['My teams', 'System'],
+    );
     await js(`document.querySelector('.agent-teams-scroll').scrollTop=100000`);
-    const after=await geometry();
-    assert.equal(after.systemTop,before.systemTop);
-    assert.equal(after.systemBottom,before.systemBottom);
+    const after = await geometry();
+    assert.equal(after.systemTop, before.systemTop);
+    assert.equal(after.systemBottom, before.systemBottom);
     assert.ok(await js(`document.querySelector('.agent-teams-scroll').scrollTop>0`));
-    await js(`(()=>{const list=document.querySelector('.agent-teams-scroll');list.scrollTop=0;document.querySelector('.agent-team .disclosure-trigger').click()})()`);
-    await until(`document.querySelector('.agent-team .disclosure-trigger').getAttribute('aria-expanded')==='false'&&getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform==='matrix(0, -1, 1, 0, 0, 0)'`);
-    assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`),true);
+    await js(
+      `(()=>{const list=document.querySelector('.agent-teams-scroll');list.scrollTop=0;document.querySelector('.agent-team .disclosure-trigger').click()})()`,
+    );
+    await until(
+      `document.querySelector('.agent-team .disclosure-trigger').getAttribute('aria-expanded')==='false'&&getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform==='matrix(0, -1, 1, 0, 0, 0)'`,
+    );
+    assert.equal(
+      await js(`document.querySelector('.agent-team .disclosure-content').hidden`),
+      true,
+    );
     await js(`document.querySelector('.agent-team .disclosure-trigger').click()`);
-    await until(`document.querySelector('.agent-team .disclosure-trigger').getAttribute('aria-expanded')==='true'&&getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform==='none'`);
+    await until(
+      `document.querySelector('.agent-team .disclosure-trigger').getAttribute('aria-expanded')==='true'&&getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform==='none'`,
+    );
 
-    sidebarChecks.push({language,viewport:[900,480],independentTeamScroll:true,systemSectionPinned:true,translatedHeadings:true,navigationLabelsNoWrap:true,teamChevronRightCollapsedAndDownExpanded:true});
-    await js(`window.__qa.state.sections.agentCatalog=window.__qa.sidebarOriginal;delete window.__qa.sidebarOriginal;window.dispatchEvent(new Event('focus'))`);
+    sidebarChecks.push({
+      language,
+      viewport: [900, 480],
+      independentTeamScroll: true,
+      systemSectionPinned: true,
+      translatedHeadings: true,
+      navigationLabelsNoWrap: true,
+      teamChevronRightCollapsedAndDownExpanded: true,
+    });
+    await js(
+      `window.__qa.state.sections.agentCatalog=window.__qa.sidebarOriginal;delete window.__qa.sidebarOriginal;window.dispatchEvent(new Event('focus'))`,
+    );
     await until(`document.querySelectorAll('.agent-team .agent-list-entry').length===1`);
-    await cdp('Emulation.setDeviceMetricsOverride', {width:1100,height:840,deviceScaleFactor:1,mobile:false});
+    await cdp('Emulation.setDeviceMetricsOverride', {
+      width: 1100,
+      height: 840,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
     await open();
     await until(`!!document.querySelector('.onboarding-page')`);
   };
@@ -515,38 +563,68 @@ try {
   // Exercise the real browser status component, including translated network errors, without
   // downloading a component, opening a window, probing permissions or accessing personal data.
   const browserTimeoutChecks = [];
-  for (const [language, catalog] of [['ru', ru], ['en', en]]) {
+  for (const [language, catalog] of [
+    ['ru', ru],
+    ['en', en],
+  ]) {
     if (language === 'en') {
-      await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+      await js(
+        `document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+      );
       await until(`!!document.querySelector('[role="menuitemradio"][lang="en"]')`);
       await js(`document.querySelector('[role="menuitemradio"][lang="en"]').click()`);
     }
-    await js(`Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Агенты','Agents'].includes(b.textContent.trim())).click()`);
+    await js(
+      `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Агенты','Agents'].includes(b.textContent.trim())).click()`,
+    );
     await until(`!!document.querySelector('[data-system-role="assistant"] button')`);
     await js(`document.querySelector('[data-system-role="assistant"] button').click()`);
-    await js(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='MCP').click()`);
+    await js(
+      `Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='MCP').click()`,
+    );
     const browserRow = `Array.from(document.querySelectorAll('[data-builtin-mcp]')).find(e=>e.textContent.includes(${JSON.stringify(language === 'ru' ? 'Pi Studio · Браузер' : 'Pi Studio · Browser')}))`;
     await until(`!!(${browserRow})`);
-    await js(`(()=>{const trigger=(${browserRow}).querySelector('.disclosure-trigger');if(trigger.getAttribute('aria-expanded')==='false')trigger.click()})()`);
+    await js(
+      `(()=>{const trigger=(${browserRow}).querySelector('.disclosure-trigger');if(trigger.getAttribute('aria-expanded')==='false')trigger.click()})()`,
+    );
     const installLabel = catalog['BrowserResourceStatus.installVisibleBrowser'];
     await until(`(${browserRow}).innerText.includes(${JSON.stringify(installLabel)})`);
     for (const key of ['error.transfer.headerTimeout', 'error.transfer.idleTimeout']) {
-      await js(`Array.from((${browserRow}).querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(installLabel)}).click()`);
-      assert.equal(await js(`Array.from((${browserRow}).querySelectorAll('.resource-native-actions button')).every(b=>b.disabled)`), true);
+      await js(
+        `Array.from((${browserRow}).querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(installLabel)}).click()`,
+      );
+      assert.equal(
+        await js(
+          `Array.from((${browserRow}).querySelectorAll('.resource-native-actions button')).every(b=>b.disabled)`,
+        ),
+        true,
+      );
       await js(`window.__qa.rejectVisible(${JSON.stringify(catalog[key])})`);
-      await until(`(${browserRow}).querySelector('[role="status"]')?.textContent===${JSON.stringify(catalog[key])}`);
-      assert.equal(await js(`Array.from((${browserRow}).querySelectorAll('.resource-native-actions button')).every(b=>!b.disabled)`), true);
+      await until(
+        `(${browserRow}).querySelector('[role="status"]')?.textContent===${JSON.stringify(catalog[key])}`,
+      );
+      assert.equal(
+        await js(
+          `Array.from((${browserRow}).querySelectorAll('.resource-native-actions button')).every(b=>!b.disabled)`,
+        ),
+        true,
+      );
       browserTimeoutChecks.push({ language, key, visibleError: true, retryEnabled: true });
     }
   }
   assert.equal(await js('window.__qa.visibleInstalls'), 4);
-  await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+  await js(
+    `document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
   await until(`!!document.querySelector('[role="menuitemradio"][lang="ru"]')`);
   await js(`document.querySelector('[role="menuitemradio"][lang="ru"]').click()`);
   await checkSidebar('ru');
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===4`);
-  assert.equal(await js(`document.querySelector('#onboarding-heading').textContent`), 'Начало работы');
+  assert.equal(
+    await js(`document.querySelector('#onboarding-heading').textContent`),
+    'Начало работы',
+  );
   assert.deepEqual(
     await js(
       `Array.from(document.querySelector('.onboarding-content').children).map(e=>e.tagName)`,
@@ -752,22 +830,72 @@ try {
   );
   await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
   await js(
-    `window.__qa.configureImages();window.__qa.terminal='missing';window.dispatchEvent(new Event('focus'))`,
+    `window.__qa.configureImages();window.__qa.terminal='missing';window.__qa.git='missing';window.dispatchEvent(new Event('focus'))`,
   );
   await until(
-    `document.querySelector('[data-task-id="images"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='false'`,
+    `document.querySelector('[data-task-id="images"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='false'&&document.querySelector('[data-task-id="git"]')?.dataset.complete==='false'`,
   );
+  assert.equal(await js('window.__qa.calls.gitDownloads'), 0);
+  await js(`document.querySelector('[data-task-id="git"] button').click()`);
+  assert.equal(await js('window.__qa.calls.gitDownloads'), 1);
   assert.equal(await js('window.__qa.calls.terminalDownloads'), 0);
   await js(`document.querySelector('[data-task-id="terminal"] button').click()`);
   assert.equal(await js('window.__qa.calls.terminalDownloads'), 1);
   await js(
-    `window.__qa.terminal='ready';window.__qa.computer.phase='permissions_required';window.__qa.computer.permissions={accessibility:false,screenRecording:false};window.dispatchEvent(new Event('focus'))`,
+    `window.__qa.terminal='ready';window.__qa.git='ready';window.__qa.computer.phase='permissions_required';window.__qa.computer.permissions={accessibility:false,screenRecording:false};window.dispatchEvent(new Event('focus'))`,
   );
   await until(
-    `document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="mcp:pistudio-computer"]')?.dataset.complete==='false'`,
+    `document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="git"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="mcp:pistudio-computer"]')?.dataset.complete==='false'`,
   );
   assert.equal(await js('window.__qa.calls.permissions'), 1, 'Polling never requests consent');
   await screenshot('onboarding-imported-resources.png');
+  // Windows reports UIA/PostMessage, not macOS TCC grants. No native driver or consent runs here.
+  await js(
+    `Object.defineProperty(navigator,'platform',{value:'Win32',configurable:true});window.__qa.computer={version:'QA',phase:'unavailable',reason:'check'}`,
+  );
+  await js(`document.querySelector('[data-task-id="mcp:pistudio-computer"] button').click()`);
+  await until(
+    `document.querySelector('[data-computer-status]')?.textContent.includes('Не удалось проверить доступ Computer Use')`,
+  );
+  assert.equal(
+    await js(
+      `/переустанов|reinstall|macOS/.test(document.querySelector('[data-computer-status]').textContent)`,
+    ),
+    false,
+  );
+  await js(
+    `document.querySelector('.language-select').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
+  );
+  await until(`!!document.querySelector('[role="menuitemradio"][lang="en"]')`);
+  await js(`document.querySelector('[role="menuitemradio"][lang="en"]').click()`);
+  await until(
+    `document.querySelector('[data-computer-status]')?.textContent.includes('Could not check Computer Use access')`,
+  );
+  await js(
+    `document.querySelector('.language-select').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`,
+  );
+  await until(`!!document.querySelector('[role="menuitemradio"][lang="ru"]')`);
+  await js(`document.querySelector('[role="menuitemradio"][lang="ru"]').click()`);
+  await until(`document.querySelector('[data-computer-status]')?.textContent.includes('Не удалось проверить доступ Computer Use')`);
+  await js(
+    `window.__qa.computer={version:'QA',phase:'ready',permissions:{windows:{uia:true,postMessage:true,elevated:false,integrityLevel:'Medium'}}};Array.from(document.querySelectorAll('[data-computer-status] button')).find(b=>b.textContent.trim()==='Проверить разрешения').click();window.dispatchEvent(new Event('focus'))`,
+  );
+  await until(
+    `document.querySelector('[data-computer-status]')?.textContent.includes('Доступ к управлению компьютером подтверждён')`,
+  );
+  assert.equal(
+    await js(
+      `Array.from(document.querySelectorAll('[data-computer-status] button')).some(b=>b.textContent.trim()==='Разрешить доступ')`,
+    ),
+    false,
+  );
+  assert.equal(
+    await js('window.__qa.calls.permissions'),
+    1,
+    'Windows status must not request macOS grants',
+  );
+  await screenshot('onboarding-windows-computer.png');
+  await js(`document.querySelector('[role="dialog"] .dialog-header button').click()`);
   // A separate empty studio verifies actual create dialogs and ordering, without manually ticking a task.
   await cdp('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?fresh=1` });
   await until(
@@ -870,6 +998,8 @@ try {
     importedBuiltinPermissionsAndComponents: true,
     revokedPermissionsReopenTaskWithoutConsent: true,
     terminalDownloadOnlyOnExplicitClick: true,
+    gitTaskTracksInstallationAndDownloadRequiresClick: true,
+    windowsComputerStatusUsesWindowsContractWithoutReinstallAdvice: true,
     imagesRequirementFollowsConfiguration: true,
     mandatoryPiHasNoSkip: true,
     completedCircleYellowAndTextStruck: true,

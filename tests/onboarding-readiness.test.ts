@@ -200,6 +200,7 @@ function fixture() {
         counts.images++;
         return { keyStored, authentication: 'ready', modelIds: ['image-model'] };
       },
+      git: async () => terminal,
       terminal: async () => {
         counts.terminal++;
         return terminal;
@@ -268,6 +269,7 @@ test('native readiness checks current authorization, imported servers and builti
   assert.equal(pending.computer?.phase, 'permissions_required');
   assert.equal(pending.browser?.headlessInstalled, false);
   assert.equal(pending.terminal, 'missing');
+  assert.equal(pending.git, 'missing');
   assert.equal(pending.images, 'not_ready');
   assert.deepEqual(Object.keys(pending.mcps), ['external']);
   const calls = f.counts.mcp;
@@ -282,6 +284,7 @@ test('native readiness checks current authorization, imported servers and builti
   assert.equal(complete.computer?.phase, 'ready');
   assert.equal(complete.browser?.headlessInstalled, true);
   assert.equal(complete.terminal, 'ready');
+  assert.equal(complete.git, 'ready');
   assert.equal(complete.images, 'ready');
   f.revoke();
   const invalidated = await f.service.read('/fixture');

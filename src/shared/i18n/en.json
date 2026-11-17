@@ -903,7 +903,7 @@
   "TeamNameDialog.renameTeam": "Rename team",
   "LocalSkillInfo.state": "State",
   "builtin.assistant.name": "Setup assistant",
-  "ComputerResourceStatus.componentUnavailable": "The Computer Use component is unavailable. Reinstall the current version of Pi Studio.",
+  "ComputerResourceStatus.componentUnavailable": "Could not load the Computer Use component. Retry the check.",
   "auth.oauth": "OAuth · browser sign-in",
   "error.projectAccounting.thisProjectSUsageAccounting": "This project's usage accounting is not loaded yet, or its folder changed.",
   "error.usageLedger.usageAccountingUnavailableCheckThe": "Usage accounting unavailable: check the project's .pistudio/usage.json.",
@@ -1635,5 +1635,10 @@
   "error.download.invalidRange": "The server returned an invalid update archive range. Retry the download.",
   "error.download.invalidPartial": "The update download could not be resumed safely.",
   "error.download.networkInterrupted": "The update download was interrupted. Check your internet connection.",
-  "error.download.partialSaved": "Download interrupted. The downloaded portion is saved and will be reused when you retry the update."
+  "error.download.partialSaved": "Download interrupted. The downloaded portion is saved and will be reused when you retry the update.",
+  "Onboarding.git": "Install Git",
+  "Onboarding.gitDownloadFailed": "Could not open the Git installation page.",
+  "ComputerResourceStatus.checkUnavailable": "Could not check Computer Use access. Retry the check.",
+  "ComputerResourceStatus.permissionsAreAvailableInTheDesktopApp": "Computer Use checks are available in the desktop app.",
+  "ComputerResourceStatus.windowsAccessRequired": "Computer Use has not confirmed UI Automation and input access in this Windows session. Check the current desktop session and try again."
 }
