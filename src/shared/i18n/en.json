@@ -1710,5 +1710,16 @@
   "Chat.processesTooltip_one": "{{count}} Pi process running, including waiting processes",
   "Chat.processesTooltip_few": "{{count}} Pi processes running, including waiting processes",
   "Chat.processesTooltip_many": "{{count}} Pi processes running, including waiting processes",
-  "Chat.processesTooltip_other": "{{count}} Pi processes running, including waiting processes"
+  "Chat.processesTooltip_other": "{{count}} Pi processes running, including waiting processes",
+  "AgentRefresh.waitOpening": "Wait for the affected Pi chats to finish opening or closing, then try again.",
+  "AgentRefresh.reviewChanged": "Agent settings or the current task changed. Review the changes and confirm again.",
+  "AgentRefresh.refreshing": "This agent is restarting with updated settings. Please wait.",
+  "AgentRefresh.invalidRequest": "Could not prepare the agent refresh. Try again.",
+  "AgentRefresh.restartFailed": "Settings were applied, but some chats could not restart. Their saved dialogues remain intact. Reopen them from the agent list.\n{{agents}}",
+  "AgentRefresh.confirmTitle": "Stop the current tasks?",
+  "AgentRefresh.confirmAction": "Stop and apply",
+  "AgentRefresh.confirmDescription": "These affected agents are working. Applying the changes will stop their current tasks. Changed agents will restart; removed agents will close.",
+  "AgentRefresh.preserveDialogue": "Dialogues and files are preserved. Interrupted tasks will not be sent again automatically. Other agents keep working.",
+  "AgentRefresh.applying": "Applying changes…",
+  "AgentRefresh.restartHint": "Only open chats of changed agents restart. Other agents keep working; closed chats stay closed."
 }

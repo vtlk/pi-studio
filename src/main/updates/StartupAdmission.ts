@@ -8,6 +8,7 @@ const reads = new Set<string>([
   c.getGitHubStar,
   c.getInfo,
   c.getChat,
+  c.prepareAgentRefresh,
   c.listPiProcesses,
   c.loadStudio,
   c.getStartup,

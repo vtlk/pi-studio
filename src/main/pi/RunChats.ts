@@ -22,16 +22,19 @@ export class RunChats {
   private readonly dependencies: RunDependencies;
   private readonly assertUnchanged: (projectId: string) => void;
   private readonly disarm: (projectId: string) => void;
+  private readonly assertTarget: (target: ChatTarget) => void;
   constructor(
     live: Map<string, LiveRun>,
     dependencies: RunDependencies,
     assertUnchanged: (id: string) => void,
     disarm: (id: string) => void,
+    assertTarget: (target: ChatTarget) => void = () => {},
   ) {
     this.live = live;
     this.dependencies = dependencies;
     this.assertUnchanged = assertUnchanged;
     this.disarm = disarm;
+    this.assertTarget = assertTarget;
   }
   track(chat: EmbeddedChat, run: PreparedRun) {
     this.embeddedProcesses.set(chat, run);
@@ -108,6 +111,7 @@ export class RunChats {
     );
   }
   async sendChat(request: ChatSend) {
+    this.assertTarget(request);
     this.assertUnchanged(request.projectId);
     const key = runKey(request),
       live = this.live.get(key);
@@ -125,6 +129,7 @@ export class RunChats {
       this.assertUnchanged(request.projectId);
       if (this.live.get(key) !== live) throw new Error(t('Chat.disconnected'));
       const input = await chatInput(live.run.projectRoot, request.text, attachments);
+      this.assertTarget(request);
       await live.embedded.send(input.message, input.images, request.behavior);
     } finally {
       this.sending.delete(key);
@@ -139,6 +144,9 @@ export class RunChats {
   assertIdle(projectId?: string) {
     if ([...this.sending].some((key) => !projectId || key.startsWith(`${projectId}/`)))
       throw new Error(t('Chat.sending'));
+  }
+  sendingTo(projectId: string, agentId: string) {
+    return this.sending.has(runKey({ projectId, agentId }));
   }
   abortChat(target: ChatTarget) {
     const live = this.live.get(runKey(target));

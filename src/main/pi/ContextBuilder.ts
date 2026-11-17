@@ -22,6 +22,7 @@ import { withoutRetiredResources } from '../storage/retireLegacyFeatures.ts';
 import type { ModelAuthScope } from './modelAuth.ts';
 
 export interface PreparedRun {
+  refreshSignature?: string;
   teamAccess?: boolean;
   teamDelivery?: import('../team-mcp/types.ts').TeamDelivery;
   modelAuth?: ModelAuthScope;

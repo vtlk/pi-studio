@@ -25,6 +25,7 @@ import { currentBuiltinAccess } from './currentBuiltinAccess.ts';
 import { setupTools } from './setupTools.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import { randomUUID } from 'node:crypto';
+import { agentRefreshSignature } from './agentRefreshSignature.ts';
 
 interface Options extends AdministrationOptions {
   team?: TeamSupport;
@@ -198,6 +199,11 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           permissions.get(run)!('pistudio-computer'),
         );
         run.modelAuth = modelAuth;
+        run.refreshSignature = agentRefreshSignature(
+          project.agents.find((agent) => agent.profile.id === request.agentId)!.profile,
+          profile,
+          sections.resources as Resource[],
+        );
         chatScopes.set(run, { folder: store.folder, imageInput: selectedModel.imageInput });
         return { run, piPath };
       }),

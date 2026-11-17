@@ -20,11 +20,15 @@ import { processAlive } from './terminal.ts';
 import { stopRunProcess, drainRunProcesses, closeRuns } from './stopRunProcess.ts';
 import { assertRunsIdle } from './assertRunsIdle.ts';
 import { ContinuationCancelled, type Continuation } from './RunTypes.ts';
+import { refreshRuns, refreshRunSnapshot } from './refreshRuns.ts';
+import type { AgentRefreshConsent, AgentRefreshRun } from '../../shared/agentRefresh.ts';
+import type { ProjectCommandResult } from '../../shared/storage.ts';
 export class RunHost {
   private stopping = false;
   private readonly channel = new RunChannel();
   private readonly live = new Map<string, LiveRun>();
   private readonly opening = new Set<string>();
+  private readonly refreshing = new Set<string>();
   private readonly chats: RunChats;
   private readonly retiring = new Map<string, Promise<void>>();
   private readonly changing = new Set<string>();
@@ -40,11 +44,12 @@ export class RunHost {
       dependencies,
       (id) => this.assertUnchanged(id),
       (id) => this.chains.delete(id),
+      (target) => this.assertAgentAvailable(target.projectId, target.agentId),
     );
     this.lifecycle = new RunLifecycle({
       ...dependencies,
       beforeRequest: async (run) => {
-        this.assertUnchanged(run.project.id);
+        this.assertAgentAvailable(run.project.id, run.agent.profile.id);
         const own = runKey({ projectId: run.project.id, agentId: run.agent.profile.id });
         const live = this.live.get(own);
         const automaticCheck = live?.automaticCheck;
@@ -62,7 +67,7 @@ export class RunHost {
         };
         check();
         await dependencies.beforeRequest?.(run);
-        this.assertUnchanged(run.project.id);
+        this.assertAgentAvailable(run.project.id, run.agent.profile.id);
         check();
         if (live) live.automaticCheck = undefined;
       },
@@ -73,11 +78,59 @@ export class RunHost {
     return hasConnectedRun(this.live.values(), processAlive);
   }
   processes = () => this.chats.processes();
-  chat = (target: ChatTarget) => this.chats.chat(target);
+  chat = (target: ChatTarget) => {
+    const state = this.chats.chat(target);
+    return state && this.refreshing.has(runKey(target))
+      ? { ...state, phase: 'opening' as const }
+      : state;
+  };
   chatRoot = (target: ChatTarget) => this.chats.root(target);
   sendChat = (request: ChatSend) => this.chats.sendChat(request);
   abortChat = (target: ChatTarget) => this.chats.abortChat(target);
   answerChat = (answer: ChatAnswer) => this.chats.answerChat(answer);
+  private refreshState() {
+    return {
+      live: this.live,
+      opening: this.opening,
+      retiring: this.retiring,
+      refreshing: this.refreshing,
+      sending: (projectId: string, agentId: string) => this.chats.sendingTo(projectId, agentId),
+      assertOpen: (id: string) => this.assertUnchanged(id),
+      stop: (projectId: string, agentId: string) => this.stopAgent(projectId, agentId, true),
+      launch: (projectId: string, agentId: string) =>
+        this.open(
+          { projectId, agentId, autoContinue: false },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          true,
+        ),
+      changed: (projectId: string, agentId: string) =>
+        this.dependencies.chatChanged?.({ projectId, agentId }),
+    };
+  }
+  refreshSnapshot(projectId: string, agentIds: string[]) {
+    return refreshRunSnapshot(this.refreshState(), projectId, agentIds);
+  }
+  refreshAgents(
+    projectId: string,
+    affectedIds: string[],
+    restarting: AgentRefreshRun[],
+    removing: AgentRefreshRun[],
+    consent: AgentRefreshConsent,
+    apply: () => Promise<ProjectCommandResult>,
+  ) {
+    return refreshRuns(
+      this.refreshState(),
+      projectId,
+      affectedIds,
+      restarting,
+      removing,
+      consent,
+      apply,
+    );
+  }
   launch = (request: LaunchAgentRequest) => {
     this.dependencies.chatOpened?.(request);
     return this.open(request);
@@ -121,13 +174,15 @@ export class RunHost {
       removeChannel: (id) => this.channel.remove(id),
     });
   }
-  private open(
+  private async open(
     request: LaunchAgentRequest,
     automaticMessage?: string,
     continuation?: Continuation,
     beforeDispatch?: (run: PreparedRun) => Promise<void>,
     teamDelivery?: TeamDelivery,
+    refresh = false,
   ): Promise<LaunchAgentResult> {
+    if (!refresh) this.assertAgentAvailable(request.projectId, request.agentId);
     return openRun(
       {
         assertUnchanged: (id) => this.assertUnchanged(id),
@@ -176,7 +231,13 @@ export class RunHost {
   assertIdle(projectId?: string) {
     this.chats.assertIdle(projectId);
     const { changing, opening, retiring, live } = this;
-    assertRunsIdle(changing, opening, retiring.keys(), live.values(), projectId);
+    assertRunsIdle(
+      changing,
+      new Set([...opening, ...this.refreshing]),
+      retiring.keys(),
+      live.values(),
+      projectId,
+    );
   }
   outputsCleared(projectId: string, agentId: string, dialogueCleared = false) {
     if (dialogueCleared) this.chats.forget({ projectId, agentId });
@@ -189,6 +250,11 @@ export class RunHost {
     if (this.stopping) throw new Error(t('error.runHost.studioIsClosingNoNew'));
     if (this.changing.has(projectId)) throw new Error(t('error.runHost.projectFilesAreBeingMoved'));
   }
+  private assertAgentAvailable(projectId: string, agentId: string) {
+    this.assertUnchanged(projectId);
+    if (this.refreshing.has(runKey({ projectId, agentId })))
+      throw new Error(t('AgentRefresh.refreshing'));
+  }
   async withProjectChange<T>(projectId: string, stopSessions: boolean, action: () => Promise<T>) {
     return withRunProjectChange(
       { changing: this.changing, chains: this.chains, live: this.live },
@@ -199,12 +265,13 @@ export class RunHost {
       action,
     );
   }
-  async stopAgent(projectId: string, agentId: string) {
-    this.chains.delete(projectId);
+  async stopAgent(projectId: string, agentId: string, preserveUnrelatedChain = false) {
     const key = runKey({ projectId, agentId });
     if (this.opening.has(key)) throw new Error(t('error.runHost.waitForPiToOpen'));
     await this.retiring.get(key);
     const live = this.live.get(key);
+    if (!preserveUnrelatedChain || live?.chain === this.chains.get(projectId))
+      this.chains.delete(projectId);
     if (!live) return;
     await stopRunProcess(live, this.dependencies.closed);
     await this.dependencies.accountingLost?.(live.run);

@@ -47,7 +47,10 @@ export function useDemoWorkspaceState() {
     setProjects((previous) => [project, ...previous]);
     setProjectId(project.id);
   };
-  const refreshAgents = (updateExisting: boolean) => {
+  const refreshAgents = (
+    updateExisting: boolean,
+    _refresh?: import('../../../../shared/agentRefresh').AgentRefreshConsent,
+  ) => {
     setProjects((previous) =>
       previous.map((project) =>
         project.id === projectId

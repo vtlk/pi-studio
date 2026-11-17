@@ -7,6 +7,8 @@ import { themeState, type ThemeState } from '../shared/appearance';
 import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 
 const desktopApi: DesktopApi = {
+  prepareAgentRefresh: (request) =>
+    ipcRenderer.invoke(desktopChannels.prepareAgentRefresh, request),
   getChat: (target) => ipcRenderer.invoke(desktopChannels.getChat, target),
   sendChat: (request) => ipcRenderer.invoke(desktopChannels.sendChat, request),
   abortChat: (target) => ipcRenderer.invoke(desktopChannels.abortChat, target),

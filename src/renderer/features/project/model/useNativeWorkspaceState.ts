@@ -57,7 +57,9 @@ export function useNativeWorkspaceState() {
       );
       return result.project.agents.find((agent) => agent.profile.id === agentId)?.session;
     } catch (error) {
-      demo(error instanceof Error ? error.message : uiText('useNativeWorkspaceState.couldNotOpenPi'));
+      demo(
+        error instanceof Error ? error.message : uiText('useNativeWorkspaceState.couldNotOpenPi'),
+      );
       return undefined;
     } finally {
       mutating.current = false;
@@ -75,6 +77,16 @@ export function useNativeWorkspaceState() {
       const result = await window.studio.projectCommand(action);
       setProjects(result.projects);
       setTrashProjects(result.trashProjects);
+      if (result.refreshFailures?.length) {
+        demo(
+          t('AgentRefresh.restartFailed', {
+            agents: result.refreshFailures
+              .map((item) => `${item.name}: ${item.message}`)
+              .join('\n'),
+          }),
+        );
+        return false;
+      }
       if (result.selectedId) setProjectId(result.selectedId);
       else
         setProjectId((id) =>
@@ -85,7 +97,9 @@ export function useNativeWorkspaceState() {
       return true;
     } catch (error) {
       demo(
-        error instanceof Error ? error.message : uiText('useNativeWorkspaceState.fileOperationError'),
+        error instanceof Error
+          ? error.message
+          : uiText('useNativeWorkspaceState.fileOperationError'),
       );
       return false;
     } finally {
@@ -177,13 +191,17 @@ export function useNativeWorkspaceState() {
       (await saveNow())
         ? command({ kind: 'create', name, teamId, agents: teamAgents(catalog, teamId) })
         : false,
-    refreshAgents: async (updateExisting: boolean) =>
+    refreshAgents: async (
+      updateExisting: boolean,
+      refresh?: import('../../../../shared/agentRefresh').AgentRefreshConsent,
+    ) =>
       (await saveNow())
         ? command({
             kind: 'update-agents',
             projectId,
             agents: teamAgents(catalog, selectedProject?.sourceTeamId ?? ''),
             updateExisting,
+            refresh,
           })
         : false,
     removeProjectAgent: (projectId: string, agentId: string) =>

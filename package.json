@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.100",
+  "version": "0.2.0-alpha.101",
   "private": true,
   "description": "Pi Studio \u2014 \u0445\u0430\u0440\u043d\u0435\u0441 \u0434\u043b\u044f \u043a\u043e\u043d\u0432\u0435\u0439\u0435\u0440\u043d\u044b\u0445 \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0441\u0442\u0432 \u043d\u0430 \u0431\u0430\u0437\u0435 \u043a\u043e\u043c\u0430\u043d\u0434 \u0430\u0433\u0435\u043d\u0442\u043e\u0432 Pi",
   "type": "module",
@@ -107,7 +107,8 @@
     "test:update-boot": "npm run build && node scripts/smoke-update-boot.cjs",
     "test:pi-chat": "node --experimental-strip-types scripts/smoke-pi-chat.ts",
     "test:chat-ui": "npm run build && node scripts/smoke-chat-ui.cjs",
-    "test:pi-chat-chain": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --embedded"
+    "test:pi-chat-chain": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --embedded",
+    "test:agent-refresh": "node --experimental-strip-types scripts/smoke-agent-refresh.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

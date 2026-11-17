@@ -36,6 +36,10 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  prepareAgentRefresh(request: {
+    projectId: string;
+    updateExisting: boolean;
+  }): Promise<import('./agentRefresh').AgentRefreshReview>;
   getChat(target: import('./chat').ChatTarget): Promise<import('./chat').ChatState | null>;
   sendChat(request: import('./chat').ChatSend): Promise<void>;
   abortChat(target: import('./chat').ChatTarget): Promise<void>;
@@ -160,6 +164,7 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  prepareAgentRefresh: 'studio:prepare-agent-refresh',
   getChat: 'studio:chat-get',
   sendChat: 'studio:chat-send',
   abortChat: 'studio:chat-abort',

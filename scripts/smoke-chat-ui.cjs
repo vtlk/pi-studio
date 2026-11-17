@@ -23,7 +23,13 @@ async function parent() {
       });
     });
     await mkdir('artifacts', { recursive: true });
-    for (const file of ['chat-ui-proof.json', 'chat-ru-light.png', 'chat-en-dark.png'])
+    for (const file of [
+      'chat-ui-proof.json',
+      'chat-ru-light.png',
+      'chat-en-dark.png',
+      'refresh-ru-light.png',
+      'refresh-en-dark.png',
+    ])
       await require('node:fs/promises').copyFile(join(root, file), join('artifacts', file));
     console.log(await readFile(join(root, 'chat-ui-proof.json'), 'utf8'));
   } finally {
@@ -63,6 +69,7 @@ async function child() {
     model,
   };
   const project = {
+    sourceTeamId: 'qa-team',
     schemaVersion: 1,
     id: target.projectId,
     name: 'Chat UI QA',
@@ -111,6 +118,26 @@ async function child() {
   const send = (channel, value) => windows.webContents.send(channel, value);
   const themeState = () => ({ preference: theme, theme, revision: 1 });
   const languageState = () => ({ preference: language, language, revision: 1 });
+  let refreshEdited = false;
+  const refreshCalls = [];
+  const refreshReview = (request) => ({
+    projectId: target.projectId,
+    revision: 'refresh-revision',
+    changed: refreshEdited ? [{ id: agent.id, name: agent.name }] : [],
+    restarting:
+      refreshEdited && request.updateExisting
+        ? [
+            {
+              agentId: agent.id,
+              agentName: agent.name,
+              runId: 'chat-run',
+              sequence: 7,
+              working: true,
+            },
+          ]
+        : [],
+    removing: [],
+  });
   const handlers = {
     'studio:language': languageState,
     'studio:language-set': (_, value) => {
@@ -149,6 +176,14 @@ async function child() {
     }),
     'studio:list-team-imports': () => [],
     'studio:list-team-messages': () => [],
+    'studio:prepare-agent-refresh': (_, request) => refreshReview(request),
+    'studio:project-command': (_, request) => {
+      assert.equal(request.kind, 'update-agents');
+      refreshCalls.push(request);
+      assert.deepEqual(request.refresh.running, [{ runId: 'chat-run', sequence: 7 }]);
+      refreshEdited = false;
+      return { projects: [project], trashProjects: [] };
+    },
     'studio:chat-get': () => state,
     'studio:pi-processes': () => processes,
     'studio:launch-agent': (_, request) => {
@@ -234,7 +269,11 @@ async function child() {
   await windows.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
     enabled: true,
   });
-  const js = (code) => windows.webContents.executeJavaScript(code, true);
+  const js = (code) =>
+    windows.webContents.executeJavaScript(code, true).catch((error) => {
+      console.error('Chat UI expression:', code);
+      throw error;
+    });
   const until = async (code) => {
     for (let i = 0; i < 250; i++) {
       if (await js(code)) return;
@@ -275,7 +314,8 @@ async function child() {
     /1 процесс Pi/,
   );
   // Simulate the long Windows startup without a native Windows/desktop permission probe.
-  await new Promise((resolve) => setTimeout(resolve, 41000));
+  const loadingHoldMs = process.env.PI_STUDIO_QA_FAST_CHAT_UI ? 1000 : 41000;
+  await new Promise((resolve) => setTimeout(resolve, loadingHoldMs));
   assert.equal(await js(`!!document.querySelector('.pi-chat-loading')`), true);
   state.phase = 'ready';
   state.messages = [
@@ -302,6 +342,14 @@ async function child() {
   assert.equal(geometry.chat.width, geometry.pane.width);
   assert.ok(geometry.footerBottom <= geometry.chatBottom + 1);
   assert.equal(geometry.overflow, false);
+  const bubbleSpacing = async () => {
+    const gaps = await js(
+      `(()=>{const bubble=document.querySelector('.pi-chat-message[data-role="user"]'),first=bubble.firstElementChild.getBoundingClientRect(),last=bubble.querySelector('.output-markdown').lastElementChild.getBoundingClientRect(),rect=bubble.getBoundingClientRect();return {top:first.top-rect.top,bottom:rect.bottom-last.bottom}})()`,
+    );
+    assert.equal(gaps.top, gaps.bottom, 'Message bubble has equal top/bottom padding');
+    return gaps;
+  };
+  const spacing = await bubbleSpacing();
   await writeFile(
     join(root, 'chat-ru-light.png'),
     (await windows.webContents.capturePage()).toPNG(),
@@ -381,6 +429,7 @@ async function child() {
       lang === 'ru' ? 'Сообщение агенту' : 'Message to the agent',
     );
   }
+  await bubbleSpacing();
   processes = [];
   state.phase = 'closed';
   state.revision++;
@@ -388,6 +437,55 @@ async function child() {
   await until(
     `!document.querySelector('.pi-process-indicator')&&document.querySelector('.pi-chat-panel').innerText.includes('Pi process stopped')`,
   );
+  await js(`document.querySelector('.pi-chat-header button:last-child').click()`);
+  refreshEdited = true;
+  await js(`document.querySelector('.project-header .button.primary').click()`);
+  await until(`!!document.querySelector('.confirmation-backdrop')`);
+  await js(`document.querySelector('.confirmation-backdrop .dialog-footer .primary').click()`);
+  await until(`!!document.querySelector('.refresh-existing [role="switch"]')`);
+  await js(`document.querySelector('.refresh-existing [role="switch"]').click()`);
+  const refreshScreens = [];
+  for (const [lang, mode] of [
+    ['ru', 'light'],
+    ['en', 'dark'],
+  ]) {
+    await js(
+      `window.studio.setLanguage(${JSON.stringify(lang)});window.studio.setTheme(${JSON.stringify(mode)})`,
+    );
+    await until(
+      `document.documentElement.lang===${JSON.stringify(lang)}&&document.documentElement.dataset.theme===${JSON.stringify(mode)}`,
+    );
+    await js(`document.querySelector('.dialog:has(.agent-diff) .dialog-footer .primary').click()`);
+    const title = lang === 'ru' ? 'Остановить текущие задачи?' : 'Stop the current tasks?';
+    const confirmSelector = `[role="alertdialog"][aria-label=${JSON.stringify(title)}]`;
+    await until(`!!document.querySelector(${JSON.stringify(confirmSelector)})`);
+    assert.equal(
+      await js(
+        `document.querySelector(${JSON.stringify(confirmSelector)}).querySelector('.primary').textContent`,
+      ),
+      lang === 'ru' ? 'Остановить и применить' : 'Stop and apply',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await writeFile(
+      join(root, `refresh-${lang}-${mode}.png`),
+      (await windows.webContents.capturePage()).toPNG(),
+    );
+    refreshScreens.push({ language: lang, theme: mode, title });
+    await js(
+      `document.querySelector(${JSON.stringify(confirmSelector)}).querySelector('.dialog-footer button').click()`,
+    );
+    await until(`document.querySelectorAll('[role="alertdialog"]').length===0`);
+    assert.equal(refreshCalls.length, 0, 'Cancel does not apply settings or restart anything');
+  }
+  await js(`document.querySelector('.dialog:has(.agent-diff) .dialog-footer .primary').click()`);
+  await until(
+    `!!document.querySelector('[role="alertdialog"][aria-label="Stop the current tasks?"]')`,
+  );
+  await js(
+    `document.querySelector('[role="alertdialog"][aria-label="Stop the current tasks?"] .dialog-footer .primary').click()`,
+  );
+  await until(`!document.querySelector('.agent-diff')`);
+  assert.equal(refreshCalls.length, 1);
   assert.ok(!errors.length, errors.join('\n'));
   await writeFile(
     join(root, 'chat-ui-proof.json'),
@@ -397,10 +495,13 @@ async function child() {
         scope:
           'isolated offscreen real renderer/preload + controlled IPC; native Windows acceptance remains separate',
         checks: [
-          '41-second loading spinner',
+          `${loadingHoldMs / 1000}-second loading spinner`,
           'one launch for double click',
           'preview-sized sliding panel',
           'footer/overflow geometry',
+          'equal message-bubble vertical padding',
+          'RU/EN refresh confirmation and cancel without mutation',
+          'refresh consent carries exact run and task sequence',
           'RU/EN in light/dark',
           'yellow process count and hidden zero',
           'hide/reopen without launch',
@@ -410,6 +511,8 @@ async function child() {
           'closed state without spinner',
         ],
         geometry,
+        spacing,
+        refreshScreens,
       },
       null,
       2,

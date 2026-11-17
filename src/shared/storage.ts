@@ -37,7 +37,13 @@ export type ProjectCommand =
       teamId?: string;
       workspaceMode?: import('./agentTeams').TeamWorkspaceMode;
     }
-  | { kind: 'update-agents'; projectId: string; agents: Agent[]; updateExisting: boolean }
+  | {
+      kind: 'update-agents';
+      projectId: string;
+      agents: Agent[];
+      updateExisting: boolean;
+      refresh?: import('./agentRefresh').AgentRefreshConsent;
+    }
   | { kind: 'rename'; projectId: string; name: string }
   | { kind: 'clone'; projectId: string; name: string }
   | { kind: 'remove-agent' | 'restore-agent'; projectId: string; agentId: string }
@@ -46,6 +52,7 @@ export interface ProjectCommandResult {
   projects: WorkspaceProject[];
   trashProjects: WorkspaceProject[];
   selectedId?: string;
+  refreshFailures?: { agentId: string; name: string; message: string }[];
 }
 export interface FileRequest {
   projectId: string;
