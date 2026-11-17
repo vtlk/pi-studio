@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-17T21:18:11.653Z",
+  "version": "0.2.0-alpha.105",
+  "baselineSignedVersion": "0.2.0-alpha.103",
+  "baselineEd25519AndFullHashVerified": true,
+  "baselineAndFinalAllCrcsAndInventories": true,
+  "packagingRecipeAndDependencyLockUnchangedExceptVersion": true,
+  "allOutAndBundledReplacedFromCurrentSource": true,
+  "unchangedRuntimeDependencyEntriesCompared": 647,
+  "sha256": "30a4d96a4cbf03428ee80874158b0cf8ee3acadbe7e39604e8bcf82cf66a7949",
+  "executedWindowsPrograms": false,
+  "nativeWindowsAcceptance": false,
+  "ownedStagingRemoved": true
+}
