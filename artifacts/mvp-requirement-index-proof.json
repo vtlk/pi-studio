@@ -333,12 +333,12 @@
     "native Windows updater and final accepted release; real Mac GitHub cycle verified in alpha.88",
     "final distribution rights review with known cache/provenance limitations"
   ],
-  "publishedVersion": "0.2.0-alpha.89",
+  "publishedVersion": "0.2.0-alpha.90",
   "promptFitPublishedVersion": "0.2.0-alpha.86",
   "promptFitSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
-  "publishedWindowsVersion": "0.2.0-alpha.89",
+  "publishedWindowsVersion": "0.2.0-alpha.90",
   "nativeWindowsAcceptance": false,
-  "nativeWindowsHostUnavailableByUserReply": true,
+  "nativeWindowsHostUnavailableByUserReply": false,
   "nativeAcceptancePlanLocalOnly": true,
   "excludedNonTaskTokens": [
     "GPT-5",
@@ -348,8 +348,8 @@
   "desktopQaDeferredByUser": true,
   "nativePermissionProbePrompts": false,
   "nativeModelLoopAccepted": false,
-  "preparedCandidateVersion": "0.2.0-alpha.89",
-  "preparedCandidateStatus": "Published for Mac arm64 and Windows x64; user confirmed successful built-in Mac update; actual post-update cleanup inspected",
+  "preparedCandidateVersion": "0.2.0-alpha.90",
+  "preparedCandidateStatus": "Published for both platforms; shared Windows Pi launch fix awaits user retry on Windows 11; developer did not install/restart user apps",
   "signingDeferredToAvoidSystemDialogs": false,
   "latestIncrementalReleaseVerification": {
     "checkedAt": "2026-11-17T08:10:45.010386+00:00",
@@ -418,6 +418,22 @@
       "alpha89-both-platforms-security-audit-proof.json": "b9ca00d4f6e37cb021430967a57bbf75420fc04b1534c3d2a54c79feab77403a",
       "release-package-0.2.0-alpha.89-proof.json": "86081c5147497ac90ed0913723001677090d7c31afe5adc07ef9a8879c75a7ee",
       "renderer-recovery-proof.json": "8529af44ca16c3d9dc9e48e0c9db1ec3e53432e40d409f94ed6d1c488fd52047"
+    }
+  },
+  "userReportsWindows11": true,
+  "latestWindowsLaunchFix": {
+    "checkedAt": "2026-11-17T12:00:15.950561+00:00",
+    "sourceCommit": "cb073727bcfd811209dce49db3a20590b7720725",
+    "appliesTo": "Both setup assistant and ordinary project agents through the shared Windows Terminal adapter",
+    "userConfirmedWtOpens": true,
+    "unitTestsPassed": 375,
+    "nativeWindowsResultAfterFix": "Awaiting user verification; not accepted from controlled spawn tests",
+    "proofSha256": {
+      "alpha90-validation-proof.json": "4f9656f4d58eb3fa0b39e805d74580778e9a22254d3d2f38c21f9fd4a62149af",
+      "alpha90-release-proof.json": "dd8d2ea73a345aca2393e0f4d1228908084e294f81b50e080622c755f22075cf",
+      "release-package-0.2.0-alpha.90-proof.json": "cf320d7b771ad854668509b1f685ac32112e1eaa7173bd8b91f2d03695f42f4c",
+      "helper-launch-ui-proof.json": "31c02660181564888f0dcaf9f6255aec36d12340f12b243bce65e15b60cebbeb",
+      "alpha90-security-audit-proof.json": "ff2368d9f5d43a5c674945fcca6dfd37069578e978d5237017d9345f5a07c0c3"
     }
   }
 }
