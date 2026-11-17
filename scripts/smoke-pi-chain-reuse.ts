@@ -4,6 +4,7 @@ import { createServer, type ServerResponse } from 'node:http';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
@@ -183,8 +184,8 @@ try {
     host = createStudioRunHost(service, {
       embedded: true,
       bootstraps: join(root, mode, 'boots'),
-      bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
-      catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
+      bridge: fileURLToPath(new URL('../bundled/pi-bridge/session.mjs', import.meta.url)),
+      catalog: fileURLToPath(new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url)),
       piPath: () => pi.path,
       failureChanged: (run, failure) => {
         if (failure) notices.push({ agentId: run.agent.profile.id, failure });

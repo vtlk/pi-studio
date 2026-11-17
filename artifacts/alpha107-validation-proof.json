@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-11-17T22:27:33.793649+00:00",
+  "checkedAt": "2026-11-17T22:37:29.716561+00:00",
   "version": "0.2.0-alpha.107",
   "coreCommit": "83c992c",
   "tests": {
-    "total": 493,
-    "passed": 492,
+    "total": 494,
+    "passed": 493,
     "skippedOptInNativePermission": 1,
     "failed": 0
   },
@@ -19,5 +19,7 @@
   "unadmittedClaimRollbackAndProcessPreservation": true,
   "refusalMessagesRuEn": true,
   "nativeWindowsAcceptance": false,
-  "userApplicationOrDataChanged": false
+  "userApplicationOrDataChanged": false,
+  "additionalCoreCommit": "af2d99b",
+  "nativePreflightRefusalDoesNotLeaveIdleRecipientRunning": true
 }
