@@ -383,8 +383,20 @@
   "actualMacGitHubUpdateCycle": {
     "version": "0.2.0-alpha.88",
     "proof": "artifacts/alpha88-installation-proof.json",
-    "sha256": "d867fb49d340845ace541a022e96b36504f7a8fd6b05d0ac151edfafdf6ad7ad",
+    "sha256": "56ce04e3bfed7099756bf22f12cd18df1b72aac6b78992ea8ceb1c7372cc101a",
     "userApproved": true,
     "nativeWindowsAccepted": false
+  },
+  "allPublishedAssetAudit": {
+    "checkedAt": "2026-11-17T08:59:29.512715+00:00",
+    "assets": 59,
+    "zipArchives": 22,
+    "unreviewedFindings": 0,
+    "incompleteAssets": 0,
+    "baseRevision": "c3dc7b508505e3b6c04b92d283c40b2ebd69d08b",
+    "incrementalThroughRevision": "b8beee8",
+    "proof": "artifacts/published-assets-audit-resolution-proof.json",
+    "sha256": "065793d527d40b469c0b7df6d24c1ccca8eb56665f67c4c36cc55e42866c66ca",
+    "notLegalOrNativePlatformAcceptance": true
   }
 }

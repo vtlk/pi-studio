@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-17T08:47:48.105626+00:00",
+  "baseRevision": "c3dc7b508505e3b6c04b92d283c40b2ebd69d08b",
+  "throughRevision": "b8beee84e9787104b09e8080c881c71757bd1f14",
+  "scanner": "Gitleaks 8.30.1",
+  "defaultConfigSha256": "27630a96d6c55755cc37620f3933d5cab94b1eb78a726a32e11212972525d76e",
+  "redacted": true,
+  "allowCommentsIgnored": true,
+  "emptyIgnoreFile": true,
+  "findings": 0,
+  "scope": "Incremental documentation/installation-proof commit added while the full base release audit runs; complements its history/tree/asset coverage. No programs from archives executed."
+}

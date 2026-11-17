@@ -37,5 +37,19 @@
   "notarized": false,
   "nativeWindowsAcceptance": false,
   "freeBytesAfterCleanup": 6500716544,
-  "limits": "Real Mac update route and exact protected-data verification. No new account authorization, Computer visual-model/Spaces/multidisplay or Windows checks."
+  "limits": "Real Mac update route and exact protected-data verification. No new account authorization, Computer visual-model/Spaces/multidisplay or Windows checks.",
+  "oldLocalCopiesCheckedIn": [
+    "system Applications",
+    "user Applications",
+    "Downloads",
+    "Desktop",
+    "owned build cache"
+  ],
+  "oldLocalApplicationOrInstallerCopiesFound": 0,
+  "actualStarPreferenceObserved": {
+    "schema": 1,
+    "elapsedMs": 480079,
+    "disabled": false,
+    "outsideStudios": true
+  }
 }
