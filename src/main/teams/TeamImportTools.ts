@@ -45,6 +45,7 @@ export class TeamImportTools {
     if ('reports' in scope) return scope.reports;
     if (name === 'read_team_import') {
       scope.state.report.handoff = 'sent';
+      if (scope.state.report.mcpHandoff) scope.state.report.mcpHandoff = 'sent';
       await this.persist(scope.folder, scope.state);
       return {
         manifest: scope.data.manifest,
@@ -200,6 +201,7 @@ export class TeamImportTools {
         report: {
           ...state.report,
           handoff: current.state.report.handoff === 'sent' ? 'sent' : state.report.handoff,
+          ...(current.state.report.mcpHandoff === 'sent' ? { mcpHandoff: 'sent' } : {}),
         },
       });
     });

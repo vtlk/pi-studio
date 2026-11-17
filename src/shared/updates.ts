@@ -17,7 +17,7 @@ export interface UpdateOffer {
   bytes: number;
 }
 export interface UpdateView {
-  page: 'projects' | 'project' | 'agents' | 'settings';
+  page: 'projects' | 'project' | 'agents' | 'settings' | 'onboarding';
   projectId?: string;
 }
 export interface UpdateReadiness {

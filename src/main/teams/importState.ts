@@ -6,6 +6,7 @@ import { safePath, readJson, isMissing } from '../storage/files.ts';
 import { record, stableId } from '../storage/validation.ts';
 import type { ImportedTeamState } from './importTeam.ts';
 import { decodePackage, packageLimit } from './packageCodec.ts';
+import { describeMcpAuthorization } from '../../shared/mcpAuthorization.ts';
 
 export async function readImport(store: StudioStore, id: string) {
   stableId(id);
@@ -19,6 +20,8 @@ export async function readImport(store: StudioStore, id: string) {
     report.id !== id ||
     !store.agentCatalog().teams.some((team) => team.id === teamId) ||
     !Array.isArray(report.agents) ||
+    (report.mcpHandoff !== undefined &&
+      !['pending', 'sending', 'sent', 'uncertain'].includes(String(report.mcpHandoff))) ||
     !['pending', 'sending', 'sent', 'uncertain'].includes(String(report.handoff))
   )
     throw new Error(t('error.importState.theTeamImportIsMissing'));
@@ -40,6 +43,18 @@ export async function readImport(store: StudioStore, id: string) {
     )
   )
     throw new Error(t('error.importState.importedPackageReferencesAreInvalid'));
+  // Derive links from validated package mappings, including packages written before Onboarding.
+  state.report.teamName = store.agentCatalog().teams.find((team) => team.id === teamId)!.name;
+  state.report.mcps = data.manifest.resources
+    .filter((resource) => resource.kind === 'mcps' && !resource.source.startsWith('builtin:'))
+    .map((resource) => {
+      const inferred = describeMcpAuthorization(resource.mcp ?? {});
+      return {
+        resourceId: state.resourceMap[resource.id],
+        authorization:
+          inferred.required === 'yes' ? inferred : (resource.authorization ?? inferred),
+      };
+    });
   return { root, state, data };
 }
 export async function listImports(store: StudioStore) {

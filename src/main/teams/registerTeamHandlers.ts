@@ -7,6 +7,7 @@ import type { StudioService } from '../storage/StudioStore';
 import type { RunHost } from '../pi/RunHost';
 import type { Resource } from '../../shared/resources';
 import type { Connection } from '../../shared/connections';
+import type { SystemAgent } from '../../shared/systemAgents';
 import { desktopChannels } from '../../shared/contracts';
 import type { TeamPackageRequest } from '../../shared/teamPackage';
 import { encodePackage, packageLimit } from './packageCodec';
@@ -72,8 +73,15 @@ export function registerTeamHandlers(
     if ((await lstat(result.filePaths[0])).size > packageLimit)
       throw new Error(t('registerTeamHandlers.theTeamArchiveExceedsMb'));
     const bytes = await readFile(result.filePaths[0]);
-    const report = await service.serialize(async () => importTeam(await scoped(folder), bytes));
-    return handoffTeamImport(service, setup, folder, report.id);
+    return service.serialize(async () => {
+      const store = await scoped(folder);
+      const report = await importTeam(store, bytes);
+      const assistant = (store.bootstrap().sections.systemAgents as SystemAgent[]).find(
+        (agent) => agent.systemRole === 'assistant',
+      )!;
+      // Importing data never launches Pi or sends a request. Onboarding offers explicit setup.
+      return { report, assistantId: assistant.id, outcome: 'pending' as const };
+    });
   });
   handleDesktopInvoke(desktopChannels.listTeamImports, async (event, folder: string) => {
     caller(event);

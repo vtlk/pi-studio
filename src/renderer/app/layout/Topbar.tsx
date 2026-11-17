@@ -6,6 +6,7 @@ import { useStorage } from '@/shared/storage/Storage';
 import { UpdateAction } from '@/features/updates/UpdateAction';
 import { LanguageSelect } from '@/shared/ui/LanguageSelect';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
+import { useOnboarding } from '@/features/onboarding/Onboarding';
 
 const sections: { page: Page; label: import('../../../shared/i18n').MessageKey }[] = [
   { page: 'projects', label: 'Topbar.projects' },
@@ -14,6 +15,7 @@ const sections: { page: Page; label: import('../../../shared/i18n').MessageKey }
 export function Topbar() {
   useTranslation(undefined, { i18n });
   const { page, navigate } = useNavigation();
+  const onboarding = useOnboarding();
   const { isDesktop, saving, recentlySaved, error } = useStorage();
   return (
     <header className="topbar">
@@ -31,6 +33,14 @@ export function Topbar() {
             {t(section.label)}
           </button>
         ))}
+        {onboarding.visible && (
+          <button
+            aria-current={page === 'onboarding' ? 'page' : undefined}
+            onClick={() => navigate('onboarding')}
+          >
+            {t('Onboarding.title')}
+          </button>
+        )}
       </nav>
       <span
         className="prototype-label"

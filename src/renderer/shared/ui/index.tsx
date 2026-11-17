@@ -47,16 +47,23 @@ export function Button({
   onClick,
   kind = 'secondary',
   disabled = false,
+  busy = false,
   className,
 }: {
   children: ReactNode;
   onClick?: () => void;
   kind?: string;
   disabled?: boolean;
+  busy?: boolean;
   className?: string;
 }) {
   return (
-    <button className={cx('button', kind, className)} onClick={onClick} disabled={disabled}>
+    <button
+      className={cx('button', kind, className)}
+      onClick={onClick}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
+    >
       {children}
     </button>
   );

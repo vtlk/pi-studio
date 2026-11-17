@@ -16,6 +16,7 @@ import { inspectSkill } from '../storage/skills.ts';
 import { collectPackageFiles } from './collectPackageFiles.ts';
 import { portableMcp } from './portableMcp.ts';
 import { validatePackage } from './packageCodec.ts';
+import { describeMcpAuthorization } from '../../shared/mcpAuthorization.ts';
 
 export async function exportTeam(
   catalog: AgentCatalog,
@@ -65,8 +66,10 @@ export async function exportTeam(
             source: 'local',
             requirements: [],
           };
-          if (resource.source.startsWith('builtin:')) r.source = resource.source;
-          else if (kind === 'skills' || (kind === 'plugins' && isAbsolute(resource.source))) {
+          if (resource.source.startsWith('builtin:')) {
+            r.source = resource.source;
+            if (kind === 'mcps') r.authorization = { required: 'no', methods: [], fields: [] };
+          } else if (kind === 'skills' || (kind === 'plugins' && isAbsolute(resource.source))) {
             const source =
               kind === 'skills' ? (await inspectSkill(resource.source)).source : resource.source;
             r.filesRoot = `resources/${ref}/files`;
@@ -93,6 +96,7 @@ export async function exportTeam(
                 : { command: resource.source, args: JSON.parse(resource.args || '[]') };
             const described = portableMcp(raw);
             r.mcp = described.config;
+            r.authorization = describeMcpAuthorization(raw, resource.check);
             r.requirements.push(...described.requirements);
             r.source =
               typeof raw.url === 'string'

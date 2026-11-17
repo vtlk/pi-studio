@@ -13,6 +13,7 @@ import { assertPortableMcp } from './portableMcp.ts';
 import { parseModelEndpoint } from '../../shared/modelEndpoint.ts';
 import { retiredBuiltin } from '../storage/retireLegacyFeatures.ts';
 import { windowsFileName } from '../../shared/windowsNames.ts';
+import { parseMcpAuthorization } from '../../shared/mcpAuthorization.ts';
 
 export const packageLimit = 64 * 1024 * 1024;
 export const fileDigest = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
@@ -90,6 +91,9 @@ export function validatePackage(value: unknown): TeamPackage {
       source,
       ...(filesRoot ? { filesRoot } : {}),
       ...(r.mcp === undefined ? {} : { mcp: record(r.mcp) }),
+      ...(r.authorization === undefined
+        ? {}
+        : { authorization: parseMcpAuthorization(r.authorization) }),
       requirements: strings(r.requirements),
     };
   });

@@ -9,6 +9,7 @@ export interface PortableResource {
   source: string;
   filesRoot?: string;
   mcp?: Record<string, unknown>;
+  authorization?: import('./mcpAuthorization').McpAuthorization;
   requirements: string[];
 }
 export interface PortableConnection {
@@ -44,8 +45,11 @@ export interface TeamImportReport {
   teamName: string;
   createdAt: number;
   handoff: 'pending' | 'sending' | 'sent' | 'uncertain';
+  /** Separate one-use MCP task, including imports previously handed to the legacy assistant. */
+  mcpHandoff?: 'pending' | 'sending' | 'sent' | 'uncertain';
   agents: { agentId: string; name: string; issues: string[] }[];
   requirements: string[];
+  mcps?: { resourceId: string; authorization: import('./mcpAuthorization').McpAuthorization }[];
 }
 export interface TeamPackageRequest {
   folder: string;

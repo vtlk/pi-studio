@@ -6,6 +6,7 @@ import { TeamTransfersContext } from './TeamTransfers.context';
 import { useStorage } from '@/shared/storage/Storage';
 import { useNotice } from '@/shared/model/Notice';
 import { useAgentProfiles } from './AgentProfiles';
+import { useNavigation } from '@/shared/model/Navigation';
 import { AgentConfigurationDialog } from '@/features/project/ui/AgentConfigurationDialog';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui';
@@ -14,6 +15,7 @@ import type { TeamImportReport, TeamSetupResult } from '../../../../shared/teamP
 
 export interface TeamTransfersValue {
   busy: boolean;
+  loaded: boolean;
   refreshReports(): Promise<void>;
   available: boolean;
   message: string;
@@ -26,12 +28,15 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   useTranslation(undefined, { i18n });
   const { bootstrap, saveNow } = useStorage();
   const { teams } = useAgentProfiles();
+  const { navigate } = useNavigation();
   const { demo } = useNotice();
   const folder = bootstrap?.folder;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [reports, setReports] = useState<TeamImportReport[]>([]);
+  const [loaded, setLoaded] = useState(!window.studio);
   const [configure, setConfigure] = useState('');
+  const [onboardingTeam, setOnboardingTeam] = useState('');
   const [details, setDetails] = useState(false);
   const active = useRef(false),
     mounted = useRef(false),
@@ -41,7 +46,10 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     const readEpoch = epoch.current;
     try {
       const value = await window.studio.listTeamImports(folder);
-      if (mounted.current && !active.current && epoch.current === readEpoch) setReports(value);
+      if (mounted.current && !active.current && epoch.current === readEpoch) {
+        setReports(value);
+        setLoaded(true);
+      }
     } catch (error) {
       if (mounted.current && epoch.current === readEpoch)
         setMessage(error instanceof Error ? error.message : t('TeamTransfers.couldNotReadImports'));
@@ -54,6 +62,14 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
       mounted.current = false;
     };
   }, [refreshReports]);
+  useEffect(() => {
+    // Imported profiles arrive through the shared storage refresh. Do not open an empty page
+    // before those profiles have reached the providers that calculate setup tasks.
+    if (onboardingTeam && teams.some((team) => team.id === onboardingTeam)) {
+      navigate('onboarding');
+      setOnboardingTeam('');
+    }
+  }, [onboardingTeam, teams, navigate]);
   const receive = (result: TeamSetupResult) => {
     setReports((previous) => [
       result.report,
@@ -65,11 +81,13 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     }
     return (
       result.message ??
-      (result.outcome === 'opened'
-        ? t('TeamTransfers.packageSavedTheAssistantIsOpenTo')
-        : result.outcome === 'needs_configuration'
-          ? t('TeamTransfers.packageSavedConfigureTheAssistantSModel')
-          : t('TeamTransfers.packageSavedTaskDeliveryIsUnconfirmedIt'))
+      (result.outcome === 'pending' && result.report.handoff === 'pending'
+        ? t('Onboarding.imported')
+        : result.outcome === 'opened'
+          ? t('TeamTransfers.packageSavedTheAssistantIsOpenTo')
+          : result.outcome === 'needs_configuration'
+            ? t('TeamTransfers.packageSavedConfigureTheAssistantSModel')
+            : t('TeamTransfers.packageSavedTaskDeliveryIsUnconfirmedIt'))
     );
   };
   const action = async (
@@ -117,6 +135,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   };
   const value: TeamTransfersValue = {
     busy,
+    loaded,
     refreshReports,
     available: !!window.studio && !!folder,
     message,
@@ -136,6 +155,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     importTeam: (notify) =>
       action(async () => {
         const result = await window.studio!.importAgentTeam(folder!);
+        if (result && mounted.current) setOnboardingTeam(result.report.teamId);
         return result && mounted.current ? receive(result) : undefined;
       }, notify),
     continueImport: (id) =>

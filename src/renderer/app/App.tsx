@@ -25,12 +25,15 @@ import { UpdateBootstrap } from '@/features/updates/UpdateBootstrap';
 import { UpdatesProvider } from '@/features/updates/Updates';
 import { UpdateWorkspace } from '@/features/updates/UpdateWorkspace';
 import { GitHubStarReminder } from '@/features/github-star/GitHubStarReminder';
+import { OnboardingProvider } from '@/features/onboarding/Onboarding';
+import { OnboardingView } from '@/features/onboarding/OnboardingView';
 
 const pages = {
   project: ProjectView,
   projects: ProjectsView,
   agents: AgentsView,
   settings: SettingsView,
+  onboarding: OnboardingView,
 };
 function StudioShell() {
   const { page } = useNavigation();
@@ -79,9 +82,11 @@ export default function App({ useWorkspaceState, ExtraProviders = Fragment, defa
                                 <LaunchProvider>
                                   <UpdateWorkspace>
                                     <TeamTransfersProvider>
-                                      <StartupGate>
-                                        <StudioShell />
-                                      </StartupGate>
+                                      <OnboardingProvider>
+                                        <StartupGate>
+                                          <StudioShell />
+                                        </StartupGate>
+                                      </OnboardingProvider>
                                     </TeamTransfersProvider>
                                   </UpdateWorkspace>
                                 </LaunchProvider>

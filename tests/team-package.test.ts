@@ -163,6 +163,35 @@ test('portable package includes full current prompts, disabled blocks and comple
     ),
   );
   assert.equal(reopened.manifest.agents[0].model?.connectionId, 'connection-1');
+  const mcp = reopened.manifest.resources.find((resource) => resource.name === 'MCP')!;
+  assert.equal(mcp.authorization?.required, 'yes');
+  assert.deepEqual(mcp.authorization?.methods, ['oauth', 'parameters']);
+  assert.ok(mcp.authorization?.fields.some((field) => field.name === 'X-Private'));
+  assert.equal(
+    reopened.manifest.resources.find((resource) => resource.source === 'builtin:team')
+      ?.authorization?.required,
+    'no',
+  );
+});
+
+test('old packages still derive actionable MCP requirements from validated local mappings; current team names survive rename', async (t) => {
+  const { root, data } = await fixture(t);
+  for (const resource of data.manifest.resources) delete resource.authorization;
+  const store = await StudioStore.open(join(root, 'Old-package-target'));
+  const imported = await importTeam(store, encodePackage(data));
+  const catalog = store.agentCatalog();
+  await store.saveSection('agentCatalog', {
+    ...catalog,
+    teams: catalog.teams.map((team) =>
+      team.id === imported.teamId ? { ...team, name: 'Renamed team' } : team,
+    ),
+  });
+  const [report] = await listImports(store);
+  assert.equal(report.teamName, 'Renamed team');
+  assert.equal(report.mcps?.length, 1, 'Internal MCPs do not require portable credentials');
+  assert.equal(report.mcps![0].authorization.required, 'yes');
+  const localResources = store.bootstrap().sections.resources as Resource[];
+  assert.ok(localResources.some((resource) => resource.id === report.mcps![0].resourceId));
 });
 
 test('import atomically restores an independent team and file tree; repeated import never overwrites IDs, settings, models or other projects', async (t) => {
@@ -339,6 +368,65 @@ test('assistant handoff keeps exact IDs, defers busy/missing models, never resen
     count + 1,
     'Preparation failures are retryable without a lost or duplicate task',
   );
+});
+
+test('legacy assistant receipts do not swallow the new scoped MCP task; its own receipt persists without model changes or replay', async (t) => {
+  const { root, data } = await fixture(t);
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'Legacy-target'));
+  const store = await service.load();
+  const report = await importTeam(store, encodePackage(data));
+  await store.saveSection('connections', [{ ...account, id: 'receiver' }]);
+  await store.saveSection(
+    'systemAgents',
+    (store.bootstrap().sections.systemAgents as SystemAgent[]).map((agent) => ({
+      ...agent,
+      model: { ...profile('helper').model!, connectionId: 'receiver' },
+    })),
+  );
+  const tools = new TeamImportTools(service, {} as StudioResources, async () => {});
+  const run = { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun;
+  await tools.call(run, 'read_team_import', { packageId: report.id });
+  assert.equal((await readImport(store, report.id)).state.report.handoff, 'sent');
+  const before = structuredClone(store.agentCatalog());
+  let sends = 0,
+    opens = 0;
+  const setup = {
+    assertIdle() {},
+    async launchServiceTask(
+      _request: unknown,
+      message: string,
+      beforeDispatch?: () => Promise<void>,
+    ) {
+      await beforeDispatch?.();
+      sends++;
+      assert.match(message, /MCP/);
+      await tools.call(run, 'read_team_import', { packageId: report.id });
+      return {} as never;
+    },
+    async launch() {
+      opens++;
+      return {} as never;
+    },
+  };
+  assert.equal(
+    (await handoffTeamImport(service, setup, store.folder, report.id)).outcome,
+    'opened',
+  );
+  assert.equal(sends, 1);
+  assert.equal((await readImport(store, report.id)).state.report.mcpHandoff, 'sent');
+  await handoffTeamImport(service, setup, store.folder, report.id);
+  assert.equal(sends, 1);
+  assert.equal(opens, 1);
+  assert.deepEqual(store.agentCatalog(), before);
+  const uncertain = await importTeam(store, encodePackage(data));
+  const legacy = await readImport(store, uncertain.id);
+  legacy.state.report.handoff = 'uncertain';
+  await writeFile(join(legacy.root, 'state.json'), JSON.stringify(legacy.state));
+  assert.equal(
+    (await handoffTeamImport(service, setup, store.folder, uncertain.id)).outcome,
+    'uncertain',
+  );
+  assert.equal(sends, 1, 'Uncertain legacy dispatch is never retried by Onboarding');
 });
 
 test('narrow administrative tools read only their package, preserve missing model requirements and perform real checks without production launches', async (t) => {
