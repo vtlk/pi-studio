@@ -35,17 +35,17 @@ export async function runSession(bootstrapPath) {
   let envelope;
   try {
     await event({
-    type: 'hello',
-    pid: process.pid,
-    ...(process.platform === 'win32' && process.env.WT_SESSION && process.env.WT_PROFILE_ID
-      ? {
-          terminalIdentity: {
-            kind: 'windows-terminal',
-            sessionId: process.env.WT_SESSION,
-            profileId: process.env.WT_PROFILE_ID,
-          },
-        }
-      : {}),
+      type: 'hello',
+      pid: process.pid,
+      ...(process.platform === 'win32' && process.env.WT_SESSION && process.env.WT_PROFILE_ID
+        ? {
+            terminalIdentity: {
+              kind: 'windows-terminal',
+              sessionId: process.env.WT_SESSION,
+              profileId: process.env.WT_PROFILE_ID,
+            },
+          }
+        : {}),
     });
     envelope = await request('context');
   } catch (error) {
