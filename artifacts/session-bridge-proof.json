@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-17T15:54:26.261682+00:00",
+  "version": "0.2.0-alpha.94",
+  "reportedSymptom": "Session bridge disconnected when launching an agent on one Windows computer",
+  "reproducedFailureModes": [
+    "Opening transport was retired by the 20-second heartbeat deadline before the existing 45-second launch deadline",
+    "Missing or foreign Windows Terminal profile identity returned a generic bridge failure instead of the controlled profile error"
+  ],
+  "changes": {
+    "openingKeepsCapabilityUntilLaunchDeadline": true,
+    "deadOpeningProcessesStillRetire": true,
+    "normalHeartbeatDeadlineResumesAfterOpening": true,
+    "terminalProfileRejectionFailsCallerImmediately": true,
+    "bridgeReportsControlledProfileRecoveryOrHttpStatus": true,
+    "startupFailureExitsBeforeSdkOrDialogueCreation": true,
+    "earlyBridgeErrorsUseBootstrapLanguage": true,
+    "credentialsOrRawErrorBodiesNotPrinted": true
+  },
+  "validation": {
+    "unitAndFilesystemTests": 424,
+    "failures": 0,
+    "typecheck": true,
+    "eslint": true,
+    "architectureModules": 405,
+    "targetedTests": "tests/session-bridge.test.ts, tests/run-close.test.ts, tests/windows-platform.test.ts, tests/windows-terminal-launch.test.ts, tests/opening-failure.test.ts, tests/run-workflow.test.ts, tests/run-completion.test.ts, tests/run-failure.test.ts",
+    "bridgeFilesMatchedToCommittedSourceInEachPlatformArchive": 41,
+    "signedPackageProof": "artifacts/release-package-0.2.0-alpha.94-proof.json"
+  },
+  "nativeAffectedWindowsComputerVerified": false,
+  "installedAppReplacedOrRestarted": false,
+  "userTerminalsOrBrowserTouched": false,
+  "externalModelRequests": 0,
+  "sourceCommit": "9af7b87c2dffca4b116c26d347d1990e6c34f158"
+}
