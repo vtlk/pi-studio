@@ -76,6 +76,10 @@
 .pi-chat-message .output-markdown > :first-child {
   margin-top: 0;
 }
+.pi-chat-message .output-markdown > :last-child,
+.pi-chat-message .output-markdown :is(li, blockquote) > :last-child {
+  margin-bottom: 0;
+}
 .pi-chat-message .output-markdown pre,
 .pi-chat-tool pre {
   white-space: pre-wrap;
