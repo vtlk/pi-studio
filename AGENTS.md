@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Latest team-chevron correction (user request, 2026-11-17): the team disclosure arrow has moved to the start of its row. Collapsed points RIGHT; expanded points DOWN. This supersedes the older TEAM-07 left-pointing requirement. Preserve the current placement and generic Disclosure behavior; update verification/specification expectations instead of restoring the old left direction.
+
 - Windows native shell follow-up (2026-11-17): explicit CLI commands must not select Windows System32/Sysnative/SysWOW64 or WindowsApps WSL bash aliases when Git Bash is absent. Preserve native custom PATH installs, case-insensitive environment keys, literal PowerShell transport, visible detached Terminal launch and clear missing-Git error; support per-user LOCALAPPDATA/Programs/Git. Source/controlled adapter tests are not native Windows acceptance. Publish both platforms; do not replace the user app.
 
 - Mandatory localization check (user request, 2026-11-17): after every change to interface texts or UI, check all affected user-visible strings in EVERY supported language (currently Russian and English), including navigation, headings, buttons, dialogs, errors, tooltips and accessibility labels. Add missing translations before considering the work complete. Check catalogue keys/interpolation parity and verify the affected interface in each language; matching keys or fallback text alone do not prove a real translation. Preserve product names, technical identifiers and user-provided content.

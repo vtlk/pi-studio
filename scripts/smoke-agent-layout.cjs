@@ -8,6 +8,7 @@ async function parent() {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-agent-layout-'));
   try {
     for (const name of ['UserData', 'Videos']) await mkdir(join(root, name));
+    await writeFile(join(root, 'UserData/language.json'), JSON.stringify({ language: 'ru' }));
     await new Promise((resolve, reject) => {
       const child = spawn(require('electron'), [__filename, '--child', root], {
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -192,7 +193,7 @@ async function child() {
       initialSettings.x,
     );
     const geometry = await js(
-      `(()=>{const p=document.querySelector('.agent-team-add'),a=document.querySelector('.agent-list-item'),s=getComputedStyle(p);return {plus:p.getBoundingClientRect().height,row:a.getBoundingClientRect().height,width:p.getBoundingClientRect().width,rowWidth:a.getBoundingClientRect().width,top:s.borderTopWidth,right:s.borderRightWidth,left:s.borderLeftWidth,bottom:s.borderBottomStyle,justify:s.justifyContent,icons:document.querySelector('.agent-team-icon').querySelectorAll('svg').length,transform:getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform}})()`,
+      `(()=>{const p=document.querySelector('.agent-team-add'),a=document.querySelector('.agent-list-item'),s=getComputedStyle(p);return {plus:p.getBoundingClientRect().height,row:a.getBoundingClientRect().height,width:p.getBoundingClientRect().width,rowWidth:a.getBoundingClientRect().width,top:s.borderTopWidth,right:s.borderRightWidth,left:s.borderLeftWidth,bottom:s.borderBottomStyle,justify:s.justifyContent,chevron:!!document.querySelector('.agent-team .ui-list-row-chevron'),transform:getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform}})()`,
     );
     assert.equal(geometry.plus, geometry.row);
     assert.equal(geometry.width, geometry.rowWidth);
@@ -201,7 +202,7 @@ async function child() {
     assert.equal(geometry.left, '0px');
     assert.equal(geometry.bottom, 'dashed');
     assert.equal(geometry.justify, 'center');
-    assert.equal(geometry.icons, 3);
+    assert.equal(geometry.chevron, true);
     assert.ok(['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(geometry.transform));
     await writeFile(
       join(root, 'team.png'),
@@ -219,7 +220,7 @@ async function child() {
       await js(
         `getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform`,
       ),
-      'matrix(0, 1, -1, 0, 0, 0)',
+      'matrix(0, -1, 1, 0, 0, 0)',
     );
     await js(`document.querySelector('.agent-team .disclosure-trigger').click()`);
     await field('Название агента', 'QA saved agent');
@@ -340,7 +341,9 @@ async function child() {
         studioChangeClearsConfirmation: true,
         settingsTextWithoutTooltipOrTitle: true,
         settingsPositionStable: true,
-        teamHeadingThreeLucideUsersAndArrow: true,
+        teamHeadingAndDisclosureArrow: true,
+        teamChevronRightCollapsedAndDownExpanded: true,
+        explicitQaLanguage: 'ru',
         addAgentRowGeometry: true,
         wideCatalogsAndNestedFormsAllKinds: true,
         systemAgentCatalogsWide: true,

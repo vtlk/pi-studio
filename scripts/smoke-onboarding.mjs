@@ -482,7 +482,13 @@ try {
     assert.equal(after.systemTop,before.systemTop);
     assert.equal(after.systemBottom,before.systemBottom);
     assert.ok(await js(`document.querySelector('.agent-teams-scroll').scrollTop>0`));
-    sidebarChecks.push({language,viewport:[900,480],independentTeamScroll:true,systemSectionPinned:true,translatedHeadings:true,navigationLabelsNoWrap:true});
+    await js(`(()=>{const list=document.querySelector('.agent-teams-scroll');list.scrollTop=0;document.querySelector('.agent-team .disclosure-trigger').click()})()`);
+    await until(`document.querySelector('.agent-team .disclosure-trigger').getAttribute('aria-expanded')==='false'&&getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform==='matrix(0, -1, 1, 0, 0, 0)'`);
+    assert.equal(await js(`document.querySelector('.agent-team .disclosure-content').hidden`),true);
+    await js(`document.querySelector('.agent-team .disclosure-trigger').click()`);
+    await until(`document.querySelector('.agent-team .disclosure-trigger').getAttribute('aria-expanded')==='true'&&getComputedStyle(document.querySelector('.agent-team .ui-list-row-chevron')).transform==='none'`);
+
+    sidebarChecks.push({language,viewport:[900,480],independentTeamScroll:true,systemSectionPinned:true,translatedHeadings:true,navigationLabelsNoWrap:true,teamChevronRightCollapsedAndDownExpanded:true});
     await js(`window.__qa.state.sections.agentCatalog=window.__qa.sidebarOriginal;delete window.__qa.sidebarOriginal;window.dispatchEvent(new Event('focus'))`);
     await until(`document.querySelectorAll('.agent-team .agent-list-entry').length===1`);
     await cdp('Emulation.setDeviceMetricsOverride', {width:1100,height:840,deviceScaleFactor:1,mobile:false});
