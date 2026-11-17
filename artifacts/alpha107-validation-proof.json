@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-17T22:27:33.793649+00:00",
+  "version": "0.2.0-alpha.107",
+  "coreCommit": "83c992c",
+  "tests": {
+    "total": 493,
+    "passed": 492,
+    "skippedOptInNativePermission": 1,
+    "failed": 0
+  },
+  "architectureModules": 443,
+  "typecheckAndLint": true,
+  "realPiSdkIdleThreeStageChain": true,
+  "twoExistingRecipientPidsSessionsAndJsonlPrefixesPreserved": true,
+  "oneHandoffPerRecipient": true,
+  "busyRecipientContinuesAndSourcePausesWithoutLateRetry": true,
+  "sameTargetManualAutomaticSendSerialization": true,
+  "queuedAndDialogRecipientsPause": true,
+  "unadmittedClaimRollbackAndProcessPreservation": true,
+  "refusalMessagesRuEn": true,
+  "nativeWindowsAcceptance": false,
+  "userApplicationOrDataChanged": false
+}
