@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-11-18T10:39:02.099552+00:00",
+  "checkedAt": "2026-11-18T10:51:10.261286+00:00",
   "version": "0.2.0-alpha.110",
   "regression": {
-    "tests": 528,
-    "passed": 527,
+    "tests": 530,
+    "passed": 529,
     "failed": 0,
     "skipped": 1,
     "skipReason": "Explicit opt-in native permissions check; never prompts during unattended regression"
@@ -29,17 +29,20 @@
       256
     ],
     "PEFixtureResourceRoundTrip": true,
-    "actualReleasePEVerification": "required after packaging"
+    "actualReleasePEVerification": true
   },
   "shutdown": {
     "projectRpcAndSetupAssistant": "real Pi SDK 1.5.2 using isolated local model fixture",
     "helperPidAbsentBeforeDrainReturns": true,
     "historyAccountingAndExactResume": "native smoke-pi-chat passed",
     "ownedHungProcessEscalation": "native POSIX and controlled Windows taskkill tree test",
-    "unrelatedProcessPreserved": true
+    "unrelatedProcessPreserved": true,
+    "lateSpawnAfterQuitAdmissionPrevented": true,
+    "ownedShutdownTargetedTestsPassed": 5
   },
   "limits": [
     "Actual Windows GUI/PowerShell execution and native macOS/Windows desktop overlay acceptance remain pending",
     "No installed user app, live dialogue, account, permission or browser was modified"
-  ]
+  ],
+  "sourceCommit": "a467688987ccc9b7ad1b3e6d09cd5d944267e6e7"
 }

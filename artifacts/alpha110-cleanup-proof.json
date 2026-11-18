@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-18T10:51:57.733913+00:00",
+  "version": "0.2.0-alpha.110",
+  "keptOnlyCurrentReleaseAssets": [
+    "Pi-Studio-0.2.0-alpha.110-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.110-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.110-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.110-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.110-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.110-win32-x64.update.json"
+  ],
+  "removedOwnedUnpackedBuildAfterVersionAndSignatureVerification": true,
+  "removedOwnedInterruptedAuditStaging": true,
+  "removedOwned200MiBChromeArchiveAfterHashCheck": true,
+  "installedAppOrUserDataChanged": false,
+  "systemChromeOrProfilesModified": false,
+  "newChromeCloneDirectories": [],
+  "baselineClonePreserved": true,
+  "emptyHistoricalBuildDirectoriesRemoved": 112
+}
