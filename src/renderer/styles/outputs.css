@@ -15,7 +15,7 @@
   cursor: pointer;
 }
 .project-header:hover {
-  background: #171717;
+  background: color-mix(in srgb, var(--separator), var(--ink) 8%);
 }
 .project-header h1 {
   flex: 1;

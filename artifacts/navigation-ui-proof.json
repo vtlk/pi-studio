@@ -1,5 +1,6 @@
 {
-  "checkedAt": "2026-11-18T15:29:28.687Z",
+  "version": "0.2.0-alpha.113",
+  "checkedAt": "2026-11-18T15:33:41.431Z",
   "checks": [
     {
       "language": "ru",
@@ -11,7 +12,8 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
-      "chevronLeftIconAndFullWidthBottomBorder": true
+      "chevronLeftIconAndFullWidthBottomBorder": true,
+      "restingHeaderMatchesSeparatorColor": true
     },
     {
       "language": "ru",
@@ -23,7 +25,8 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
-      "chevronLeftIconAndFullWidthBottomBorder": true
+      "chevronLeftIconAndFullWidthBottomBorder": true,
+      "restingHeaderMatchesSeparatorColor": true
     },
     {
       "language": "en",
@@ -35,7 +38,8 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
-      "chevronLeftIconAndFullWidthBottomBorder": true
+      "chevronLeftIconAndFullWidthBottomBorder": true,
+      "restingHeaderMatchesSeparatorColor": true
     },
     {
       "language": "en",
@@ -47,11 +51,11 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
-      "chevronLeftIconAndFullWidthBottomBorder": true
+      "chevronLeftIconAndFullWidthBottomBorder": true,
+      "restingHeaderMatchesSeparatorColor": true
     }
   ],
   "scope": "Production compiled renderer in an isolated pinned headless shell with mock native APIs; not native platform acceptance",
   "userAppOrDataChanged": false,
-  "realPiLaunches": 0,
-  "version": "0.2.0-alpha.113"
+  "realPiLaunches": 0
 }

@@ -360,8 +360,10 @@ try {
       );
       await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
       assert.equal(
-        await js(`getComputedStyle(document.querySelector('.project-header')).backgroundColor`),
-        'rgb(23, 23, 23)',
+        await js(
+          `(()=>{const s=getComputedStyle(document.querySelector('.project-header'));return s.backgroundColor!==s.borderBottomColor;})()`,
+        ),
+        true,
       );
       assert.equal(
         await js(`getComputedStyle(document.querySelector('.project-header')).borderBottomWidth`),
@@ -373,11 +375,27 @@ try {
       );
       assert.equal(await js(`document.documentElement.scrollWidth<=innerWidth`), true);
       await mkdir('artifacts', { recursive: true });
+      await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1090, y: 20 });
+      assert.equal(
+        await js(
+          `(()=>{const s=getComputedStyle(document.querySelector('.project-header'));return s.backgroundColor===s.borderBottomColor;})()`,
+        ),
+        true,
+      );
       const screenshot = await cdp('Page.captureScreenshot', { format: 'png' });
       await writeFile(
         `artifacts/navigation-${language}-${theme}.png`,
         Buffer.from(screenshot.data, 'base64'),
       );
+      const headerImage = await cdp('Page.captureScreenshot', {
+        format: 'png',
+        clip: { x: 0, y: 0, width: 1100, height: 245, scale: 1 },
+      });
+      await writeFile(
+        `artifacts/navigation-header-${language}-${theme}.png`,
+        Buffer.from(headerImage.data, 'base64'),
+      );
+      await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
       await cdp('Input.dispatchMouseEvent', {
         type: 'mousePressed',
         ...point,
@@ -432,6 +450,7 @@ try {
         headerPaddingAndKeyboardBack: true,
         hoverAndNoHorizontalOverflow: true,
         chevronLeftIconAndFullWidthBottomBorder: true,
+        restingHeaderMatchesSeparatorColor: true,
       });
     }
   assert.deepEqual(errors, []);
