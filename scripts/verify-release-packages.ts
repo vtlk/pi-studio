@@ -83,6 +83,15 @@ try {
     const pe = await readZipText(windowsZip, 'Pi Studio/Pi Studio.exe', 512 * 1024 ** 2);
     if (!pe) throw Error('Missing Windows executable');
     verifyWindowsIcon(pe, await readFile('public/branding/pi-studio.ico'));
+    const addonNotice = await readZipText(
+      windowsZip,
+      'Pi Studio/resources/app/licenses/Node-addon-api-MIT.txt',
+    );
+    if (
+      !addonNotice ||
+      !addonNotice.equals(await readFile('third-party-licenses/Node-addon-api-MIT.txt'))
+    )
+      throw Error('Missing Windows Node-addon-api notice');
     for (const name of [
       'package.json',
       'lib/index.js',

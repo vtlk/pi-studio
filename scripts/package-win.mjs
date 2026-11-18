@@ -44,7 +44,7 @@ try {
     artifactName: 'electron',
     platform: 'win32',
     arch: 'x64',
-    cacheRoot: join(stage, 'cache'),
+    cacheRoot: process.env.PI_STUDIO_ELECTRON_CACHE ?? join(stage, 'cache'),
     checksums: { [electronArchive]: electronSha256 },
   });
   if (
@@ -86,6 +86,10 @@ try {
     await mkdir(resolve(target, '..'), { recursive: true });
     await cp(join(root, 'node_modules/@vscode/windows-process-tree', name), target);
   }
+  await cp(
+    join(root, 'third-party-licenses/Node-addon-api-MIT.txt'),
+    join(application, 'licenses/Node-addon-api-MIT.txt'),
+  );
   await cp(
     join(root, 'node_modules/@vscode/windows-process-tree/LICENSE'),
     join(application, 'licenses/Windows-process-tree-MIT.txt'),
