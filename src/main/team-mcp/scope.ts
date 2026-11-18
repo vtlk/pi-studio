@@ -9,7 +9,7 @@ import { hasTeamMcp } from '../../shared/builtinResources.ts';
 export async function teamScope(service: StudioService, run: TeamCaller) {
   return service.serialize(async () => {
     const store = await service.load();
-    const project = await store.projects.read(run.project.id);
+    const project = store.projects.snapshot(run.project.id);
     const root = await store.projects.directory(project.id);
     if (
       root !== run.projectRoot ||

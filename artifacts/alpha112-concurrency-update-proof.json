@@ -2,8 +2,8 @@
   "checkedAt": "2026-11-18T12:41:20.704010+00:00",
   "version": "0.2.0-alpha.112",
   "regression": {
-    "tests": 551,
-    "passed": 550,
+    "tests": 552,
+    "passed": 551,
     "failed": 0,
     "optInNativePermissionProbeSkipped": 1
   },
@@ -20,7 +20,9 @@
     "nativePiSdkBusyReuseAndOtherAgentFileReadWithDeliberatelyHeldPersistence": "passed isolated local-model SDK smoke",
     "heartbeatBypassesAccountingFifo": true,
     "oneAgentScanErrorDoesNotHideOtherAgents": true,
-    "deadOwnedChildNotReplacedByNumericPidLiveness": true
+    "deadOwnedChildNotReplacedByNumericPidLiveness": true,
+    "teamPermissionsAndMessagePollingNeverScanOutputs": true,
+    "refreshProfileComparisonNeverScansOutputs": true
   },
   "updates": {
     "reservationBlocksNewInvocationsBeforeWaitingForCurrentOnes": true,

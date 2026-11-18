@@ -24,7 +24,7 @@ export class AgentRefresh {
     );
   }
   private async readInputs(store: StudioStore, projectId: string, updateExisting: boolean) {
-    const project = await store.projects.read(projectId);
+    const project = store.projects.snapshot(projectId);
     if (
       !project.sourceTeamId ||
       !store.agentCatalog().teams.some((team) => team.id === project.sourceTeamId)

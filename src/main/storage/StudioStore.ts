@@ -239,7 +239,7 @@ export class StudioStore {
       };
     }
     if (command.kind === 'update-agents') {
-      const teamId = (await this.projects.read(command.projectId)).sourceTeamId;
+      const teamId = this.projects.snapshot(command.projectId).sourceTeamId;
       if (teamId) {
         const current = this.teamProfiles(teamId);
         if (

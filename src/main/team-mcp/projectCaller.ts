@@ -12,7 +12,7 @@ export async function projectCaller(
   stableId(projectId);
   return service.serialize(async () => {
     const store = await service.load();
-    const project = await store.projects.read(projectId);
+    const project = store.projects.snapshot(projectId);
     const sender =
       project.agents.find((item) => item.profile.id === agentId) ??
       (!agentId ? project.agents[0] : undefined);

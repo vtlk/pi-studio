@@ -442,3 +442,16 @@ test('team deletion revokes the removed sender and preserves output files; chain
     /MCP team отключён/,
   );
 });
+
+
+test('team status, current permissions and project message polling never recursively scan outputs', async (t) => {
+  const f = await fixture(t);
+  f.store.projects.read = async () => {
+    throw new Error('Team metadata polling must not scan files under the store lock');
+  };
+  const scope = await teamScope(f.service, f.run);
+  assert.equal(scope.root, f.directory);
+  assert.equal(scope.project.agents.length, 2);
+  assert.ok(await f.support.call(f.run, 'list_agents', {}));
+  assert.deepEqual(await f.support.projectMessages(f.project.id), []);
+});
