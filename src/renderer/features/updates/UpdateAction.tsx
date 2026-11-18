@@ -23,6 +23,7 @@ export function UpdateAction() {
   }).format(progress);
   return (
     <IconButton
+      className="update-action"
       title={
         state?.maintenanceError
           ? t('UpdateAction.temporaryUpdateFilesRetainedDetails')
@@ -63,6 +64,7 @@ export function UpdateAction() {
       ) : (
         <Download size={18} />
       )}
+      {state.offer && <span className="update-available-dot" aria-hidden="true" />}
     </IconButton>
   );
 }

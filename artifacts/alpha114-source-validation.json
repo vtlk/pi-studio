@@ -16,8 +16,10 @@
       "failed": 0
     },
     "richPreviewHeadlessProof": "artifacts/rich-preview-chat-proof.json",
-    "htmlSecurityHeadlessProof": "artifacts/html-preview-ui-proof.json"
+    "htmlSecurityHeadlessProof": "artifacts/html-preview-ui-proof.json",
+    "finalBuildAndUpdateDotHeadless": true
   },
   "nativeWindowsAcceptance": false,
-  "userAppOrProcessesChanged": false
+  "userAppOrProcessesChanged": false,
+  "finalUiCheckedAt": "2026-11-18T20:47:34.253009+00:00"
 }

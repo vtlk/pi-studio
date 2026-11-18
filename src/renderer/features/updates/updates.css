@@ -1,3 +1,16 @@
+.update-action {
+  position: relative;
+}
+.update-available-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  pointer-events: none;
+}
 .update-download-progress {
   display: inline-flex;
   width: 18px;

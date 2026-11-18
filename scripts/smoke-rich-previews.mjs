@@ -311,7 +311,7 @@ try {
         getLanguage: async () => ({ language, preference: language, revision: 0 }),
         getTheme: async () => ({ theme, preference: theme, revision: 0 }),
         setTheme: async (value) => ({ theme: (theme = value), preference: value, revision: 1 }),
-        getUpdateState: async () => ({ phase: 'idle', currentVersion: 'QA' }),
+        getUpdateState: async () => window.__qa.update ?? { phase: 'idle', currentVersion: 'QA' },
         getStartup: async () => ({ phase: 'ready', message: 'QA' }),
         getGitHubStar: async () => ({
           due: false,
@@ -630,6 +630,18 @@ try {
         'Rapid agent switches ignore stale process reads',
       );
       assert.deepEqual(await js('window.__qa.calls'), { launch: 0, commands: 0, saves: 0 });
+      await js(
+        `window.__qa.update={phase:'available',currentVersion:'QA',offer:{version:'QA-next',bytes:1000,notes:'QA',releaseUrl:'https://github.com/vtlk/pi-studio/releases'}}`,
+      );
+      await until(`!!document.querySelector('.update-available-dot')`);
+      assert.equal(
+        await js(
+          `getComputedStyle(document.querySelector('.update-available-dot')).backgroundColor`,
+        ),
+        'rgb(239, 68, 68)',
+      );
+      await js(`window.__qa.update={phase:'idle',currentVersion:'QA-next'}`);
+      await until(`!document.querySelector('.update-available-dot')`);
       checks.push({
         language,
         theme,
@@ -639,6 +651,7 @@ try {
         copyUnchanged: true,
         mp4FitResizeAndPlaybackPreserved: true,
         chatLiveOnlyAndRaceSafe: true,
+        updateDotTracksOffer: true,
       });
     }
   assert.deepEqual(errors, []);
