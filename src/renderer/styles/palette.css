@@ -29,6 +29,8 @@
   --line-soft: light-dark(#ececee, #454542);
   --border: var(--line);
   --separator: light-dark(#c9c9d0, #454542);
+  --project-header-bg: light-dark(#71717a, #454542);
+  --project-header-ink: light-dark(#fff, #f0eeea);
   --field-focus-border: light-dark(#52525b, #b6b3ad);
   --field-border: light-dark(#94949a, #77746d);
   --control-border: light-dark(#71717a, #77746d);

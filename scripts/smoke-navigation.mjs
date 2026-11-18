@@ -361,7 +361,7 @@ try {
       await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
       assert.equal(
         await js(
-          `(()=>{const s=getComputedStyle(document.querySelector('.project-header'));return s.backgroundColor!==s.borderBottomColor;})()`,
+          `(()=>{const s=getComputedStyle(document.querySelector('.project-header'));return s.backgroundColor!==${JSON.stringify(theme === 'light' ? 'rgb(113, 113, 122)' : 'rgb(69, 69, 66)')};})()`,
         ),
         true,
       );
@@ -378,7 +378,7 @@ try {
       await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1090, y: 20 });
       assert.equal(
         await js(
-          `(()=>{const s=getComputedStyle(document.querySelector('.project-header'));return s.backgroundColor===s.borderBottomColor;})()`,
+          `(()=>{const s=getComputedStyle(document.querySelector('.project-header'));return s.backgroundColor===${JSON.stringify(theme === 'light' ? 'rgb(113, 113, 122)' : 'rgb(69, 69, 66)')};})()`,
         ),
         true,
       );
@@ -387,6 +387,25 @@ try {
         `artifacts/navigation-${language}-${theme}.png`,
         Buffer.from(screenshot.data, 'base64'),
       );
+      if (language === 'ru' && theme === 'light')
+        await writeFile(
+          'artifacts/project-header-light-graphite.png',
+          Buffer.from(screenshot.data, 'base64'),
+        );
+      if (language === 'ru' && theme === 'dark') {
+        const variants = ['#2c2c2a', '#383836', '#454542'];
+        for (const [index, color] of variants.entries()) {
+          await js(
+            `document.documentElement.style.setProperty('--project-header-bg',${JSON.stringify(color)})`,
+          );
+          const variant = await cdp('Page.captureScreenshot', { format: 'png' });
+          await writeFile(
+            `artifacts/project-header-dark-variant-${index + 1}.png`,
+            Buffer.from(variant.data, 'base64'),
+          );
+        }
+        await js(`document.documentElement.style.removeProperty('--project-header-bg')`);
+      }
       const headerImage = await cdp('Page.captureScreenshot', {
         format: 'png',
         clip: { x: 0, y: 0, width: 1100, height: 245, scale: 1 },
@@ -450,7 +469,7 @@ try {
         headerPaddingAndKeyboardBack: true,
         hoverAndNoHorizontalOverflow: true,
         chevronLeftIconAndFullWidthBottomBorder: true,
-        restingHeaderMatchesSeparatorColor: true,
+        restingHeaderMatchesThemePalette: true,
       });
     }
   assert.deepEqual(errors, []);
