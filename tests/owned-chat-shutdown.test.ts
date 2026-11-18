@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import { EmbeddedChat } from '../src/main/pi/EmbeddedChat.ts';
 import { stopOwnedChat } from '../src/main/pi/stopOwnedChat.ts';
 
 for (const label of ['project agent', 'setup assistant']) {
@@ -70,4 +71,26 @@ test('Windows fallback kills only the owned PID tree, hidden, and waits for conf
   assert.match(String(call[0]), /taskkill.exe$/);
   assert.deepEqual(call[1], ['/PID', '12345', '/T', '/F']);
   assert.equal((call[2] as { windowsHide: boolean }).windowsHide, true);
+});
+
+test('quit admission is checked immediately before spawn, after asynchronous platform dependency discovery', async () => {
+  let checked = false;
+  await assert.rejects(
+    EmbeddedChat.start(
+      process.execPath,
+      'unused-bridge',
+      'unused-bootstrap',
+      { projectId: 'project', agentId: 'assistant' },
+      'run',
+      'model',
+      'off',
+      () => {},
+      () => {
+        checked = true;
+        throw new Error('Studio is closing');
+      },
+    ),
+    /Studio is closing/,
+  );
+  assert.equal(checked, true);
 });

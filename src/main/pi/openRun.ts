@@ -217,6 +217,7 @@ export async function openRun(
           run.record.model.id,
           run.record.model.thinkingLevel,
           () => state.dependencies.chatChanged?.(request),
+          () => state.assertUnchanged(request.projectId),
         );
         live.embedded = chat;
         // Track the actual child from spawn until exit, including a stalled startup/heartbeat.

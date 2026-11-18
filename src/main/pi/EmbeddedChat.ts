@@ -42,6 +42,7 @@ export class EmbeddedChat {
     model: string,
     thinkingLevel: string,
     changed: () => void,
+    beforeSpawn: () => void = () => {},
   ) {
     const bash =
       process.platform === 'win32' ? await findWindowsBash().catch(() => undefined) : undefined;
@@ -53,6 +54,8 @@ export class EmbeddedChat {
       [bash, git].filter((path): path is string => !!path).map(dirname),
       bash,
     );
+    // Windows shell/Git discovery may have yielded while Studio began quitting.
+    beforeSpawn();
     return new EmbeddedChat(
       node,
       bridge,
