@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-11-18T20:50:43.521Z",
+  "version": "0.2.0-alpha.114",
+  "sourceCommit": "c6e39253326f9445e2f87863e9e5593f051c76c7",
+  "sourceCommits": [
+    {
+      "platform": "darwin",
+      "sourceCommit": "c6e39253326f9445e2f87863e9e5593f051c76c7"
+    },
+    {
+      "platform": "win32",
+      "sourceCommit": "c6e39253326f9445e2f87863e9e5593f051c76c7"
+    }
+  ],
+  "compiledPayloadFilesComparedOnEachPlatform": 99,
+  "assets": [
+    {
+      "platform": "darwin",
+      "arch": "arm64",
+      "name": "Pi-Studio-0.2.0-alpha.114-mac-arm64.zip",
+      "bytes": 144519429,
+      "unpackedBytes": 331341692,
+      "sha256": "2289c3f23f9a3a12299fa774d621a472ae93e0d8a0dd62036e3b127153a08bd5"
+    },
+    {
+      "platform": "win32",
+      "arch": "x64",
+      "name": "Pi-Studio-0.2.0-alpha.114-win-x64.zip",
+      "bytes": 173168198,
+      "unpackedBytes": 418835679,
+      "sha256": "ae0e3d894b41542550a866fcc13128d614f0a8c43b4e4dcb62c003117674e7ca"
+    }
+  ],
+  "ed25519AndStreamedHashesVerified": true,
+  "macProductionExtractionAllCrcs": true,
+  "macDeepStrictSignaturePublisherIdArchitectureAndInventory": true,
+  "mainMatchesBuildOnAllVerifiedPlatforms": true,
+  "verifiedPlatforms": [
+    "darwin",
+    "win32"
+  ],
+  "ownMitLicenseOnAllVerifiedPlatforms": true,
+  "rendererNoticePackages": 129,
+  "windowsComparedOnlyWhenExplicitlyRequested": true,
+  "macElectronAndChromiumNotices": true,
+  "windowsCrc": true,
+  "windowsBrandedIconVerifiedInActualPe": true,
+  "windowsNativeProcessProbePayloadVerified": true,
+  "installedApplicationOrUserDataMutated": false,
+  "programsExecuted": false,
+  "buildsCreated": 0,
+  "nativeWindowsAcceptance": false,
+  "notarized": false,
+  "temporaryStagingRemoved": true,
+  "scope": "Actual signed archives and payload verification only; not real GitHub update/native Windows/final rights acceptance."
+}

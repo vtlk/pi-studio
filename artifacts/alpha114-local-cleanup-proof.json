@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-18T20:52:04.873414+00:00",
+  "version": "0.2.0-alpha.114",
+  "removedOwnedNeverExecutedBuild": "/Users/user1/Library/Caches/Pi Studio/builds/0.2.0-alpha.114/mac-arm64/Pi Studio.app",
+  "apparentBytesRemoved": 331341422,
+  "packageVerificationCompleteBeforeRemoval": true,
+  "retainedReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.114-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.114-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.114-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.114-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.114-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.114-win32-x64.update.json"
+  ],
+  "installedApplicationOrUserDataChanged": false,
+  "newChromeClones": 0
+}
