@@ -36,6 +36,10 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  prepareVoiceModel(): Promise<void>;
+  getVoiceModelState(): Promise<import('./voice').VoiceModelState>;
+  cancelVoiceModel(): Promise<void>;
+  requestVoiceMicrophone(): Promise<boolean>;
   prepareAgentRefresh(request: {
     projectId: string;
     updateExisting: boolean;
@@ -139,6 +143,13 @@ export interface DesktopApi {
   onRunFailure(listener: (notice: RunFailureNotice) => void): () => void;
   openSetupAssistant(): Promise<void>;
   chooseReferenceFiles(): Promise<ReferenceFile[]>;
+  stageDroppedFiles(files: File[]): Promise<ReferenceFile[]>;
+  stageClipboardImage(request: { bytes: ArrayBuffer }): Promise<ReferenceFile>;
+  importAgentFiles(request: {
+    projectId: string;
+    agentId: string;
+    ids: string[];
+  }): Promise<string[]>;
   releaseReferenceFiles(ids: string[]): Promise<void>;
   checkResource(resourceId: string): Promise<ResourceCheck>;
   installResource(resourceId: string): Promise<Resource>;
@@ -164,6 +175,10 @@ export interface PiCheck {
 }
 
 export const desktopChannels = {
+  prepareVoiceModel: 'studio:prepare-voice-model',
+  getVoiceModelState: 'studio:get-voice-model-state',
+  cancelVoiceModel: 'studio:cancel-voice-model',
+  requestVoiceMicrophone: 'studio:request-voice-microphone',
   prepareAgentRefresh: 'studio:prepare-agent-refresh',
   getChat: 'studio:chat-get',
   sendChat: 'studio:chat-send',
@@ -208,6 +223,9 @@ export const desktopChannels = {
   removeImageKey: 'studio:image-key-remove',
   checkImageConnection: 'studio:image-connection-check',
   chooseReferenceFiles: 'studio:choose-reference-files',
+  stageDroppedFiles: 'studio:stage-dropped-files',
+  stageClipboardImage: 'studio:stage-clipboard-image',
+  importAgentFiles: 'studio:import-agent-files',
   releaseReferenceFiles: 'studio:release-reference-files',
   saveSkill: 'studio:save-skill',
   deleteAgentData: 'studio:delete-agent-data',

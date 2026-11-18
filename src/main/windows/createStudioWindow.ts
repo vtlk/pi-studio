@@ -49,9 +49,40 @@ export function createStudioWindow(): BrowserWindow {
   window.on('close', () => {
     closing = true;
   });
-  session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
-    callback(false),
+  session.defaultSession.setPermissionCheckHandler(
+    (contents, permission, _origin, details) =>
+      contents === window.webContents &&
+      permission === 'media' &&
+      details.isMainFrame &&
+      details.mediaType === 'audio',
   );
+  session.defaultSession.setPermissionRequestHandler((contents, permission, callback, details) =>
+    callback(
+      contents === window.webContents &&
+        permission === 'media' &&
+        details.isMainFrame &&
+        'mediaTypes' in details &&
+        details.mediaTypes?.length === 1 &&
+        details.mediaTypes[0] === 'audio',
+    ),
+  );
+  // User HTML may execute only inside an opaque sandbox. It cannot navigate to
+  // file/http URLs, access Studio IPC, or receive microphone/camera permissions.
+  window.webContents.on('will-frame-navigate', (event) => {
+    if (!event.isMainFrame && event.url !== 'about:srcdoc') event.preventDefault();
+  });
+  session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+    // All app subframes are untrusted output previews; only already-inlined assets run there.
+    let childRequest = false;
+    if (details.webContentsId === window.webContents.id) {
+      try {
+        childRequest = details.resourceType === 'subFrame' || !!details.frame?.parent;
+      } catch {
+        childRequest = true;
+      } // a disposed child cannot initiate new work
+    }
+    callback({ cancel: childRequest });
+  });
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
     return { action: 'deny' };

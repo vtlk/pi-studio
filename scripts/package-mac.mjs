@@ -112,6 +112,7 @@ for (const [key, value] of Object.entries({
   CFBundleVersion: metadata.version.split('-')[0],
   LSMinimumSystemVersion: '13.0',
   NSHumanReadableCopyright: 'Pi Studio',
+  NSMicrophoneUsageDescription: 'Pi Studio uses the microphone for local voice input. Audio is processed on this computer.',
   NSAppleEventsUsageDescription: 'Pi Studio открывает диалоги Pi в одном окне Terminal.',
 }))
   execFileSync('/usr/bin/plutil', ['-replace', key, '-string', value, plist]);

@@ -1,0 +1,22 @@
+{
+  "Whisper-LICENSE.txt": {
+    "url": "https://raw.githubusercontent.com/openai/whisper/v20250625/LICENSE",
+    "sha256": "b5d65a59060e68c4ff940e1eddfa6f94b2d68fdf58ed7f4dd57721c997e35e9d"
+  },
+  "ONNX-Runtime-LICENSE.txt": {
+    "source": "Official Microsoft ONNX Runtime wheel",
+    "version": "1.32.0",
+    "url": "https://files.pythonhosted.org/packages/bd/ff/e14181a5315745007f06612d963c6f739b371452b089b5b8109c2379bd32/onnxruntime-1.32.0-cp311-cp311-win_arm64.whl",
+    "archiveSha256": "23361cdf98afac352d10aa7d9e0a10ceaeb02d38430fb693c6eff370196db62d",
+    "entry": "onnxruntime/LICENSE",
+    "sha256": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674"
+  },
+  "ONNX-Runtime-ThirdPartyNotices.txt": {
+    "source": "Official Microsoft ONNX Runtime wheel",
+    "version": "1.32.0",
+    "url": "https://files.pythonhosted.org/packages/bd/ff/e14181a5315745007f06612d963c6f739b371452b089b5b8109c2379bd32/onnxruntime-1.32.0-cp311-cp311-win_arm64.whl",
+    "archiveSha256": "23361cdf98afac352d10aa7d9e0a10ceaeb02d38430fb693c6eff370196db62d",
+    "entry": "onnxruntime/ThirdPartyNotices.txt",
+    "sha256": "bf8073fd6a112ac2a656bb60799652127e881689e51d37ad20df446cd5188b2d"
+  }
+}

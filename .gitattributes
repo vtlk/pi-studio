@@ -1,0 +1,3 @@
+
+# Supplemental license texts have byte-pinned hashes.
+third-party-licenses/*.txt -text

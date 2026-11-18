@@ -1,3 +1,6 @@
+import { VoiceInput } from '@/features/voice/VoiceInput';
+import { FileDropZone } from '@/shared/ui/FileDropZone';
+import { stageFiles } from '@/shared/ui/stageFiles';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoaderCircle, MessageSquare, Power, Send, Square, X } from 'lucide-react';
@@ -29,14 +32,9 @@ export function ChatPanel({
     { confirm } = useConfirm();
   const { state, error: readError } = useChat(target);
   const key = `${panels.draftScope}/${target.projectId}/${target.agentId}`;
-  const [draft, setDraft] = useState(() => panels.drafts.get(key) ?? '');
-  const [references, updateReferences] = useState<ReferenceAttachment[]>(
-    () => panels.attachments.get(key) ?? [],
-  );
-  const setReferences = (files: ReferenceAttachment[]) => {
-    updateReferences(files);
-    panels.setAttachments(key, files);
-  };
+  const draft = panels.drafts.get(key) ?? '';
+  const references = panels.attachments.get(key) ?? [];
+  const setReferences = (files: ReferenceAttachment[]) => panels.setAttachments(key, files);
   const [sending, setSending] = useState(false),
     [error, setError] = useState('');
   const [behavior, setBehavior] = useState<'steer' | 'followUp'>('followUp');
@@ -44,17 +42,15 @@ export function ChatPanel({
     stick = useRef(true),
     submitting = useRef(false);
   const updateDraft = (text: string) => {
-    setDraft(text);
     panels.setDraft(key, text);
   };
   const editorRequest = useRef('');
   useEffect(() => {
     if (state?.editorText && state.editorText.id !== editorRequest.current) {
       editorRequest.current = state.editorText.id;
-      setDraft(state.editorText.text);
-      panels.drafts.set(key, state.editorText.text);
+      panels.setDraft(key, state.editorText.text);
     }
-  }, [state?.editorText, panels.drafts, key]);
+  }, [state?.editorText, panels, key]);
   useEffect(() => {
     if (stick.current && transcript.current)
       transcript.current.scrollTop = transcript.current.scrollHeight;
@@ -86,6 +82,21 @@ export function ChatPanel({
       setSending(false);
     }
   };
+  const attach = async (files: File[], images = false) => {
+    let added: ReferenceAttachment[] = [];
+    try {
+      added = await stageFiles(files, images);
+      const previous = panels.attachments.get(key) ?? [];
+      if (previous.length + added.length > 32)
+        throw new Error(t('ReferenceAttachments.youCanAttachUpToReferencesPer'));
+      setReferences([...previous, ...added]);
+    } catch (error) {
+      if (added.length) void window.studio?.releaseReferenceFiles(added.map((file) => file.id));
+      setError(
+        error instanceof Error ? error.message : t('ReferenceAttachments.couldNotSelectFiles'),
+      );
+    }
+  };
   const stop = async () => {
     try {
       await window.studio?.abortChat(target);
@@ -94,9 +105,14 @@ export function ChatPanel({
     }
   };
   return (
-    <section
+    <FileDropZone
+      as="section"
+      ariaLabel={t('Chat.title', { name })}
+      label={t('Chat.dropFiles')}
       className={`pi-chat-panel${standalone ? ' pi-chat-standalone' : ''}`}
-      aria-label={t('Chat.title', { name })}
+      disabled={sending}
+      onFiles={(files) => void attach(files)}
+      onImages={(files) => void attach(files, true)}
     >
       <header className="pi-chat-header">
         <MessageSquare size={17} aria-hidden="true" />
@@ -206,15 +222,15 @@ export function ChatPanel({
           }}
         />
         <div className="pi-chat-composer-actions">
-          {target.projectId !== 'pi-setup-assistant' && (
+          {
             <ReferenceAttachments
               value={references}
               onChange={setReferences}
-              disabled={!ready || sending}
+              disabled={sending}
               retainOnUnmount
               compact
             />
-          )}
+          }
           {state?.working && (
             <Select
               label={t('Chat.queueMode')}
@@ -226,6 +242,15 @@ export function ChatPanel({
               ]}
             />
           )}
+          <VoiceInput
+            disabled={sending}
+            onText={(text) => {
+              const previous = panels.drafts.get(key) ?? '';
+              updateDraft(
+                (previous + (previous && !/\s$/.test(previous) ? ' ' : '') + text).slice(0, 200000),
+              );
+            }}
+          />
           <span className="pi-chat-composer-spacer" />
           {state?.working && (
             <IconButton title={t('Chat.stop')} onClick={() => void stop()}>
@@ -246,6 +271,6 @@ export function ChatPanel({
           </IconButton>
         </div>
       </footer>
-    </section>
+    </FileDropZone>
   );
 }

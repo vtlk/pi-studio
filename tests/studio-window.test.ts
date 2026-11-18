@@ -12,6 +12,9 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
   const data = await mkdtemp(join(tmpdir(), 'pistudio-window-recovery-'));
   t.after(() => rm(data, { recursive: true, force: true }));
   let recoveryDialogs = 0;
+  let permissionCheck: (...args: any[]) => boolean;
+  let permissionRequest: (...args: any[]) => void;
+  let beforeRequest: (...args: any[]) => void;
   class FakeWindow extends EventEmitter {
     static windows: FakeWindow[] = [];
     static getAllWindows() {
@@ -21,6 +24,7 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
     destroyed = false;
     loads = 0;
     webContents = Object.assign(new EventEmitter(), {
+      id: FakeWindow.windows.length + 1,
       setWindowOpenHandler() {},
       isDestroyed: () => this.destroyed,
     });
@@ -59,7 +63,21 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
       return {
         BrowserWindow: FakeWindow,
         nativeTheme: { shouldUseDarkColors: false },
-        session: { defaultSession: { setPermissionRequestHandler() {} } },
+        session: {
+          defaultSession: {
+            setPermissionRequestHandler(handler: typeof permissionRequest) {
+              permissionRequest = handler;
+            },
+            setPermissionCheckHandler(handler: typeof permissionCheck) {
+              permissionCheck = handler;
+            },
+            webRequest: {
+              onBeforeRequest(handler: typeof beforeRequest) {
+                beforeRequest = handler;
+              },
+            },
+          },
+        },
         app: { getPath: () => data },
         dialog: {
           showMessageBoxSync: () => 0,
@@ -79,6 +97,69 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
   }
   const first = instance.exports.createStudioWindow();
   assert.notEqual(first, background);
+  const contents = first.webContents;
+  assert.equal(
+    permissionCheck!(contents, 'media', '', { isMainFrame: true, mediaType: 'audio' }),
+    true,
+  );
+  assert.equal(
+    permissionCheck!(contents, 'media', '', { isMainFrame: false, mediaType: 'audio' }),
+    false,
+  );
+  assert.equal(
+    permissionCheck!(contents, 'media', '', { isMainFrame: true, mediaType: 'video' }),
+    false,
+  );
+  assert.equal(
+    permissionCheck!(background.webContents, 'media', '', {
+      isMainFrame: true,
+      mediaType: 'audio',
+    }),
+    false,
+  );
+  const requested = (details: unknown) => {
+    let granted;
+    permissionRequest!(
+      contents,
+      'media',
+      (value: boolean) => {
+        granted = value;
+      },
+      details,
+    );
+    return granted;
+  };
+  assert.equal(requested({ isMainFrame: true, mediaTypes: ['audio'] }), true);
+  assert.equal(requested({ isMainFrame: false, mediaTypes: ['audio'] }), false);
+  assert.equal(requested({ isMainFrame: true, mediaTypes: ['audio', 'video'] }), false);
+  const cancelled = (details: unknown) => {
+    let result;
+    beforeRequest!(details, (value: unknown) => {
+      result = value;
+    });
+    return result;
+  };
+  assert.deepEqual(
+    cancelled({ webContentsId: contents.id, resourceType: 'script', frame: { parent: {} } }),
+    { cancel: true },
+  );
+  assert.deepEqual(cancelled({ webContentsId: contents.id, resourceType: 'subFrame' }), {
+    cancel: true,
+  });
+  assert.deepEqual(
+    cancelled({ webContentsId: contents.id, resourceType: 'script', frame: { parent: null } }),
+    { cancel: false },
+  );
+  let blocked = false;
+  contents.emit('will-frame-navigate', {
+    isMainFrame: false,
+    url: 'file:///private',
+    preventDefault() {
+      blocked = true;
+    },
+  });
+  assert.equal(blocked, true);
+
   assert.equal(background.shown, 0);
   assert.ok(first.options.webPreferences.preload.endsWith('preload/index.cjs'));
   assert.equal(instance.exports.createStudioWindow(), first);

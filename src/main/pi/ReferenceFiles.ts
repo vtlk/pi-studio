@@ -46,7 +46,14 @@ type ImageConverter = (path: string, type: string) => Promise<Buffer>;
 export class ReferenceFiles {
   private selected = new Map<
     string,
-    { file: ReferenceFile; path: string; sha256: string; selectedAt: number; folder: string }
+    {
+      file: ReferenceFile;
+      path: string;
+      sha256: string;
+      selectedAt: number;
+      folder: string;
+      owned?: boolean;
+    }
   >();
   private convert?: ImageConverter;
   constructor(convert?: ImageConverter) {
@@ -55,11 +62,15 @@ export class ReferenceFiles {
   release(ids: unknown) {
     if (!Array.isArray(ids) || ids.length > 128 || ids.some((id) => typeof id !== 'string'))
       throw new Error(t('error.referenceFiles.invalidTemporaryReferenceList'));
-    for (const id of ids) this.selected.delete(id);
+    for (const id of ids) {
+      const item = this.selected.get(id);
+      this.selected.delete(id);
+      if (item?.owned) void rm(item.path, { force: true }).catch(() => {});
+    }
   }
   async select(paths: string[], folder: string): Promise<ReferenceFile[]> {
     for (const [id, item] of this.selected)
-      if (Date.now() - item.selectedAt > 4 * 3600_000) this.selected.delete(id);
+      if (Date.now() - item.selectedAt > 4 * 3600_000) this.release([id]);
     if (paths.length > 32 || this.selected.size + paths.length > 128)
       throw new Error(t('error.referenceFiles.selectNoMoreThanReferences'));
     const items = [];
@@ -77,6 +88,28 @@ export class ReferenceFiles {
     }
     for (const item of items) this.selected.set(item.file.id, item);
     return items.map((item) => item.file);
+  }
+  async paste(bytes: Uint8Array, directory: string, folder: string) {
+    await mkdir(directory, { recursive: true, mode: 0o700 });
+    const type = mediaType(Buffer.from(bytes), 'clipboard');
+    const extension = {
+      'image/png': 'png',
+      'image/jpeg': 'jpg',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+    }[type];
+    if (!extension || !bytes.length || bytes.length > 32 * 1024 ** 2)
+      throw new Error(t('Chat.invalidImage'));
+    const path = join(directory, `clipboard-${randomUUID()}.${extension}`);
+    await writeFile(path, bytes, { flag: 'wx', mode: 0o600 });
+    try {
+      const [file] = await this.select([path], folder);
+      this.selected.get(file.id)!.owned = true;
+      return file;
+    } catch (error) {
+      await rm(path, { force: true });
+      throw error;
+    }
   }
   validate(ids: unknown, folder: string, imageInput: boolean) {
     if (!Array.isArray(ids) || ids.length > 32 || new Set(ids).size !== ids.length)

@@ -403,3 +403,44 @@
   overflow-wrap: anywhere;
   margin: 0;
 }
+
+/* Keep input actions visible; attached files wrap below them as compact chips. */
+.pi-chat-panel.file-drop-zone {
+  position: absolute;
+}
+.pi-chat-composer .reference-attachments-compact {
+  display: contents;
+}
+.pi-chat-composer .reference-attachments-compact .reference-attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  order: 2;
+  flex: 1 0 100%;
+  max-height: 112px;
+  overflow: auto;
+  margin-top: 4px;
+}
+.pi-chat-composer .reference-attachment {
+  flex: 0 1 calc(50% - 3px);
+  min-width: 0;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 5px 30px 5px 6px;
+  border: 1px solid var(--separator);
+  border-radius: 6px;
+  gap: 6px;
+}
+.pi-chat-composer .reference-thumbnail {
+  width: 24px;
+  height: 24px;
+}
+.pi-chat-composer .reference-file-info {
+  flex: 1;
+}
+.pi-chat-composer .reference-file-name {
+  font-size: 12px;
+}
+.pi-chat-composer .reference-file-info small {
+  font-size: 10px;
+}

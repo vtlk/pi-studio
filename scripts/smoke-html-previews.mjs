@@ -41,6 +41,7 @@ const server = createServer(async (request, response) => {
 await new Promise((done) => server.listen(0, '127.0.0.1', done));
 let browser, socket;
 const errors = [];
+const contexts = new Map();
 try {
   browser = spawn(
     executable,
@@ -94,6 +95,7 @@ try {
   const pending = new Map();
   socket.onmessage = ({ data }) => {
     const message = JSON.parse(data);
+    if(message.method === 'Runtime.executionContextCreated' && message.params.context.auxData?.isDefault) contexts.set(message.params.context.auxData.frameId, message.params.context.id);
     if (message.method === 'Runtime.exceptionThrown')
       errors.push(
         message.params.exceptionDetails.exception?.description ||
@@ -133,6 +135,7 @@ try {
     mobile: false,
   });
   function fixture() {
+    if(window.top !== window) return;
     const params = new URL(location.href).searchParams;
     const language = params.get('language') || 'ru';
     let theme = params.get('theme') || 'light';
@@ -337,14 +340,11 @@ try {
     const tree = await cdp('Page.getFrameTree');
     const frame = tree.frameTree.childFrames?.find((child) => child.frame.url === 'about:srcdoc');
     assert.ok(frame, 'Sandboxed document frame exists');
-    const world = await cdp('Page.createIsolatedWorld', {
-      frameId: frame.frame.id,
-      worldName: 'qa-read-only-inspection',
-      grantUniveralAccess: false,
-    });
+    const contextId = contexts.get(frame.frame.id);
+    assert.ok(contextId, 'Real document main execution context');
     const value = await cdp('Runtime.evaluate', {
       expression,
-      contextId: world.executionContextId,
+      contextId,
       returnByValue: true,
     });
     if (value.exceptionDetails) throw Error(value.exceptionDetails.text);

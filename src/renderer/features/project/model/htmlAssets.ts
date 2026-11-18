@@ -6,6 +6,7 @@ export async function inlineHtmlAssets(
   template: HTMLTemplateElement,
   context: MarkdownFiles | undefined,
   signal: AbortSignal,
+  scripts = false,
 ) {
   let missing = false,
     remaining = 8 * 1024 * 1024,
@@ -33,6 +34,34 @@ export async function inlineHtmlAssets(
       missing = true;
     }
   }
+  if (scripts)
+    for (const script of template.content.querySelectorAll('script[src]')) {
+      const file = lookup(script.getAttribute('src') ?? '');
+      script.removeAttribute('src');
+      if (
+        !file ||
+        !/\.(?:m?js|cjs)$/i.test(file.name) ||
+        (file.size ?? 0) > 1_000_000 ||
+        ++count > 16
+      ) {
+        script.remove();
+        missing = true;
+        continue;
+      }
+      try {
+        const loaded =
+          window.studio && context && file.diskPath
+            ? await window.studio.readOutput({ projectId: context.projectId, path: file.diskPath })
+            : file;
+        signal.throwIfAborted();
+        if (typeof loaded.content !== 'string' || loaded.content.length > 1_000_000) throw Error();
+        script.textContent = loaded.content.replace(/<\/script/gi, '<\\/script');
+      } catch {
+        signal.throwIfAborted();
+        script.remove();
+        missing = true;
+      }
+    }
   for (const image of template.content.querySelectorAll('img[src]')) {
     signal.throwIfAborted();
     const reference = image.getAttribute('src') ?? '';

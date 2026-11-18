@@ -55,3 +55,18 @@ references. This checks the shipped notices and available source described by
 it does not reproduce the native binaries.
 
 Evidence: [alpha86-cua-source-availability-proof.json](../artifacts/alpha86-cua-source-availability-proof.json).
+
+## Local Whisper Turbo (2026-11-19)
+
+The browser voice worker bundles Transformers.js 4.3.2 and ONNX Runtime Web;
+model weights are downloaded only after explicit first microphone use, pinned
+to a revision, length and SHA-256 in the model manifest. Whisper's MIT notice
+is preserved from OpenAI's v20250625 source.
+
+The ONNX Runtime npm packages omit the complete upstream license/notices.
+The unmodified supplemental MIT license and ThirdPartyNotices were extracted
+from Microsoft's official ONNX Runtime 1.32.0 PyPI wheel, whose archive hash,
+entry names, URLs and full-text hashes are recorded in `voice-sources.json`.
+This documents the actual notice source; it does not assert that the wheel
+is the source of the shipped Web runtime. The collector pins these texts
+and the package verifier checks their complete byte preservation.

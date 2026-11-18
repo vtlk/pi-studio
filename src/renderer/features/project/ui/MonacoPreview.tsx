@@ -1,3 +1,4 @@
+import { useActiveCodePreview } from '../model/CodePreviewOptions';
 import { useEffect, useRef } from 'react';
 import * as monaco from 'monaco-editor/editor/editor.api.js';
 import 'monaco-editor/base/browser/ui/codicons/codicon/codicon.css';
@@ -42,6 +43,7 @@ export default function MonacoPreview({ file }: { file: OutputFile }) {
   const container = useRef<HTMLDivElement>(null);
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const { theme } = useTheme();
+  const wrap = useActiveCodePreview();
   useEffect(() => {
     const model = monaco.editor.createModel(
       file.content ?? '',
@@ -56,7 +58,7 @@ export default function MonacoPreview({ file }: { file: OutputFile }) {
       minimap: { enabled: false },
       fontSize: 14,
       scrollBeyondLastLine: false,
-      wordWrap: 'on',
+      wordWrap: wrap ? 'on' : 'off',
       lineNumbersMinChars: 3,
       padding: { top: 12, bottom: 12 },
       contextmenu: false,
@@ -99,5 +101,8 @@ export default function MonacoPreview({ file }: { file: OutputFile }) {
   useEffect(() => {
     editor.current?.updateOptions({ theme: `pistudio-${theme}` });
   }, [theme]);
+  useEffect(() => {
+    editor.current?.updateOptions({ wordWrap: wrap ? 'on' : 'off' });
+  }, [wrap]);
   return <div className="monaco-file-preview" ref={container} />;
 }

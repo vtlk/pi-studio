@@ -1,3 +1,4 @@
+import { VoiceDraftGuard } from '@/features/voice/VoiceDraftGuard';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ChatTarget } from '../../../shared/chat';
 import { t } from '../../../shared/i18n';
@@ -128,6 +129,7 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <VoiceDraftGuard />
       <span hidden data-unsaved-draft={hasDraft || undefined} />
     </ChatPanelsContext.Provider>
   );

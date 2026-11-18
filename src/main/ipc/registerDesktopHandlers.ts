@@ -1,3 +1,4 @@
+import { registerVoice } from '../voice/registerVoice';
 import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from './desktopInvoke.ts';
 import { registerTeamMessageHandlers } from '../team-mcp/registerTeamMessageHandlers';
@@ -99,6 +100,7 @@ export function registerDesktopHandlers(
     caller,
   );
   const references = new ReferenceFiles(referenceImage);
+  const voice = registerVoice(caller);
   const computer = createComputerSupport();
   registerComputerHandlers(computer, caller);
   const activity = new ProjectActivity();
@@ -164,6 +166,7 @@ export function registerDesktopHandlers(
     team,
     teamImports,
     computer,
+    references,
     browser,
     failureChanged,
     bootstraps: join(app.getPath('userData'), 'setup-bootstraps'),
@@ -199,6 +202,7 @@ export function registerDesktopHandlers(
     [
       browserAuth,
       startup,
+      voice,
       runs,
       setup,
       browser,

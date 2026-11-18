@@ -813,3 +813,13 @@
   touch-action: none;
   color: var(--muted);
 }
+
+/* One file row owns the hover/selection background, including its reveal action. */
+.file-tree-file-row:hover { background: var(--hover-soft); }
+.file-tree-file-row .file-tree-item,
+.file-tree-file-row .file-tree-item:hover { background: transparent; }
+.file-tree-file-row[data-selected]:hover { background: var(--pill-hover); }
+.file-tree-file-row[data-selected] .file-tree-reveal { color: var(--pill-ink); }
+.project-file-toolbar .preview-wrap-button { flex-shrink: 0; margin-left: auto; }
+.project-file-toolbar .preview-wrap-button + .copy-output-button { margin-left: 0; }
+.preview-wrap-button[aria-pressed='true'] { background: var(--hover-soft); }

@@ -22,6 +22,7 @@ export default defineConfig({
       alias: {
         '@': resolve('src/renderer'),
         'monaco-editor': resolve('node_modules/monaco-editor/esm/vs'),
+        'onnxruntime-web/dist': resolve('node_modules/onnxruntime-web/dist'),
       },
     },
     publicDir: false,

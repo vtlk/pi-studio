@@ -182,6 +182,7 @@ export function useNativeWorkspaceState() {
 
   return {
     projects,
+    reloadOutputs: reload,
     trashProjects,
     selectedProject,
     setProjectId,

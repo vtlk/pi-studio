@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { isGitHubStarState } from '../shared/githubStar';
 import { desktopChannels, type DesktopApi } from '../shared/contracts';
 import { runFailure } from '../shared/runFailure';
@@ -7,6 +7,10 @@ import { themeState, type ThemeState } from '../shared/appearance';
 import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 
 const desktopApi: DesktopApi = {
+  prepareVoiceModel: () => ipcRenderer.invoke(desktopChannels.prepareVoiceModel),
+  getVoiceModelState: () => ipcRenderer.invoke(desktopChannels.getVoiceModelState),
+  cancelVoiceModel: () => ipcRenderer.invoke(desktopChannels.cancelVoiceModel),
+  requestVoiceMicrophone: () => ipcRenderer.invoke(desktopChannels.requestVoiceMicrophone),
   prepareAgentRefresh: (request) =>
     ipcRenderer.invoke(desktopChannels.prepareAgentRefresh, request),
   getChat: (target) => ipcRenderer.invoke(desktopChannels.getChat, target),
@@ -107,6 +111,14 @@ const desktopApi: DesktopApi = {
   removeImageKey: (request) => ipcRenderer.invoke(desktopChannels.removeImageKey, request),
   checkImageConnection: (request) =>
     ipcRenderer.invoke(desktopChannels.checkImageConnection, request),
+  stageDroppedFiles: (files) =>
+    ipcRenderer.invoke(
+      desktopChannels.stageDroppedFiles,
+      files.map((file) => webUtils.getPathForFile(file)),
+    ),
+  stageClipboardImage: (request) =>
+    ipcRenderer.invoke(desktopChannels.stageClipboardImage, request),
+  importAgentFiles: (request) => ipcRenderer.invoke(desktopChannels.importAgentFiles, request),
   chooseReferenceFiles: () => ipcRenderer.invoke(desktopChannels.chooseReferenceFiles),
   releaseReferenceFiles: (ids) => ipcRenderer.invoke(desktopChannels.releaseReferenceFiles, ids),
   saveSkill: (request) => ipcRenderer.invoke(desktopChannels.saveSkill, request),

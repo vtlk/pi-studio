@@ -16,6 +16,7 @@ export function IconButton({
   disabled,
   busy = false,
   className,
+  pressed,
 }: {
   children: ReactNode;
   title: string;
@@ -24,12 +25,14 @@ export function IconButton({
   disabled?: boolean;
   busy?: boolean;
   className?: string;
+  pressed?: boolean;
 }) {
   return (
     <Tooltip label={title}>
       <button
         className={cx('icon-button', className)}
         aria-label={label ?? title}
+        aria-pressed={pressed}
         aria-busy={busy || undefined}
         onClick={onClick}
         disabled={disabled || busy}

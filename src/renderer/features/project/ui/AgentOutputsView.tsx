@@ -1,3 +1,6 @@
+import { FileDropZone } from '@/shared/ui/FileDropZone';
+import { stageFiles } from '@/shared/ui/stageFiles';
+import { CodePreviewOptions } from '../model/CodePreviewOptions';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { projectAgentOutputPath } from '../../../../shared/agentPaths';
@@ -35,16 +38,37 @@ export function AgentOutputsView({
   chatOpen?: boolean;
 }) {
   useTranslation(undefined, { i18n });
-  const { selectedProject } = useWorkspace();
+  const workspace = useWorkspace();
+  const { selectedProject } = workspace;
   const { ref, width } = useElementWidth();
   const files = listOutputFiles(agent.entries);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
   const [fileId, setFileId] = useState('');
   const selectFile = (id: string) => {
     onCloseSettings();
     setFileId(id);
   };
-  const selected = files.find(({ file }) => file.id === fileId) ?? files[0];
+  const selected =
+    files.find(({ file }) => file.id === fileId) ?? files.find(({ path }) => path.length === 1);
   const projectId = selectedProject?.id;
+  const importFiles = async (files: File[]) => {
+    if (!projectId || importing || !window.studio) return;
+    setImporting(true);
+    setImportError('');
+    let ids: string[] = [];
+    try {
+      const staged = await stageFiles(files);
+      ids = staged.map((file) => file.id);
+      await window.studio.importAgentFiles({ projectId, agentId: agent.profile.id, ids });
+      if ('reloadOutputs' in workspace) await workspace.reloadOutputs();
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : t('AgentOutputsView.importFailed'));
+    } finally {
+      await window.studio.releaseReferenceFiles(ids).catch(() => {});
+      setImporting(false);
+    }
+  };
   const shared = selectedProject?.workspaceMode === 'shared';
   const filesLabel = shared
     ? t('AgentOutputsView.sharedTeamFiles')
@@ -59,7 +83,12 @@ export function AgentOutputsView({
       ref={ref}
       style={{ gridTemplateColumns: `${actualWidth}px 8px minmax(0, 1fr)` }}
     >
-      <aside className="output-files-pane">
+      <FileDropZone
+        label={t('AgentOutputsView.dropFiles')}
+        className="output-files-pane"
+        disabled={importing}
+        onFiles={(files) => void importFiles(files)}
+      >
         <div className="project-column-heading output-files-heading">
           <Tooltip label={filesLabel} onlyWhenTruncated>
             <h2>{filesLabel}</h2>
@@ -77,7 +106,17 @@ export function AgentOutputsView({
           selectedFileId={settingsAgentId || chatOpen ? '' : (selected?.file.id ?? '')}
           onSelectFile={selectFile}
         />
-      </aside>
+        {importing && (
+          <p className="subtle" role="status">
+            {t('AgentOutputsView.importing')}
+          </p>
+        )}
+        {importError && (
+          <p className="error-message" role="alert">
+            {importError}
+          </p>
+        )}
+      </FileDropZone>
       <ResizeHandle
         label={t('AgentOutputsView.fileColumnWidth')}
         value={actualWidth}
@@ -86,77 +125,83 @@ export function AgentOutputsView({
         onChange={onTreeWidthChange}
       />
       <div className="output-preview-pane">
-        <div
-          className="output-preview-content"
-          inert={!!settingsAgentId || chatOpen}
-          aria-hidden={settingsAgentId || chatOpen ? true : undefined}
-        >
-          <OutputToolbar
-            file={selectedFile}
-            projectId={projectId}
-            filePath={
-              selected
-                ? [projectAgentOutputPath(selectedProject ?? {}, agent), ...selected.path]
-                    .filter(Boolean)
-                    .join('/')
-                : undefined
-            }
-          />
-          <SearchablePreview
-            enabled={
-              !settingsAgentId &&
-              !chatOpen &&
-              !!selectedFile &&
-              ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile))
-            }
-            ready={!loading && !error}
-            empty={!selectedFile?.content}
-            documentKey={`${projectId}:${agent.profile.id}:${selectedFile?.id}:${selectedFile?.fingerprint}`}
+        <CodePreviewOptions>
+          <div
+            className="output-preview-content"
+            inert={!!settingsAgentId || chatOpen}
+            aria-hidden={settingsAgentId || chatOpen ? true : undefined}
           >
-            {loading ? (
-              <p className="output-empty" role="status">
-                {t('AgentOutputsView.readingFile')}
-              </p>
-            ) : error ? (
-              <p className="error-message" role="alert">
-                {error}
-              </p>
-            ) : selected && selectedFile ? (
-              <div className="output-file-preview">
-                {selected.file.artifact ? (
-                  <ArtifactPreview file={selected.file} agent={agent} />
-                ) : (
-                  <OutputPreview
-                    key={`${selectedFile.id}:${selectedFile.fingerprint}`}
-                    file={selectedFile}
-                    markdownFiles={
-                      projectId && selectedFile.diskPath
-                        ? {
-                            projectId,
-                            path: selectedFile.diskPath,
-                            files: files.map(({ file }) => file),
-                            onSelect: selectFile,
-                          }
-                        : undefined
-                    }
-                  />
-                )}
-              </div>
-            ) : (
-              <p className="output-empty">{t('AgentOutputsView.noOutputFilesYet')}</p>
-            )}
-          </SearchablePreview>
-        </div>
-        {settingsAgentId && (
-          <AgentProfileEditor key={settingsAgentId} agentId={settingsAgentId} inline />
-        )}
-        {chatOpen && projectId && (
-          <ChatPanel
-            key={`${projectId}/${agent.profile.id}`}
-            target={{ projectId, agentId: agent.profile.id }}
-            name={agent.profile.name}
-          />
-        )}
+            <OutputToolbar
+              file={selectedFile}
+              projectId={projectId}
+              filePath={
+                selected
+                  ? [projectAgentOutputPath(selectedProject ?? {}, agent), ...selected.path]
+                      .filter(Boolean)
+                      .join('/')
+                  : undefined
+              }
+            />
+            <SearchablePreview
+              enabled={
+                !settingsAgentId &&
+                !chatOpen &&
+                !!selectedFile &&
+                ['text', 'markdown', 'json'].includes(getPreviewKind(selectedFile))
+              }
+              ready={!loading && !error}
+              empty={!selectedFile?.content}
+              documentKey={`${projectId}:${agent.profile.id}:${selectedFile?.id}:${selectedFile?.fingerprint}`}
+            >
+              {loading ? (
+                <p className="output-empty" role="status">
+                  {t('AgentOutputsView.readingFile')}
+                </p>
+              ) : error ? (
+                <p className="error-message" role="alert">
+                  {error}
+                </p>
+              ) : selected && selectedFile ? (
+                <div className="output-file-preview">
+                  {selected.file.artifact ? (
+                    <ArtifactPreview file={selected.file} agent={agent} />
+                  ) : (
+                    <OutputPreview
+                      key={`${selectedFile.id}:${selectedFile.fingerprint}`}
+                      file={selectedFile}
+                      markdownFiles={
+                        projectId && selectedFile.diskPath
+                          ? {
+                              projectId,
+                              path: selectedFile.diskPath,
+                              files: files.map(({ file }) => file),
+                              onSelect: selectFile,
+                            }
+                          : undefined
+                      }
+                    />
+                  )}
+                </div>
+              ) : (
+                <p className="output-empty">
+                  {files.length
+                    ? t('AgentOutputsView.selectAFile')
+                    : t('AgentOutputsView.noOutputFilesYet')}
+                </p>
+              )}
+            </SearchablePreview>
+          </div>
+          {settingsAgentId && (
+            <AgentProfileEditor key={settingsAgentId} agentId={settingsAgentId} inline />
+          )}
+          {chatOpen && projectId && (
+            <ChatPanel
+              key={`${projectId}/${agent.profile.id}`}
+              target={{ projectId, agentId: agent.profile.id }}
+              name={agent.profile.name}
+            />
+          )}
+        </CodePreviewOptions>
       </div>
     </div>
   );

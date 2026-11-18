@@ -16,6 +16,16 @@ import { registerNativeMenu } from './menu/registerNativeMenu';
 
 protocol.registerSchemesAsPrivileged([
   {
+    scheme: 'studio-voice',
+    privileges: {
+      standard: true,
+      secure: true,
+      stream: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+  {
     scheme: 'studio-media',
     privileges: {
       standard: true,

@@ -1,0 +1,20 @@
+.voice-input {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.voice-input small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.voice-input .error-message {
+  max-width: 260px;
+  color: var(--danger);
+}
+.voice-recording {
+  color: var(--danger);
+  background: var(--hover-soft);
+}

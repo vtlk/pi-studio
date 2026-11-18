@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import type { ReferenceFiles } from './ReferenceFiles';
+import type { PreparedRun } from './ContextBuilder';
 import { t } from '../../shared/i18n/index.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { mkdir } from 'node:fs/promises';
@@ -41,8 +44,10 @@ interface Options {
   mcpSecrets?: McpSecrets;
   browser?: BrowserSupport;
   computer?: ComputerSupport;
+  references?: ReferenceFiles;
 }
 export function createSetupAssistant(service: StudioService, options: Options) {
+  const chatScopes = new WeakMap<PreparedRun, { folder: string; imageInput: boolean }>();
   const administration = createAdministration(service, options);
   return new RunHost({
     mcpGroups: (run) => [
@@ -57,6 +62,24 @@ export function createSetupAssistant(service: StudioService, options: Options) {
     embedded: options.embedded,
     chatChanged: options.chatChanged,
     chatOpened: options.chatOpened,
+    chatAttachments: (run, ids) =>
+      service.serialize(async () => {
+        const store = await service.load();
+        const scope = chatScopes.get(run);
+        if (
+          !options.references ||
+          !scope ||
+          scope.folder !== store.folder ||
+          (await safePath(store.folder, '.pistudio/setup-assistant')) !== run.projectRoot
+        )
+          throw new Error(t('Chat.attachmentsUnavailable'));
+        const inputRun = {
+          ...run,
+          record: { ...run.record, runId: randomUUID(), attachments: undefined },
+        };
+        await options.references.attach(inputRun, ids, scope.folder, scope.imageInput);
+        return inputRun.record.attachments ?? [];
+      }),
     failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
     tools: setupTools,
@@ -147,6 +170,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         run.modelAuth = modelAuth;
         await options.browser?.bind(run, store.folder, path, selectedModel.imageInput);
         await options.computer?.bind(run, selectedModel.imageInput);
+        chatScopes.set(run, { folder: store.folder, imageInput: selectedModel.imageInput });
         return { run, piPath: path, piCheck };
       }),
     update: async (run, status, session, failure) => {

@@ -685,3 +685,6 @@ textarea:disabled {
   color: var(--text-disabled);
   opacity: 1;
 }
+
+.file-drop-zone { position: relative; min-width: 0; min-height: 0; }
+.file-drop-overlay { position: absolute; inset: 6px; z-index: 10; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 16px; border: 2px dashed var(--content-ink); border-radius: 6px; background: var(--surface); color: var(--ink); opacity: .95; pointer-events: none; text-align: center; }

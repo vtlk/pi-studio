@@ -1,4 +1,4 @@
-import { readFile, readdir, lstat } from 'node:fs/promises';
+import { readFile, readdir, lstat, realpath } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { Plugin } from 'vite';
@@ -19,6 +19,27 @@ export function bundledNotices(root: string): Plugin {
         const name = segments[0].startsWith('@') ? segments.slice(0, 2).join('/') : segments[0];
         packages.add(prefix + name);
       }
+      // Worker graphs are bundled separately. Transformers' browser distribution also
+      // embeds Jinja/tokenizers; keep their full upstream notices with the host bundle.
+      const workerPackages = [
+        '@huggingface/transformers',
+        '@huggingface/jinja',
+        '@huggingface/tokenizers',
+        'onnxruntime-web',
+        'onnxruntime-common',
+      ];
+      const addWorkerPackage = async (name: string) => {
+        const directory = await realpath(resolve(root, 'node_modules', name)).catch(() => '');
+        if (!directory || packages.has(directory)) return;
+        let pkg;
+        try {
+          pkg = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'));
+        } catch {
+          return;
+        } // isolated collector fixtures need no speech runtime
+        packages.add(directory);
+      };
+      for (const name of workerPackages) await addWorkerPackage(name);
       // Vite's generated preload/runtime helpers use virtual module IDs.
       packages.add(resolve(root, 'node_modules/vite'));
       const notices = new Map<string, { packages: string[]; files: string[]; text: string }>();
@@ -40,6 +61,23 @@ export function bundledNotices(root: string): Plugin {
             path: resolve(root, 'third-party-licenses/React-remove-scroll-bar-LICENSE.txt'),
             sha256: 'a79aae0c0f21990d9d963bb3c5a79cdcea9a46f8523ba55c58d7fe776b6ebc84',
           });
+        if (
+          ['onnxruntime-common', 'onnxruntime-web', '@huggingface/transformers'].includes(pkg.name)
+        ) {
+          const sources = JSON.parse(
+            await readFile(resolve(root, 'third-party-licenses/voice-sources.json'), 'utf8'),
+          );
+          const names =
+            pkg.name === '@huggingface/transformers'
+              ? ['Whisper-LICENSE.txt']
+              : ['ONNX-Runtime-LICENSE.txt', 'ONNX-Runtime-ThirdPartyNotices.txt'];
+          for (const name of names)
+            files.push({
+              name,
+              path: resolve(root, 'third-party-licenses', name),
+              sha256: sources[name].sha256,
+            });
+        }
         const hashes: string[] = [];
         let licenseFound = false;
         for (const file of files) {
