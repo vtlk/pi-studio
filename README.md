@@ -10,7 +10,7 @@ One agent researches, another creates, a third reviews.<br>Set up the workflow o
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/status-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Status: alpha" /> <img src="https://img.shields.io/badge/platforms-macOS_·_Windows_preview-FFD83D?style=flat-square&labelColor=252525" alt="macOS and Windows preview" />
 
-**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.110/Pi-Studio-0.2.0-alpha.110-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.110/Pi-Studio-0.2.0-alpha.110-win-x64.zip)**
+**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.110/Pi-Studio-0.2.0-alpha.110-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.111/Pi-Studio-0.2.0-alpha.111-win-x64.zip)**
 
 **[How it works](#one-team-many-projects)** &nbsp; · &nbsp; **[Models](#your-models-your-tools)** &nbsp; · &nbsp; **[Get started](#quick-start)**
 
@@ -129,13 +129,13 @@ Choose a connection and model for the assistant, then open its conversation unde
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.110/Pi-Studio-0.2.0-alpha.110-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.110/Pi-Studio-0.2.0-alpha.110-win-x64.zip)** |
+| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.110/Pi-Studio-0.2.0-alpha.110-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.111/Pi-Studio-0.2.0-alpha.111-win-x64.zip)** |
 | **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Version** | alpha.110 | alpha.110 · preview |
+| **Version** | alpha.110 | alpha.111 · preview |
 
 > **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. Full native Windows validation remains in progress.
 
-[What's new in alpha.110 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.110)
+[What's new in alpha.111 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.111)
 
 Windows agents use native PowerShell; Git Bash is optional. Computer Use now has the same yellow frame and pointer on Windows, and visible Browser Use can install an isolated Windows Chrome. Feedback stays for five seconds between calls. The Windows EXE uses the Pi Studio icon, and confirmed exit waits for owned Pi processes, including the setup assistant.
 
