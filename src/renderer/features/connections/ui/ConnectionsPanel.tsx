@@ -31,21 +31,6 @@ export function ConnectionsPanel() {
       <h2>{t('ConnectionsPanel.connections')}</h2>
       <p>{t('ConnectionsPanel.eachAgentHasOneModelAndOne')}</p>
       <div className="resource-catalog">
-        <AddArea
-          label={t('ConnectionEditor.addConnection')}
-          onClick={() =>
-            setEdit({
-              id: crypto.randomUUID(),
-              name: '',
-              purpose: 'pi',
-              authScope: 'connection',
-              providerId: '',
-              endpoint: '',
-              account: '',
-              createdAt: Date.now(),
-            })
-          }
-        />
         {connections.map((connection) => {
           const uses = (agent: Pick<(typeof agents)[number], 'model'>) =>
             agent.model?.connectionId === connection.id;
@@ -124,6 +109,21 @@ export function ConnectionsPanel() {
             </div>
           );
         })}
+        <AddArea
+          label={t('ConnectionEditor.addConnection')}
+          onClick={() =>
+            setEdit({
+              id: crypto.randomUUID(),
+              name: '',
+              purpose: 'pi',
+              authScope: 'connection',
+              providerId: '',
+              endpoint: '',
+              account: '',
+              createdAt: Date.now(),
+            })
+          }
+        />
         {edit && <ConnectionEditor key={edit.id} connection={edit} onClose={() => setEdit(null)} />}
       </div>
       <ImageToolSettings />
