@@ -32,6 +32,7 @@ import { useNotice } from '@/shared/model/Notice';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { cx } from '@/shared/ui';
 import { AgentListLabel } from './AgentListLabel';
+import { useTeamDisclosure } from '../model/useTeamDisclosure';
 import { SetupAssistantAction } from './SetupAssistantAction';
 
 export function AgentList() {
@@ -54,6 +55,7 @@ export function AgentList() {
   const { demo } = useNotice();
   const { confirm } = useConfirm();
   const transfer = useTeamTransfers();
+  const disclosure = useTeamDisclosure();
   const [naming, setNaming] = useState<{
     id?: string;
     name?: string;
@@ -80,7 +82,8 @@ export function AgentList() {
                 label={team.name}
                 chevronPosition="start"
                 separator
-                defaultOpen
+                open={disclosure.isOpen(team.id)}
+                onOpenChange={(open) => disclosure.setOpen(team.id, open)}
                 actions={
                   <>
                     <IconButton

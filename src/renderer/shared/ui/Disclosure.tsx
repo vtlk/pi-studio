@@ -6,6 +6,8 @@ export function Disclosure({
   label,
   children,
   defaultOpen = false,
+  open: controlledOpen,
+  onOpenChange,
   chevronPosition,
   separator,
   icon,
@@ -18,6 +20,8 @@ export function Disclosure({
   label: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   chevronPosition?: ListRowProps['chevronPosition'];
   separator?: ListRowProps['separator'];
   icon?: ListRowProps['icon'];
@@ -27,7 +31,8 @@ export function Disclosure({
   dragHandle?: ReactNode;
   actions?: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? internalOpen;
   const contentId = useId();
   const triggerId = useId();
   return (
@@ -46,7 +51,10 @@ export function Disclosure({
         chevronPosition={chevronPosition}
         separator={separator}
         controls={contentId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (controlledOpen === undefined) setInternalOpen(!open);
+          onOpenChange?.(!open);
+        }}
       />
       <div
         className="disclosure-content"

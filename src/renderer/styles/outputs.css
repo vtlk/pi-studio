@@ -11,13 +11,53 @@
   flex-shrink: 0;
   align-items: center;
   gap: 24px;
+  border-bottom: 1px solid var(--separator);
+  cursor: pointer;
+}
+.project-header:hover {
+  background: #171717;
 }
 .project-header h1 {
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.project-header > .button {
+.project-header .project-back {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.project-header .project-back:hover {
+  background: transparent;
+  color: inherit;
+}
+.project-back svg {
+  flex-shrink: 0;
+}
+.project-back span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  cursor: default;
+}
+.project-header-actions > .button {
   flex-shrink: 0;
 }
 .project-files-layout {

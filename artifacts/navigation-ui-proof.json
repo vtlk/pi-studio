@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-11-18T15:29:28.687Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "collapsedAndExpandedTeamsPersistAcrossNavigationAndReload": true,
+      "studioIsolation": true,
+      "exactProjectRemembered": true,
+      "explicitBackRemembersList": true,
+      "refreshDoesNotNavigateOrMutate": true,
+      "headerPaddingAndKeyboardBack": true,
+      "hoverAndNoHorizontalOverflow": true,
+      "chevronLeftIconAndFullWidthBottomBorder": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "collapsedAndExpandedTeamsPersistAcrossNavigationAndReload": true,
+      "studioIsolation": true,
+      "exactProjectRemembered": true,
+      "explicitBackRemembersList": true,
+      "refreshDoesNotNavigateOrMutate": true,
+      "headerPaddingAndKeyboardBack": true,
+      "hoverAndNoHorizontalOverflow": true,
+      "chevronLeftIconAndFullWidthBottomBorder": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "collapsedAndExpandedTeamsPersistAcrossNavigationAndReload": true,
+      "studioIsolation": true,
+      "exactProjectRemembered": true,
+      "explicitBackRemembersList": true,
+      "refreshDoesNotNavigateOrMutate": true,
+      "headerPaddingAndKeyboardBack": true,
+      "hoverAndNoHorizontalOverflow": true,
+      "chevronLeftIconAndFullWidthBottomBorder": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "collapsedAndExpandedTeamsPersistAcrossNavigationAndReload": true,
+      "studioIsolation": true,
+      "exactProjectRemembered": true,
+      "explicitBackRemembersList": true,
+      "refreshDoesNotNavigateOrMutate": true,
+      "headerPaddingAndKeyboardBack": true,
+      "hoverAndNoHorizontalOverflow": true,
+      "chevronLeftIconAndFullWidthBottomBorder": true
+    }
+  ],
+  "scope": "Production compiled renderer in an isolated pinned headless shell with mock native APIs; not native platform acceptance",
+  "userAppOrDataChanged": false,
+  "realPiLaunches": 0,
+  "version": "0.2.0-alpha.113"
+}

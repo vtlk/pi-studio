@@ -7,6 +7,7 @@ import { UpdateAction } from '@/features/updates/UpdateAction';
 import { LanguageSelect } from '@/shared/ui/LanguageSelect';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useOnboarding } from '@/features/onboarding/Onboarding';
+import { useWorkspace } from '@/features/project/model/Workspace';
 import { PiProcesses } from '@/features/chat/PiProcesses';
 
 const sections: { page: Page; label: import('../../../shared/i18n').MessageKey }[] = [
@@ -15,7 +16,8 @@ const sections: { page: Page; label: import('../../../shared/i18n').MessageKey }
 ];
 export function Topbar() {
   useTranslation(undefined, { i18n });
-  const { page, navigate } = useNavigation();
+  const { page, navigate, openProjects } = useNavigation();
+  const { selectedProject } = useWorkspace();
   const onboarding = useOnboarding();
   const { isDesktop, saving, recentlySaved, error } = useStorage();
   return (
@@ -29,7 +31,10 @@ export function Topbar() {
                 ? 'page'
                 : undefined
             }
-            onClick={() => navigate(section.page)}
+            onClick={() => {
+              if (section.page === 'projects' && selectedProject) openProjects();
+              else navigate(section.page);
+            }}
           >
             {t(section.label)}
           </button>

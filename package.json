@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.112",
+  "version": "0.2.0-alpha.113",
   "private": true,
   "description": "Pi Studio — харнес для конвейерных производств на базе команд агентов Pi",
   "type": "module",
@@ -108,7 +108,8 @@
     "test:pi-chat": "node --experimental-strip-types scripts/smoke-pi-chat.ts",
     "test:chat-ui": "npm run build && node scripts/smoke-chat-ui.cjs",
     "test:pi-chat-chain": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --embedded",
-    "test:agent-refresh": "node --experimental-strip-types scripts/smoke-agent-refresh.ts"
+    "test:agent-refresh": "node --experimental-strip-types scripts/smoke-agent-refresh.ts",
+    "test:navigation": "npm run build && node scripts/smoke-navigation.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

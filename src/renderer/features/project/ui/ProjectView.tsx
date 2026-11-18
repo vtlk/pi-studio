@@ -1,9 +1,8 @@
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
-import { TeamMessages } from './TeamMessages';
+import { ProjectHeader } from './ProjectHeader';
 import { useState } from 'react';
-import { Pause, Play, RefreshCw } from 'lucide-react';
-import { Button } from '@/shared/ui';
+import { Pause, Play } from 'lucide-react';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useWorkspace } from '../model/Workspace';
 import type { WorkspaceProject } from '../model/workspace.types';
@@ -60,14 +59,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
     ) ?? project.agents[0];
   return (
     <div className="project-workspace">
-      <div className="project-header">
-        <h1>{project.name}</h1>
-        {window.studio && <TeamMessages project={project} />}
-        <Button kind="primary" onClick={() => setRefreshOpen(true)}>
-          <RefreshCw size={17} />
-          {t('ProjectView.refreshAgents2')}
-        </Button>
-      </div>
+      <ProjectHeader project={project} onRefresh={() => setRefreshOpen(true)} />
       <div
         className="project-files-layout"
         ref={ref}

@@ -1762,5 +1762,6 @@
   "error.sessionLease.nativeAccess": "Windows не разрешила прочитать команду процесса {{pid}}. Нельзя подтвердить, что прежний диалог Pi закрыт.",
   "error.invocationGate.waitTimedOut": "Не удалось дождаться завершения текущей операции Studio. Установка приостановлена. Дождитесь её завершения и повторите обновление.",
   "error.invocationGate.waitCancelled": "Установка обновления отменена.",
-  "Chat.loading": "Загружаем диалог…"
+  "Chat.loading": "Загружаем диалог…",
+  "ProjectView.backToProjects": "Вернуться к списку проектов"
 }

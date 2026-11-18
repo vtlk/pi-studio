@@ -1762,5 +1762,6 @@
   "error.sessionLease.nativeAccess": "Windows did not allow reading the command of process {{pid}}. Closure of the previous Pi dialogue cannot be confirmed.",
   "error.invocationGate.waitTimedOut": "The current Studio operation did not finish in time. Installation is paused. Wait for it to finish and retry the update.",
   "error.invocationGate.waitCancelled": "Update installation was cancelled.",
-  "Chat.loading": "Loading conversation…"
+  "Chat.loading": "Loading conversation…",
+  "ProjectView.backToProjects": "Back to projects"
 }

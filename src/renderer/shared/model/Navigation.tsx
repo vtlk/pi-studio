@@ -1,15 +1,29 @@
 import { NavigationContext } from './Navigation.context';
-import { useContext, useState, type ReactNode } from 'react';
+import { useContext, useRef, useState, type ReactNode } from 'react';
 
 export type Page = 'project' | 'projects' | 'agents' | 'settings' | 'onboarding';
 function useNavigationState() {
-  const [page, setPage] = useState<Page>('projects');
+  const [page, updatePage] = useState<Page>('projects');
+  const projectsPage = useRef<'project' | 'projects'>('projects');
+  const setPage = (next: Page) => {
+    if (next === 'project' || next === 'projects') projectsPage.current = next;
+    updatePage(next);
+  };
+  const openProjects = () => setPage(projectsPage.current);
   const [settingsSection, setSettingsSection] = useState('workspace');
   const openSettings = (section: string) => {
     setSettingsSection(section);
     setPage('settings');
   };
-  return { page, setPage, navigate: setPage, settingsSection, setSettingsSection, openSettings };
+  return {
+    page,
+    setPage,
+    navigate: setPage,
+    openProjects,
+    settingsSection,
+    setSettingsSection,
+    openSettings,
+  };
 }
 export type NavigationContextValue = ReturnType<typeof useNavigationState> | null;
 export function NavigationProvider({ children }: { children: ReactNode }) {
