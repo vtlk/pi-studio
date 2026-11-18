@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-18T20:44:58.517662+00:00",
+  "version": "0.2.0-alpha.114",
+  "checks": {
+    "typecheckAndNativeBuild": true,
+    "eslint": true,
+    "architectureModules": 461,
+    "fullTests": {
+      "total": 557,
+      "passed": 556,
+      "skipped": 1,
+      "skip": "Opt-in native desktop-permission test; no permission probes run"
+    },
+    "upstreamNoticeCollectorAfterFinalChange": {
+      "passed": 6,
+      "failed": 0
+    },
+    "richPreviewHeadlessProof": "artifacts/rich-preview-chat-proof.json",
+    "htmlSecurityHeadlessProof": "artifacts/html-preview-ui-proof.json"
+  },
+  "nativeWindowsAcceptance": false,
+  "userAppOrProcessesChanged": false
+}

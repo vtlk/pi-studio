@@ -1,7 +1,7 @@
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { ProjectHeader } from './ProjectHeader';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pause, Play } from 'lucide-react';
 import { SectionMenu } from '@/shared/ui/SectionMenu';
 import { useWorkspace } from '../model/Workspace';
@@ -25,6 +25,8 @@ import { useChatPanels } from '@/features/chat/ChatPanels.context';
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   useTranslation(undefined, { i18n });
   const chats = useChatPanels();
+  const cancelChatSelection = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => cancelChatSelection.current?.(), []);
   const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
   const { connections } = useConnections();
   const { ref, width } = useElementWidth();
@@ -137,6 +139,11 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
             onSelect={(id) => {
               closeSettings();
               setAgentId(id);
+              cancelChatSelection.current?.();
+              cancelChatSelection.current = chats.showRunning({
+                projectId: project.id,
+                agentId: id,
+              });
             }}
           />
         </aside>

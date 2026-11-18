@@ -4,7 +4,7 @@ import { t, i18n } from '../../../../shared/i18n/index.ts';
 import type { OutputFile } from '../model/workspace.types';
 import type { MarkdownFiles } from '../model/markdownFiles';
 import { htmlDocument } from '../model/htmlDocument';
-import { SearchablePreview } from './SearchablePreview';
+import { CodePreview } from './CodePreview';
 
 export function HtmlPreview({ file, files }: { file: OutputFile; files?: MarkdownFiles }) {
   useTranslation(undefined, { i18n });
@@ -50,14 +50,7 @@ export function HtmlPreview({ file, files }: { file: OutputFile; files?: Markdow
         <small>{t('HtmlPreview.restrictions')}</small>
       </div>
       {source ? (
-        <SearchablePreview
-          enabled
-          ready
-          empty={!file.content}
-          documentKey={file.id + ':' + file.fingerprint}
-        >
-          <pre className="output-text output-code">{file.content}</pre>
-        </SearchablePreview>
+        <CodePreview file={file} />
       ) : failed ? (
         <p className="error-message" role="alert">
           {t('HtmlPreview.failed')}

@@ -1,3 +1,5 @@
+import { CodePreview } from './CodePreview';
+import { Mp4Preview } from './Mp4Preview';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import type { OutputFile } from '../model/workspace.types';
@@ -22,6 +24,8 @@ export function OutputPreview({
     </p>
   );
   switch (getPreviewKind(file)) {
+    case 'code':
+      return <CodePreview file={file} />;
     case 'html':
       return <HtmlPreview file={file} files={markdownFiles} />;
     case 'markdown':
@@ -57,6 +61,7 @@ export function OutputPreview({
         </div>
       );
     case 'video':
+      if (/\.mp4$/i.test(file.name)) return <Mp4Preview file={file} />;
       return (
         <div className="media-example">
           <video

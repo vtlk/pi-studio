@@ -8,6 +8,7 @@ export interface ChatPanelsValue {
   opening: boolean;
   open: (target: ChatTarget, autoContinue?: boolean) => Promise<void>;
   show: (target: ChatTarget) => void;
+  showRunning: (target: ChatTarget) => () => void;
   hide: () => void;
   hideFor: (target: ChatTarget) => void;
   drafts: Map<string, string>;

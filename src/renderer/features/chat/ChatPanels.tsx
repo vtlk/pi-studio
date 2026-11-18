@@ -11,11 +11,24 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [opening, setOpening] = useState<string[]>([]);
   const pending = useRef(new Map<string, Promise<void>>());
+  const selection = useRef(0);
+  const show = (next: ChatTarget | null) => {
+    selection.current++;
+    setTarget(next);
+  };
   const drafts = useRef(new Map<string, string>());
   const attachments = useRef(new Map<string, ReferenceAttachment[]>());
   const [, updateDrafts] = useState(0);
-  useEffect(() => window.studio?.onChatOpened(setTarget), []);
+  useEffect(
+    () =>
+      window.studio?.onChatOpened((next) => {
+        selection.current++;
+        setTarget(next);
+      }),
+    [],
+  );
   useEffect(() => {
+    selection.current++;
     setTarget(null);
   }, [bootstrap?.folder]);
   const hasDraft =
@@ -31,7 +44,7 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [hasDraft]);
   const open = (next: ChatTarget, autoContinue = false) => {
-    setTarget(next);
+    show(next);
     const key = `${next.projectId}/${next.agentId}`;
     const current = pending.current.get(key);
     if (current) return current;
@@ -65,14 +78,40 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
       value={{
         target,
         open,
-        show: setTarget,
-        hide: () => setTarget(null),
-        hideFor: (target) =>
+        show,
+        showRunning: (next) => {
+          const revision = ++selection.current;
+          let cancelled = false;
+          // Metadata only: never launch, save, send input or probe the OS here.
+          void window.studio
+            ?.listPiProcesses()
+            .then((processes) => {
+              if (
+                !cancelled &&
+                selection.current === revision &&
+                processes.some(
+                  (process) =>
+                    process.embedded &&
+                    process.projectId === next.projectId &&
+                    process.agentId === next.agentId,
+                )
+              )
+                setTarget(next);
+            })
+            .catch(() => {});
+          return () => {
+            cancelled = true;
+          };
+        },
+        hide: () => show(null),
+        hideFor: (target) => {
+          selection.current++;
           setTarget((current) =>
             current?.projectId === target.projectId && current.agentId === target.agentId
               ? null
               : current,
-          ),
+          );
+        },
         error: errors[key] ?? '',
         opening: opening.includes(key),
         drafts: drafts.current,

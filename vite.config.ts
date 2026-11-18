@@ -5,7 +5,12 @@ import { resolve } from 'node:path';
 export default defineConfig({
   root: 'src/renderer',
   publicDir: resolve('public'),
-  resolve: { alias: { '@': resolve('src/renderer') } },
+  resolve: {
+    alias: {
+      '@': resolve('src/renderer'),
+      'monaco-editor': resolve('node_modules/monaco-editor/esm/vs'),
+    },
+  },
   plugins: [
     react(),
     {

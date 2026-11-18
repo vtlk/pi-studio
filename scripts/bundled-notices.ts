@@ -27,7 +27,11 @@ export function bundledNotices(root: string): Plugin {
       for (const directory of [...packages].sort()) {
         const pkg = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'));
         const files: { name: string; path: string; sha256?: string }[] = (await readdir(directory))
-          .filter((name) => /^(?:licen[cs]e|copying|notice|authors)(?:$|[._-])/i.test(name))
+          .filter((name) =>
+            /^(?:licen[cs]e|copying|notice|authors)(?:$|[._-])|^third[-_ ]?party[-_ ]?notices?(?:$|[._-])/i.test(
+              name,
+            ),
+          )
           .sort()
           .map((name) => ({ name, path: join(directory, name) }));
         if (pkg.name === 'react-remove-scroll-bar' && pkg.version === '2.3.8')

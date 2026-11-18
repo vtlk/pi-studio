@@ -11,7 +11,7 @@ import {
 } from '../scripts/audit/bundledNotices.ts';
 
 async function collect(
-  extra: { name: string; version: string; text?: string }[] = [],
+  extra: { name: string; version: string; text?: string; notices?: string }[] = [],
   supplemental?: Buffer,
 ) {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-notices-test-'));
@@ -34,6 +34,8 @@ async function collect(
         }),
       );
       if (pkg.text !== undefined) await writeFile(join(directory, 'LICENSE'), pkg.text);
+      if ('notices' in pkg && typeof pkg.notices === 'string')
+        await writeFile(join(directory, 'ThirdPartyNotices.txt'), pkg.notices);
       modules.push(join(directory, 'index.js'));
     }
     await mkdir(join(root, 'third-party-licenses'));
@@ -154,4 +156,21 @@ test('collector accepts the pinned supplemental notice and rejects changes to it
     collect([pkg], Buffer.concat([supplemental, Buffer.from('Changed')])),
     /Supplemental license changed/,
   );
+});
+
+test('collector preserves upstream ThirdPartyNotices alongside the package license', async () => {
+  const { bytes, manifest } = await collect([
+    {
+      name: 'editor-fixture',
+      version: '1.0.0',
+      text: 'MIT editor fixture',
+      notices: 'Unmodified upstream third-party copyright',
+    },
+  ]);
+  assert.ok(bytes.includes(Buffer.from('Unmodified upstream third-party copyright')));
+  assert.equal(
+    manifest.packages.find((pkg) => pkg.name === 'editor-fixture')?.noticeHashes.length,
+    2,
+  );
+  verifyBundledNotices(bytes, manifest);
 });

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-18T20:03:08.957Z",
+  "checkedAt": "2026-11-18T20:44:46.527Z",
   "checks": [
     {
       "language": "ru",
@@ -93,12 +93,5 @@
   "actualProbeRequests": 0,
   "nativeExplorerOrFinderOpened": false,
   "userAppOrDataChanged": false,
-  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance.",
-  "regression": {
-    "tests": 554,
-    "passed": 553,
-    "skippedOptInNativePermissions": 1,
-    "failed": 0
-  },
-  "nativeRevealFsValidation": "passed exact large file, traversal/private path/symlink guards, blocked mutation queue; OS opener stub"
+  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance."
 }

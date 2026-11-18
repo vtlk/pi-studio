@@ -1772,5 +1772,7 @@
   "HtmlPreview.missing": "Некоторые локальные ресурсы не удалось загрузить.",
   "HtmlPreview.title": "Предпросмотр HTML: {{name}}",
   "HtmlPreview.loading": "Готовим предпросмотр…",
-  "OutputFileTree.couldNotRevealFile": "Не удалось показать файл. Возможно, он перемещён или удалён."
+  "OutputFileTree.couldNotRevealFile": "Не удалось показать файл. Возможно, он перемещён или удалён.",
+  "Mp4Preview.fit": "Вписать видео",
+  "Mp4Preview.resize": "Изменить размер видео"
 }

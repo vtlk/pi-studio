@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.113",
+  "version": "0.2.0-alpha.114",
   "private": true,
   "description": "Pi Studio — харнес для конвейерных производств на базе команд агентов Pi",
   "type": "module",
@@ -110,7 +110,8 @@
     "test:pi-chat-chain": "node --experimental-strip-types scripts/smoke-pi-chain-local.ts --embedded",
     "test:agent-refresh": "node --experimental-strip-types scripts/smoke-agent-refresh.ts",
     "test:navigation": "npm run build && node scripts/smoke-navigation.mjs",
-    "test:html-previews": "npm run build && node scripts/smoke-html-previews.mjs"
+    "test:html-previews": "npm run build && node scripts/smoke-html-previews.mjs",
+    "test:rich-previews": "npm run build && node scripts/smoke-rich-previews.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -126,6 +127,7 @@
     "i18next": "^27.1.3",
     "jsonc-parser": "3.3.1",
     "lucide-react": "^0.577.0",
+    "monaco-editor": "0.57.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-i18next": "^18.0.2",
@@ -154,5 +156,10 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.8"
+  },
+  "overrides": {
+    "monaco-editor": {
+      "dompurify": "$dompurify"
+    }
   }
 }

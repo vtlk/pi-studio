@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-11-18T20:42:47.006Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "pythonCssJsJsonSyntax": true,
+      "readOnly": true,
+      "findPhysicalRussianShortcut": true,
+      "copyUnchanged": true,
+      "mp4FitResizeAndPlaybackPreserved": true,
+      "chatLiveOnlyAndRaceSafe": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "pythonCssJsJsonSyntax": true,
+      "readOnly": true,
+      "findPhysicalRussianShortcut": true,
+      "copyUnchanged": true,
+      "mp4FitResizeAndPlaybackPreserved": true,
+      "chatLiveOnlyAndRaceSafe": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "pythonCssJsJsonSyntax": true,
+      "readOnly": true,
+      "findPhysicalRussianShortcut": true,
+      "copyUnchanged": true,
+      "mp4FitResizeAndPlaybackPreserved": true,
+      "chatLiveOnlyAndRaceSafe": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "pythonCssJsJsonSyntax": true,
+      "readOnly": true,
+      "findPhysicalRussianShortcut": true,
+      "copyUnchanged": true,
+      "mp4FitResizeAndPlaybackPreserved": true,
+      "chatLiveOnlyAndRaceSafe": true
+    }
+  ],
+  "actualProbeRequests": 0,
+  "nativeExplorerOrFinderOpened": false,
+  "userAppOrDataChanged": false,
+  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance."
+}

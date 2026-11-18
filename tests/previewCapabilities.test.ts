@@ -16,8 +16,8 @@ test('Markdown text files select the Markdown viewer regardless of extension cas
   assert.equal(getPreviewKind(file('notes.markdown')), 'markdown');
   assert.equal(getPreviewKind(file('notes.txt')), 'text');
 });
-test('ordinary JSON, including legacy manifest names, stays a searchable text document', () => {
-  assert.equal(getPreviewKind(file('movie.pistudio.json', 'json')), 'json');
+test('ordinary JSON, including legacy manifest names, uses the read-only code viewer', () => {
+  assert.equal(getPreviewKind(file('movie.pistudio.json', 'json')), 'code');
 });
 
 test('HTML and HTM text files use the inert HTML preview while other formats stay unchanged', () => {
@@ -25,4 +25,11 @@ test('HTML and HTM text files use the inert HTML preview while other formats sta
   assert.equal(getPreviewKind(file('page.htm')), 'html');
   assert.equal(getPreviewKind(file('page.html.txt')), 'text');
   assert.equal(getPreviewKind(file('page.html', 'unsupported')), 'unsupported');
+});
+
+test('code languages are selected by filename without affecting plain text and media', () => {
+  assert.equal(getPreviewKind(file('motion.PY')), 'code');
+  assert.equal(getPreviewKind(file('layout.css')), 'code');
+  assert.equal(getPreviewKind(file('notes.txt')), 'text');
+  assert.equal(getPreviewKind(file('film.mp4', 'video')), 'video');
 });

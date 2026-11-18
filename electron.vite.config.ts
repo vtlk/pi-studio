@@ -18,7 +18,12 @@ export default defineConfig({
       },
     },
     base: './',
-    resolve: { alias: { '@': resolve('src/renderer') } },
+    resolve: {
+      alias: {
+        '@': resolve('src/renderer'),
+        'monaco-editor': resolve('node_modules/monaco-editor/esm/vs'),
+      },
+    },
     publicDir: false,
     plugins: [
       react(),

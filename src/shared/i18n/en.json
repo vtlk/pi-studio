@@ -1772,5 +1772,7 @@
   "HtmlPreview.missing": "Some local resources could not be loaded.",
   "HtmlPreview.title": "HTML preview: {{name}}",
   "HtmlPreview.loading": "Preparing preview…",
-  "OutputFileTree.couldNotRevealFile": "Could not reveal the file. It may have been moved or deleted."
+  "OutputFileTree.couldNotRevealFile": "Could not reveal the file. It may have been moved or deleted.",
+  "Mp4Preview.fit": "Fit video",
+  "Mp4Preview.resize": "Resize video"
 }

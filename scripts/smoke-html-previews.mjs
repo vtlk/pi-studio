@@ -478,9 +478,11 @@ try {
         await js(
           `Array.from(document.querySelectorAll('.html-preview-toolbar button')).find(button=>button.textContent===${JSON.stringify(messages['HtmlPreview.source'])}).click()`,
         );
-        await until(`!!document.querySelector('.html-preview pre')`);
+        await until(`!!document.querySelector('.html-preview .monaco-editor .view-lines')`);
         assert.equal(
-          await js(`document.querySelector('.html-preview pre').textContent.includes('<script>')`),
+          await js(
+            `document.querySelector('.html-preview .view-lines').textContent.includes('<script>')`,
+          ),
           true,
           'Raw source remains intact and inert',
         );
@@ -499,7 +501,7 @@ try {
           modifiers: platform === 'win32' ? 2 : 4,
           windowsVirtualKeyCode: 70,
         });
-        await until(`!!document.querySelector('.html-preview .find-bar')`);
+        await until(`!!document.querySelector('.html-preview .find-widget.visible')`);
         await cdp('Input.dispatchKeyEvent', {
           type: 'keyDown',
           key: 'Escape',
@@ -512,7 +514,7 @@ try {
           code: 'Escape',
           windowsVirtualKeyCode: 27,
         });
-        await until(`!document.querySelector('.html-preview .find-bar')`);
+        await until(`!document.querySelector('.html-preview .find-widget.visible')`);
 
         assert.deepEqual(await js('window.__qa.calls'), { launch: 0, commands: 0, saves: 0 });
         checks.push({

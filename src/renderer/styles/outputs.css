@@ -745,3 +745,71 @@
   display: flex;
   flex-direction: column;
 }
+
+/* Bound code and MP4 to the real preview pane, never the window width. */
+.output-browser-content:has(> .output-file-preview > :is(.mp4-preview, .monaco-file-preview)) {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+}
+.output-file-preview:has(> :is(.mp4-preview, .monaco-file-preview)) {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.monaco-file-preview {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.mp4-preview {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 12px;
+}
+.mp4-preview-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 28px;
+}
+.mp4-preview-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+}
+.mp4-preview-stage {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.mp4-preview-player {
+  flex: none;
+  max-width: 100%;
+}
+.mp4-preview-player video {
+  object-fit: contain;
+  background: #000;
+}
+.mp4-preview-resize {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
+  touch-action: none;
+  color: var(--muted);
+}

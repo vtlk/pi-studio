@@ -1,3 +1,4 @@
+import { codeLanguage } from '../../shared/codeLanguage.ts';
 import { t } from '../../shared/i18n/index.ts';
 import { isSharedTaskPath } from '../../shared/agentPaths.ts';
 import { outputScope } from './outputScope.ts';
@@ -38,6 +39,7 @@ export function fileFormat(name: string): OutputFile['format'] {
   if (['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'].includes(extension)) return 'image';
   if (['.mp3', '.wav', '.m4a', '.ogg', '.aac', '.flac'].includes(extension)) return 'audio';
   if (['.mp4', '.webm', '.mov', '.m4v'].includes(extension)) return 'video';
+  if (codeLanguage(name)) return 'text';
   return 'unsupported';
 }
 /** Metadata only: text and media load on selection, not while walking the tree. */
