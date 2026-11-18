@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-18T11:20:03.548442+00:00",
+  "version": "0.2.0-alpha.111",
+  "userReport": "Windows setup assistant fails session-closed check after reinstalling latest release",
+  "change": "Replace shared Windows session lease PowerShell/CIM queries with pinned Microsoft Windows process snapshot",
+  "nativePackage": "@vscode/windows-process-tree 0.8.0",
+  "processProbe": {
+    "nativeBinaryBytes": 151040,
+    "peArchitecture": "AMD64",
+    "nodeApiExportsPresent": true,
+    "shellOrCimRequired": false,
+    "snapshotTimeoutMs": 3000,
+    "absentPidRequiresSnapshotContainingSelf": true,
+    "liveProcessMatchesPidAndCommand": true,
+    "incompleteOrInaccessibleQueriesFailClosed": true,
+    "noLeaseOrHistoryFilesDeleted": true,
+    "localizedBoundedDiagnosticCodes": true
+  },
+  "regression": {
+    "tests": 534,
+    "passed": 533,
+    "failed": 0,
+    "skippedNativePermissionProbe": 1
+  },
+  "controlledWindowsTests": [
+    "dead PID skips queries",
+    "real upstream Microsoft JavaScript calls native snapshot with CommandLine flag",
+    "CIM unavailable does not affect live or stale lease checks",
+    "reused/absent PIDs do not block on stale lease",
+    "wrong PID/empty command/incomplete snapshots/timeouts remain blocking",
+    "RU/EN errors contain diagnostic codes without command paths or secrets"
+  ],
+  "nativeWindowsAcceptance": false,
+  "userAppInstalledClosedOrRestarted": false
+}

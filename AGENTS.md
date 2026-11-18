@@ -1,5 +1,7 @@
 # Pi Studio
 
+- Windows launch follow-up (2026-11-18): latest installed version still fails the prelaunch session-closed query for the setup assistant. Replace PowerShell/CIM lease queries with a pinned native Windows process snapshot for BOTH helper/project agents and storage guards; prove snapshot completeness before accepting an absent PID, preserve exact PID/command identity and fail closed for inaccessible/live/uncertain processes. Package the Windows x64 Node-API runtime + MIT license, with bounded localized diagnostics and archive verification. No user app replacement; publish Windows first then Mac.
+
 - Latest user follow-up (2026-11-18): enable the yellow Computer Use/browser frame and yellow pointer on Windows, retain activity feedback for five seconds between calls on both platforms, embed the branded icon in the Windows EXE, and await all owned Pi processes (including the setup assistant) during confirmed application exit. Native permission QA stays opt-in; do not disturb the user app. Publish Windows x64 first, then Mac arm64 through GitHub; the user updates themselves.
 
 

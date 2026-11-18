@@ -54,3 +54,5 @@ configured by the user and are not preinstalled.
 Downloads and release notes: <https://github.com/vtlk/pi-studio/releases>.
 
 Computer Use uses the same inert yellow activity frame and pointer as macOS, with Windows screen-to-DIP conversion. Visible Browser Use can explicitly install the pinned isolated Windows Chrome for Testing; it never attaches a personal browser. Both indicators stay for five seconds after the last call. The EXE embeds the Pi Studio multi-resolution icon. Confirmed app exit awaits owned Pi RPC processes, including the setup assistant. Native Windows acceptance remains separate from cross-build checks.
+
+Session ownership checks use Microsoft’s pinned native Windows process snapshot (Node-API), without PowerShell/CIM. An absent PID is accepted only after validating the snapshot; live Pi is matched by PID and command line. Query/access failures remain blocking and have localized native diagnostic codes. The Windows-only runtime and MIT notice are included; debug symbols and build intermediates are excluded.

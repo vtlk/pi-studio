@@ -1755,5 +1755,9 @@
   "error.nativeResources.notPiPackage": "This package contains no Pi extensions, skills, prompts or themes. An ordinary npm CLI/library is not a Pi plugin. For an MCP server use configure_mcp, check_resource and assign_resource. Check get_runtime before diagnosing Node/npm; nothing was added to the Studio catalog.",
   "error.nativeResources.packageInstallFailed": "Pi could not install the requested package. Check its official source/version, network access and get_runtime for the actual Node/npm/Git environment. This error does not establish that Node is missing. Nothing was added to the Studio catalog.",
   "error.nativeResources.cancelled": "Pi operation cancelled. No resource was added to the catalog.",
-  "error.nativeResources.stopUnconfirmed": "Could not confirm that the Pi installer stopped. No resource was added to the catalog. Check that installation has ended before retrying."
+  "error.nativeResources.stopUnconfirmed": "Could not confirm that the Pi installer stopped. No resource was added to the catalog. Check that installation has ended before retrying.",
+  "error.sessionLease.nativeComponent": "The bundled Windows process checker could not load. Pi was not started.",
+  "error.sessionLease.nativeTimeout": "Windows did not respond while checking process {{pid}}. A second Pi dialogue was not opened.",
+  "error.sessionLease.nativeSnapshot": "Windows returned incomplete process information. A second Pi dialogue was not opened.",
+  "error.sessionLease.nativeAccess": "Windows did not allow reading the command of process {{pid}}. Closure of the previous Pi dialogue cannot be confirmed."
 }

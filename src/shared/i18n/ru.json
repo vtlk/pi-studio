@@ -1755,5 +1755,9 @@
   "error.nativeResources.notPiPackage": "В пакете нет расширений, навыков, промптов или тем Pi. Обычная npm-библиотека или CLI не является плагином Pi. Для MCP-сервера используйте configure_mcp, check_resource и assign_resource. Перед выводами о Node/npm вызовите get_runtime. В каталог Studio ничего не добавлено.",
   "error.nativeResources.packageInstallFailed": "Pi не смог установить запрошенный пакет. Проверьте официальный источник/версию, доступ к сети и фактические Node/npm/Git через get_runtime. Эта ошибка не означает, что Node отсутствует. В каталог Studio ничего не добавлено.",
   "error.nativeResources.cancelled": "Операция Pi отменена. Ресурс не добавлен в каталог.",
-  "error.nativeResources.stopUnconfirmed": "Не удалось подтвердить остановку установщика Pi. Ресурс не добавлен в каталог. Проверьте завершение установки перед повтором."
+  "error.nativeResources.stopUnconfirmed": "Не удалось подтвердить остановку установщика Pi. Ресурс не добавлен в каталог. Проверьте завершение установки перед повтором.",
+  "error.sessionLease.nativeComponent": "Не загрузился встроенный компонент проверки процессов Windows. Запуск Pi не выполнен.",
+  "error.sessionLease.nativeTimeout": "Windows не ответила при проверке процесса {{pid}}. Запуск второго диалога Pi не выполнен.",
+  "error.sessionLease.nativeSnapshot": "Windows вернула неполные сведения о процессах. Запуск второго диалога Pi не выполнен.",
+  "error.sessionLease.nativeAccess": "Windows не разрешила прочитать команду процесса {{pid}}. Нельзя подтвердить, что прежний диалог Pi закрыт."
 }

@@ -4,7 +4,11 @@ import { agentRuntimeDirectory } from '../../shared/agentPaths.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { isMissing, readJson, safePath } from './files.ts';
-import { powershellArguments, windowsPowershell } from '../pi/windowsShell.ts';
+import {
+  windowsSessionProcess,
+  WindowsProcessQueryError,
+  type WindowsSessionProcess,
+} from './windowsSessionProcess.ts';
 
 const execute = promisify(execFile);
 function processExists(pid: number): boolean | undefined {
@@ -20,6 +24,7 @@ function processExists(pid: number): boolean | undefined {
 interface LeaseDependencies {
   platform?: NodeJS.Platform;
   exists?: (pid: number) => boolean | undefined;
+  windowsProcess?: (pid: number) => Promise<WindowsSessionProcess | null>;
   execute?: (
     file: string,
     args: string[],
@@ -47,39 +52,46 @@ export async function hasLiveSessionLease(cwd: string, dependencies: LeaseDepend
   if (exists(pid) === false) return false;
   const windows = (dependencies.platform ?? process.platform) === 'win32';
   try {
-    const { stdout } = await (dependencies.execute ?? execute)(
-      windows ? windowsPowershell() : '/bin/ps',
-      windows
-        ? powershellArguments(
-            `Get-CimInstance Win32_Process -Filter 'ProcessId = ${pid}' | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress`,
-          )
-        : ['-p', String(pid), '-o', 'command='],
-      {
-        // A cold Windows PowerShell/CIM startup routinely takes longer than two seconds.
-        timeout: windows ? 15000 : 2000,
-        maxBuffer: 100_000,
-        windowsHide: true,
-      },
-    );
-    let command = stdout;
+    let command: string;
     if (windows) {
-      const process = stdout.trim() ? JSON.parse(stdout.replace(/^\uFEFF/, '')) : null;
-      if (!process && exists(pid) === false) return false;
+      const target = await (dependencies.windowsProcess ?? windowsSessionProcess)(pid);
+      if (!target) return false; // A complete native snapshot proves this PID is absent.
       if (
-        process?.ProcessId !== pid ||
-        typeof process.CommandLine !== 'string' ||
-        !process.CommandLine.trim()
+        target.pid !== pid ||
+        typeof target.commandLine !== 'string' ||
+        !target.commandLine.trim()
       )
-        throw new Error('Windows did not return the process command line');
-      command = process.CommandLine;
+        throw new Error('Windows did not return the exact process command line');
+      command = target.commandLine;
+    } else {
+      const { stdout } = await (dependencies.execute ?? execute)(
+        '/bin/ps',
+        ['-p', String(pid), '-o', 'command='],
+        {
+          timeout: 2000,
+          maxBuffer: 100_000,
+          windowsHide: true,
+        },
+      );
+      command = stdout;
     }
     return /[\\/]session\.mjs/.test(command) && command.includes(lease.runId);
   } catch (error) {
-    // PowerShell exit 1 can mean a denied/broken CIM query, not a closed Pi process.
+    // A query failure never proves that a Pi process has exited.
     if (!windows && error && typeof error === 'object' && 'code' in error && error.code === 1)
       return false;
-    if (windows && error && typeof error === 'object' && 'killed' in error && error.killed)
-      throw new Error(t('error.sessionLease.windowsProcessCheckTimedOut'), { cause: error });
+    if (windows && exists(pid) === false) return false;
+    if (windows && error instanceof WindowsProcessQueryError) {
+      const messages = {
+        component: 'error.sessionLease.nativeComponent',
+        timeout: 'error.sessionLease.nativeTimeout',
+        snapshot: 'error.sessionLease.nativeSnapshot',
+        access: 'error.sessionLease.nativeAccess',
+      } as const;
+      throw new Error(`${t(messages[error.code], { pid })} [native_${error.code}]`, {
+        cause: error,
+      });
+    }
     throw new Error(t('error.sessionLease.couldNotCheckWhetherThe'), {
       cause: error,
     });

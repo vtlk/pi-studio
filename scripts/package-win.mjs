@@ -75,6 +75,21 @@ try {
     await cp(join(root, 'node_modules', name), join(application, 'node_modules', name), {
       recursive: true,
     });
+  // Windows-only Node-API probe; ship runtime + MIT notice, never PDBs/build intermediates.
+  for (const name of [
+    'package.json',
+    'lib/index.js',
+    'LICENSE',
+    'build/Release/windows_process_tree.node',
+  ]) {
+    const target = join(application, 'node_modules/@vscode/windows-process-tree', name);
+    await mkdir(resolve(target, '..'), { recursive: true });
+    await cp(join(root, 'node_modules/@vscode/windows-process-tree', name), target);
+  }
+  await cp(
+    join(root, 'node_modules/@vscode/windows-process-tree/LICENSE'),
+    join(application, 'licenses/Windows-process-tree-MIT.txt'),
+  );
   for (const [source, name] of [
     ['jsonc-parser/LICENSE.md', 'JSONC-parser-LICENSE.md'],
     ['semver/LICENSE', 'Semver-LICENSE.txt'],

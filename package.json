@@ -1,6 +1,6 @@
 {
   "name": "pi-video-studio",
-  "version": "0.2.0-alpha.110",
+  "version": "0.2.0-alpha.111",
   "private": true,
   "description": "Pi Studio — харнес для конвейерных производств на базе команд агентов Pi",
   "type": "module",
@@ -129,7 +129,8 @@
     "remark-gfm": "^4.0.1",
     "semver": "7.8.6",
     "yaml": "^2.9.1",
-    "yauzl": "3.4.0"
+    "yauzl": "3.4.0",
+    "@vscode/windows-process-tree": "0.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

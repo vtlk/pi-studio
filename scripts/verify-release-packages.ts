@@ -83,6 +83,22 @@ try {
     const pe = await readZipText(windowsZip, 'Pi Studio/Pi Studio.exe', 512 * 1024 ** 2);
     if (!pe) throw Error('Missing Windows executable');
     verifyWindowsIcon(pe, await readFile('public/branding/pi-studio.ico'));
+    for (const name of [
+      'package.json',
+      'lib/index.js',
+      'LICENSE',
+      'build/Release/windows_process_tree.node',
+    ]) {
+      const bytes = await readZipText(
+        windowsZip,
+        'Pi Studio/resources/app/node_modules/@vscode/windows-process-tree/' + name,
+      );
+      if (
+        !bytes ||
+        !bytes.equals(await readFile('node_modules/@vscode/windows-process-tree/' + name))
+      )
+        throw Error('Windows native process probe payload mismatch: ' + name);
+    }
     for (const [entry, expected] of [
       ['resources/app/out/main/index.cjs', await readFile('out/main/index.cjs')],
       ['resources/app/licenses/Pi-Studio-LICENSE.txt', ownLicense],
@@ -117,6 +133,7 @@ try {
     macElectronAndChromiumNotices: true,
     windowsCrc: !!win,
     windowsBrandedIconVerifiedInActualPe: !!win,
+    windowsNativeProcessProbePayloadVerified: !!win,
     installedApplicationOrUserDataMutated: false,
     programsExecuted: false,
     buildsCreated: 0,
