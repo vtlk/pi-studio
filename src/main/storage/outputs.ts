@@ -43,9 +43,10 @@ export function fileFormat(name: string): OutputFile['format'] {
 export async function scanOutputs(
   root: string,
   relative: string,
-  budget = { remaining: 5000 },
+  budget: { remaining: number; signal?: AbortSignal } = { remaining: 5000 },
   depth = 0,
 ): Promise<OutputEntry[]> {
+  budget.signal?.throwIfAborted();
   if (depth > 20) throw new Error(t('error.outputs.theOutputFolderIsNested'));
   let directory: string;
   let children;
@@ -58,7 +59,13 @@ export async function scanOutputs(
   }
   const entries: OutputEntry[] = [];
   for (const entry of children) {
-    if (entry.name.startsWith('.') || entry.isSymbolicLink()) continue;
+    budget.signal?.throwIfAborted();
+    if (
+      entry.name.startsWith('.') ||
+      entry.isSymbolicLink() ||
+      (entry.isDirectory() && entry.name === 'node_modules')
+    )
+      continue;
     if (--budget.remaining < 0) throw new Error(t('error.outputs.thereAreMoreThanOutput'));
     const diskPath = [relative, entry.name].filter(Boolean).join('/');
     if (!relative && !isSharedTaskPath(diskPath)) continue;

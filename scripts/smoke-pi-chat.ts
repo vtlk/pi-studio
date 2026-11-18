@@ -4,6 +4,8 @@ import { createServer, type ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
+import { readProjectScope } from '../src/main/storage/projectReadScope.ts';
+import { loadOutput } from '../src/main/storage/outputs.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
@@ -256,6 +258,40 @@ try {
   await host.sendChat({ ...target('b'), text: 'CHAT_B1: Reply once.' });
   await until(() => waiting.has('CHAT_B1'), 'Second agent works concurrently');
   assert.equal(host.processes().length, 2);
+  const previewPath = project.agents[1].outputPath + '/parallel-preview.txt';
+  await writeFile(
+    join(await store.projects.directory(project.id), previewPath),
+    'PARALLEL_PREVIEW',
+  );
+  let releaseStore!: () => void;
+  const blockedStore = service.serialize(
+    () =>
+      new Promise<void>((resolve) => {
+        releaseStore = resolve;
+      }),
+  );
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  try {
+    const view = await Promise.race([
+      readProjectScope(service, project.id, (_store, root) => loadOutput(root, previewPath)),
+      new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => reject(Error('Preview waited for another agent')), 2000);
+        timer.unref();
+      }),
+    ]);
+    assert.equal(view.content, 'PARALLEL_PREVIEW');
+    await Promise.race([
+      host.launch({ ...target(), autoContinue: false }),
+      new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => reject(Error('Live chat waited for another agent')), 2000);
+        timer.unref();
+      }),
+    ]);
+    assert.equal(host.chat(target())?.working, true);
+  } finally {
+    releaseStore();
+    await blockedStore;
+  }
   await host.launch({ ...target(), autoContinue: false });
   assert.equal(
     host.processes().find((process) => process.agentId === 'a')?.pid,
@@ -392,6 +428,7 @@ try {
           'startup count/spinner state',
           'idle/working process reuse',
           'parallel agents',
+          'file preview and busy chat reopen complete while studio persistence is deliberately held',
           'streaming',
           'authoritative steer/follow-up queue visible before delivery and retained on reopen',
           'steer delivered before follow-up, exactly once in native history',

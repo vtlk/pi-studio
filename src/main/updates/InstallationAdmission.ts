@@ -1,9 +1,10 @@
 import { t } from '../../shared/i18n/index.ts';
+import type { InvocationRelease } from './InvocationGate.ts';
 import type { InstallLease } from './installation.ts';
 
 interface Options {
   assertIdle(): void;
-  gate(): (() => void) | undefined;
+  gate(): InvocationRelease | undefined;
   runs: { hold(): InstallLease }[];
   background: { hold(): { release(): void }; flush(): Promise<void> };
 }
@@ -26,6 +27,9 @@ export function acquireInstallation(options: Options): InstallLease | undefined 
     for (const run of options.runs) held.push(run.hold());
     background = options.background.hold();
     return {
+      ready: async (signal) => {
+        await releaseGate.whenIdle?.(signal);
+      },
       verify: () => {
         if (released)
           throw new Error(t('error.installationAdmission.installationAlreadyCancelled'));

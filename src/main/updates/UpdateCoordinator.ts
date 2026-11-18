@@ -218,6 +218,7 @@ export class UpdateCoordinator {
       if (!this.rendererSaved || this.now() - this.rendererSeen > 5000)
         throw new Error(t('UpdateCoordinator.interfaceSaveConfirmationIsNoLongerValid'));
     };
+    if (lease.ready) await lease.ready(this.abort.signal);
     verify();
     await this.options.flushMain(this.view);
     this.abort.signal.throwIfAborted();

@@ -1759,5 +1759,8 @@
   "error.sessionLease.nativeComponent": "The bundled Windows process checker could not load. Pi was not started.",
   "error.sessionLease.nativeTimeout": "Windows did not respond while checking process {{pid}}. A second Pi dialogue was not opened.",
   "error.sessionLease.nativeSnapshot": "Windows returned incomplete process information. A second Pi dialogue was not opened.",
-  "error.sessionLease.nativeAccess": "Windows did not allow reading the command of process {{pid}}. Closure of the previous Pi dialogue cannot be confirmed."
+  "error.sessionLease.nativeAccess": "Windows did not allow reading the command of process {{pid}}. Closure of the previous Pi dialogue cannot be confirmed.",
+  "error.invocationGate.waitTimedOut": "The current Studio operation did not finish in time. Installation is paused. Wait for it to finish and retry the update.",
+  "error.invocationGate.waitCancelled": "Update installation was cancelled.",
+  "Chat.loading": "Loading conversation…"
 }

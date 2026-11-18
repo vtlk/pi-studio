@@ -6,6 +6,7 @@ import { scanOutputs } from './outputs.ts';
 export async function readProject(
   project: WorkspaceProject,
   root: string,
+  signal?: AbortSignal,
 ): Promise<WorkspaceProject> {
   return {
     ...project,
@@ -22,7 +23,10 @@ export async function readProject(
         return {
           ...agent,
           session,
-          entries: await scanOutputs(root, projectAgentOutputPath(project, agent)),
+          entries: await scanOutputs(root, projectAgentOutputPath(project, agent), {
+            remaining: 5000,
+            signal,
+          }),
         };
       }),
     ),

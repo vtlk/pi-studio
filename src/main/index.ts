@@ -9,6 +9,7 @@ import { resolveUpdateStartup } from './updates/UpdateStartup';
 import type { NativeUpdates } from './updates/NativeUpdates';
 import { createStudioWindow } from './windows/createStudioWindow';
 import { registerDesktopHandlers } from './ipc/registerDesktopHandlers';
+import { readProjectScope } from './storage/projectReadScope';
 import { mediaResponse } from './storage/media';
 import packageInfo from '../../package.json';
 import { registerNativeMenu } from './menu/registerNativeMenu';
@@ -96,10 +97,14 @@ async function startStudio() {
       const url = new URL(request.url);
       if (url.hostname !== 'output') return new Response(null, { status: 403 });
       const [projectId, ...parts] = url.pathname.slice(1).split('/').map(decodeURIComponent);
-      const root = await service.serialize(async () =>
-        (await service.load()).projects.directory(projectId),
+      return await readProjectScope(
+        service,
+        projectId,
+        (_store, root) => mediaResponse(root, parts.join('/'), request),
+        async (response) => {
+          await response.body?.cancel();
+        },
       );
-      return await mediaResponse(root, parts.join('/'), request);
     } catch {
       return new Response(null, { status: 404 });
     }

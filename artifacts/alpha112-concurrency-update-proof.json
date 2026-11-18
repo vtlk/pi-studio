@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-11-18T12:20:56.315743+00:00",
+  "version": "0.2.0-alpha.112",
+  "regression": {
+    "tests": 547,
+    "passed": 546,
+    "failed": 0,
+    "optInNativePermissionProbeSkipped": 1
+  },
+  "concurrency": {
+    "fileProjectMediaReadsBypassMutationQueue": true,
+    "postReadStudioAndProjectRootValidation": true,
+    "obsoleteMediaResponseCancelled": true,
+    "runtimeStatusAndLiveReopenNeverScanAllOutputs": true,
+    "presentationTreesCachedWithoutOverwritingMetadata": true,
+    "nodeModulesExcludedFromPreviewOnly": true,
+    "growingFileReadsCoalescedAndCompletedPreviewRetained": true,
+    "ownedChildExitAuthoritativeOverMissedHeartbeat": true,
+    "chatIpcReadsWorkingStateWithoutPersistenceQueue": true,
+    "nativePiSdkBusyReuseAndOtherAgentFileReadWithDeliberatelyHeldPersistence": "passed isolated local-model SDK smoke"
+  },
+  "updates": {
+    "reservationBlocksNewInvocationsBeforeWaitingForCurrentOnes": true,
+    "boundedCancellableDrainMilliseconds": 15000,
+    "activeWorkUnsavedDraftAndOwnershipChecksPreserved": true,
+    "oneTokenAndOneQuitWithPendingBackgroundRead": true,
+    "newWorkDuringWaitCancelsBeforeCommit": true,
+    "actualRuEnReactDialogControlsKeptMountedWhileFrozen": "SSR verified; no GUI/pixel claim"
+  },
+  "nativeWindows112Acceptance": false,
+  "installedUserAppChanged": false
+}

@@ -59,8 +59,7 @@ export function ChatPanel({
     if (stick.current && transcript.current)
       transcript.current.scrollTop = transcript.current.scrollHeight;
   }, [state?.revision]);
-  const opening =
-    panels.opening || (!panels.error && !readError && (!state || state.phase === 'opening'));
+  const opening = panels.opening || (!panels.error && !readError && state?.phase === 'opening');
   const ready = state?.phase === 'ready' && !opening;
   const issue = error || panels.error || readError || state?.error;
   const send = async () => {
@@ -147,6 +146,7 @@ export function ChatPanel({
         {state?.historyTruncated && <p className="subtle">{t('Chat.historyTruncated')}</p>}
         {state && <ChatTranscript messages={state.messages} name={name} working={state.working} />}
         {state && <ChatQueuedMessages queue={state.queue} phase={state.phase} />}
+        {!state && !opening && !issue && <p role="status">{t('Chat.loading')}</p>}
         {opening && (
           <div className="pi-chat-loading" role="status">
             <LoaderCircle className="project-launch-spinner" size={24} aria-hidden="true" />

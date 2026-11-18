@@ -9,17 +9,14 @@ export async function checkRunLiveness(state: {
   dependencies: RunDependencies;
   remove: (id: string) => void;
 }) {
-  for (const [key, live] of state.live)
+  for (const [key, live] of state.live) {
+    // An owned child's exit event is authoritative. Slow persistence must never kill live model work.
+    if (live.embedded?.alive) continue;
     if (
       !state.retiring.has(key) &&
       ((live.pid && !processAlive(live.pid)) ||
         (!state.opening.has(key) && Date.now() - live.heartbeat > 20000))
     ) {
-      // A stalled background child remains owned and counted until it really exits.
-      if (live.embedded?.alive) {
-        live.stop?.();
-        continue;
-      }
       const cleanup = state.lifecycle.processLost(live).then(async () => {
         await state.dependencies.observed?.(live.run, { type: 'stopped' });
         state.remove(live.run.record.runId);
@@ -32,4 +29,5 @@ export async function checkRunLiveness(state: {
         state.retiring.delete(key);
       }
     }
+  }
 }

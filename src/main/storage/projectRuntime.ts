@@ -42,3 +42,20 @@ export function withAgentModel(
     ),
   };
 }
+
+export function withProjectRuntime(
+  project: WorkspaceProject,
+  agentId: string,
+  status: AgentRunStatus,
+  session?: SessionBinding | null,
+  failure?: RunFailure,
+) {
+  const selected = project.agents.find((item) => item.profile.id === agentId);
+  if (!selected) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
+  return {
+    ...project,
+    agents: project.agents.map((item) =>
+      item === selected ? withAgentRuntime(item, status, session, failure) : item,
+    ),
+  };
+}

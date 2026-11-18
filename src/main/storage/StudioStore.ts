@@ -288,6 +288,9 @@ export class StudioService {
     this.queue = result.catch(() => {});
     return result;
   }
+  peek() {
+    return this.current;
+  }
   async load() {
     if (this.current) return this.current;
     let folder = this.defaultFolder;

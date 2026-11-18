@@ -6,7 +6,7 @@ import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { stableId } from '../storage/validation.ts';
 import type { RunHost } from './RunHost.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
-import { safePath } from '../storage/files.ts';
+import { join } from 'node:path';
 
 export function registerChatHandlers(
   service: StudioService,
@@ -22,15 +22,14 @@ export function registerChatHandlers(
   };
   const scoped = async (target: ChatTarget) => {
     const selected = host(target);
-    await service.serialize(async () => {
-      const store = await service.load();
-      const root =
-        target.projectId === 'pi-setup-assistant'
-          ? await safePath(store.folder, '.pistudio/setup-assistant', true)
-          : await store.projects.directory(target.projectId);
-      if (selected.chatRoot(target) && selected.chatRoot(target) !== root)
-        throw new Error(t('registerTeamHandlers.studioFolderChanged'));
-    });
+    const store = service.peek();
+    if (!store) throw new Error(t('Chat.notReady'));
+    const root =
+      target.projectId === 'pi-setup-assistant'
+        ? join(store.folder, '.pistudio/setup-assistant')
+        : store.projects.location(target.projectId);
+    if (selected.chatRoot(target) && selected.chatRoot(target) !== root)
+      throw new Error(t('registerTeamHandlers.studioFolderChanged'));
     return selected;
   };
   handleDesktopInvoke(desktopChannels.getChat, async (event, target: ChatTarget) => {

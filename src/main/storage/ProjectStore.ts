@@ -1,7 +1,7 @@
 import { t } from '../../shared/i18n/index.ts';
 import { migrateProjectSessions, prepareProjectAgentSessions } from './migrateAgentSessions.ts';
 import { availableProjectDirectory } from './projectFolders.ts';
-import { readProject } from './readProject.ts';
+import { ProjectReadViews } from './ProjectReadViews.ts';
 import { ensureProjectAgents } from './ensureProjectAgents.ts';
 import { migrateProjectTeams } from './migrateProjectTeams.ts';
 import { cp, mkdir, readdir, rename, rm, lstat } from 'node:fs/promises';
@@ -30,9 +30,16 @@ import { agentRuntimeDirectory } from '../../shared/agentPaths.ts';
 import { folderSlug } from '../../shared/folderSlug.ts';
 import type { Agent } from '../../shared/studio.ts';
 import { assertProjectSessionsClosed } from './sessionLease.ts';
-import { withAgentRuntime, withFork, withAgentModel } from './projectRuntime.ts';
+import { withProjectRuntime, withFork, withAgentModel } from './projectRuntime.ts';
 
 export class ProjectStore {
+  private readonly views = new ProjectReadViews();
+  snapshot(id: string) {
+    return this.views.snapshot(this.get(id));
+  }
+  location(id: string) {
+    return join(this.root, 'projects', this.get(id).folderName!);
+  }
   private projects = new Map<string, WorkspaceProject>();
   private deleted = new Map<string, WorkspaceProject>();
   readonly root: string;
@@ -101,17 +108,10 @@ export class ProjectStore {
     failure?: RunFailure,
   ) {
     const project = this.get(projectId);
-    const selected = project.agents.find((item) => item.profile.id === stableId(agentId));
-    if (!selected) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
-    const updated = {
-      ...project,
-      agents: project.agents.map((item) =>
-        item === selected ? withAgentRuntime(item, status, session, failure) : item,
-      ),
-    };
+    const updated = withProjectRuntime(project, stableId(agentId), status, session, failure);
     if (session !== undefined) await this.save(updated, await this.directory(projectId));
     this.projects.set(projectId, updated);
-    return this.read(projectId);
+    return this.snapshot(projectId);
   }
   async prepareAgentSessions(projectId: string, agentId: string) {
     const project = this.get(projectId);
@@ -121,7 +121,7 @@ export class ProjectStore {
       await this.save(updated, root);
       this.projects.set(projectId, updated);
     }
-    return this.read(projectId);
+    return this.snapshot(projectId);
   }
   /** Change only future launch context. Never relocate results or rewrite canonical dialogues. */
   async applyWorkspaceMode(projectId: string, mode: TeamWorkspaceMode) {
@@ -134,7 +134,7 @@ export class ProjectStore {
       await this.save(updated, root);
       this.projects.set(projectId, updated);
     }
-    return this.read(projectId);
+    return this.snapshot(projectId);
   }
   async applyAgentModel(projectId: string, agentId: string, model: NonNullable<Agent['model']>) {
     const project = this.get(projectId);
@@ -143,10 +143,10 @@ export class ProjectStore {
       await this.save(updated, await this.directory(projectId));
       this.projects.set(projectId, updated);
     }
-    return this.read(projectId);
+    return this.snapshot(projectId);
   }
-  async read(id: string): Promise<WorkspaceProject> {
-    return readProject(this.get(id), await this.directory(id));
+  async read(id: string, signal?: AbortSignal): Promise<WorkspaceProject> {
+    return this.views.read(this.get(id), await this.directory(id), () => this.get(id), signal);
   }
   private async save(project: WorkspaceProject, root: string) {
     await atomicJson(await safePath(root, 'project.json', true), projectDocument(project));

@@ -36,10 +36,12 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     const current = pending.current.get(key);
     if (current) return current;
     setErrors((previous) => ({ ...previous, [key]: '' }));
-    setOpening((previous) => [...previous, key]);
+
     const action = (async () => {
       try {
         if (!window.studio) throw new Error(t('Chat.desktopOnly'));
+        const existing = await window.studio.getChat(next);
+        if (existing?.phase !== 'ready') setOpening((previous) => [...previous, key]);
         if (!(await saveNow()))
           throw new Error(t('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
         if (next.projectId === 'pi-setup-assistant') await window.studio.openSetupAssistant();

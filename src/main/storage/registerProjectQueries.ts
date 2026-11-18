@@ -3,7 +3,7 @@ import { type IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
 import type { StudioService, StudioStore } from './StudioStore';
 import type { ProjectActivity } from '../pi/ProjectActivity';
-import { withReadDeadline } from './files';
+import { readProjectScope } from './projectReadScope.ts';
 
 export function registerProjectQueries(
   service: StudioService,
@@ -25,11 +25,8 @@ export function registerProjectQueries(
   });
   handleDesktopInvoke(desktopChannels.readProject, (event, id: string) => {
     caller(event);
-    return service.serialize(() =>
-      withReadDeadline(async () => {
-        const store = await service.load();
-        return store.accounting.enrich(await store.projects.read(id));
-      }),
+    return readProjectScope(service, id, async (store, _root, signal) =>
+      store.accounting.enrich(await store.projects.read(id, signal)),
     );
   });
 }

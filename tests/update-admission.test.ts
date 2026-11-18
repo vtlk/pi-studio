@@ -148,3 +148,53 @@ test('startup permits hydration/status reads but denies launch, user edits, auth
   release();
   gate.assertAllowed(c.launchAgent);
 });
+
+test('installation reservation blocks new reads while existing reads finish, then verifies real work again', async () => {
+  const gate = new InvocationGate();
+  let finish!: () => void;
+  let work = false;
+  const reading = gate.invoke(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const lease = acquireInstallation({
+    gate: () => gate.reserve(),
+    assertIdle: () => {
+      if (work) throw Error('Work is running');
+    },
+    runs: [],
+    background: { hold: () => ({ release() {} }), flush: async () => {} },
+  })!;
+  assert.ok(lease);
+  let ready = false;
+  const waiting = lease.ready!(new AbortController().signal).then(() => {
+    lease.verify();
+    ready = true;
+  });
+  await assert.rejects(gate.invoke(() => {}));
+  assert.equal(ready, false);
+  finish();
+  await reading;
+  await waiting;
+  assert.equal(ready, true);
+  lease.release();
+  assert.equal(await gate.invoke(() => 1), 1);
+});
+test('a stuck invocation has a bounded installation wait, and releasing its reservation restores admission', async () => {
+  const gate = new InvocationGate();
+  let finish!: () => void;
+  const reading = gate.invoke(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const reservation = gate.reserve(10)!;
+  await assert.rejects(reservation.whenIdle!(), /текущей операции/);
+  reservation();
+  assert.equal(await gate.invoke(() => 2), 2);
+  finish();
+  await reading;
+});

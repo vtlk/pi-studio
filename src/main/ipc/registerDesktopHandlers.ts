@@ -13,7 +13,6 @@ import { registerProjectCommands } from '../storage/registerProjectCommands';
 import { registerProjectActions } from '../storage/registerProjectActions';
 import { registerProjectQueries } from '../storage/registerProjectQueries';
 import { UsageRecovery } from '../accounting/UsageRecovery';
-import { withReadDeadline } from '../storage/files';
 import { registerStartupHandlers } from '../pi/registerStartupHandlers';
 import { importSkill, inspectSkill } from '../storage/skills';
 import type { Resource } from '../../shared/resources';
@@ -38,6 +37,7 @@ import { BrowserSupport } from '../browser/BrowserSupport';
 import { registerBrowserHandlers } from '../browser/registerBrowserHandlers';
 import { ProjectActivity } from '../pi/ProjectActivity';
 import { registerResourceHandlers } from '../pi/registerResourceHandlers';
+import { readProjectScope } from '../storage/projectReadScope.ts';
 import { registerGracefulQuit } from './registerGracefulQuit';
 import { createComputerSupport } from '../computer/createComputerSupport';
 import { registerComputerHandlers } from '../computer/registerComputerHandlers';
@@ -321,9 +321,10 @@ export function registerDesktopHandlers(
       (await service.load()).editSection(section, value, edit),
   );
   registerProjectCommands(service, runs, images, caller);
-  handle(desktopChannels.readOutput, async (_event, request: FileRequest) => {
-    const file = await withReadDeadline(async () =>
-      loadOutput(await (await service.load()).projects.directory(request.projectId), request.path),
+  handleDesktopInvoke(desktopChannels.readOutput, async (event, request: FileRequest) => {
+    caller(event);
+    const file = await readProjectScope(service, request.projectId, (_store, root) =>
+      loadOutput(root, request.path),
     );
     if (['image', 'audio', 'video'].includes(file.format))
       file.src = outputMediaUrl(request.projectId, request.path, file.fingerprint);

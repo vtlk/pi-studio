@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-18T12:20:56.315743+00:00",
+  "source": "User report, Windows PC",
+  "testedOldVersion": "0.2.0-alpha.109",
+  "observedNewVersion": "0.2.0-alpha.111",
+  "setupAssistantLaunchAccepted": true,
+  "updateReplacementAfterManualExitAccepted": true,
+  "automaticQuitAndRelaunchAccepted": false,
+  "waitingDialogGeometryAccepted": false,
+  "concurrentFilePreviewAndBusyChatReopenAccepted": false,
+  "details": "User observed indefinite file loading and Pi startup label while another agent worked in .111. Native Computer/Browser/PowerShell acceptance is not inferred."
+}

@@ -15,6 +15,7 @@ interface ModalProps {
   inert?: boolean;
   dismissible?: boolean;
   showCloseButton?: boolean;
+  reserveCloseButton?: boolean;
   size?: ModalSize;
 }
 export function Modal({
@@ -26,6 +27,7 @@ export function Modal({
   inert = false,
   dismissible = true,
   showCloseButton = true,
+  reserveCloseButton = false,
   size,
 }: ModalProps) {
   useTranslation(undefined, { i18n });
@@ -89,8 +91,8 @@ export function Modal({
         >
           <header className="dialog-header">
             <h2>{title}</h2>
-            {dismissible && showCloseButton && (
-              <IconButton title={t('Modal.closeWindow')} onClick={onClose}>
+            {(dismissible || reserveCloseButton) && showCloseButton && (
+              <IconButton title={t('Modal.closeWindow')} onClick={onClose} disabled={!dismissible}>
                 <X size={20} />
               </IconButton>
             )}

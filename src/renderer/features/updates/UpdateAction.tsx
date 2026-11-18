@@ -88,6 +88,7 @@ export function UpdateDialog() {
           title={t('UpdateAction.piStudioUpdate')}
           onClose={hide}
           dismissible={!frozen}
+          reserveCloseButton
           footer={
             !frozen ? (
               <>
@@ -141,13 +142,12 @@ export function UpdateDialog() {
         title={t('UpdateAction.piStudioUpdate')}
         onClose={hide}
         dismissible={!frozen}
+        reserveCloseButton
         footer={
           <>
-            {!frozen && (
-              <Button onClick={hide}>
-                {busy ? t('UpdateAction.hide') : t('UpdateAction.later')}
-              </Button>
-            )}
+            <Button onClick={hide} disabled={frozen}>
+              {busy ? t('UpdateAction.hide') : t('UpdateAction.later')}
+            </Button>
             {!busy && (
               <Button kind="primary" onClick={manual && state.phase === 'error' ? check : request}>
                 {state.phase === 'error'

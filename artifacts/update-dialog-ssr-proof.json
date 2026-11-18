@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0-alpha.112",
+  "ok": true,
+  "checks": [
+    {
+      "language": "ru",
+      "headerAndFooterRetainTheirControls": true,
+      "freezeDisablesWithoutRemovingControls": true
+    },
+    {
+      "language": "en",
+      "headerAndFooterRetainTheirControls": true,
+      "freezeDisablesWithoutRemovingControls": true
+    }
+  ],
+  "scope": "Production React SSR control structure only; no native desktop or pixel geometry acceptance",
+  "noGuiOrPermissionsInvoked": true
+}

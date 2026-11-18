@@ -44,7 +44,7 @@ function deferred() {
   });
   return { promise, resolve };
 }
-async function fixture(t: TestContext) {
+async function fixture(t: TestContext, reserve = false) {
   const root = await mkdtemp(join(tmpdir(), 'pistudio-updater-state-'));
   const gate = new InvocationGate();
   const state = {
@@ -107,10 +107,11 @@ async function fixture(t: TestContext) {
     },
     idle: () => state.idle,
     acquire: () => {
-      const release = gate.acquire();
+      const release = reserve ? gate.reserve(1000) : gate.acquire();
       if (!release) return undefined;
       state.leases++;
       return {
+        ready: (signal) => release.whenIdle?.(signal) ?? Promise.resolve(),
         verify: () => {
           if (!state.idle) throw new Error('New work was admitted');
         },
@@ -306,4 +307,64 @@ test('an unsaved-window guard cancels the committed-but-not-exited helper withou
     await gate.invoke(() => 'old application still works'),
     'old application still works',
   );
+});
+
+test('an in-flight background poll cannot starve installation or cycle the renderer token', async (t) => {
+  const { coordinator, state, gate, permit } = await fixture(t, true);
+  await coordinator.request();
+  const pending = deferred();
+  const reading = gate.invoke(() => pending.promise);
+  const token = permit();
+  coordinator.report({ saved: true, token });
+  for (let i = 0; i < 5; i++) {
+    coordinator.report({ saved: true });
+    coordinator.wake();
+    await settle();
+    assert.equal(coordinator.read().prepareToken, token);
+    assert.equal(coordinator.read().phase, 'installing');
+    assert.equal(state.leases, 1);
+    assert.equal(state.quits, 0);
+  }
+  await assert.rejects(
+    gate.invoke(() => {
+      throw Error('New polling entered');
+    }),
+  );
+  pending.resolve();
+  await reading;
+  await settle();
+  await settle();
+  assert.equal(state.quits, 1);
+  assert.deepEqual(state.order, ['flush', 'drain-idle', 'arm', 'commit', 'quit']);
+});
+test('work admitted before the gate reservation is rechecked after waiting, without stopping it', async (t) => {
+  const { coordinator, state, gate, permit } = await fixture(t, true);
+  await coordinator.request();
+  const pending = deferred();
+  const reading = gate.invoke(() => pending.promise);
+  const token = permit();
+  coordinator.report({ saved: true, token });
+  state.idle = false;
+  pending.resolve();
+  await reading;
+  await settle();
+  await settle();
+  assert.equal(state.quits, 0);
+  assert.equal(coordinator.read().phase, 'error');
+  assert.ok(!state.order.includes('drain-idle'));
+  assert.equal(await gate.invoke(() => 42), 42);
+});
+test('closing while waiting for a native poll cancels the reservation and never commits an update', async (t) => {
+  const { coordinator, state, gate, permit } = await fixture(t, true);
+  await coordinator.request();
+  const pending = deferred();
+  const reading = gate.invoke(() => pending.promise);
+  const token = permit();
+  coordinator.report({ saved: true, token });
+  await coordinator.close();
+  assert.equal(state.quits, 0);
+  assert.ok(!state.order.includes('commit'));
+  pending.resolve();
+  await reading;
+  assert.equal(await gate.invoke(() => 7), 7);
 });

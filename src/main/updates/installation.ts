@@ -16,6 +16,8 @@ export interface UpdateInstaller {
   ): Promise<PreparedInstallation>;
 }
 export interface InstallLease {
+  /** Await already admitted native operations while new invocations are held. */
+  ready?(signal: AbortSignal): Promise<void>;
   verify(): void;
   drainIdle(): Promise<void>;
   release(): void;

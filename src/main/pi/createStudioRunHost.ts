@@ -222,15 +222,19 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           ),
         );
       }),
-    read: (run) =>
-      service.serialize(async () => (await service.load()).projects.read(run.project.id)),
+    read: async (run) => {
+      const store = service.peek();
+      if (!store || store.projects.location(run.project.id) !== run.projectRoot)
+        throw new Error(t('error.createStudioRunHost.theStudioFolderChangedWhile'));
+      return store.accounting.enrich(store.projects.snapshot(run.project.id));
+    },
     completed: async (run, outputs, message) => {
       const sequence = run.requestSequence;
       const continueStage = host.continuation(run);
       if (!continueStage) return;
       try {
         const project = await service.serialize(async () =>
-          (await service.load()).projects.read(run.project.id),
+          (await service.load()).projects.snapshot(run.project.id),
         );
         const next = nextEnabledStage(project, run.agent.profile.id);
         await host.closeCompleted(run, sequence!, continueStage.check);

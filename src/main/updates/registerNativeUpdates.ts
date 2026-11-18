@@ -108,7 +108,7 @@ export function registerNativeUpdates(o: Options) {
         acquire: () =>
           acquireInstallation({
             assertIdle,
-            gate: () => desktopInvocationGate.acquire(),
+            gate: () => desktopInvocationGate.reserve(),
             runs: o.runs,
             background: o.accounting,
           }),

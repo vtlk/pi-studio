@@ -1759,5 +1759,8 @@
   "error.sessionLease.nativeComponent": "Не загрузился встроенный компонент проверки процессов Windows. Запуск Pi не выполнен.",
   "error.sessionLease.nativeTimeout": "Windows не ответила при проверке процесса {{pid}}. Запуск второго диалога Pi не выполнен.",
   "error.sessionLease.nativeSnapshot": "Windows вернула неполные сведения о процессах. Запуск второго диалога Pi не выполнен.",
-  "error.sessionLease.nativeAccess": "Windows не разрешила прочитать команду процесса {{pid}}. Нельзя подтвердить, что прежний диалог Pi закрыт."
+  "error.sessionLease.nativeAccess": "Windows не разрешила прочитать команду процесса {{pid}}. Нельзя подтвердить, что прежний диалог Pi закрыт.",
+  "error.invocationGate.waitTimedOut": "Не удалось дождаться завершения текущей операции Studio. Установка приостановлена. Дождитесь её завершения и повторите обновление.",
+  "error.invocationGate.waitCancelled": "Установка обновления отменена.",
+  "Chat.loading": "Загружаем диалог…"
 }
