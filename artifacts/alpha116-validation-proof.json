@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-18T23:17:35.931482+00:00",
+  "version": "0.2.0-alpha.116",
+  "runtimeSourceCommit": "7533dfaf6a158070df1f00db2622f4d57d00e3dc",
+  "change": "Update toolbar button matches adjacent 38x38 controls and 19px icons during offer and download; red dot retained.",
+  "buildTypecheckAndLint": true,
+  "compiledRendererProof": "rich-preview-chat-proof.json",
+  "scenarios": "RU/EN \u00d7 light/dark, measured actual DOM geometry and pointer hover colors during offer and downloading states",
+  "noFullUnitRerun": "Presentation-only change; full .115 baseline and focused compiled-renderer regression reused.",
+  "nativeWindowsAcceptance": false,
+  "userAppOrDataOrProcessesChanged": false
+}
