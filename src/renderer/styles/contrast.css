@@ -381,16 +381,25 @@ input::placeholder {
   color: var(--content-ink);
 }
 /* Single source for every pill state. No legacy selected-state overrides. */
-:is(.topbar nav > button, .topbar .settings-button)[aria-current='page'] {
+.topbar .settings-button[aria-current='page'] {
   background: var(--menu-active);
   color: var(--menu-ink);
 }
-:is(.topbar nav > button, .topbar .settings-button):hover:not(:disabled) {
+.topbar .settings-button:hover:not(:disabled) {
   background: var(--hover);
   color: var(--text);
 }
-:is(.topbar nav > button, .topbar .settings-button)[aria-current='page']:hover:not(:disabled) {
+.topbar .settings-button[aria-current='page']:hover:not(:disabled) {
   background: var(--menu-hover);
+  color: var(--menu-ink);
+}
+.topbar nav > button,
+.topbar nav > button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text);
+}
+.topbar nav > button[aria-current='page'],
+.topbar nav > button[aria-current='page']:hover:not(:disabled) {
   color: var(--menu-ink);
 }
 :is(
