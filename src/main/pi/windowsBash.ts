@@ -53,7 +53,7 @@ export async function findWindowsBash(
   const visited = new Set<string>();
   for (const path of candidates) {
     const key = win32.normalize(path).toLowerCase();
-    if (blocked.has(key) || visited.has(key)) continue;
+    if (!/^[a-z]:\\/i.test(key) || blocked.has(key) || visited.has(key)) continue;
     visited.add(key);
     if (await available(path)) return path;
   }
@@ -61,7 +61,7 @@ export async function findWindowsBash(
     for (const directory of ['bin', 'usr/bin']) {
       const path = win32.join(root, directory, 'bash.exe');
       const key = path.toLowerCase();
-      if (visited.has(key) || blocked.has(key)) continue;
+      if (!/^[a-z]:\\/i.test(key) || visited.has(key) || blocked.has(key)) continue;
       visited.add(key);
       if (await available(path)) return path;
     }

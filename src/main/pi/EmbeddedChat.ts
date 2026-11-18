@@ -6,6 +6,7 @@ import type { ChatAnswer, ChatDialog, ChatState, ChatTarget } from '../../shared
 import { t } from '../../shared/i18n/index.ts';
 import { piEnvironment } from './platform.ts';
 import { findWindowsBash } from './windowsBash.ts';
+import { findGit } from './git.ts';
 import { chatText, projectChatMessage, projectChatQueue } from './chatProjection.ts';
 
 import type { RpcData, RpcEvent } from './ChatRpc.ts';
@@ -41,12 +42,15 @@ export class EmbeddedChat {
     thinkingLevel: string,
     changed: () => void,
   ) {
-    const bash = process.platform === 'win32' ? await findWindowsBash() : undefined;
+    const bash =
+      process.platform === 'win32' ? await findWindowsBash().catch(() => undefined) : undefined;
+    const git = process.platform === 'win32' ? await findGit() : undefined;
     const env = piEnvironment(
       dirname(node),
       process.env,
       process.platform,
-      bash ? [dirname(bash)] : [],
+      [bash, git].filter((path): path is string => !!path).map(dirname),
+      bash,
     );
     return new EmbeddedChat(
       node,

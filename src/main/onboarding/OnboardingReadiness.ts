@@ -36,6 +36,7 @@ interface Dependencies {
   terminal(): Promise<boolean>;
   terminalRequired?: boolean;
   git(): Promise<boolean>;
+  gitBashRequired?: boolean;
   windows: boolean;
   runtimeReady?: () => boolean;
   run?<T>(action: () => Promise<T>): Promise<T>;
@@ -75,7 +76,7 @@ export class OnboardingReadiness {
       folder,
       terminal: 'ready',
       ...(this.dependencies.terminalRequired === false ? { terminalRequired: false } : {}),
-      gitBash: this.dependencies.windows,
+      gitBash: this.dependencies.windows && this.dependencies.gitBashRequired !== false,
       connections: {},
       mcps: {},
     };

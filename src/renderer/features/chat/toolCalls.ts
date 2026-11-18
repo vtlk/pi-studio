@@ -72,7 +72,7 @@ export function toolHeading(entry: ToolCallEntry, status: ToolStatus) {
         ? 'write'
         : name === 'edit'
           ? 'edit'
-          : name === 'bash'
+          : name === 'bash' || name === 'powershell'
             ? 'bash'
             : 'generic';
   const args = parseToolArguments(entry.call.arguments);

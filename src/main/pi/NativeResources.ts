@@ -30,6 +30,9 @@ export interface NativeResourceResult {
     nodeVersion: string;
     npmVersion?: string;
     commands: Record<string, { command: string; args: string[] }>;
+    primaryCommandTool?: 'powershell' | 'bash';
+    commandExamples?: Record<string, string>;
+    shell?: { available: boolean; shell?: string; args?: string[] };
     bash?: { available: boolean; command?: string };
   };
   status?: 'available' | 'needs_auth' | 'unavailable' | 'disabled';
@@ -64,6 +67,7 @@ export async function nativeResourceOperation(
     process.env,
     process.platform,
     [git, bash].filter((path): path is string => !!path).map(dirname),
+    bash,
   );
   const { code, output } = await resourceChild({
     node,

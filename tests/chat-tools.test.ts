@@ -87,3 +87,19 @@ test('previews unwrap standard MCP text only, and shell failures preserve comman
   assert.equal(projected.isError, true);
   assert.equal(projected.parts[0].text, 'failed');
 });
+
+test('PowerShell uses the shared translated shell card and preserves the command', async () => {
+  const command = "& 'C:\\Node folder\\node.exe' --version";
+  const entry = {
+    key: 'ps',
+    call: { ...call('ps', 'powershell'), arguments: JSON.stringify({ command }) },
+  };
+  for (const language of ['ru', 'en'] as const) {
+    await changeLanguage(language);
+    const heading = toolHeading(entry, 'success');
+    assert.equal(heading.label, language === 'ru' ? 'Команда выполнена' : 'Command completed');
+    assert.equal(heading.target, command);
+    assert.equal(heading.name, 'powershell');
+  }
+  await changeLanguage('ru');
+});

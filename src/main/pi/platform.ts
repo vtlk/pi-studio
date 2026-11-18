@@ -16,8 +16,12 @@ export function piEnvironment(
   input: NodeJS.ProcessEnv = process.env,
   platform: NodeJS.Platform = process.platform,
   toolDirectories: string[] = [],
+  bashPath?: string,
 ): NodeJS.ProcessEnv & { PATH: string } {
   const env = { ...input };
+  for (const key of Object.keys(env))
+    if (key.toLowerCase() === 'pi_studio_native_bash') delete env[key];
+  if (platform === 'win32' && bashPath) env.PI_STUDIO_NATIVE_BASH = bashPath;
   const paths = Object.keys(env).filter((key) => key.toLowerCase() === 'path');
   const inherited = paths
     .map((key) => env[key])

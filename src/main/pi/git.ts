@@ -69,7 +69,7 @@ export async function findGit(
   }
 }
 
-/** Pi's Windows command tool needs native Git Bash; git.exe alone is insufficient. */
+/** Legacy/explicit Bash readiness. Embedded Windows chats use PowerShell and probe Git separately. */
 export async function gitRequirementReady(
   platform: NodeJS.Platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,

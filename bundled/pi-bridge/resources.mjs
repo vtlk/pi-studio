@@ -4,6 +4,7 @@ import { join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { npmSettings, runtimeInformation, withNodeCommand } from './node-tools.mjs';
 import { assertPiResources } from './package-resources.mjs';
+import { shellSettings } from './shell-tools.mjs';
 
 let connection;
 process.once('SIGTERM', () => {
@@ -45,6 +46,16 @@ try {
   let result;
   if (request.action === 'inspect-runtime') {
     result = { runtime: runtimeInformation() };
+    const shells = await import(new URL('./utils/shell.js', sdkUrl).href);
+    try {
+      const shell =
+        process.platform === 'win32'
+          ? shells.getPowerShellConfig()
+          : shells.getShellConfig(shellSettings().shellPath);
+      result.runtime.shell = { available: true, ...shell };
+    } catch {
+      result.runtime.shell = { available: false };
+    }
   } else if (request.action === 'list-mcp') {
     const config = loaded();
     result = { servers: config.servers.map(metadata), invalidEntries: config.errors.length };

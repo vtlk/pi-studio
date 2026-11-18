@@ -1,7 +1,9 @@
 import { isAbsolute } from 'node:path';
 import { setupGuidance } from './setup-guidance.mjs';
+import { shellGuidance } from './shell-tools.mjs';
 /** Built fresh in memory for every launch/resume; role/skill text is never archived by Studio. */
 export function sessionSystemPrompt(envelope, packageSkillPaths = []) {
+  const shell = shellGuidance();
   const { record } = envelope;
   if (typeof record.projectRoot !== 'string' || !isAbsolute(record.projectRoot))
     throw new Error('The current absolute project directory is required');
@@ -34,11 +36,11 @@ export function sessionSystemPrompt(envelope, packageSkillPaths = []) {
   const workflow =
     'Current Pi Studio workflow: there are no mandatory approval/acceptance steps for characters, SVG redraw, scene previews, animation, assembly or final rendering. The user explicitly launches the task and reviews its output; requested changes happen in the same Pi dialogue. Do not introduce a review gate from older application defaults. An automatic stage chain is enabled only by the explicit Studio launch mode. Real questions, errors and missing inputs still pause work.';
   const previews =
-    'Studio preview capabilities: ordinary SVG files are displayed as images. Declarative CSS and SMIL animation can play; embedded JavaScript is not executed. An animated filename alone does not create motion. Render script-based animation to a supported video file through native bash when needed. Never supply executable application code as a preview.';
+    'Studio preview capabilities: ordinary SVG files are displayed as images. Declarative CSS and SMIL animation can play; embedded JavaScript is not executed. An animated filename alone does not create motion. Render script-based animation to a supported video file through the platform command tool when needed. Never supply executable application code as a preview.';
   if (envelope.serviceAgent) {
     const serviceScope = record.projectId === 'pi-setup-assistant' ? '' : `\n\n${scope}`;
     const setup = record.projectId === 'pi-setup-assistant' ? `\n\n${setupGuidance}` : '';
-    return `${envelope.instructions}\n\n${paths}${serviceScope}${setup}\n\n${workflow}\n\n${previews}`;
+    return `${envelope.instructions}\n\n${paths}${serviceScope}${setup}\n\n${shell}\n\n${workflow}\n\n${previews}`;
   }
-  return `You are the selected Pi Studio project agent. Use this current role instruction:\n${envelope.instructions}\n\n${paths}\nUse the native Pi read/bash/edit/write tools and your assigned resources to execute the current instructions. Generation, assembly, rendering and MP4 export are agent operations through bash/tools, not an application export pipeline. Read other agents' results through list_project_files/read_project_file (paths relative to the project directory) or native Pi read/bash. Call mcp__pi_studio__complete_stage with filenames relative to the supplied deliverable root only after completing the user's task. If real questions or inputs are missing, call report_blocked and ask the user in Pi. A normal reply is not task completion. Do not modify application code or another project's files.\n\n${scope}\n\n${workflow}\n\n${previews}`;
+  return `You are the selected Pi Studio project agent. Use this current role instruction:\n${envelope.instructions}\n\n${paths}\n${shell}\nUse the native Pi file tools and the platform command tool and your assigned resources to execute the current instructions. Generation, assembly, rendering and MP4 export are agent operations through the platform command tool/tools, not an application export pipeline. Read other agents' results through list_project_files/read_project_file (paths relative to the project directory) or native Pi read/bash. Call mcp__pi_studio__complete_stage with filenames relative to the supplied deliverable root only after completing the user's task. If real questions or inputs are missing, call report_blocked and ask the user in Pi. A normal reply is not task completion. Do not modify application code or another project's files.\n\n${scope}\n\n${workflow}\n\n${previews}`;
 }

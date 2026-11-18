@@ -17,7 +17,7 @@ import {
   desktopStartupAdmission,
 } from '../ipc/desktopInvoke.ts';
 import { hasWindowsTerminal } from '../pi/windowsTerminal.ts';
-import { gitRequirementReady } from '../pi/git.ts';
+import { findGit } from '../pi/git.ts';
 import { listImports } from '../teams/importState.ts';
 import { OnboardingReadiness } from './OnboardingReadiness.ts';
 import { observeTeamMcpReadiness } from './observeTeamMcpReadiness.ts';
@@ -68,7 +68,8 @@ export function registerOnboardingHandlers(
       dependencies.imageConnections.check({ folder, connectionId }),
     terminal: hasWindowsTerminal,
     terminalRequired: false,
-    git: gitRequirementReady,
+    git: async () => !!(await findGit()),
+    gitBashRequired: false,
     windows: process.platform === 'win32',
     runtimeReady: () => {
       try {

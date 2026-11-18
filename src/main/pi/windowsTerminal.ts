@@ -72,10 +72,9 @@ export async function openWindowsSession(
   if (!/^[a-zA-Z0-9_-]{1,128}$/.test(name))
     throw new Error(t('error.windowsTerminal.invalidPiWindowId'));
   const bash = await (dependencies.bash ?? findWindowsBash)();
-  // Pi 1.5.2 resolves bash.exe on PATH after checking standard Git locations.
-  // Keep the private Node first, then the discovered native shell (including registry installs).
-  const env = piEnvironment(win32.dirname(node), process.env, 'win32', [win32.dirname(bash)]);
-  const script = `$env:PATH = ${powershellLiteral(env.PATH)}; $env:PI_TELEMETRY = '0'; $env:PI_OFFLINE = '1'; & ${powershellLiteral(node)} ${powershellLiteral(bridge)} ${powershellLiteral(bootstrap)}; exit $LASTEXITCODE`;
+  // Keep the exact optional shell available to the legacy terminal bridge as well.
+  const env = piEnvironment(win32.dirname(node), process.env, 'win32', [win32.dirname(bash)], bash);
+  const script = `$env:PATH = ${powershellLiteral(env.PATH)}; $env:PI_STUDIO_NATIVE_BASH = ${powershellLiteral(bash)}; $env:PI_TELEMETRY = '0'; $env:PI_OFFLINE = '1'; & ${powershellLiteral(node)} ${powershellLiteral(bridge)} ${powershellLiteral(bootstrap)}; exit $LASTEXITCODE`;
   await launchVisibleTerminal(
     await (dependencies.terminal ?? terminal)(),
     [

@@ -163,6 +163,12 @@ test(
       cwd: root,
     });
     assert.equal(result.runtime?.platform, process.platform);
+    assert.equal(
+      result.runtime?.primaryCommandTool,
+      process.platform === 'win32' ? 'powershell' : 'bash',
+    );
+    assert.equal(result.runtime?.shell?.available, true);
+    assert.ok(result.runtime?.commandExamples?.npm);
     assert.match(result.runtime?.nodeVersion ?? '', /^v\d+/);
     assert.ok(result.runtime?.commands.npm.command);
     assert.match(result.runtime?.commands.npm.args[0] ?? '', /npm-cli\.js$/);

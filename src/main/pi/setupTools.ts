@@ -21,7 +21,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'get_runtime',
     description:
-      'Inspect the actual Pi runtime on this computer before installing dependencies. Returns OS/architecture, the running Node version and absolute Node/npm/npx executable + argument arrays, plus native Bash availability. Pi Studio already provides Node for its managed Pi; do not assume a missing global node/npm means Node is absent or ask to reinstall it. Use the returned command and args through native bash when a specifically requested ordinary CLI needs installation; configure_mcp is for MCP servers, install_package is ONLY for Pi extension/skill/prompt/theme packages. Never run a rendering/production task just to connect a resource, and do not infer missing sources from the helper workspace output.',
+      'Inspect the actual Pi runtime before installing dependencies: OS/architecture, Node/npm versions, absolute Node/npm/npx command+args, primaryCommandTool, actual shell and ready-to-use commandExamples. On Windows use the active native powershell tool and PowerShell examples with the & call operator; Bash is optional and is not required for Node/npm/npx or an ordinary Windows executable. On macOS use bash. Pi Studio already provides Node for its managed Pi; a missing global node/npm does not mean Node is absent. Use configure_mcp for MCP servers; install_package is ONLY for Pi extension/skill/prompt/theme packages, never ordinary CLI libraries. Verify a requested local CLI installation by actually running its version/help command. Connecting a resource does not require a production render or sources in the helper output directory.',
     inputSchema: object({}),
   },
   {

@@ -89,7 +89,7 @@ test('readiness checks bound concurrency, deduplicate requests, expire successes
   assert.equal(calls, 3);
 });
 
-function fixture(terminalRequired = true) {
+function fixture(terminalRequired = true, gitBashRequired = true) {
   const observed: boolean[] = [];
   let now = 100,
     auth: ConnectionReadiness = 'not_ready',
@@ -202,6 +202,7 @@ function fixture(terminalRequired = true) {
       },
       git: async () => terminal,
       terminalRequired,
+      gitBashRequired,
       terminal: async () => {
         counts.terminal++;
         return terminal;
@@ -357,6 +358,15 @@ test('embedded Pi chats do not probe or require Windows Terminal', async () => {
   await flush();
   assert.equal(readiness.terminal, 'ready');
   assert.equal(readiness.terminalRequired, false);
+  assert.equal(data.counts.terminal, 0);
+  data.service.close();
+});
+
+test('embedded Windows checks Git independently of optional Bash', async () => {
+  const data = fixture(false, false);
+  const readiness = await data.service.read('/fixture');
+  await flush();
+  assert.equal(readiness.gitBash, false);
   assert.equal(data.counts.terminal, 0);
   data.service.close();
 });

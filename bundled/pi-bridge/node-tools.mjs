@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join, win32, posix } from 'node:path';
+import { commandExamples } from './shell-tools.mjs';
 
 /** Use Pi's own Node distribution, including its npm JS entry points; no global install or cmd shell. */
 export function nodeTools(
@@ -47,6 +48,8 @@ export function runtimeInformation() {
     nodeVersion: process.version,
     npmVersion,
     commands,
+    primaryCommandTool: process.platform === 'win32' ? 'powershell' : 'bash',
+    commandExamples: commandExamples(commands),
   };
 }
 

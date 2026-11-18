@@ -13,10 +13,14 @@ The application does not have an Authenticode signature or an installer.
 
 Pi and its private Node runtime can be installed through the first-launch screen.
 Agent dialogues run inside Studio using the Pi SDK in owned background processes;
-Windows Terminal is not required for chat. Pi's Bash tool still requires native
-Git for Windows (Git Bash). Studio discovers system, per-user, portable/PATH and
-official registry install locations and passes them only to the child environment.
-WSL aliases are excluded. These dependencies are not silently installed.
+Windows Terminal is not required for chat. The default command tool is native
+PowerShell; ordinary Windows commands and the managed Node/npm/npx do not require
+Git Bash. Git is checked separately for Git operations. Native Bash is optional
+for Unix-dependent tasks: Studio passes its exact discovered path to Pi, including
+custom/per-user/registry installs, and excludes WSL aliases. The setup assistant's
+get_runtime reports the actual primary shell and correctly quoted PowerShell
+command examples. Dependencies such as FFmpeg are installed only for a user's
+requested task and checked by running their actual version/help command.
 
 A cold SDK/MCP startup can take 40 seconds or longer. The chat opens immediately
 with a loading spinner; repeated opening reuses an existing ready process. Hiding

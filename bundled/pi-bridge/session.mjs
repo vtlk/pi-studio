@@ -14,6 +14,7 @@ import { studioMcpDeadlines } from './mcp-deadlines.mjs';
 import { openingFailure, openingFailureText } from './opening-failure.mjs';
 import { sessionRequest } from './session-request.mjs';
 import { npmSettings, withNodeCommand } from './node-tools.mjs';
+import { shellSettings, shellToolOptions } from './shell-tools.mjs';
 
 export async function runSession(bootstrapPath) {
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
@@ -281,6 +282,7 @@ export async function runSession(bootstrapPath) {
     };
     const settings = SettingsManager.inMemory({
       ...npmSettings(),
+      ...shellSettings(),
       packages: [],
       extensions: [],
       skills: [],
@@ -365,6 +367,7 @@ export async function runSession(bootstrapPath) {
         throw new Error('The explicitly selected thinking level is unavailable');
       openingStage = 'runtime';
       const result = await createAgentSessionFromServices({
+        ...shellToolOptions(),
         services,
         sessionManager,
         sessionStartEvent,
