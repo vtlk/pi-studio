@@ -141,7 +141,7 @@
   font-size: 14px;
 }
 
-.topbar .language-select {
+.topbar :is(.language-select, .update-action) {
   width: 38px;
   height: 38px;
   border: 0;
@@ -149,7 +149,7 @@
   background: transparent;
   color: var(--ink);
 }
-.topbar .language-select:hover,
+.topbar :is(.language-select, .update-action):hover:not(:disabled),
 .topbar .language-select[data-state='open'] {
   background: var(--hover);
 }

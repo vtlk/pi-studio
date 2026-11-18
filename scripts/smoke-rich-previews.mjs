@@ -640,6 +640,23 @@ try {
         ),
         'rgb(239, 68, 68)',
       );
+      const geometry = () => js(`(() => {
+        const update = document.querySelector('.update-action');
+        const theme = document.querySelector('.theme-toggle');
+        const a = update.getBoundingClientRect(), b = theme.getBoundingClientRect();
+        const icon = update.querySelector('svg').getBoundingClientRect();
+        return {update:[a.width,a.height],theme:[b.width,b.height],icon:[icon.width,icon.height]};
+      })()`);
+      assert.deepEqual(await geometry(), {update:[38,38],theme:[38,38],icon:[19,19]});
+      const hover = async (selector) => {
+        const point = await js(`(() => { const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()`);
+        await cdp('Input.dispatchMouseEvent', {type:'mouseMoved',...point});
+        return js(`getComputedStyle(document.querySelector(${JSON.stringify(selector)})).backgroundColor`);
+      };
+      assert.equal(await hover('.update-action'), await hover('.theme-toggle'));
+      await js(`window.__qa.update={...window.__qa.update,phase:'downloading',downloaded:500}`);
+      await until(`!!document.querySelector('.update-download-progress')`);
+      assert.deepEqual(await geometry(), {update:[38,38],theme:[38,38],icon:[19,19]});
       await js(`window.__qa.update={phase:'idle',currentVersion:'QA-next'}`);
       await until(`!document.querySelector('.update-available-dot')`);
       checks.push({
@@ -652,6 +669,7 @@ try {
         mp4FitResizeAndPlaybackPreserved: true,
         chatLiveOnlyAndRaceSafe: true,
         updateDotTracksOffer: true,
+        updateButtonMatchesTopbarDuringOfferAndDownload: true,
       });
     }
   assert.deepEqual(errors, []);

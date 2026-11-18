@@ -44,7 +44,7 @@ export function UpdateAction() {
           aria-valuemax={100}
           aria-valuenow={Math.round(progress * 100)}
         >
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width={19} height={19} viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle className="update-download-track" cx={12} cy={12} r={9} strokeWidth={2} />
             <circle
               cx={12}
@@ -62,7 +62,7 @@ export function UpdateAction() {
           </svg>
         </span>
       ) : (
-        <Download size={18} />
+        <Download size={19} />
       )}
       {state.offer && <span className="update-available-dot" aria-hidden="true" />}
     </IconButton>

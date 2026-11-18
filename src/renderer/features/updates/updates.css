@@ -13,8 +13,8 @@
 }
 .update-download-progress {
   display: inline-flex;
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
 }
 .update-download-track {
   stroke: var(--line-strong);
