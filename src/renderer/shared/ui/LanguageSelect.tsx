@@ -24,7 +24,7 @@ export function LanguageSelect() {
         </Tooltip>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="ui-action-menu"
+            className="ui-action-menu language-menu"
             align="end"
             sideOffset={5}
             collisionPadding={8}

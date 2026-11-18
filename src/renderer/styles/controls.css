@@ -323,6 +323,13 @@
   max-height: var(--radix-dropdown-menu-content-available-height);
   padding: 4px;
 }
+.ui-action-menu.language-menu {
+  min-width: 0;
+  width: max-content;
+}
+.language-menu .ui-action-menu-item {
+  padding-right: 10px;
+}
 .split-button {
   display: inline-flex;
   align-items: stretch;
