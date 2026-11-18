@@ -127,7 +127,7 @@ test('stale, resized, hidden, mismatched and ungrounded cursor coordinates are n
   assert.equal(computerAgentLabel('  Сцены\n\u202e <script>  '), 'Сцены <script>');
 });
 
-function fixture() {
+function fixture(platform: NodeJS.Platform = 'darwin') {
   let visible = false,
     active = '',
     allowed = true,
@@ -205,7 +205,12 @@ function fixture() {
       const args = JSON.parse(json);
       calls.push({ name, args });
       if (name === 'check_permissions')
-        return result({ accessibility: allowed, screen_recording: allowed });
+        return result(
+          platform === 'win32'
+            ? { uia: allowed, post_message: allowed }
+            : { accessibility: allowed, screen_recording: allowed },
+        );
+      if (name === 'set_agent_cursor_enabled') return result({ enabled: false });
       assert.equal(visible, false, `native ${name} must not see feedback windows`);
       if (name === 'list_windows') return result({ windows: [live] });
       if (name === 'get_window_state') return result(snapshot);
@@ -217,7 +222,7 @@ function fixture() {
       return result({});
     },
   } as unknown as CuaDriverLike;
-  const runtime = new CuaRuntime({ feedback, driver: async () => driver });
+  const runtime = new CuaRuntime({ feedback, driver: async () => driver, platform });
   return {
     runtime,
     events,
@@ -298,4 +303,46 @@ test('abort, delivery error and late replies cannot leave a cursor or click puls
     g.events.some((e) => e[0] === 'pointer' && e[3] === true),
     false,
   );
+});
+
+test('Windows screenshot and global UIA frames map to the yellow pointer without requiring Mac-only validity flags', () => {
+  const geometry = new CursorGeometry('win32');
+  geometry.observe('win', {
+    ...snapshot,
+    screenshot_frame_valid: undefined,
+    elements: [{ element_token: 's00000001:2', frame: { x: -1100, y: 130, w: 50, h: 20 } }],
+  });
+  assert.deepEqual(geometry.point('win', { ...target, element_token: 's00000001:2' }, live), {
+    x: -1075,
+    y: 140,
+  });
+  assert.deepEqual(geometry.point('win', { ...target, x: 400, y: 200 }, live), {
+    x: -1000,
+    y: 180,
+  });
+  geometry.observe('win', {
+    ...snapshot,
+    screenshot_frame_valid: undefined,
+    screenshot_error: 'unavailable',
+  });
+  assert.equal(geometry.point('win', { ...target, x: 400, y: 200 }, live), undefined);
+});
+
+test('Windows runtime disables only its owned vendor cursor and presents the common yellow pointer for delivered clicks', async (t) => {
+  const f = fixture('win32');
+  t.after(() => f.runtime.close());
+  const signal = new AbortController().signal;
+  await f.runtime.call('owned-windows', 'get_window_state', target, signal);
+  await f.runtime.call('owned-windows', 'click', { ...target, x: 400, y: 200 }, signal);
+  const controls = f.calls.filter((call) => call.name === 'set_agent_cursor_enabled');
+  assert.ok(controls.length > 0);
+  assert.ok(
+    controls.every((call) => call.args.session === 'owned-windows' && call.args.enabled === false),
+  );
+  assert.deepEqual(f.events.find((event) => event[0] === 'pointer' && event[3] === true)?.[2], {
+    x: -1000,
+    y: 180,
+  });
+  assert.equal(f.visible, true);
+  assert.equal(f.calls.filter((call) => call.name === 'click').length, 1);
 });

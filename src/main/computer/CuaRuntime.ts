@@ -1,5 +1,5 @@
 import { t } from '../../shared/i18n/index.ts';
-import type { CuaDriverLike, ToolResult } from '@trycua/cua-driver';
+import type { CuaDriverLike } from '@trycua/cua-driver';
 import type { SessionTool } from '../pi/RunChannel.ts';
 import { CursorGeometry, computerPayload } from './CursorGeometry.ts';
 import { computerPermissionsReady } from '../../shared/computer.ts';
@@ -10,10 +10,9 @@ import {
   type ComputerFeedback,
 } from './ComputerFeedback.ts';
 
-export interface ComputerResult {
-  content: ({ type: 'text'; text: string } | { type: 'image'; mimeType: string; data: string })[];
-  isError?: boolean;
-}
+import { computerResult, type ComputerResult } from './computerResult.ts';
+export type { ComputerResult } from './computerResult.ts';
+
 const allowed = new Set([
   'list_apps',
   'list_windows',
@@ -56,7 +55,7 @@ export class CuaRuntime {
   private tail: Promise<unknown> = Promise.resolve();
   private closed = false;
   private readonly labels = new Map<string, string>();
-  private readonly geometry = new CursorGeometry();
+  private readonly geometry: CursorGeometry;
   private feedback?: ComputerFeedback;
   private readonly options: {
     feedback?: ComputerFeedback;
@@ -71,6 +70,7 @@ export class CuaRuntime {
     } = {},
   ) {
     this.options = options;
+    this.geometry = new CursorGeometry(options.platform);
     this.feedback = options.feedback;
   }
   identify(session: string, agentName: string) {
@@ -197,6 +197,15 @@ export class CuaRuntime {
       const sdk = await import('@trycua/cua-driver');
       await driver.startSession(sdk.StartSessionInput.new({ session }), { signal });
       this.sessions.add(session);
+      if (this.feedback && (this.options.platform ?? process.platform) === 'win32') {
+        // Suppress only this private SDK cursor: it uses a random session colour.
+        // Studio supplies the common yellow pointer without moving the hardware cursor.
+        await driver.callTool(
+          'set_agent_cursor_enabled',
+          JSON.stringify({ session, enabled: false }),
+          { signal },
+        );
+      }
       signal.throwIfAborted();
       const clearFeedback = () => this.feedback?.release(session);
       signal.addEventListener('abort', clearFeedback, { once: true });
@@ -255,7 +264,7 @@ export class CuaRuntime {
         );
         if (name === 'get_window_state')
           this.geometry.observe(session, computerPayload(result.structuredJson));
-        const response = this.result(result);
+        const response = computerResult(result);
         if (
           inputs.has(name) &&
           !signal.aborted &&
@@ -277,7 +286,7 @@ export class CuaRuntime {
             )
             .catch(() => undefined);
           if (observed && !observed.isError)
-            response.content.push(...this.result(observed).content);
+            response.content.push(...computerResult(observed).content);
           else
             response.content.push({
               type: 'text',
@@ -289,13 +298,14 @@ export class CuaRuntime {
           const payload = computerPayload(result.structuredJson);
           const accepted =
             !result.isError && payload?.effect !== 'refused' && !payload?.refusal && !payload?.code;
-          await this.present((feedback) =>
-            feedback.pointer(
-              session,
-              accepted ? endPoint : undefined,
-              accepted && name === 'click' && !!endPoint,
-            ),
-          );
+          if (inputs.has(name))
+            await this.present((feedback) =>
+              feedback.pointer(
+                session,
+                accepted ? endPoint : undefined,
+                accepted && name === 'click' && !!endPoint,
+              ),
+            );
         }
         completed = true;
         return response;
@@ -310,19 +320,6 @@ export class CuaRuntime {
     });
     this.tail = task.catch(() => {});
     return task;
-  }
-  private result(result: ToolResult): ComputerResult {
-    return {
-      ...(result.isError ? { isError: true } : {}),
-      content: [
-        { type: 'text', text: result.text || result.structuredJson || result.rawJson },
-        ...result.images.map((image) => ({
-          type: 'image' as const,
-          mimeType: image.mimeType,
-          data: image.dataBase64,
-        })),
-      ],
-    };
   }
   release(session: string) {
     this.labels.delete(session);

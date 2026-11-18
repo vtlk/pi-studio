@@ -907,7 +907,7 @@
   "error.usageRecovery.accountingIsAlreadyPausedFor": "Accounting is already paused for an update.",
   "error.readNativeUsage.couldNotRecoverAvailablePi": "Could not recover available Pi statistics.",
   "error.readNativeUsage.invalidPiStatistics": "Invalid Pi statistics.",
-  "error.browserSupport.visibleBrowserUseIsCurrently": "Visible Browser Use is currently available only on Mac.",
+  "error.browserSupport.visibleBrowserUseIsCurrently": "Visible Browser Use is supported on macOS and Windows x64.",
   "error.browserSupport.browserUseRequiresTheSupported": "Browser Use requires the supported Pi 1.5.2.",
   "error.browserSupport.waitForBrowserComponentsTo": "Wait for browser components to finish installing.",
   "error.browserVersions.unsupportedBrowserArchitecture": "Unsupported browser architecture.",

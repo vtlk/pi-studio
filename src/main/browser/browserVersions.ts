@@ -19,11 +19,15 @@ export const windowsAgentBrowserIntegrity =
   'xhk8wnHk3aiBFSR0pd1Ye3ay2jKjgRardgBJLiB9nXJv0ZkbeP/wh3X7jMiKUfUGE1qqJrKdaM5szQ6iz8/8+w==';
 export const windowsChromeSha256 =
   '2138c1583d25d6f3abec5269943b2f430207d87a539895aa9e90cc4697ec0e1f';
+export const windowsVisibleChromeSha256 =
+  '5f6ec40206407112702e163bf694d07f9fdc8ccbd346c70ce61fa62f716493f9';
 export const browserExecutable = () =>
   process.platform === 'win32' ? 'agent-browser.exe' : 'agent-browser';
 export const chromeExecutable = (headed = false) =>
   headed
-    ? 'Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
+    ? process.platform === 'win32'
+      ? 'chrome.exe'
+      : 'Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
     : process.platform === 'win32'
       ? 'chrome-headless-shell.exe'
       : 'chrome-headless-shell';
@@ -51,6 +55,13 @@ export function chromeArchive(arch: string, platform = process.platform, headed 
   if (arch !== 'arm64' && arch !== 'x64')
     throw new Error(t('error.browserVersions.unsupportedBrowserArchitecture'));
   if (headed) {
+    if (platform === 'win32' && arch === 'x64')
+      return {
+        arch,
+        folder: 'chrome-win64',
+        url: `https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/win64/chrome-win64.zip`,
+        integrity: windowsVisibleChromeSha256,
+      };
     if (platform !== 'darwin')
       throw new Error(t('error.browserSupport.visibleBrowserUseIsCurrently'));
     return {

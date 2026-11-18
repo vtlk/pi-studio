@@ -42,6 +42,10 @@ export function computerPayload(json?: string): ObjectValue | undefined {
 /** Only the calling session's exact window capture can ground a visual cursor. */
 export class CursorGeometry {
   private readonly snapshots = new Map<string, Snapshot>();
+  private readonly platform: NodeJS.Platform;
+  constructor(platform: NodeJS.Platform = process.platform) {
+    this.platform = platform;
+  }
   private key(session: string, pid: unknown, window: unknown) {
     return `${session}:${pid}:${window}`;
   }
@@ -51,7 +55,10 @@ export class CursorGeometry {
     const old = this.snapshots.get(key);
     const frame = bounds(data.window_bounds);
     const valid =
-      data.screenshot_frame_valid === true &&
+      (data.screenshot_frame_valid === true ||
+        (this.platform === 'win32' &&
+          data.screenshot_frame_valid === undefined &&
+          !data.screenshot_error)) &&
       frame &&
       number(data.screenshot_width) &&
       data.screenshot_width > 0 &&
@@ -71,7 +78,10 @@ export class CursorGeometry {
       elements.clear();
       for (const item of data.elements) {
         const element = object(item),
-          rect = object(element?.screenshot_frame);
+          rect =
+            object(element?.screenshot_frame) ??
+            (this.platform === 'win32' ? object(element?.frame) : undefined);
+        const globalFrame = !element?.screenshot_frame && this.platform === 'win32';
         if (
           !element ||
           typeof element.element_token !== 'string' ||
@@ -88,8 +98,12 @@ export class CursorGeometry {
         // uses the delivered image's pixel coordinates (including Retina scaling).
         elements.set(element.element_token, {
           // Fractions survive screenshot-only rereads at a different max_image_dimension.
-          x: (rect.x + rect.w / 2) / (data.screenshot_width as number),
-          y: (rect.y + rect.h / 2) / (data.screenshot_height as number),
+          x: globalFrame
+            ? (rect.x + rect.w / 2 - frame.x) / frame.width
+            : (rect.x + rect.w / 2) / (data.screenshot_width as number),
+          y: globalFrame
+            ? (rect.y + rect.h / 2 - frame.y) / frame.height
+            : (rect.y + rect.h / 2) / (data.screenshot_height as number),
         });
       }
     }

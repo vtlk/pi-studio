@@ -36,9 +36,16 @@ export class ComputerOverlay implements ComputerFeedback {
     if (this.closed) return;
     clearTimeout(this.idle);
     this.suspended = false;
+    const previous = this.active?.session === session ? this.active.state.point : undefined;
     this.active = {
       session,
-      state: { agentName: computerAgentLabel(agentName), action, actionName, click: 0 },
+      state: {
+        agentName: computerAgentLabel(agentName),
+        action,
+        actionName,
+        click: 0,
+        point: previous,
+      },
     };
     if (!this.listening) {
       this.listening = true;
@@ -120,7 +127,13 @@ export class ComputerOverlay implements ComputerFeedback {
           actual.height !== display.bounds.height
         )
           window.setContentBounds(display.bounds);
-        const point = active.state.point;
+        const point =
+          active.state.point && process.platform === 'win32'
+            ? screen.screenToDipPoint({
+                x: Math.round(active.state.point.x),
+                y: Math.round(active.state.point.y),
+              })
+            : active.state.point;
         const inside =
           point &&
           point.x >= display.bounds.x &&
@@ -168,7 +181,7 @@ export class ComputerOverlay implements ComputerFeedback {
     if (this.active?.session !== session) return;
     clearTimeout(this.idle);
     // Bridge rapid tool calls, but never claim that an idle dialogue owns the computer.
-    this.idle = setTimeout(() => this.release(session), 1800);
+    this.idle = setTimeout(() => this.release(session), 5000);
     this.idle.unref();
   }
   release(session: string) {

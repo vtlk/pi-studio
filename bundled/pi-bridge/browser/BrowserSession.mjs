@@ -47,7 +47,19 @@ export class BrowserSession {
     // Never inherit personal CDP/profile, provider, plugins, headers or config overrides.
     this.env = Object.fromEntries(
       Object.entries(process.env).filter(([key]) =>
-        ['PATH', 'HOME', 'TMPDIR', 'LANG'].includes(key),
+        [
+          'PATH',
+          'HOME',
+          'TMPDIR',
+          'LANG',
+          'SYSTEMROOT',
+          'WINDIR',
+          'TEMP',
+          'TMP',
+          'LOCALAPPDATA',
+          'APPDATA',
+          'USERPROFILE',
+        ].includes(key.toUpperCase()),
       ),
     );
   }
@@ -209,6 +221,22 @@ export class BrowserSession {
   }
 
   async call(name, input) {
+    const feedback = ![
+      'browser_status',
+      'browser_close',
+      'browser_downloads',
+      'browser_save_download',
+    ].includes(name);
+    const activity = { started: false };
+    try {
+      return await this.performCall(name, input, activity);
+    } finally {
+      if (feedback && activity.started && this.started && this.opened && !this.closed)
+        await this.cursor(this.cursorPoint, false, false);
+    }
+  }
+
+  async performCall(name, input, activity) {
     if (this.closed) throw new Error('Браузерная сессия закрыта.');
     const args = validateBrowserCall(name, input, this.imageBounds);
     if (name === 'browser_status') {
@@ -278,6 +306,8 @@ export class BrowserSession {
     const navigation = name === 'browser_open' ? url(args.url) : undefined;
     const launch = name === 'browser_open' ? await launchPreferences(this, args) : undefined;
     await this.prepare();
+    activity.started = true;
+    if (this.opened) await this.cursor();
     try {
       const feature = await browserFeatureCall(this, name, args);
       if (feature) return feature;
@@ -369,11 +399,11 @@ export class BrowserSession {
     }
   }
 
-  async cursor(point = this.cursorPoint, press = false) {
+  async cursor(point = this.cursorPoint, press = false, busy = true) {
     if (!this.headed) return;
     this.cursorPoint = point;
     await this.invoke('agent_browser_eval', {
-      script: yellowCursorScript(point, press, !this.captures?.has('record')),
+      script: yellowCursorScript(point, press, !this.captures?.has('record'), busy),
     }).catch(() => {});
   }
 

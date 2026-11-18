@@ -107,7 +107,7 @@ const liveWindows = () => [...owned].filter((window) => !window.isDestroyed());
   await overlay.suspend();
   await overlay.resume();
   overlay.finish('private-session-b');
-  await wait(1950);
+  await wait(5150);
   assert.equal(liveWindows().length, 0, 'Idle feedback is removed.');
   const loading = overlay.begin('cancel-during-load', 'Отмена', 'Читает окно');
   overlay.release('cancel-during-load');

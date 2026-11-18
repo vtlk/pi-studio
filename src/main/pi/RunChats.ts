@@ -51,8 +51,13 @@ export class RunChats {
     this.chatFailures.delete(runKey(target));
     this.dependencies.chatChanged?.(target);
   }
-  close() {
-    for (const chat of this.embeddedProcesses.keys()) chat.stop();
+  async close() {
+    const results = await Promise.allSettled(
+      [...this.embeddedProcesses.keys()].map((chat) => chat.stop()),
+    );
+    const failed = results.find((result) => result.status === 'rejected');
+    if (failed?.status === 'rejected') throw failed.reason;
+    this.embeddedProcesses.clear();
   }
   failed(request: ChatTarget, current: LiveRun | undefined, error: unknown) {
     if (!this.dependencies.embedded) return;

@@ -9,6 +9,7 @@ import { verifyManifest } from '../src/main/updates/manifest.ts';
 import { extractUpdate } from '../src/main/updates/extractUpdate.ts';
 import { verifyApplication } from '../src/main/updates/verifyApplication.ts';
 import { verifyInventory } from '../bundled/update-helper/inventory.mjs';
+import { verifyWindowsIcon } from './windows-icon.mjs';
 import { readZipText } from './audit/zipText.mjs';
 import { verifyBundledNotices } from './audit/bundledNotices.ts';
 
@@ -79,6 +80,9 @@ try {
   if (win) {
     const windowsZip = join('dist', win.archive.name);
     execFileSync('/usr/bin/unzip', ['-tqq', windowsZip], { stdio: 'pipe', timeout: 120000 });
+    const pe = await readZipText(windowsZip, 'Pi Studio/Pi Studio.exe', 512 * 1024 ** 2);
+    if (!pe) throw Error('Missing Windows executable');
+    verifyWindowsIcon(pe, await readFile('public/branding/pi-studio.ico'));
     for (const [entry, expected] of [
       ['resources/app/out/main/index.cjs', await readFile('out/main/index.cjs')],
       ['resources/app/licenses/Pi-Studio-LICENSE.txt', ownLicense],
@@ -112,6 +116,7 @@ try {
     windowsComparedOnlyWhenExplicitlyRequested: withWindows,
     macElectronAndChromiumNotices: true,
     windowsCrc: !!win,
+    windowsBrandedIconVerifiedInActualPe: !!win,
     installedApplicationOrUserDataMutated: false,
     programsExecuted: false,
     buildsCreated: 0,

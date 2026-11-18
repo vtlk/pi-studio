@@ -907,7 +907,7 @@
   "error.usageRecovery.accountingIsAlreadyPausedFor": "Учёт уже приостановлен для обновления.",
   "error.readNativeUsage.couldNotRecoverAvailablePi": "Не удалось восстановить доступную статистику Pi.",
   "error.readNativeUsage.invalidPiStatistics": "Некорректная статистика Pi.",
-  "error.browserSupport.visibleBrowserUseIsCurrently": "Видимый Browser Use пока доступен только на Mac.",
+  "error.browserSupport.visibleBrowserUseIsCurrently": "Видимый Browser Use доступен на macOS и Windows x64.",
   "error.browserSupport.browserUseRequiresTheSupported": "Browser Use требует поддерживаемый Pi 1.5.2.",
   "error.browserSupport.waitForBrowserComponentsTo": "Дождитесь установки компонентов браузера.",
   "error.browserVersions.unsupportedBrowserArchitecture": "Архитектура браузера не поддерживается.",

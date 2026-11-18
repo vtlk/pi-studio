@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-11-18T10:39:02.099552+00:00",
+  "version": "0.2.0-alpha.110",
+  "regression": {
+    "tests": 528,
+    "passed": 527,
+    "failed": 0,
+    "skipped": 1,
+    "skipReason": "Explicit opt-in native permissions check; never prompts during unattended regression"
+  },
+  "additionalWindowsPointerTestsPassed": 7,
+  "desktopFeedback": {
+    "computerWindowsEnabled": true,
+    "idleHoldMilliseconds": 5000,
+    "windowsPhysicalToDipMapping": "tested with controlled Electron surface",
+    "browserWindow": "explicit isolated pinned Chrome for Testing; Windows x64 archive independently SHA256-verified",
+    "browserFrameAndPointer": "shared DOM overlay; controlled lifecycle tests",
+    "noNativeDesktopAcceptanceClaim": true
+  },
+  "windowsExeIcon": {
+    "source": "public/branding/pi-studio-icon.png",
+    "embeddedSizes": [
+      16,
+      24,
+      32,
+      48,
+      64,
+      128,
+      256
+    ],
+    "PEFixtureResourceRoundTrip": true,
+    "actualReleasePEVerification": "required after packaging"
+  },
+  "shutdown": {
+    "projectRpcAndSetupAssistant": "real Pi SDK 1.5.2 using isolated local model fixture",
+    "helperPidAbsentBeforeDrainReturns": true,
+    "historyAccountingAndExactResume": "native smoke-pi-chat passed",
+    "ownedHungProcessEscalation": "native POSIX and controlled Windows taskkill tree test",
+    "unrelatedProcessPreserved": true
+  },
+  "limits": [
+    "Actual Windows GUI/PowerShell execution and native macOS/Windows desktop overlay acceptance remain pending",
+    "No installed user app, live dialogue, account, permission or browser was modified"
+  ]
+}

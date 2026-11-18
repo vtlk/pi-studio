@@ -43,18 +43,18 @@ export class BrowserSupport {
     const [backend, headless, headed] = await Promise.all([
       readAgentBrowser(this.backendRoot).catch(() => undefined),
       readChrome(this.chromeRoot).catch(() => undefined),
-      process.platform === 'darwin'
+      ['darwin', 'win32'].includes(process.platform)
         ? readChrome(this.visibleChromeRoot, true).catch(() => undefined)
         : undefined,
     ]);
     return {
       headlessInstalled: !!backend && !!headless,
       headedInstalled: !!backend && !!headed,
-      headedSupported: process.platform === 'darwin',
+      headedSupported: ['darwin', 'win32'].includes(process.platform),
     };
   }
   installVisible() {
-    if (process.platform !== 'darwin')
+    if (!['darwin', 'win32'].includes(process.platform))
       throw new Error(t('error.browserSupport.visibleBrowserUseIsCurrently'));
     this.installingVisible ??= (async () => {
       // Share backend installation with an already admitted ordinary component install.
@@ -106,7 +106,7 @@ export class BrowserSupport {
       visual,
       binary: join(this.backendRoot, browserExecutable()),
       chrome: join(this.chromeRoot, chromeExecutable()),
-      ...(process.platform === 'darwin'
+      ...(['darwin', 'win32'].includes(process.platform)
         ? { headedChrome: join(this.visibleChromeRoot, chromeExecutable(true)) }
         : {}),
       projectRoot: run.projectRoot,

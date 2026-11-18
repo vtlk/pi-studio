@@ -5,8 +5,8 @@ import { ComputerOverlay } from './ComputerOverlay';
 export function createComputerSupport() {
   return new ComputerSupport(
     new CuaRuntime({
-      // macOS direct mode has no native Cua overlay. Keep Windows' vendor cursor unchanged.
-      feedback: process.platform === 'darwin' ? new ComputerOverlay() : undefined,
+      // The same inert frame and yellow pointer on both supported desktop platforms.
+      feedback: new ComputerOverlay(),
     }),
   );
 }

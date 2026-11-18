@@ -1,10 +1,11 @@
 /** Fixed inert page overlay. MousePointer2 geometry from lucide-react 0.577.0 (ISC). */
-export function yellowCursorScript(point, press = false, enabled = true) {
-  return `(${installYellowCursor.toString()})(${JSON.stringify(point ?? null)},${press === true},${enabled === true})`;
+export function yellowCursorScript(point, press = false, enabled = true, busy = false) {
+  return `(${installYellowCursor.toString()})(${JSON.stringify(point ?? null)},${press === true},${enabled === true},${busy === true})`;
 }
-function installYellowCursor(point, press, enabled) {
+function installYellowCursor(point, press, enabled, busy) {
   const key = '__piStudioBrowserCursor';
   if (!enabled) {
+    clearTimeout(globalThis[key]?.idle);
     globalThis[key]?.host.remove();
     delete globalThis[key];
     return true;
@@ -20,13 +21,19 @@ function installYellowCursor(point, press, enabled) {
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.innerHTML = `<style>
       :host,*{pointer-events:none!important}.pointer{position:fixed;display:none;width:29px;height:29px;transform:translate(-4px,-3px);filter:drop-shadow(0 1px 2px #0008)}
-      .ring{position:fixed;width:36px;height:36px;margin:-18px;border:2px solid #f2cc43;border-radius:50%;box-sizing:border-box;box-shadow:0 0 12px #f2cc4380;animation:pulse 650ms ease-out forwards}
+      .edge{position:fixed;inset:1px;border:2px solid #f2cc43;border-radius:12px;box-shadow:inset 0 0 12px #f2cc4360;box-sizing:border-box}.ring{position:fixed;width:36px;height:36px;margin:-18px;border:2px solid #f2cc43;border-radius:50%;box-sizing:border-box;box-shadow:0 0 12px #f2cc4380;animation:pulse 650ms ease-out forwards}
       @keyframes pulse{from{transform:scale(.35);opacity:1}to{transform:scale(1.8);opacity:0}}
       @media(prefers-reduced-motion:reduce){.ring{animation:fade 650ms linear forwards}}@keyframes fade{to{opacity:0}}
-    </style><svg class="pointer" viewBox="0 0 24 24" fill="#f2cc43" stroke="#302b1c" stroke-width="1.6" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>`;
+    </style><div class="edge"></div><svg class="pointer" viewBox="0 0 24 24" fill="#f2cc43" stroke="#302b1c" stroke-width="1.6" stroke-linejoin="round"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>`;
     document.documentElement.append(host);
     state = globalThis[key] = { host, shadow, pointer: shadow.querySelector('.pointer') };
   }
+  clearTimeout(state.idle);
+  state.host.style.visibility = 'visible';
+  if (!busy)
+    state.idle = setTimeout(() => {
+      state.host.style.visibility = 'hidden';
+    }, 5000);
   if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
     Object.assign(state.pointer.style, {
       display: 'block',

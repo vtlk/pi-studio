@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { brandWindowsExecutable } from './windows-icon.mjs';
 import { packageCua } from './package-cua.mjs';
 import { verifyClaudePackage } from './verify-claude-package.mjs';
 import { writeInventory, verifyInventory } from '../bundled/update-helper/inventory.mjs';
@@ -56,6 +57,13 @@ try {
   await mkdir(bundle);
   unpackZip(archive, bundle);
   await rename(join(bundle, 'electron.exe'), join(bundle, 'Pi Studio.exe'));
+  await writeFile(
+    join(bundle, 'Pi Studio.exe'),
+    brandWindowsExecutable(
+      await readFile(join(bundle, 'Pi Studio.exe')),
+      await readFile(join(root, 'public/branding/pi-studio.ico')),
+    ),
+  );
   await rm(join(bundle, 'resources/default_app.asar'), { force: true });
   const application = join(bundle, 'resources/app');
   await mkdir(join(application, 'licenses'), { recursive: true });

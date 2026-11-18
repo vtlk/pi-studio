@@ -22,7 +22,13 @@ export function registerGracefulQuit(
         admission?.failed(error);
         return;
       }
-      await Promise.allSettled(runs.map((run) => run.drain()));
+      const results = await Promise.allSettled(runs.map((run) => run.drain()));
+      const failure = results.find((result) => result.status === 'rejected');
+      if (failure?.status === 'rejected') {
+        draining = false;
+        admission?.failed(failure.reason);
+        return;
+      }
       // Wait for asynchronous cleanup attempts too; every owned controller is attempted.
       // A cancellation that must veto quit belongs in a pre-close admission guard.
       await Promise.allSettled(

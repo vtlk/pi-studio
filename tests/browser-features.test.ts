@@ -192,7 +192,9 @@ test('browser schemas reject launches/config escapes and invalid emulation/proxy
   assert.equal(proxyUrl('socks5://127.0.0.1:1080'), 'socks5://127.0.0.1:1080');
   for (const arch of ['arm64', 'x64'])
     assert.equal(chromeArchive(arch, 'darwin', true).integrity, visibleChromeArchives[arch]);
-  assert.throws(() => chromeArchive('x64', 'win32', true), /только на Mac/);
+  assert.equal(chromeArchive('x64', 'win32', true).folder, 'chrome-win64');
+  assert.match(chromeArchive('x64', 'win32', true).integrity, /^[a-f0-9]{64}$/);
+  assert.throws(() => chromeArchive('arm64', 'win32', true));
 });
 
 test('DevTools only creates a target over the owned loopback CDP; upstream inspect and OS opening are never called', async (t) => {

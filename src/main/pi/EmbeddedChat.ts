@@ -4,6 +4,7 @@ import { dirname } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 import type { ChatAnswer, ChatDialog, ChatState, ChatTarget } from '../../shared/chat.ts';
 import { t } from '../../shared/i18n/index.ts';
+import { stopOwnedChat } from './stopOwnedChat.ts';
 import { piEnvironment } from './platform.ts';
 import { findWindowsBash } from './windowsBash.ts';
 import { findGit } from './git.ts';
@@ -28,7 +29,7 @@ export class EmbeddedChat {
   private decoder = new StringDecoder('utf8');
   private notifyTimer?: ReturnType<typeof setTimeout>;
   private stopping = false;
-  private exitTimer?: ReturnType<typeof setTimeout>;
+  private shutdown?: Promise<void>;
   private refreshing?: Promise<void>;
   private readonly changed: () => void;
 
@@ -90,6 +91,7 @@ export class EmbeddedChat {
     this.child = spawn(node, [bridge, bootstrap], {
       env,
       windowsHide: true,
+      detached: true,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     this.child.stdout.on('data', (chunk: Buffer) => this.read(this.decoder.write(chunk)));
@@ -98,7 +100,6 @@ export class EmbeddedChat {
     this.child.stdin.on('error', () => this.failed(t('Chat.disconnected')));
     this.child.once('error', () => this.failed(t('Chat.couldNotStart')));
     this.child.once('exit', () => {
-      clearTimeout(this.exitTimer);
       this.state.phase = this.stopping ? 'closed' : 'error';
       if (!this.stopping) this.state.error = t('Chat.disconnected');
       this.state.working = false;
@@ -153,14 +154,12 @@ export class EmbeddedChat {
     this.touch();
   }
   stop() {
-    if (this.stopping) return;
+    if (this.shutdown) return this.shutdown;
     this.stopping = true;
-    this.child.stdin.end();
-    // A hung startup must not become an untracked orphan. Signal only this owned child.
-    this.exitTimer = setTimeout(() => {
-      if (this.alive) this.child.kill('SIGTERM');
-    }, 10_000);
-    this.exitTimer.unref();
+    this.shutdown = stopOwnedChat(this.child);
+    // Synchronous stop callers remain supported; quit/close await the same promise.
+    void this.shutdown.catch(() => {});
+    return this.shutdown;
   }
   private write(value: unknown) {
     if (!this.alive || this.stopping || this.child.stdin.destroyed)

@@ -4,6 +4,7 @@ import { createServer, type ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
+import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
@@ -178,6 +179,22 @@ const host = createStudioRunHost(service, {
   catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
   piPath: () => pi.path,
 });
+const helperProfiles = store.bootstrap().sections
+  .systemAgents as import('../src/shared/systemAgents.ts').SystemAgent[];
+const helperProfile = helperProfiles.find((profile) => profile.systemRole === 'assistant')!;
+await store.saveSection(
+  'systemAgents',
+  helperProfiles.map((profile) =>
+    profile.id === helperProfile.id ? { ...profile, model: agents[0].model } : profile,
+  ),
+);
+const helperHost = createSetupAssistant(service, {
+  embedded: true,
+  bootstraps: join(root, 'helper-boots'),
+  bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
+  catalog: new URL('../bundled/pi-bridge/catalog.mjs', import.meta.url).pathname,
+  piPath: () => pi.path,
+});
 const target = (agentId = 'a') => ({ projectId: project.id, agentId });
 const until = async (check: () => unknown, label: string) => {
   const end = Date.now() + 15000;
@@ -201,6 +218,17 @@ try {
   await launch;
   assert.equal(host.chat(target())?.phase, 'ready');
   assert.equal(requests, 0, 'Opening chat sends no model prompt');
+  await helperHost.launch({
+    projectId: 'pi-setup-assistant',
+    agentId: helperProfile.id,
+    autoContinue: false,
+  });
+  const helperPid = helperHost.processes()[0].pid;
+  await helperHost.drain();
+  await helperHost.close();
+  assert.equal(helperHost.processes().length, 0, 'Helper process is gone before quit completes');
+  assert.throws(() => process.kill(helperPid, 0), { code: 'ESRCH' });
+  assert.equal(requests, 0, 'Helper shutdown never sends a model message');
   const pid = host.processes()[0].pid;
   await host.launch({ ...target(), autoContinue: false });
   assert.equal(host.processes()[0].pid, pid, 'Reopening chat reuses the same idle process');
@@ -374,6 +402,7 @@ try {
           'abort without exit',
           'per-message attachments preserve source files',
           'process exit count',
+          'setup assistant native RPC process closes and is awaited before quit; no model input',
           'update waits for busy chats and drains owned idle processes',
           'update shutdown preserves exact JSONL and blocks new input',
         ],
@@ -385,7 +414,9 @@ try {
 } finally {
   for (const res of waiting.values()) res.destroy();
   await host.drain();
-  host.close();
+  await host.close();
+  await helperHost.drain();
+  await helperHost.close();
   server.closeAllConnections();
   await new Promise<void>((resolve) => server.close(() => resolve()));
   await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });

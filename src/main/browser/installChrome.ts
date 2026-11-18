@@ -38,6 +38,7 @@ export async function readChrome(root: string, headed = false) {
       throw new Error(t('error.installChrome.theBrowserWasModifiedReinstall'));
     if (
       headed &&
+      process.platform === 'darwin' &&
       (typeof state.frameworkSha256 !== 'string' ||
         (await componentHash(join(root, chromeFramework), 1024 * 1024 ** 2)) !==
           state.frameworkSha256)
@@ -95,11 +96,19 @@ export async function installChrome(
     );
     const content = join(unpacked, spec.folder),
       binary = join(content, chromeExecutable(headed));
-    const version = await execute(binary, ['--version'], {
-      signal,
-      timeout: 10000,
-      maxBuffer: 10000,
-    });
+    const version = await execute(
+      headed && process.platform === 'win32' ? windowsPowershell() : binary,
+      headed && process.platform === 'win32'
+        ? powershellArguments(
+            `(Get-Item -LiteralPath ${powershellLiteral(binary)}).VersionInfo.ProductVersion`,
+          )
+        : ['--version'],
+      {
+        signal,
+        timeout: 10000,
+        maxBuffer: 10000,
+      },
+    );
     if (!version.stdout.includes(CHROME_VERSION))
       throw new Error(t('error.installChrome.browserVersionVerificationFailed'));
     await atomicJson(join(content, 'installed.json'), {
@@ -108,7 +117,14 @@ export async function installChrome(
       ...(headed
         ? {
             headed: true,
-            frameworkSha256: await componentHash(join(content, chromeFramework), 1024 * 1024 ** 2),
+            ...(process.platform === 'darwin'
+              ? {
+                  frameworkSha256: await componentHash(
+                    join(content, chromeFramework),
+                    1024 * 1024 ** 2,
+                  ),
+                }
+              : {}),
           }
         : {}),
     });

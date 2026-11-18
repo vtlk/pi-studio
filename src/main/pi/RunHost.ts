@@ -220,17 +220,18 @@ export class RunHost {
       remove: (id) => this.channel.remove(id),
     });
   }
-  drain() {
+  async drain() {
     this.stopping = true;
     clearInterval(this.monitor);
     this.chains.clear();
-    return drainRunProcesses(this.live.values(), this.dependencies);
+    await drainRunProcesses(this.live.values(), this.dependencies);
+    await this.chats.close();
   }
-  close() {
+  async close() {
     this.stopping = true;
     clearInterval(this.monitor);
     closeRuns(this.live.values(), this.dependencies);
-    this.chats.close();
+    await this.chats.close();
     this.channel.close();
     this.live.clear();
     this.chains.clear();
