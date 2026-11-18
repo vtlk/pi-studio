@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-18T11:38:58.139889+00:00",
+  "version": "0.2.0-alpha.111",
+  "currentReleaseAssets": [
+    "Pi-Studio-0.2.0-alpha.111-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.111-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.111-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.111-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.111-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.111-win32-x64.update.json"
+  ],
+  "ownedUnpackedPackageAndProbeStagingRemoved": true,
+  "packagedMacAppNeverExecuted": true,
+  "pinnedElectronDependencyCache": {
+    "oneArchive": true,
+    "sha256": "d92d1aa4700e3a7e7f174731f5086ebd9c21f9773e642b260160fe0a6ebe12d2",
+    "purpose": "Reuse the exact verified build dependency; no separate cache per Studio release"
+  },
+  "userAppOrDataChanged": false,
+  "systemChromeOrProfilesModified": false,
+  "newBrowserClones": []
+}

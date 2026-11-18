@@ -31,5 +31,7 @@
     "RU/EN errors contain diagnostic codes without command paths or secrets"
   ],
   "nativeWindowsAcceptance": false,
-  "userAppInstalledClosedOrRestarted": false
+  "userAppInstalledClosedOrRestarted": false,
+  "sourceCommit": "ac241d98fde28850cbef23530e0ec63297b10db0",
+  "actualWindowsArchiveRuntimeAndMitNoticesVerified": true
 }
