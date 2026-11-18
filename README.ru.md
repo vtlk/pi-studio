@@ -10,7 +10,7 @@
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.111/Pi-Studio-0.2.0-alpha.111-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.112/Pi-Studio-0.2.0-alpha.112-win-x64.zip)**
+**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.112/Pi-Studio-0.2.0-alpha.112-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.112/Pi-Studio-0.2.0-alpha.112-win-x64.zip)**
 
 **[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
 
@@ -129,13 +129,15 @@
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.111/Pi-Studio-0.2.0-alpha.111-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.112/Pi-Studio-0.2.0-alpha.112-win-x64.zip)** |
+| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.112/Pi-Studio-0.2.0-alpha.112-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.112/Pi-Studio-0.2.0-alpha.112-win-x64.zip)** |
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.111 | alpha.112 · preview |
+| **Версия** | alpha.112 | alpha.112 · preview |
 
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
 [Что изменилось в alpha.112 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.112)
+
+Предпросмотр файлов и возврат в открытый диалог больше не ждут записи статусов или фонового опроса Team. Повторные проверки Pi при запуске объединены. Обновление ожидает завершения фоновых чтений без постоянного переключения состояния окна.
 
 Перед запуском Pi на Windows проверка процессов использует нативные API вместо PowerShell/CIM. Старые записи о завершённых процессах больше не зависят от запроса оболочки; живые и неподтверждённые диалоги по-прежнему защищены от повторного открытия.
 

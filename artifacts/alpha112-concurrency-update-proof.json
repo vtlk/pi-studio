@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-18T12:41:20.704010+00:00",
+  "checkedAt": "2026-11-18T12:54:33.143896+00:00",
   "version": "0.2.0-alpha.112",
   "regression": {
     "tests": 552,
@@ -42,5 +42,7 @@
     "isolatedMacColdLaunchMilliseconds": 2969,
     "userWindowsTimingAcceptance": false,
     "userMacProfileTimingAcceptance": false
-  }
+  },
+  "runtimeSourceCommit": "e48b74017ee732c8d3b32f58937797a728e897ee",
+  "bothPlatformReleasesPublishedAndFeedVerified": true
 }
