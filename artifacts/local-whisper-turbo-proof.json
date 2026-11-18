@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-11-18T22:35:10.936Z",
+  "model": "onnx-community/whisper-large-v3-turbo",
+  "revision": "360ebcde2559d60bb474678be3c1de9ef347d01a",
+  "dtype": "q4",
+  "engine": "Actual compiled Transformers.js 4.3.2 + packaged ONNX Web worker",
+  "backend": "wasm",
+  "loadMs": 5356,
+  "inferenceMs": 111505,
+  "publicFixture": "OpenAI Whisper tests/jfk.flac (JFK public speech), converted locally to 16 kHz mono",
+  "transcript": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+  "servedModelBytes": 761859026,
+  "modelDownloadedViaActualHashPinnedService": true,
+  "nativeMicrophoneOrPermissionsProbed": false,
+  "userAppOrDataChanged": false,
+  "transport": "Only the compiled studio-voice URL literal is mapped to isolated loopback HTTP serving the same verified model files; not native Windows/OS microphone acceptance"
+}

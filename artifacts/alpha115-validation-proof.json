@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-11-18T23:01:59.157626+00:00",
+  "version": "0.2.0-alpha.115",
+  "runtimeSourceCommit": "4917c8b57680a59481af5e71ff4b5a4944871739",
+  "typecheckBuild": true,
+  "lint": true,
+  "architecture": {
+    "modules": 473,
+    "cyclesOrLayerViolations": false
+  },
+  "tests": {
+    "total": 562,
+    "passed": 561,
+    "failed": 0,
+    "skipped": 1,
+    "skip": "Opt-in native desktop/permission acceptance; not run against user desktop",
+    "concurrency": 4,
+    "initialOverloadedRun": "One existing process-stop timing assertion failed under full default concurrency, passed in isolated rerun and full bounded-concurrency rerun"
+  },
+  "uiProof": "input-refinements-proof.json",
+  "staticHtmlProof": "html-preview-ui-proof.json",
+  "realLocalVoiceProof": "local-whisper-turbo-proof.json",
+  "packageProof": "release-package-0.2.0-alpha.115-proof.json",
+  "noNativeMicOrUserCapture": true,
+  "nativeWindowsAcceptance": false,
+  "installedApplicationOrUserProcessesChanged": false
+}

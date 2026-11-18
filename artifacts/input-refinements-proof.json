@@ -1,0 +1,67 @@
+{
+  "checkedAt": "2026-11-18T22:54:52.910Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "rootFileOnly": true,
+      "locateInsideHover": true,
+      "wordWrapWithoutEditorRemount": true,
+      "optInLocalJavaScript": true,
+      "opaqueNoIPCOrNetwork": true,
+      "dropToChatAndAgent": true,
+      "pasteImageKeepsDraft": true,
+      "microphoneUiDecodeAndInsertion": true,
+      "hiddenChatVoicePreserved": true,
+      "noAutomaticSend": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "rootFileOnly": true,
+      "locateInsideHover": true,
+      "wordWrapWithoutEditorRemount": true,
+      "optInLocalJavaScript": true,
+      "opaqueNoIPCOrNetwork": true,
+      "dropToChatAndAgent": true,
+      "pasteImageKeepsDraft": true,
+      "microphoneUiDecodeAndInsertion": true,
+      "hiddenChatVoicePreserved": true,
+      "noAutomaticSend": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "rootFileOnly": true,
+      "locateInsideHover": true,
+      "wordWrapWithoutEditorRemount": true,
+      "optInLocalJavaScript": true,
+      "opaqueNoIPCOrNetwork": true,
+      "dropToChatAndAgent": true,
+      "pasteImageKeepsDraft": true,
+      "microphoneUiDecodeAndInsertion": true,
+      "hiddenChatVoicePreserved": true,
+      "noAutomaticSend": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "rootFileOnly": true,
+      "locateInsideHover": true,
+      "wordWrapWithoutEditorRemount": true,
+      "optInLocalJavaScript": true,
+      "opaqueNoIPCOrNetwork": true,
+      "dropToChatAndAgent": true,
+      "pasteImageKeepsDraft": true,
+      "microphoneUiDecodeAndInsertion": true,
+      "hiddenChatVoicePreserved": true,
+      "noAutomaticSend": true
+    }
+  ],
+  "actualProbeRequests": 0,
+  "realVoiceInference": false,
+  "microphoneAndWorker": "Controlled recording/worker; actual pinned Whisper tested separately",
+  "nativeExplorerOrFinderOpened": false,
+  "userAppOrDataChanged": false,
+  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance."
+}
