@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-11-16T18:49:54.584Z",
-  "version": "0.2.0-alpha.85",
+  "checkedAt": "2026-11-18T10:33:30.907Z",
+  "version": "0.2.0-alpha.110",
   "nativeMainPreloadRenderer": true,
   "theme": "dark",
   "languages": [
@@ -22,12 +22,7 @@
       "theme": "dark",
       "topbarHeight": 66,
       "file": "docs/media/en/projects.png",
-      "sha256": "a16a60a0e9a113567da735ea1f26fac39b4f0eca092e0134a3bf88fcd16b5d13",
-      "width": 3072,
-      "height": 1992,
-      "format": "RGBA PNG",
-      "transparentBackground": true,
-      "translucentShadow": true
+      "sha256": "6c2a2c566fa0a9293720a60748aeb656b140c83366151db7be23005063d583cc"
     },
     {
       "name": "agents",
@@ -43,12 +38,7 @@
       "theme": "dark",
       "topbarHeight": 66,
       "file": "docs/media/en/agents.png",
-      "sha256": "1215d110af208acc3a7cf560a9421cb7e6e5552bd3eccd372dff3b8e39ea71ce",
-      "width": 3072,
-      "height": 1992,
-      "format": "RGBA PNG",
-      "transparentBackground": true,
-      "translucentShadow": true
+      "sha256": "edf548bb1483371aea7fb3ab1af1c4796080fcd705b8fc8e9c83fddd41ed4ca0"
     },
     {
       "name": "project",
@@ -64,12 +54,23 @@
       "theme": "dark",
       "topbarHeight": 66,
       "file": "docs/media/en/project.png",
-      "sha256": "7797cb97f94767232c01b2649ea895d637588c8eaa714fcac9fe85f51c6b2964",
-      "width": 3072,
-      "height": 1992,
-      "format": "RGBA PNG",
-      "transparentBackground": true,
-      "translucentShadow": true
+      "sha256": "1a3811d4325a444b62a4fa519630fc94354f2cbe4d1e250a252e5fd26cbf0642"
+    },
+    {
+      "name": "browser",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/en/browser.png",
+      "sha256": "74b9fcce90847d8ed9aecec899611182eaecf9d6a879421b763d695476ae64c1"
     },
     {
       "name": "projects",
@@ -85,12 +86,7 @@
       "theme": "dark",
       "topbarHeight": 66,
       "file": "docs/media/ru/projects.png",
-      "sha256": "4cbad146d6bd6f25d419030465a90ed348752e7a7badc94ff2cb0dca1238b689",
-      "width": 3072,
-      "height": 1992,
-      "format": "RGBA PNG",
-      "transparentBackground": true,
-      "translucentShadow": true
+      "sha256": "39250a1672209347e6afef4d251e0da3f687749f9f89afc9521716780399dda4"
     },
     {
       "name": "agents",
@@ -106,12 +102,7 @@
       "theme": "dark",
       "topbarHeight": 66,
       "file": "docs/media/ru/agents.png",
-      "sha256": "8aecd7d4f2224bf88b87dab758354bea874c3d6901a0bad9c2d4c1906c4c36ff",
-      "width": 3072,
-      "height": 1992,
-      "format": "RGBA PNG",
-      "transparentBackground": true,
-      "translucentShadow": true
+      "sha256": "b87f4774b664588f8f6ddfce4b313c3a2a196e86d41f5cea4c201debda589438"
     },
     {
       "name": "project",
@@ -127,12 +118,23 @@
       "theme": "dark",
       "topbarHeight": 66,
       "file": "docs/media/ru/project.png",
-      "sha256": "11501d993ab2651511f2dc08c93dc90c55073cff6e1e77e1506175047b3fbc4b",
-      "width": 3072,
-      "height": 1992,
-      "format": "RGBA PNG",
-      "transparentBackground": true,
-      "translucentShadow": true
+      "sha256": "0338615d47698e05aea23af6cf283cef98457677888869724c85694abd35a353"
+    },
+    {
+      "name": "browser",
+      "rawPixels": {
+        "width": 2880,
+        "height": 1800
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "ru",
+      "theme": "dark",
+      "topbarHeight": 66,
+      "file": "docs/media/ru/browser.png",
+      "sha256": "838ff751481e07827cff441216c3e7ab21d6011da045638411f27a0f25827b93"
     }
   ],
   "promptGeometry": [
@@ -181,11 +183,42 @@
   ],
   "sameTeamAndStageOrder": true,
   "promptKeyboardResizeAndFindChecked": true,
-  "sameProductType": "landing pages for Atlas, Forma and Flowdesk",
-  "sourceMainSha256": "bc36daee15f14a09a8781da4c495fbfa182abaa79df4fcbe317162fb9bc8db57",
-  "sourceRendererSha256": "8a45ec858258e5bcbca41b5d37313ef9d47a4f55ef207b042db4dbe7756166e2",
-  "dataOrigin": "Documentation-only landing-page team, project CRUD via real native IPC and hand-authored local Markdown. No model work is represented as completed.",
-  "presentation": "Unaltered app captures inside a transparent rounded macOS-style presentation frame; traffic lights occupy the app\u2019s reserved native-control area; shadow added by AppKit. See frame-readme.swift.",
+  "sameProductType": "landing pages for QUIT.BAT, Forma and Flowdesk",
+  "sourceMainSha256": "348a170f245a2828b05bcf6ea7c15dbdc3cde54211c451fd91cf92d0d6f635d1",
+  "sourceRendererSha256": "3453474297c1be2ae5cf0c4c94db6084844cdb0a4c3c807469a8fcc68356dc6c",
+  "dataOrigin": "Documentation-only landing-page team created through native project IPC. Hand-authored chat, process-list and readiness fixtures; process IDs are illustrative, not live Pi sessions. Browser image is an actual offscreen Chromium capture of the public quitbat.work homepage in the matching language. No model work is represented as completed.",
+  "browserImageSource": "https://quitbat.work/",
+  "browserLanguages": {
+    "en": "en",
+    "ru": "ru"
+  },
+  "browserCaptures": [
+    {
+      "url": "https://quitbat.work/",
+      "language": "en",
+      "title": "Free AI harness · QUIT.BAT",
+      "heading": "A game-like AI-harness for serious tasks Build a team that doesn't need every next step explained.",
+      "viewport": {
+        "width": 1200,
+        "height": 760
+      },
+      "sha256": "06e3fe4e3fe370c7f91c876bad8bd216fff8fe8a8aab90b8ac25478a42f54ced"
+    },
+    {
+      "url": "https://quitbat.work/",
+      "language": "ru",
+      "title": "Бесплатный AI-harness · QUIT.BAT",
+      "heading": "Игровой AI-harness для серьёзных задач Создайте команду, которой не нужно объяснять каждый следующий шаг.",
+      "viewport": {
+        "width": 1200,
+        "height": 760
+      },
+      "sha256": "f7c3bb08e2dfa5b9b454ef35f68702b9f7cf192fd20abc9db73777a4138e7c1c"
+    }
+  ],
+  "processListOpenOnFirstScreenshot": true,
+  "chatOpen": true,
+  "presentation": "Unaltered app captures inside a transparent rounded macOS-style presentation frame; traffic lights occupy the app’s reserved native-control area; shadow added by AppKit. See frame-readme.swift.",
   "modelRequests": 0,
   "terminalOpened": false,
   "externalBrowserOpened": false,
@@ -195,8 +228,5 @@
     "newClones": [],
     "noNewRetainedClonesObserved": true,
     "browserOrProfileModified": false
-  },
-  "runtimeSourceCommit": "4362d984e5f76fd1e223c4327275e6b70aa6cb63",
-  "visuallyReviewedAllScreenshots": true,
-  "sourceOnlyPromptLayoutRefinement": true
+  }
 }

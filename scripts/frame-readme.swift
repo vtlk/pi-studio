@@ -17,9 +17,9 @@ let rect = NSRect(x: margin, y: margin, width: width, height: height)
 let path = NSBezierPath(roundedRect: rect, xRadius: 12, yRadius: 12)
 NSGraphicsContext.saveGraphicsState()
 let shadow = NSShadow()
-shadow.shadowColor = NSColor.black.withAlphaComponent(0.55)
-shadow.shadowBlurRadius = 26
-shadow.shadowOffset = NSSize(width: 0, height: -10)
+shadow.shadowColor = NSColor(srgbRed: 1, green: 0.83, blue: 0.24, alpha: 0.24)
+shadow.shadowBlurRadius = 20
+shadow.shadowOffset = NSSize(width: 0, height: 0)
 shadow.set()
 NSColor(calibratedWhite: 0.1, alpha: 1).setFill()
 path.fill()

@@ -2,27 +2,28 @@
 
 ## Current screenshots
 
-Six screenshots from the current native main/preload/renderer, in dark mode. Each README uses screenshots captured in its own language, including project names, agent names, instructions and sample documents.
+Eight screenshots from the current native main/preload/renderer, in dark mode. Each README uses screenshots captured in its own language, including project names, agent names, instructions and sample documents.
 
 | View | English | Русский |
 |:---|:---|:---|
-| Landing-page project and files | [Project](en/project.png) | [Проект](ru/project.png) |
+| Landing-page project, open chat and process list | [Project](en/project.png) | [Проект](ru/project.png) |
+| Browser result in an agent chat | [Browser](en/browser.png) | [Браузер](ru/browser.png) |
 | Agent prompt editor | [Agents](en/agents.png) | [Агенты](ru/agents.png) |
 | Repeated projects for different companies | [Projects](en/projects.png) | [Проекты](ru/projects.png) |
 
-All three demonstration projects are **landing pages for different companies**: Atlas, Forma and Flowdesk. Each uses the same team and ordered five-agent pipeline. The content is hand-authored documentation data in isolated temporary studios, created through actual native IPC. It is not preinstalled content or a claim of completed model work.
+All three demonstration projects are **landing pages for different companies**: QUIT.BAT, Forma and Flowdesk. Each uses the same team and ordered five-agent pipeline. Projects are created through actual native IPC in isolated temporary studios. Conversations, model selection, readiness, session bindings, agent statuses and process-list entries are controlled documentation fixtures; their PIDs are illustrative and do not represent running Pi sessions. The browser image is a real offscreen Chromium capture of the public https://quitbat.work/ homepage, loaded with matching English or Russian language preferences in a fresh, memory-only browser session. No personal browser or signed-in account is accessed. Only requests to quitbat.work are allowed. It is not preinstalled content or a claim of completed model work.
 
 The source UI, field geometry, file browser and Markdown previews are actual app captures. The prompt editor stays within the visible viewport, with its footer and a 20px bottom margin. This is checked at 1080×720 and 1440×900 in both languages; keyboard resizing and opening/closing field search are also checked.
 
 ## macOS presentation
 
-The PNGs have a transparent background, rounded window corners and a translucent drop shadow. `scripts/frame-readme.swift` adds a **presentation frame** around the actual renderer capture. Its three traffic-light controls use the same `{x: 20, y: 20}` location as the app's `hiddenInset` macOS window. These controls are decoration for documentation, not a claim that an OS window frame was captured by `webContents`.
+The PNGs have a transparent background, rounded window corners and a small, symmetric yellow glow on every side. `scripts/frame-readme.swift` adds a **presentation frame** around the actual renderer capture. Its three traffic-light controls use the same `{x: 20, y: 20}` location as the app's `hiddenInset` macOS window. These controls are decoration for documentation, not a claim that an OS window frame was captured by `webContents`.
 
-The application content is not generated, retouched or translated inside an image. Language and theme are set through the app's isolated native preferences before loading it. No AI image generation is used for screenshots. The shared illustrated cover remains separate from screenshots.
+The application UI pixels are not generated, retouched or translated inside an image; fixture data is rendered by the actual app components. Language and theme are set through the app's isolated native preferences before loading it. No AI image generation is used for screenshots. The shared illustrated cover remains separate from screenshots.
 
 ## Reproduce on macOS
 
-Requires Node dependencies and the Xcode command-line Swift compiler (AppKit).
+Requires Node dependencies, an Electron runtime, the Xcode command-line Swift compiler (AppKit) and access to the public quitbat.work site. `PI_STUDIO_CAPTURE_ELECTRON` can select an existing isolated Electron executable; `PI_STUDIO_QA_MAIN` can select a separately compiled native entry.
 
 ```sh
 npm run build
@@ -33,7 +34,7 @@ The runner uses `scripts/offscreen-main.cjs`, accessory activation policy, hidde
 
 A before/after read-only Chrome clone audit is recorded locally. New retained clones fail the capture and require review; the script never deletes or infers ownership of them.
 
-Dimensions, hashes, source main hash, language/theme and prompt geometry are recorded in [screenshots-proof.json](screenshots-proof.json).
+Dimensions, hashes, source main hash, language/theme, public-site title/heading and prompt geometry are recorded in [screenshots-proof.json](screenshots-proof.json).
 
 ## Illustrations and older media
 
