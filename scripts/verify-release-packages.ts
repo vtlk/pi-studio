@@ -134,8 +134,15 @@ try {
         throw Error('Windows payload mismatch: ' + entry);
     }
     for (const name of compiledFiles) {
-      const bytes = await readZipText(windowsZip, 'Pi Studio/resources/app/out/' + name);
-      if (!bytes || !Buffer.from(bytes).equals(await readFile(join('out', name))))
+      const expected = await readFile(join('out', name));
+      // The local voice runtime includes a 26 MB WASM binary. Bound this known
+      // compiled entry by its actual expected size, preserving the generic ZIP limit.
+      const bytes = await readZipText(
+        windowsZip,
+        'Pi Studio/resources/app/out/' + name,
+        Math.max(16 * 1024 ** 2, expected.length),
+      );
+      if (!bytes || !Buffer.from(bytes).equals(expected))
         throw Error('Windows compiled payload mismatch: ' + name);
     }
   }
