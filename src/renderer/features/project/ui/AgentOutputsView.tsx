@@ -73,6 +73,7 @@ export function AgentOutputsView({
         )}
         <OutputFileTree
           entries={agent.entries}
+          projectId={projectId}
           selectedFileId={settingsAgentId || chatOpen ? '' : (selected?.file.id ?? '')}
           onSelectFile={selectFile}
         />

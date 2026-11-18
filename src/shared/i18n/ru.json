@@ -1763,5 +1763,14 @@
   "error.invocationGate.waitTimedOut": "Не удалось дождаться завершения текущей операции Studio. Установка приостановлена. Дождитесь её завершения и повторите обновление.",
   "error.invocationGate.waitCancelled": "Установка обновления отменена.",
   "Chat.loading": "Загружаем диалог…",
-  "ProjectView.backToProjects": "Вернуться к списку проектов"
+  "ProjectView.backToProjects": "Вернуться к списку проектов",
+  "HtmlPreview.view": "Просмотр HTML",
+  "HtmlPreview.preview": "Предпросмотр",
+  "HtmlPreview.source": "Исходный код",
+  "HtmlPreview.restrictions": "JavaScript, формы и внешние запросы отключены.",
+  "HtmlPreview.failed": "Не удалось подготовить предпросмотр. Откройте исходный код файла.",
+  "HtmlPreview.missing": "Некоторые локальные ресурсы не удалось загрузить.",
+  "HtmlPreview.title": "Предпросмотр HTML: {{name}}",
+  "HtmlPreview.loading": "Готовим предпросмотр…",
+  "OutputFileTree.couldNotRevealFile": "Не удалось показать файл. Возможно, он перемещён или удалён."
 }

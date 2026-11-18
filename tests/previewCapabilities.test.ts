@@ -19,3 +19,10 @@ test('Markdown text files select the Markdown viewer regardless of extension cas
 test('ordinary JSON, including legacy manifest names, stays a searchable text document', () => {
   assert.equal(getPreviewKind(file('movie.pistudio.json', 'json')), 'json');
 });
+
+test('HTML and HTM text files use the inert HTML preview while other formats stay unchanged', () => {
+  assert.equal(getPreviewKind(file('page.HTML')), 'html');
+  assert.equal(getPreviewKind(file('page.htm')), 'html');
+  assert.equal(getPreviewKind(file('page.html.txt')), 'text');
+  assert.equal(getPreviewKind(file('page.html', 'unsupported')), 'unsupported');
+});

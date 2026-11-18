@@ -2,6 +2,7 @@ import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import type { OutputFile } from '../model/workspace.types';
 import { getPreviewKind } from '../model/previewCapabilities';
+import { HtmlPreview } from './HtmlPreview';
 import { MarkdownPreview } from './MarkdownPreview';
 import { useState } from 'react';
 import type { MarkdownFiles } from '../model/markdownFiles';
@@ -21,6 +22,8 @@ export function OutputPreview({
     </p>
   );
   switch (getPreviewKind(file)) {
+    case 'html':
+      return <HtmlPreview file={file} files={markdownFiles} />;
     case 'markdown':
       return <MarkdownPreview content={file.content ?? ''} files={markdownFiles} />;
     case 'image':

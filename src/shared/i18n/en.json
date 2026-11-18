@@ -1763,5 +1763,14 @@
   "error.invocationGate.waitTimedOut": "The current Studio operation did not finish in time. Installation is paused. Wait for it to finish and retry the update.",
   "error.invocationGate.waitCancelled": "Update installation was cancelled.",
   "Chat.loading": "Loading conversation…",
-  "ProjectView.backToProjects": "Back to projects"
+  "ProjectView.backToProjects": "Back to projects",
+  "HtmlPreview.view": "HTML view",
+  "HtmlPreview.preview": "Preview",
+  "HtmlPreview.source": "Source",
+  "HtmlPreview.restrictions": "JavaScript, forms and external requests are blocked.",
+  "HtmlPreview.failed": "Could not prepare the preview. Open Source to view the file.",
+  "HtmlPreview.missing": "Some local resources could not be loaded.",
+  "HtmlPreview.title": "HTML preview: {{name}}",
+  "HtmlPreview.loading": "Preparing preview…",
+  "OutputFileTree.couldNotRevealFile": "Could not reveal the file. It may have been moved or deleted."
 }

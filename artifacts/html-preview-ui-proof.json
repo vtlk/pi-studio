@@ -1,0 +1,104 @@
+{
+  "checkedAt": "2026-11-18T20:03:08.957Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "platform": "darwin",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "ru",
+      "theme": "light",
+      "platform": "win32",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "platform": "darwin",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "platform": "win32",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "platform": "darwin",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "platform": "win32",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "platform": "darwin",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "platform": "win32",
+      "staticCssAndLocalImages": true,
+      "sandboxOpaqueNoBridge": true,
+      "scriptsNavigationAndNetworkBlocked": true,
+      "sourceUnchanged": true,
+      "revealScopedAndIndependent": true,
+      "hoverOnlyEllipsisAndNestedFiles": true
+    }
+  ],
+  "actualProbeRequests": 0,
+  "nativeExplorerOrFinderOpened": false,
+  "userAppOrDataChanged": false,
+  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance.",
+  "regression": {
+    "tests": 554,
+    "passed": 553,
+    "skippedOptInNativePermissions": 1,
+    "failed": 0
+  },
+  "nativeRevealFsValidation": "passed exact large file, traversal/private path/symlink guards, blocked mutation queue; OS opener stub"
+}

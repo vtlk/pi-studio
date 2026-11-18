@@ -14,6 +14,7 @@ import {
 import type { OutputEntry } from '../model/workspace.types';
 import { listOutputFiles, sortOutputEntries } from '../model/outputTree';
 import { cx } from '@/shared/ui';
+import { RevealFileButton } from './RevealFileButton';
 import { Tooltip } from '@/shared/ui/Tooltip';
 
 const icons = {
@@ -29,11 +30,13 @@ interface TreeProps {
   entries: OutputEntry[];
   selectedFileId: string;
   onSelectFile: (id: string) => void;
+  projectId?: string;
 }
 function TreeItem({
   entry,
   selectedFileId,
   onSelectFile,
+  projectId,
 }: Omit<TreeProps, 'entries'> & { entry: OutputEntry }) {
   useTranslation(undefined, { i18n });
   const selectedInside =
@@ -66,6 +69,7 @@ function TreeItem({
                 entry={child}
                 selectedFileId={selectedFileId}
                 onSelectFile={onSelectFile}
+                projectId={projectId}
               />
             ))}
           </ul>
@@ -75,7 +79,7 @@ function TreeItem({
   }
   const Icon = icons[entry.format];
   return (
-    <li>
+    <li className="file-tree-file-row" data-selected={selectedFileId === entry.id || undefined}>
       <Tooltip label={entry.name} onlyWhenTruncated overflowSelector="span">
         <button
           className={cx('file-tree-item', selectedFileId === entry.id && 'active')}
@@ -86,10 +90,13 @@ function TreeItem({
           <span>{entry.name}</span>
         </button>
       </Tooltip>
+      {projectId && entry.diskPath && (
+        <RevealFileButton projectId={projectId} path={entry.diskPath} />
+      )}
     </li>
   );
 }
-export function OutputFileTree({ entries, selectedFileId, onSelectFile }: TreeProps) {
+export function OutputFileTree({ entries, selectedFileId, onSelectFile, projectId }: TreeProps) {
   useTranslation(undefined, { i18n });
   return (
     <nav className="output-file-tree" aria-label={t('OutputFileTree.agentFilesAndFolders')}>
@@ -100,6 +107,7 @@ export function OutputFileTree({ entries, selectedFileId, onSelectFile }: TreePr
             entry={entry}
             selectedFileId={selectedFileId}
             onSelectFile={onSelectFile}
+            projectId={projectId}
           />
         ))}
       </ul>

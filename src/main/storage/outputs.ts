@@ -31,6 +31,7 @@ export function fileFormat(name: string): OutputFile['format'] {
       '.js',
       '.css',
       '.html',
+      '.htm',
     ].includes(extension)
   )
     return 'text';

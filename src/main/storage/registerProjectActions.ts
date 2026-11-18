@@ -8,6 +8,8 @@ import type { FileRequest, CopyOutputRequest, DeleteAgentDataRequest } from '../
 import type { StudioService } from './StudioStore';
 import { safePath } from './files';
 import { loadOutput } from './outputs';
+import { outputScope } from './outputScope.ts';
+import { readProjectScope } from './projectReadScope.ts';
 import { stableId } from './validation';
 import { deleteAgentData, resolveAgentDataDeletion } from './deleteAgentData';
 
@@ -58,11 +60,13 @@ export function registerProjectActions(
   );
   handleDesktopInvoke(desktopChannels.revealOutput, (event, request: FileRequest) => {
     caller(event);
-    return service.serialize(async () => {
-      const root = await (await service.load()).projects.directory(request.projectId);
-      await loadOutput(root, request.path);
-      shell.showItemInFolder(await safePath(root, request.path));
-    });
+    stableId(request?.projectId);
+    return readProjectScope(service, request.projectId, async (_store, root) => {
+      await outputScope(root, request.path);
+      const path = await safePath(root, request.path);
+      if (!(await lstat(path)).isFile()) throw new Error(t('error.outputs.theSelectedPathIsNot'));
+      return path;
+    }).then((path) => shell.showItemInFolder(path));
   });
   handleDesktopInvoke(
     desktopChannels.revealAgentOutput,
