@@ -1,6 +1,6 @@
 {
   "version": "0.2.0-alpha.113",
-  "checkedAt": "2026-11-18T15:40:22.988Z",
+  "checkedAt": "2026-11-18T15:43:57.724Z",
   "checks": [
     {
       "language": "ru",
@@ -13,7 +13,7 @@
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
-      "restingHeaderMatchesThemePalette": true
+      "blackHeaderInBothThemes": true
     },
     {
       "language": "ru",
@@ -26,7 +26,7 @@
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
-      "restingHeaderMatchesThemePalette": true
+      "blackHeaderInBothThemes": true
     },
     {
       "language": "en",
@@ -39,7 +39,7 @@
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
-      "restingHeaderMatchesThemePalette": true
+      "blackHeaderInBothThemes": true
     },
     {
       "language": "en",
@@ -52,7 +52,7 @@
       "headerPaddingAndKeyboardBack": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
-      "restingHeaderMatchesThemePalette": true
+      "blackHeaderInBothThemes": true
     }
   ],
   "scope": "Production compiled renderer in an isolated pinned headless shell with mock native APIs; not native platform acceptance",
