@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { readdir } from 'node:fs/promises';
 import model from '../src/main/voice/model.json' with { type: 'json' };
 import { createServer } from 'node:http';
@@ -25,6 +26,16 @@ const modelRoot = process.env.PI_STUDIO_VOICE_QA_MODEL_ROOT;
 const sample = process.env.PI_STUDIO_VOICE_QA_WAV;
 if (!modelRoot || !sample)
   throw Error('Explicit isolated QA model root and public-fixture WAV are required');
+for (const file of model.files) {
+  const hash = createHash('sha256');
+  let size = 0;
+  for await (const part of createReadStream(join(modelRoot, file.name))) {
+    hash.update(part);
+    size += part.length;
+  }
+  assert.equal(size, file.bytes);
+  assert.equal(hash.digest('hex'), file.sha256);
+}
 let servedModelBytes = 0;
 const server = createServer(async (request, response) => {
   try {
@@ -38,9 +49,11 @@ const server = createServer(async (request, response) => {
       );
       return;
     }
-    if (url.pathname === '/qa-public.wav') {
+    if (url.pathname === '/qa-public.wav' || url.pathname === '/qa-second.wav') {
       response.setHeader('Content-Type', 'audio/wav');
-      createReadStream(sample).pipe(response);
+      createReadStream(
+        url.pathname === '/qa-second.wav' ? process.env.PI_STUDIO_VOICE_QA_WAV_SECOND : sample,
+      ).pipe(response);
       return;
     }
     if (url.pathname.startsWith('/voice-model/')) {
@@ -244,12 +257,36 @@ try {
   );
   const loadMs = await deadline('window.voiceResult.ready===true', 300000);
   console.log('Actual Whisper Turbo loaded', loadMs);
-  await js(
-    `(async()=>{const bytes=await(await fetch('/qa-public.wav')).arrayBuffer();const context=new OfflineAudioContext(1,16000,16000);const decoded=await context.decodeAudioData(bytes);const audio=new Float32Array(decoded.getChannelData(0));window.voiceWorker.postMessage({id:2,command:'transcribe',audio},[audio.buffer]);})()`,
-  );
-  const inferenceMs = await deadline("typeof window.voiceResult.text==='string'", 300000);
-  const text = await js('window.voiceResult.text');
-  assert.match(text, /country|americans/i);
+  const recordings = [];
+  const cases = [
+    {
+      url: '/qa-public.wav',
+      expect: process.env.PI_STUDIO_VOICE_QA_EXPECT ?? 'country|americans',
+      language: process.env.PI_STUDIO_VOICE_QA_LANGUAGE,
+      fixture: process.env.PI_STUDIO_VOICE_QA_FIXTURE ?? 'Public JFK speech',
+    },
+  ];
+  if (process.env.PI_STUDIO_VOICE_QA_WAV_SECOND)
+    cases.push({
+      url: '/qa-second.wav',
+      expect: process.env.PI_STUDIO_VOICE_QA_EXPECT_SECOND,
+      language: process.env.PI_STUDIO_VOICE_QA_LANGUAGE_SECOND,
+      fixture: process.env.PI_STUDIO_VOICE_QA_FIXTURE_SECOND,
+    });
+  for (const item of cases) {
+    await js(`window.voiceResult={backend:window.voiceResult.backend};`);
+    await js(
+      `(async()=>{const bytes=await(await fetch('${item.url}')).arrayBuffer();const context=new OfflineAudioContext(1,16000,16000);const decoded=await context.decodeAudioData(bytes);const audio=new Float32Array(decoded.getChannelData(0));window.voiceWorker.postMessage({id:2,command:'transcribe',audio},[audio.buffer]);})()`,
+    );
+    const inferenceMs = await deadline("typeof window.voiceResult.text==='string'", 300000);
+    const text = await js('window.voiceResult.text');
+    const language = await js('window.voiceResult.language');
+    assert.match(text, new RegExp(item.expect, 'iu'));
+    if (item.language) assert.equal(language, item.language);
+    recordings.push({ fixture: item.fixture, inferenceMs, language, text });
+    console.log('Speech recording verified', JSON.stringify(recordings.at(-1)));
+  }
+  const { inferenceMs, text } = recordings[0];
   assert.deepEqual(errors, []);
   const proof = {
     checkedAt: new Date().toISOString(),
@@ -260,18 +297,22 @@ try {
     backend: await js('window.voiceResult.backend'),
     loadMs,
     inferenceMs,
-    publicFixture:
+    audioFixture:
+      process.env.PI_STUDIO_VOICE_QA_FIXTURE ??
       'OpenAI Whisper tests/jfk.flac (JFK public speech), converted locally to 16 kHz mono',
+    detectedLanguage: recordings[0].language,
     transcript: text,
+    recordings,
+    sameWorkerForAllRecordings: true,
     servedModelBytes,
-    modelDownloadedViaActualHashPinnedService: true,
+    hashPinnedModelFilesVerified: true,
     nativeMicrophoneOrPermissionsProbed: false,
     userAppOrDataChanged: false,
     transport:
       'Only the compiled studio-voice URL literal is mapped to isolated loopback HTTP serving the same verified model files; not native Windows/OS microphone acceptance',
   };
   await writeFile(
-    'artifacts/local-whisper-turbo-proof.json',
+    'artifacts/' + (process.env.PI_STUDIO_VOICE_QA_PROOF ?? 'local-whisper-turbo-proof.json'),
     JSON.stringify(proof, null, 2) + '\n',
   );
   console.log(JSON.stringify(proof));
