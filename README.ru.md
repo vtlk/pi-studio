@@ -10,7 +10,7 @@
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-win-x64.zip)**
+**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.116/Pi-Studio-0.2.0-alpha.116-win-x64.zip)**
 
 **[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
 
@@ -129,15 +129,15 @@
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-win-x64.zip)** |
+| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.116/Pi-Studio-0.2.0-alpha.116-win-x64.zip)** |
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.115 | alpha.115 · preview |
+| **Версия** | alpha.115 | alpha.116 · preview |
 
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
-[Что изменилось в alpha.115 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.115)
+[Что изменилось в alpha.116 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.116)
 
-Alpha.115: локальный голосовой ввод Whisper Turbo, вставка картинок и перетаскивание файлов в чат, копирование файлов в рабочую папку агента, JavaScript по явному включению в изолированном HTML и перенос строк в Monaco. Модель скачивается один раз (~762 МБ); аудио остаётся на компьютере, текст — в черновике. Доступна для macOS arm64 и Windows x64.
+Alpha.116 возвращает кнопке обновления размер и область наведения как у соседних кнопок верхней панели, включая скачивание. Красная точка сохранена в обеих темах. Windows x64 уже доступна; для macOS arm64 пока остаётся alpha.115 до завершения загрузки alpha.116.
 
 Команды агентов запоминают состояние раскрытия. При переключении разделов вкладка «Проекты» возвращает в последний открытый проект. Нажатие на название проекта или иконку возврата открывает список; «Перечитать агентов» работает отдельно. Строка проекта чёрная в обеих темах, с тонким серым нижним бордюром.
 

@@ -10,7 +10,7 @@ One agent researches, another creates, a third reviews.<br>Set up the workflow o
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/status-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Status: alpha" /> <img src="https://img.shields.io/badge/platforms-macOS_·_Windows_preview-FFD83D?style=flat-square&labelColor=252525" alt="macOS and Windows preview" />
 
-**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-win-x64.zip)**
+**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.116/Pi-Studio-0.2.0-alpha.116-win-x64.zip)**
 
 **[How it works](#one-team-many-projects)** &nbsp; · &nbsp; **[Models](#your-models-your-tools)** &nbsp; · &nbsp; **[Get started](#quick-start)**
 
@@ -129,15 +129,15 @@ Choose a connection and model for the assistant, then open its conversation unde
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-win-x64.zip)** |
+| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.115/Pi-Studio-0.2.0-alpha.115-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.116/Pi-Studio-0.2.0-alpha.116-win-x64.zip)** |
 | **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Version** | alpha.115 | alpha.115 · preview |
+| **Version** | alpha.115 | alpha.116 · preview |
 
 > **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. Full native Windows validation remains in progress.
 
-[What's new in alpha.115 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.115)
+[What's new in alpha.116 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.116)
 
-Alpha.115 adds local Whisper Turbo dictation, pasted images and dropped chat attachments, copying files into an agent’s working folder, optional isolated JavaScript in HTML previews and a Monaco word-wrap toggle. The voice model downloads once (~762 MB); audio stays local and recognized text stays in the draft. Available for macOS arm64 and Windows x64.
+Alpha.116 restores the update button’s hover/click area and icon to match neighboring topbar controls, including during download. The red offer dot is preserved in both themes. Windows x64 is available now; macOS arm64 remains on alpha.115 until its alpha.116 upload completes.
 
 Agent teams remember whether they are expanded or collapsed. The Projects tab returns to the last open project when switching sections. Click the project heading or its back icon to return to the list; Refresh agents stays independent. Project headers are black in both themes, with a thin gray lower divider.
 
