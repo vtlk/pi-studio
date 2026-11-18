@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-11-18T15:50:36.648545+00:00",
+  "version": "0.2.0-alpha.113",
+  "removedOwnedUnpackedBuild": "Pi Studio/builds/0.2.0-alpha.113 (user cache)",
+  "freeBytesBefore": 26853974016,
+  "freeBytesAfter": 27187556352,
+  "currentReleaseAssetsRetained": 6,
+  "newChromeClones": 0,
+  "installedAppOrUserDataChanged": false,
+  "electronDependencyCache": "one pinned upstream archive reused between builds"
+}
