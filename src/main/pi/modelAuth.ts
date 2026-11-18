@@ -7,7 +7,7 @@ import { dirname } from 'node:path';
 import { checkPi } from './checkPi.ts';
 import { resolvePiSdk } from './BrowserAuth.ts';
 import { stableId } from '../storage/validation.ts';
-import type { ProviderStatus } from '../../shared/contracts.ts';
+import type { PiCheck, ProviderStatus } from '../../shared/contracts.ts';
 import { safePath } from '../storage/files.ts';
 import type { Connection } from '../../shared/connections.ts';
 import {
@@ -66,13 +66,14 @@ export async function modelAuthOperation<T>(
   piPath: string,
   script: string,
   request: {
-    action: 'status' | 'catalog' | 'logout' | 'discover' | 'claude-status';
+    action: 'status' | 'catalog' | 'logout' | 'discover' | 'claude-status' | 'launch';
     provider?: string;
     scope?: ModelAuthScope;
     cwd?: string;
   },
+  verifiedPi?: PiCheck,
 ): Promise<T> {
-  const pi = await checkPi(piPath);
+  const pi = verifiedPi ?? (await checkPi(piPath));
   if (!pi.supported) throw new Error(t('error.nativeResources.theSupportedPiIsRequired'));
   const sdk = await resolvePiSdk(await realpath(pi.path));
   const node = await piNode(pi.path);

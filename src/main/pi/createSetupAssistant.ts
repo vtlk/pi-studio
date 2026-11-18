@@ -82,7 +82,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         if (!agent.enabled)
           throw new Error(t('error.createSetupAssistant.systemAssistantDisabledEnableIt'));
         const path = String(sections.piPath ?? '') || options.piPath();
-        const { selectedModel, modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
+        const { selectedModel, modelAuth, thinkingLevel, piCheck } = await resolveAgentLaunchConfig(
           agent.model,
           (sections.connections ?? []) as Connection[],
           { ...options, folder: store.folder, piPath: path },
@@ -147,7 +147,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
         run.modelAuth = modelAuth;
         await options.browser?.bind(run, store.folder, path, selectedModel.imageInput);
         await options.computer?.bind(run, selectedModel.imageInput);
-        return { run, piPath: path };
+        return { run, piPath: path, piCheck };
       }),
     update: async (run, status, session, failure) => {
       if (session) {

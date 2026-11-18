@@ -9,7 +9,13 @@ import type { TerminalCloseDetail, RunFailure } from '../../shared/runFailure.ts
 export interface RunDependencies {
   bootstraps: string;
   bridge: string;
-  prepare: (request: LaunchAgentRequest) => Promise<{ run: PreparedRun; piPath: string }>;
+  prepare: (
+    request: LaunchAgentRequest,
+  ) => Promise<{
+    run: PreparedRun;
+    piPath: string;
+    piCheck?: import('../../shared/contracts.ts').PiCheck;
+  }>;
   update: (
     run: PreparedRun,
     status: AgentRunStatus,

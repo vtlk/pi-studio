@@ -12,6 +12,7 @@ import { RuntimeAccounting } from './accounting/RuntimeAccounting.mjs';
 import { studioSessionTerminal } from './terminal-title.mjs';
 import { studioMcpDeadlines } from './mcp-deadlines.mjs';
 import { openingFailure, openingFailureText } from './opening-failure.mjs';
+import { sessionEvents } from './session-events.mjs';
 import { sessionRequest } from './session-request.mjs';
 import { npmSettings, withNodeCommand } from './node-tools.mjs';
 import { shellSettings, shellToolOptions } from './shell-tools.mjs';
@@ -28,17 +29,9 @@ export async function runSession(bootstrapPath) {
   )
     throw new Error('Invalid Studio bridge');
   const request = sessionRequest(bootstrap);
-  let queue = Promise.resolve();
-  const event = (data) => {
-    const result = queue.then(async () => {
-      const result = await request('event', data);
-      if (result.language === 'en' || result.language === 'ru')
-        bootstrap.language = result.language;
-      return result;
-    });
-    queue = result.catch(() => {});
-    return result;
-  };
+  const event = sessionEvents(request, (language) => {
+    bootstrap.language = language;
+  });
   let envelope;
   try {
     await event({

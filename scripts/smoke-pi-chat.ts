@@ -214,10 +214,17 @@ const release = (marker: string) => {
   );
 };
 try {
+  const originalRead = store.projects.read.bind(store.projects);
+  store.projects.read = async () => {
+    throw new Error('Opening Pi must not recursively scan project results');
+  };
+  const launchStarted = performance.now();
   const launch = host.launch({ ...target(), autoContinue: false });
   await until(() => host.processes().length === 1, 'Child is counted during startup');
   assert.equal(host.chat(target())?.phase, 'opening');
   await launch;
+  const firstLaunchMilliseconds = Math.round(performance.now() - launchStarted);
+  store.projects.read = originalRead;
   assert.equal(host.chat(target())?.phase, 'ready');
   assert.equal(requests, 0, 'Opening chat sends no model prompt');
   await helperHost.launch({
@@ -423,9 +430,12 @@ try {
       {
         ok: true,
         version: pi.version,
+        firstLaunchMilliseconds,
+        timingScope: 'isolated Mac fixture, not the user Windows machine or installed Mac profile',
         scope: 'isolated native SDK + local model fixture; no external LLM/desktop permissions',
         checks: [
           'startup count/spinner state',
+          'cold launch does not scan project outputs; one shared Pi check and native auth/catalog preflight',
           'idle/working process reuse',
           'parallel agents',
           'file preview and busy chat reopen complete while studio persistence is deliberately held',

@@ -13,11 +13,11 @@ export function readProjectScope<T>(
   return withReadDeadline(async () => {
     const store = service.peek() ?? (await service.serialize(() => service.load()));
     signal.throwIfAborted();
-    const root = store.projects.location(projectId);
+    const root = await store.projects.directory(projectId);
     const result = await read(store, root, signal);
     try {
       signal.throwIfAborted();
-      if (service.peek() !== store || store.projects.location(projectId) !== root)
+      if (service.peek() !== store || (await store.projects.directory(projectId)) !== root)
         throw new Error(t('registerTeamHandlers.studioFolderChanged'));
       return result;
     } catch (error) {

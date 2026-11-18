@@ -66,6 +66,11 @@ export function AgentOutputsView({
           </Tooltip>
           <DeleteAgentDataButton agent={agent} />
         </div>
+        {agent.outputReadError && (
+          <p className="error-message" role="status">
+            {agent.outputReadError}
+          </p>
+        )}
         <OutputFileTree
           entries={agent.entries}
           selectedFileId={settingsAgentId || chatOpen ? '' : (selected?.file.id ?? '')}

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { WorkspaceProject } from '../../shared/project.ts';
 import { projectAgentOutputPath } from '../../shared/agentPaths.ts';
 import { safePath } from './files.ts';
@@ -20,14 +21,23 @@ export async function readProject(
             session = { ...session, missing: true };
           }
         }
-        return {
-          ...agent,
-          session,
-          entries: await scanOutputs(root, projectAgentOutputPath(project, agent), {
+        try {
+          const entries = await scanOutputs(root, projectAgentOutputPath(project, agent), {
             remaining: 5000,
             signal,
-          }),
-        };
+          });
+          return { ...agent, session, entries, outputReadError: undefined };
+        } catch (error) {
+          signal?.throwIfAborted();
+          return {
+            ...agent,
+            session,
+            outputReadError:
+              error instanceof Error
+                ? error.message.slice(0, 500)
+                : t('error.files.readingTheFolderOrFile'),
+          };
+        }
       }),
     ),
   };

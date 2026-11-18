@@ -137,7 +137,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         )
           throw new Error(t('error.createStudioRunHost.invalidLaunchRequest'));
         const store = await service.load();
-        let project = await store.projects.read(request.projectId);
+        let project = store.projects.snapshot(request.projectId);
         const savedAgent = project.agents.find((item) => item.profile.id === request.agentId);
         if (!savedAgent) throw new Error(t('error.createStudioRunHost.agentMissingFromTheProject'));
         if (!savedAgent.profile.enabled) throw new Error(t('session.agentDisabled'));
@@ -151,11 +151,12 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         )
           throw new Error(t('error.createStudioRunHost.resumingADialogueDoesNot'));
         const piPath = String(sections.piPath ?? '') || options.piPath();
-        const { model, selectedModel, modelAuth, thinkingLevel } = await resolveAgentLaunchConfig(
-          profile.model,
-          sections.connections as Connection[],
-          { ...options, folder: store.folder, piPath },
-        );
+        const { model, selectedModel, modelAuth, thinkingLevel, piCheck } =
+          await resolveAgentLaunchConfig(profile.model, sections.connections as Connection[], {
+            ...options,
+            folder: store.folder,
+            piPath,
+          });
         if (request.attachments?.length && !options.references)
           throw new Error(t('error.createStudioRunHost.referenceTransferUnavailable'));
         options.references?.validate(
@@ -205,7 +206,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
           sections.resources as Resource[],
         );
         chatScopes.set(run, { folder: store.folder, imageInput: selectedModel.imageInput });
-        return { run, piPath };
+        return { run, piPath, piCheck };
       }),
     update: (run, status, session, failure) =>
       service.serialize(async () => {

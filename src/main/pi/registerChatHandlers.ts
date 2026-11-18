@@ -7,6 +7,7 @@ import { stableId } from '../storage/validation.ts';
 import type { RunHost } from './RunHost.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
 import { join } from 'node:path';
+import { safePath } from '../storage/files.ts';
 
 export function registerChatHandlers(
   service: StudioService,
@@ -20,7 +21,7 @@ export function registerChatHandlers(
     stableId(target.agentId);
     return target.projectId === 'pi-setup-assistant' ? setup : runs;
   };
-  const scoped = async (target: ChatTarget) => {
+  const scoped = async (target: ChatTarget, readOnly = false) => {
     const selected = host(target);
     const store = service.peek();
     if (!store) throw new Error(t('Chat.notReady'));
@@ -30,11 +31,19 @@ export function registerChatHandlers(
         : store.projects.location(target.projectId);
     if (selected.chatRoot(target) && selected.chatRoot(target) !== root)
       throw new Error(t('registerTeamHandlers.studioFolderChanged'));
+    if (!readOnly) {
+      const checked =
+        target.projectId === 'pi-setup-assistant'
+          ? await safePath(store.folder, '.pistudio/setup-assistant', true)
+          : await store.projects.directory(target.projectId);
+      if (service.peek() !== store || checked !== root)
+        throw new Error(t('registerTeamHandlers.studioFolderChanged'));
+    }
     return selected;
   };
   handleDesktopInvoke(desktopChannels.getChat, async (event, target: ChatTarget) => {
     caller(event);
-    return (await scoped(target)).chat(target);
+    return (await scoped(target, true)).chat(target);
   });
   handleDesktopInvoke(desktopChannels.sendChat, async (event, request: ChatSend) => {
     caller(event);

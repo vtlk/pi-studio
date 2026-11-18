@@ -54,6 +54,13 @@ try {
     )
   )
     throw Error('Packaged main does not match built main');
+  for (const name of ['session.mjs', 'session-events.mjs', 'model-auth.mjs'])
+    if (
+      !(await readFile(join(resources, 'bundled/pi-bridge', name))).equals(
+        await readFile(join('bundled/pi-bridge', name)),
+      )
+    )
+      throw Error('Mac Pi bridge source mismatch: ' + name);
   const ownLicense = await readFile('LICENSE');
   if (!ownLicense.equals(await readFile(join(resources, 'licenses/Pi-Studio-LICENSE.txt'))))
     throw Error('Own license missing');
@@ -107,6 +114,14 @@ try {
         !bytes.equals(await readFile('node_modules/@vscode/windows-process-tree/' + name))
       )
         throw Error('Windows native process probe payload mismatch: ' + name);
+    }
+    for (const name of ['session.mjs', 'session-events.mjs', 'model-auth.mjs']) {
+      const bytes = await readZipText(
+        windowsZip,
+        'Pi Studio/resources/app/bundled/pi-bridge/' + name,
+      );
+      if (!bytes || !bytes.equals(await readFile('bundled/pi-bridge/' + name)))
+        throw Error('Windows Pi bridge source mismatch: ' + name);
     }
     for (const [entry, expected] of [
       ['resources/app/out/main/index.cjs', await readFile('out/main/index.cjs')],

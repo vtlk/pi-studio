@@ -10,15 +10,19 @@ export class ProjectReadViews {
       previous?.workspaceMode === project.workspaceMode;
     return {
       ...project,
-      agents: project.agents.map((agent) => ({
-        ...agent,
-        entries: compatible
-          ? (previous?.agents.find(
+      agents: project.agents.map((agent) => {
+        const previousAgent = compatible
+          ? previous?.agents.find(
               (item) =>
                 item.profile.id === agent.profile.id && item.outputPath === agent.outputPath,
-            )?.entries ?? agent.entries)
-          : agent.entries,
-      })),
+            )
+          : undefined;
+        return {
+          ...agent,
+          entries: previousAgent?.entries ?? agent.entries,
+          outputReadError: previousAgent?.outputReadError,
+        };
+      }),
     };
   }
   async read(
@@ -27,7 +31,7 @@ export class ProjectReadViews {
     current: () => WorkspaceProject,
     signal?: AbortSignal,
   ) {
-    const files = await readProject(project, root, signal);
+    const files = await readProject(this.snapshot(project), root, signal);
     signal?.throwIfAborted();
     const view = this.snapshot(current(), files);
     this.views.set(view.id, view);

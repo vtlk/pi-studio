@@ -178,6 +178,12 @@ test('the actual chat IPC handler reads a working chat without waiting for studi
       if (name.includes('desktopInvoke'))
         return { handleDesktopInvoke: (name: string, fn: Function) => handlers.set(name, fn) };
       if (name.includes('validation')) return { stableId };
+      if (name.includes('storage/files'))
+        return {
+          safePath: async () => {
+            throw Error('A read-only chat must not query the filesystem');
+          },
+        };
       if (name.includes('i18n')) return { t: translate };
       throw Error('Unexpected privileged module ' + name);
     },
@@ -232,4 +238,160 @@ test('a studio change rejects an old file/media read and cancels an unopened res
   } finally {
     f.service.peek = original;
   }
+});
+
+test('an owned child exit is retired immediately even when its numeric PID appears alive', async () => {
+  let lost = 0,
+    removed = 0;
+  const live: any = {
+    pid: process.pid,
+    heartbeat: Date.now(),
+    embedded: { alive: false },
+    run: { record: { runId: 'ended' } },
+  };
+  const state: any = {
+    live: new Map([['p/a', live]]),
+    retiring: new Map(),
+    opening: new Set(),
+    lifecycle: {
+      processLost: async () => {
+        lost++;
+      },
+    },
+    dependencies: {},
+    remove() {
+      removed++;
+    },
+  };
+  await checkRunLiveness(state);
+  assert.equal(lost, 1);
+  assert.equal(removed, 1);
+  assert.equal(state.live.size, 0);
+});
+test('real heartbeat transport bypasses delayed persistence while completion/accounting stay ordered', async () => {
+  const { sessionEvents } = await import('../bundled/pi-bridge/session-events.mjs');
+  const hold = deferred();
+  const order: string[] = [];
+  const languages: string[] = [];
+  const event = sessionEvents(
+    async (_path: string, data: { type: string }) => {
+      order.push(data.type);
+      if (data.type === 'accounting') await hold.promise;
+      return { language: 'en', stop: false };
+    },
+    (value: string) => languages.push(value),
+  );
+  const accounting = event({ type: 'accounting' });
+  await settle();
+  const settled = event({ type: 'settled' });
+  await event({ type: 'heartbeat' });
+  assert.deepEqual(order, ['accounting', 'heartbeat']);
+  hold.resolve();
+  await accounting;
+  await settled;
+  assert.deepEqual(order, ['accounting', 'heartbeat', 'settled']);
+  assert.ok(languages.every((x) => x === 'en'));
+});
+
+test('a limit/read failure in one agent output cannot hide another agent results', async (t) => {
+  const f = await fixture(t);
+  await mkdir(join(f.root, f.project.agents[0].outputPath, ...Array(23).fill('deep')), {
+    recursive: true,
+  });
+  await writeFile(join(f.root, f.project.agents[1].outputPath, 'result.md'), 'Other agent result');
+  const project = await f.store.projects.read(f.project.id);
+  assert.ok(project.agents[0].outputReadError);
+  assert.equal(project.agents[1].outputReadError, undefined);
+  assert.equal(project.agents[1].entries[0].name, 'result.md');
+  const status = await f.store.projects.updateRuntime(f.project.id, 'a', 'running');
+  assert.ok(status.agents[0].outputReadError);
+  assert.equal(status.agents[1].entries[0].name, 'result.md');
+});
+
+test('launch preflight checks Pi once and verifies auth and model together without caching credentials', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { runInNewContext } = await import('node:vm');
+  const ts = (await import('typescript')).default;
+  const { t: translate } = await import('../src/shared/i18n/index.ts');
+  const exported: any = {};
+  const piCheck = { path: '/exact/pi', supported: true, version: '1.5.2' };
+  const model = {
+    connectionId: 'c',
+    provider: 'test-provider',
+    id: 'exact-model',
+    reasoning: 'medium',
+  };
+  const scope = { authPath: '/owned/auth.json', provider: model.provider };
+  let checks = 0,
+    operations = 0,
+    authenticated = true;
+  const selected = { provider: model.provider, id: model.id };
+  const source = ts.transpileModule(
+    await readFile('src/main/pi/resolveAgentLaunchConfig.ts', 'utf8'),
+    {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    },
+  ).outputText;
+  runInNewContext(source, {
+    exports: exported,
+    require: (name: string) => {
+      if (name === 'node:path')
+        return { dirname: (path: string) => path.substring(0, path.lastIndexOf('/')), join };
+      if (name.includes('i18n')) return { t: translate };
+      if (name.includes('modelConfiguration'))
+        return {
+          validateAgentModel: () => ({
+            ok: true,
+            model,
+            connection: { providerId: model.provider },
+          }),
+        };
+      if (name.includes('reasoning')) return { resolveReasoning: () => 'medium' };
+      if (name.includes('checkPi'))
+        return {
+          checkPi: async () => {
+            checks++;
+            return piCheck;
+          },
+        };
+      if (name.includes('modelAuth'))
+        return {
+          connectionAuthScope: async () => scope,
+          modelAuthOperation: async (
+            path: string,
+            script: string,
+            request: any,
+            verified: unknown,
+          ) => {
+            operations++;
+            assert.equal(path, '/exact/pi');
+            assert.equal(verified, piCheck);
+            assert.equal(request.action, 'launch');
+            assert.equal(request.provider, model.provider);
+            assert.equal(request.scope, scope);
+            assert.equal(request.cwd, '/exact/studio');
+            return {
+              status: { provider: model.provider, status: authenticated ? 'ready' : 'not_ready' },
+              ...(authenticated ? { catalog: { models: [selected], providers: [] } } : {}),
+            };
+          },
+        };
+      throw Error('Unexpected module ' + name);
+    },
+  });
+  const options = {
+    folder: '/exact/studio',
+    piPath: '/exact/pi',
+    bootstraps: '/owned/boots',
+    catalog: '/bridge/catalog.mjs',
+  };
+  const result = await exported.resolveAgentLaunchConfig(model, [], options);
+  assert.equal(result.piCheck, piCheck, 'The opener reuses this launch verification only');
+  assert.equal(result.selectedModel, selected);
+  assert.equal(checks, 1);
+  assert.equal(operations, 1, 'Auth and catalog use one SDK subprocess');
+  authenticated = false;
+  await assert.rejects(exported.resolveAgentLaunchConfig(model, [], options));
+  assert.equal(checks, 2);
+  assert.equal(operations, 2, 'A later launch must check current authentication again');
 });

@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-11-18T12:20:56.315743+00:00",
+  "checkedAt": "2026-11-18T12:41:20.704010+00:00",
   "version": "0.2.0-alpha.112",
   "regression": {
-    "tests": 547,
-    "passed": 546,
+    "tests": 551,
+    "passed": 550,
     "failed": 0,
     "optInNativePermissionProbeSkipped": 1
   },
@@ -17,7 +17,10 @@
     "growingFileReadsCoalescedAndCompletedPreviewRetained": true,
     "ownedChildExitAuthoritativeOverMissedHeartbeat": true,
     "chatIpcReadsWorkingStateWithoutPersistenceQueue": true,
-    "nativePiSdkBusyReuseAndOtherAgentFileReadWithDeliberatelyHeldPersistence": "passed isolated local-model SDK smoke"
+    "nativePiSdkBusyReuseAndOtherAgentFileReadWithDeliberatelyHeldPersistence": "passed isolated local-model SDK smoke",
+    "heartbeatBypassesAccountingFifo": true,
+    "oneAgentScanErrorDoesNotHideOtherAgents": true,
+    "deadOwnedChildNotReplacedByNumericPidLiveness": true
   },
   "updates": {
     "reservationBlocksNewInvocationsBeforeWaitingForCurrentOnes": true,
@@ -28,5 +31,14 @@
     "actualRuEnReactDialogControlsKeptMountedWhileFrozen": "SSR verified; no GUI/pixel claim"
   },
   "nativeWindows112Acceptance": false,
-  "installedUserAppChanged": false
+  "installedUserAppChanged": false,
+  "launch": {
+    "projectPreparationDoesNotScanOutputs": true,
+    "cliCapabilityChecksPerColdLaunch": 1,
+    "authAndCatalogShareOneSdkSubprocess": true,
+    "noCredentialOrModelCatalogCache": true,
+    "isolatedMacColdLaunchMilliseconds": 2969,
+    "userWindowsTimingAcceptance": false,
+    "userMacProfileTimingAcceptance": false
+  }
 }

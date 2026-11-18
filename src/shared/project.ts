@@ -38,6 +38,8 @@ export interface ProjectAgent {
   runStatus?: AgentRunStatus;
   runFailure?: RunFailure;
   entries: OutputEntry[];
+  /** Presentation-only error for this agent; other agents and runtime status remain available. */
+  outputReadError?: string;
 }
 export type AgentRunStatus = 'idle' | 'running' | 'waiting' | 'ready' | 'error' | 'stopped';
 export interface WorkspaceProject {

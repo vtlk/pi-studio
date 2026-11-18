@@ -89,7 +89,7 @@ export async function openRun(
       active.continueAfterSequence = active.sequence + 1;
       return { runId: active.run.record.runId, project: await state.dependencies.read(active.run) };
     }
-    if (active?.pid && processAlive(active.pid)) {
+    if (active && !active.embedded && active.pid && processAlive(active.pid)) {
       if (automaticMessage && !teamDelivery && active.chain !== chain)
         throw new Error(t('error.runHost.theNextAgentSDialogue'));
       if (request.firstMessage !== undefined)
@@ -113,7 +113,7 @@ export async function openRun(
       state.channel.remove(active.run.record.runId);
       state.live.delete(key);
     }
-    const { run, piPath } = await state.dependencies.prepare(request);
+    const { run, piPath, piCheck } = await state.dependencies.prepare(request);
     prepared = run;
     state.assertUnchanged(request.projectId);
     run.teamDelivery = teamDelivery;
@@ -128,7 +128,7 @@ export async function openRun(
       (!message?.trim() || message.length > 200_000)
     )
       throw new Error(t('error.runHost.enterTheFirstMessage'));
-    const pi = await checkPi(piPath);
+    const pi = piCheck ?? (await checkPi(piPath));
     if (!pi.supported) throw new Error(t('error.runHost.launchingRequiresTheSupportedPi'));
     const sdk = await resolvePiSdk(await realpath(pi.path));
     const node = await piNode(pi.path);
@@ -177,6 +177,7 @@ export async function openRun(
       async (event) => {
         if (event.type === 'opened') live.opened = true;
         await state.lifecycle.event(live, event);
+        if (event.type === 'heartbeat') return;
         if (event.type === 'request' && event.messageId !== live.run.teamDelivery?.messageId)
           live.run.teamDelivery = undefined;
         await state.dependencies.observed?.(live.run, event);

@@ -19,7 +19,7 @@ try {
   else if (input.action === 'logout') {
     await runtime.logout(input.provider);
     result = { removed: true };
-  } else if (input.action === 'status') {
+  } else if (input.action === 'status' || input.action === 'launch') {
     try {
       result =
         input.provider === 'claude-code'
@@ -34,6 +34,13 @@ try {
     } catch {
       result = { provider: input.provider, status: 'invalid' };
     }
+    if (input.action === 'launch')
+      result = {
+        status: result,
+        ...(result.status === 'ready'
+          ? { catalog: await catalogData(sdk, runtime, input.cwd, input.scope, process.argv[2]) }
+          : {}),
+      };
   } else throw new Error('Unsupported operation');
   await runtime.settleCredentialWrites();
   writeSync(3, JSON.stringify(result));

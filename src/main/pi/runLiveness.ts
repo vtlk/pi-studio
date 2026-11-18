@@ -14,8 +14,10 @@ export async function checkRunLiveness(state: {
     if (live.embedded?.alive) continue;
     if (
       !state.retiring.has(key) &&
-      ((live.pid && !processAlive(live.pid)) ||
-        (!state.opening.has(key) && Date.now() - live.heartbeat > 20000))
+      (live.embedded
+        ? !live.embedded.alive
+        : (live.pid && !processAlive(live.pid)) ||
+          (!state.opening.has(key) && Date.now() - live.heartbeat > 20000))
     ) {
       const cleanup = state.lifecycle.processLost(live).then(async () => {
         await state.dependencies.observed?.(live.run, { type: 'stopped' });
