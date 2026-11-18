@@ -15,6 +15,8 @@ import type { Resource } from '../src/shared/resources.ts';
 
 const root = await mkdtemp(join(tmpdir(), 'pistudio-native-oauth-'));
 const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
+// Presentation/auth checks can run without the separate project-session resume scenario.
+const authOnly = process.argv.includes('--auth-only');
 process.env.PI_CODING_AGENT_DIR = join(root, 'NativePi');
 await mkdir(process.env.PI_CODING_AGENT_DIR);
 const fixture = await oauthMcpFixture();
@@ -132,7 +134,7 @@ try {
   assert.equal((await resources.check(resource.id)).status, 'available');
   assert.ok(fixture.state.refreshed >= 1);
   assert.equal(browsers, count);
-  await verifyOAuthResume(service, secrets, resource, pi.path, root, fixture);
+  if (!authOnly) await verifyOAuthResume(service, secrets, resource, pi.path, root, fixture);
   assert.equal(browsers, count, 'Opening a bound dialogue never opens consent automatically');
   fixture.revoke();
   assert.equal((await resources.check(resource.id)).status, 'needs_auth');
@@ -163,9 +165,9 @@ try {
       revoked: true,
       additionalScopeRequiresLogin: true,
       dynamicClientRegistration: true,
-      exactIdleResume: true,
-      resourcesReapplied: true,
-      resumeRefresh: true,
+      exactIdleResume: !authOnly,
+      resourcesReapplied: !authOnly,
+      resumeRefresh: !authOnly,
       browserOpenedOnlyExplicitly: true,
       realExternalCredentials: false,
       modelRequests: 0,

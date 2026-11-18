@@ -1774,5 +1774,15 @@
   "HtmlPreview.loading": "Готовим предпросмотр…",
   "OutputFileTree.couldNotRevealFile": "Не удалось показать файл. Возможно, он перемещён или удалён.",
   "Mp4Preview.fit": "Вписать видео",
-  "Mp4Preview.resize": "Изменить размер видео"
+  "Mp4Preview.resize": "Изменить размер видео",
+  "OAuthPage.returnTitle": "Вернитесь в Pi Studio",
+  "OAuthPage.returnMessage": "Этап входа в браузере завершён. Pi Studio проверит подключение.",
+  "OAuthPage.closePage": "Можно закрыть эту вкладку и вернуться в приложение.",
+  "OAuthPage.errorTitle": "Не удалось завершить вход",
+  "OAuthPage.errorMessage": "Сервис не смог завершить этот вход.",
+  "OAuthPage.retryMessage": "Вернитесь в Pi Studio и начните вход заново.",
+  "OAuthPage.invalidState": "Этот адрес возврата не соответствует текущему входу.",
+  "OAuthPage.missingCode": "Сервис не вернул код авторизации.",
+  "OAuthPage.alreadyHandled": "Этот вход уже обработан. Проверьте подключение в Pi Studio.",
+  "OAuthPage.notFound": "Такой страницы входа нет."
 }

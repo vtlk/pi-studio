@@ -2,6 +2,7 @@ import { createInterface } from 'node:readline';
 import { writeSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
+import { installOAuthPage } from './oauth-page.mjs';
 
 // Native Pi owns discovery, PKCE, loopback callback and OAuth tokens. Configuration travels only in stdin.
 const send = (event) => writeSync(3, `${JSON.stringify(event)}\n`);
@@ -36,6 +37,7 @@ controller.signal.addEventListener('abort', () => {
 const deadline = setTimeout(() => controller.abort(), 5 * 60_000);
 try {
   const request = await initialized;
+  installOAuthPage(request.presentation);
   const sdk = pathToFileURL(process.argv[2]);
   const core = await import(new URL('./core/mcp-servers.js', sdk).href);
   const { McpServerConnection, McpOAuthCredentialStore, createDefaultTransport, signInMcpServer } =

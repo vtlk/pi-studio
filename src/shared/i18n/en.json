@@ -1774,5 +1774,15 @@
   "HtmlPreview.loading": "Preparing preview…",
   "OutputFileTree.couldNotRevealFile": "Could not reveal the file. It may have been moved or deleted.",
   "Mp4Preview.fit": "Fit video",
-  "Mp4Preview.resize": "Resize video"
+  "Mp4Preview.resize": "Resize video",
+  "OAuthPage.returnTitle": "Return to Pi Studio",
+  "OAuthPage.returnMessage": "The browser step is complete. Pi Studio will check the connection.",
+  "OAuthPage.closePage": "You can close this tab and return to the app.",
+  "OAuthPage.errorTitle": "Sign-in could not be completed",
+  "OAuthPage.errorMessage": "The service could not complete this sign-in.",
+  "OAuthPage.retryMessage": "Return to Pi Studio and start sign-in again.",
+  "OAuthPage.invalidState": "This callback does not match the current sign-in.",
+  "OAuthPage.missingCode": "The service did not return an authorization code.",
+  "OAuthPage.alreadyHandled": "This sign-in has already been handled. Check the connection in Pi Studio.",
+  "OAuthPage.notFound": "This sign-in page does not exist."
 }

@@ -3,6 +3,7 @@ import { writeSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { createConnectionRuntime } from './connection-runtime.mjs';
+import { installOAuthPage } from './oauth-page.mjs';
 
 // Native Pi owns OAuth/API-key setup, credential locking and refresh. No raw auth output is forwarded.
 const send = (event) => writeSync(3, `${JSON.stringify(event)}\n`);
@@ -38,6 +39,7 @@ try {
     !['oauth', 'api_key'].includes(init.method)
   )
     throw new Error('Invalid provider login');
+  if (init.method === 'oauth') installOAuthPage(init.presentation);
   const sdk = await import(pathToFileURL(process.argv[2]).href);
   const runtime = await createConnectionRuntime(sdk, init.scope, init.cwd);
   await runtime.login(init.provider, init.method, {

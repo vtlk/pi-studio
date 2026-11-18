@@ -10,6 +10,7 @@ import type { AuthLoginState } from '../../shared/auth.ts';
 import { checkPi } from './checkPi.ts';
 import type { ModelAuthScope } from './modelAuth.ts';
 import { getProviderStatus } from './provider.ts';
+import { oauthPresentation } from './oauthPresentation.ts';
 
 export function validateCodexAuthUrl(value: unknown): string {
   if (typeof value !== 'string' || value.length > 12_000)
@@ -190,7 +191,9 @@ export class BrowserAuth {
     });
     child.stdin!.on('error', () => {});
     if (options.payload)
-      child.stdin!.write(`${JSON.stringify({ type: 'init', ...options.payload })}\n`);
+      child.stdin!.write(
+        `${JSON.stringify({ type: 'init', ...options.payload, presentation: oauthPresentation() })}\n`,
+      );
     child.on('error', () => this.fail(login, t('error.browserAuth.couldNotStartPiS')));
     child.on('close', () => {
       if (login.state.phase === 'opening' || login.state.phase === 'waiting')
