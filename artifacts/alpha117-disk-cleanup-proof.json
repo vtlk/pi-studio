@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-18T23:47:04.676924+00:00",
+  "ownedSyntheticAudioBytesRemoved": 403088,
+  "ownedNeverExecutedBuildRemoved": true,
+  "onlyCurrentReleaseFilesRetained": [
+    "Pi-Studio-0.2.0-alpha.117-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.117-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.117-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.117-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.117-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.117-win32-x64.update.json"
+  ],
+  "userModelCacheDeleted": false,
+  "installedApplicationChanged": false
+}

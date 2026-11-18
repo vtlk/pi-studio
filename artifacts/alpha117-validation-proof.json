@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-18T23:47:04.667807+00:00",
+  "version": "0.2.0-alpha.117",
+  "runtimeSourceCommit": "78f510338acd22d165cdf157c4990882b61ceb50",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 474,
+  "focusedTests": {
+    "passed": 5,
+    "failed": 0
+  },
+  "controlledRendererProof": "input-refinements-proof.json",
+  "actualBeforeFixProof": "whisper-russian-before-fix-proof.json",
+  "actualCorrectedVoiceProof": "whisper-original-language-proof.json",
+  "actualVoiceRegression": "Russian then English, same compiled worker, original languages preserved",
+  "modelRevisionAndHashesUnchanged": true,
+  "userModelCacheOnlyRead": true,
+  "nativeMicrophoneGpuOrWindowsProbed": false,
+  "installedAppOrUserDataOrProcessesChanged": false
+}

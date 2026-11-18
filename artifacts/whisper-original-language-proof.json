@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-11-18T23:46:38.175Z",
+  "model": "onnx-community/whisper-large-v3-turbo",
+  "revision": "360ebcde2559d60bb474678be3c1de9ef347d01a",
+  "dtype": "q4",
+  "engine": "Actual compiled Transformers.js 4.3.2 + packaged ONNX Web worker",
+  "backend": "wasm",
+  "loadMs": 11553,
+  "inferenceMs": 242007,
+  "audioFixture": "Offline synthetic Russian speech: Привет! Мне нужно сделать ещё одну вещь.",
+  "detectedLanguage": "ru",
+  "transcript": "Привет, мне нужно сделать еще одну вещь.",
+  "recordings": [
+    {
+      "fixture": "Offline synthetic Russian speech: Привет! Мне нужно сделать ещё одну вещь.",
+      "inferenceMs": 242007,
+      "language": "ru",
+      "text": "Привет, мне нужно сделать еще одну вещь."
+    },
+    {
+      "fixture": "Offline synthetic English speech: Hello. I need one more thing.",
+      "inferenceMs": 212921,
+      "language": "en",
+      "text": "Hello. I need one more thing."
+    }
+  ],
+  "sameWorkerForAllRecordings": true,
+  "servedModelBytes": 761862923,
+  "hashPinnedModelFilesVerified": true,
+  "nativeMicrophoneOrPermissionsProbed": false,
+  "userAppOrDataChanged": false,
+  "transport": "Only the compiled studio-voice URL literal is mapped to isolated loopback HTTP serving the same verified model files; not native Windows/OS microphone acceptance"
+}
