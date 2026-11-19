@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-19T11:05:26.115349+00:00",
+  "version": "0.2.0-alpha.121",
+  "runtimeSourceCommit": "b95c001ae3abd7dace44b16f3f47156113b96e34",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 485,
+  "tests": {
+    "passed": 580,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "focusedAdmissionTestsPassed": 24,
+  "nativePi": "1.5.2",
+  "nativeSourceProofs": [
+    "team-mcp-embedded-proof.json",
+    "team-mcp-native-proof.json"
+  ],
+  "packagedBridgeProof": "alpha121-packaged-team-proof.json",
+  "packagedBridgeExecutedInIsolatedNodeOnly": true,
+  "appGuiExecuted": false,
+  "embeddedTasks": 3,
+  "exactIdleProcessAndSessionReused": true,
+  "changedProfileRefreshPreservesHistory": true,
+  "canonicalReceiptsAndNoReplayVerified": true,
+  "busyQueueAndKnownSafeDiagnosticsCovered": true,
+  "installedApplicationOrUserProjectOrProcessModified": false,
+  "externalModelRequests": 0,
+  "nativeWindowsAcceptance": false
+}

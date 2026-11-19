@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-19T11:03:16.826Z",
+  "operation": "packaged-team",
+  "before": {
+    "available": true,
+    "names": [
+      "code_sign_clone.0c5Oyi",
+      "code_sign_clone.Mr0edQ"
+    ]
+  },
+  "after": {
+    "available": true,
+    "names": [
+      "code_sign_clone.0c5Oyi",
+      "code_sign_clone.Mr0edQ"
+    ]
+  },
+  "newClones": [],
+  "noNewRetainedClonesObserved": true,
+  "processOwnershipInferred": false,
+  "browserOrProfileModified": false
+}
