@@ -44,7 +44,8 @@ export interface ProjectAgent {
 export type AgentRunStatus = 'idle' | 'running' | 'waiting' | 'ready' | 'error' | 'stopped';
 export interface WorkspaceProject {
   sourceTeamId?: string;
-  workspaceMode?: import('./agentTeams').TeamWorkspaceMode;
+  /** Saved when the project is created. Older manifests without a mode use per-agent folders. */
+  readonly workspaceMode?: import('./agentTeams').TeamWorkspaceMode;
   usage?: AgentUsage;
   id: string;
   name: string;

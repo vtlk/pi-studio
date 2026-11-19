@@ -24,7 +24,6 @@ import {
   restoreProjectAgent,
   synchronizeProjectAgentList,
 } from '../../shared/projectAgents.ts';
-import type { TeamWorkspaceMode } from '../../shared/agentTeams.ts';
 import { parseTeamWorkspaceMode } from '../../shared/agentTeams.ts';
 import { agentRuntimeDirectory } from '../../shared/agentPaths.ts';
 import { folderSlug } from '../../shared/folderSlug.ts';
@@ -118,19 +117,6 @@ export class ProjectStore {
     const root = await this.directory(projectId);
     const updated = await prepareProjectAgentSessions(root, project, stableId(agentId));
     if (updated !== project) {
-      await this.save(updated, root);
-      this.projects.set(projectId, updated);
-    }
-    return this.snapshot(projectId);
-  }
-  /** Change only future launch context. Never relocate results or rewrite canonical dialogues. */
-  async applyWorkspaceMode(projectId: string, mode: TeamWorkspaceMode) {
-    const project = this.get(projectId);
-    mode = parseTeamWorkspaceMode(mode);
-    if ((project.workspaceMode ?? 'per-agent') !== mode) {
-      const updated = { ...project, workspaceMode: mode };
-      const root = await this.directory(projectId);
-      await ensureProjectAgents(updated, root);
       await this.save(updated, root);
       this.projects.set(projectId, updated);
     }

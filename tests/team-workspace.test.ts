@@ -103,26 +103,24 @@ test('shared team work uses the actual project root with hidden separate session
   );
 });
 
-test('workspace changes preserve results, exact session binding and bytes in both directions', async (t) => {
+test('legacy projects default to separate folders even when their source team uses shared folders', async (t) => {
   const f = await fixture(t);
-  const agent = f.project.agents[0];
-  const sessionPath = `${agentSessionDirectory(agent)}/exact.jsonl`;
-  await writeFile(join(f.root, sessionPath), 'EXACT_HISTORY_BYTES\n');
-  await f.store.projects.updateRuntime(f.project.id, 'one', 'waiting', {
-    id: 'exact',
-    title: 'Exact',
-    path: sessionPath,
-    createdAt: 1,
+  const { selectedId } = await f.store.command({
+    kind: 'create',
+    name: 'Legacy',
+    agents: profiles,
   });
-  await writeFile(join(f.root, 'shared.txt'), 'SHARED');
-  for (const mode of ['per-agent', 'shared'] as const) {
-    const project = await f.store.projects.applyWorkspaceMode(f.project.id, mode);
-    const run = await buildRunContext(f.root, project, 'one', profiles, []);
-    assert.equal(run.record.cwd, mode === 'shared' ? f.root : join(f.root, 'agents/one'));
-    assert.equal(run.agent.session?.path, sessionPath);
-    assert.equal(await readFile(join(f.root, sessionPath), 'utf8'), 'EXACT_HISTORY_BYTES\n');
-    assert.equal(await readFile(join(f.root, 'shared.txt'), 'utf8'), 'SHARED');
-  }
+  const reopened = await StudioStore.open(f.store.folder);
+  const project = reopened.projects.snapshot(selectedId!);
+  const root = await reopened.projects.directory(project.id);
+  assert.equal(project.sourceTeamId, team.id);
+  assert.equal(project.workspaceMode, undefined);
+  const run = await buildRunContext(root, project, 'two', profiles, []);
+  assert.equal(run.record.workspaceMode, 'per-agent');
+  assert.equal(run.record.cwd, join(root, 'agents/two'));
+  assert.equal(run.record.output, join(root, 'agents/two/output'));
+  assert.equal(run.record.previousOutputs[0].path, join(root, 'agents/one/output'));
+  assert.match(sessionSystemPrompt(run), /Prefer cwd-relative output\//);
 });
 
 test('team mode is portable, legacy defaults stay separate, administration preserves mode and invalid values fail closed', async (t) => {

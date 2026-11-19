@@ -9,8 +9,10 @@ import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
+import type { TeamWorkspaceMode } from '../src/shared/agentTeams.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { RunContextRecord } from '../src/shared/runtime.ts';
+import { sessionSystemPrompt } from '../bundled/pi-bridge/prompt.mjs';
 
 const root = await mkdtemp(join(tmpdir(), 'pistudio-live-team-workspace-'));
 const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
@@ -22,6 +24,34 @@ const pi = await checkPi('');
 let failure: unknown;
 const steps = new Map<string, number>();
 let modelCalls = 0;
+let separateDirectory: string;
+function checkWorkspacePrompt(
+  prompt: string,
+  root: string,
+  agent: string,
+  mode: TeamWorkspaceMode,
+) {
+  const shared = mode === 'shared';
+  const cwd = shared ? root : join(root, 'agents', agent);
+  const output = shared ? root : join(cwd, 'output');
+  const previousOutputs =
+    agent === 'one'
+      ? []
+      : [
+          {
+            agentId: 'one',
+            agentName: 'one',
+            path: shared ? root : join(root, 'agents/one/output'),
+          },
+        ];
+  for (const line of [
+    `Project directory (absolute): ${JSON.stringify(root)}`,
+    `Working directory (${shared ? 'shared team' : 'agent'}): ${JSON.stringify(cwd)}`,
+    `Write all deliverables under: ${JSON.stringify(output)}`,
+    `Earlier agents' outputs: ${JSON.stringify(previousOutputs)}`,
+  ])
+    assert.ok(prompt.split('\n').includes(line), line);
+}
 const server = createServer(async (req, res) => {
   try {
     assert.equal(req.url, '/v1/chat/completions');
@@ -29,12 +59,23 @@ const server = createServer(async (req, res) => {
     for await (const chunk of req) chunks.push(Buffer.from(chunk));
     const body = JSON.parse(Buffer.concat(chunks).toString());
     const text = JSON.stringify(body.messages);
+    const separate = text.includes('TASK_SEPARATE_TWO');
     const id = text.includes('TASK_ONE') ? 'one' : 'two';
-    const step = steps.get(id) ?? 0;
-    steps.set(id, step + 1);
+    const key = separate ? 'separate' : id;
+    const step = steps.get(key) ?? 0;
+    steps.set(key, step + 1);
     modelCalls++;
-    assert.match(text, /directly in the project root/);
-    assert.doesNotMatch(text, /Prefer cwd-relative output\//);
+    const prompt = body.messages.find(
+      (message: { role: string }) => message.role === 'system',
+    ).content;
+    checkWorkspacePrompt(
+      prompt,
+      separate ? separateDirectory : directory,
+      id,
+      separate ? 'per-agent' : 'shared',
+    );
+    if (separate) assert.match(prompt, /Prefer cwd-relative output\//);
+    else assert.match(prompt, /directly in the project root/);
     const name = step === 0 ? 'write' : step === 1 ? 'complete_stage' : '';
     const tool = body.tools?.find((tool: { function: { name: string } }) =>
       name === 'write' ? tool.function.name === name : tool.function.name.endsWith('__' + name),
@@ -52,7 +93,7 @@ const server = createServer(async (req, res) => {
                 name: tool.function.name,
                 arguments: JSON.stringify(
                   step === 0
-                    ? { path: `${id}.txt`, content: `RESULT_${id}` }
+                    ? { path: `${separate ? 'output/' : ''}${id}.txt`, content: `RESULT_${id}` }
                     : { outputs: [`${id}.txt`] },
                 ),
               },
@@ -131,7 +172,10 @@ const project = (
   await store.command({ kind: 'create', name: 'Shared project', teamId: 'team', agents: profiles })
 ).projects[0];
 const directory = await store.projects.directory(project.id);
-const envelopes: { record: RunContextRecord; firstMessage?: string }[] = [];
+const envelopes: (Parameters<typeof sessionSystemPrompt>[0] & {
+  record: RunContextRecord;
+  firstMessage?: string;
+})[] = [];
 const children: { process: ReturnType<typeof spawn>; done: Promise<number | null> }[] = [];
 const host = createStudioRunHost(service, {
   bootstraps: join(root, 'boots'),
@@ -205,7 +249,6 @@ try {
   assert.equal(envelopes[0].record.output, directory);
   assert.equal(envelopes[1].record.cwd, directory);
   assert.notEqual(envelopes[0].record.leaseDirectory, envelopes[1].record.leaseDirectory);
-  const count = modelCalls;
   // Emulate an existing release's legacy session location, keeping its exact transcript.
   const savedSession = current.agents[0].session!;
   const legacySessionDirectory = join(directory, 'agents/one/sessions');
@@ -215,28 +258,63 @@ try {
     ...savedSession,
     path: `agents/one/sessions/${savedSession.path.split('/').at(-1)}`,
   });
-  for (const mode of ['per-agent', 'shared'] as const) {
-    await store.saveSection('agentCatalog', {
+  const setTeamMode = (workspaceMode: TeamWorkspaceMode) =>
+    store.saveSection('agentCatalog', {
       agents: profiles,
-      teams: [{ ...team, workspaceMode: mode }],
+      teams: [{ ...team, workspaceMode }],
     });
+  const addProject = async (name: string) => {
+    const result = await store.command({ kind: 'create', name, teamId: team.id, agents: profiles });
+    return store.projects.snapshot(result.selectedId!);
+  };
+  const resume = async (projectId: string, agentId: string, mode: TeamWorkspaceMode) => {
+    const count = modelCalls;
     const before = children.length;
-    await host.launch({ projectId: project.id, agentId: 'one', autoContinue: false });
+    await host.launch({ projectId, agentId, autoContinue: false });
     assert.equal(await children[before].done, 0);
     if (failure) throw failure;
-    current = await store.projects.read(project.id);
-    assert.equal(current.workspaceMode, mode);
-    assert.equal(
-      envelopes.at(-1)!.record.cwd,
-      mode === 'shared' ? directory : join(directory, 'agents/one'),
-    );
-    assert.equal(envelopes.at(-1)!.firstMessage, undefined);
+    const envelope = envelopes.at(-1)!;
+    const projectRoot = await store.projects.directory(projectId);
+    assert.equal(store.projects.snapshot(projectId).workspaceMode, mode);
+    assert.equal(envelope.record.workspaceMode, mode);
+    checkWorkspacePrompt(sessionSystemPrompt(envelope), projectRoot, agentId, mode);
+    assert.equal(envelope.firstMessage, undefined);
     assert.equal(modelCalls, count, 'Idle exact resume does not replay a task or call a model');
+  };
+  await setTeamMode('per-agent');
+  await resume(project.id, 'one', 'shared');
+  await resume(project.id, 'two', 'shared');
+  current = await store.projects.read(project.id);
+  for (const agent of current.agents) {
     assert.equal(
-      await readFile(join(directory, current.agents[0].session!.path), 'utf8'),
-      histories.get('one'),
+      await readFile(join(directory, agent.session!.path), 'utf8'),
+      histories.get(agent.profile.id),
     );
+    assert.ok(agent.session?.path.startsWith(`.pistudio/sessions/${agent.profile.id}/`));
   }
+  const separate = await addProject('Separate project');
+  assert.equal(separate.workspaceMode, 'per-agent');
+  separateDirectory = await store.projects.directory(separate.id);
+  await host.launch({
+    projectId: separate.id,
+    agentId: 'two',
+    autoContinue: false,
+    firstMessage: 'TASK_SEPARATE_TWO',
+  });
+  assert.equal(await children.at(-1)!.done, 0);
+  if (failure) throw failure;
+  const session = store.projects.snapshot(separate.id).agents[1].session!;
+  const separateHistory = await readFile(join(separateDirectory, session.path), 'utf8');
+  const separateManifest = await readFile(join(separateDirectory, 'project.json'));
+  await setTeamMode('shared');
+  await resume(separate.id, 'two', 'per-agent');
+  assert.deepEqual(await readFile(join(separateDirectory, 'project.json')), separateManifest);
+  assert.equal(await readFile(join(separateDirectory, session.path), 'utf8'), separateHistory);
+  assert.equal(
+    await readFile(join(separateDirectory, 'agents/two/output/two.txt'), 'utf8'),
+    'RESULT_two',
+  );
+  assert.equal((await addProject('New shared project')).workspaceMode, 'shared');
   await writeFile(
     'artifacts/team-workspace-pi-proof.json',
     JSON.stringify(
@@ -250,8 +328,8 @@ try {
         runtimeLeasesRemainSeparate: true,
         rootDeliverablesWrittenAndValidated: true,
         legacySessionDirectoryMigratedWithoutTranscriptChanges: true,
-        currentTeamModeAppliedOnEveryReopen: true,
-        exactTranscriptBytesAndBindingsPreservedAcrossBothModeChanges: true,
+        teamModeAppliesOnlyToNewProjects: true,
+        existingProjectPromptPathsAndTranscriptsPreservedAcrossBothModeChanges: true,
         idleResumeModelCalls: 0,
         limits:
           'Disposable studio and installed Pi SDK/production bridge with a loopback model; no external model requests, production app changes, visible desktop or Windows acceptance.',
@@ -261,7 +339,7 @@ try {
     ) + '\n',
   );
   console.log(
-    'Native Pi team workspace passed: parallel root writes, separate hidden sessions/leases, mode changes and exact idle resume without replay.',
+    'Native Pi team workspace passed: project settings, prompt paths and histories survive team mode changes in both directions.',
   );
 } finally {
   clearTimeout(timer);

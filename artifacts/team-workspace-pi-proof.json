@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16T17:48:19.910Z",
+  "checkedAt": "2026-11-19T08:38:39.430Z",
   "nativePi": "1.5.2",
   "loopbackModelOnly": true,
   "concurrentAgentsShareActualProjectRoot": true,
@@ -8,8 +8,8 @@
   "runtimeLeasesRemainSeparate": true,
   "rootDeliverablesWrittenAndValidated": true,
   "legacySessionDirectoryMigratedWithoutTranscriptChanges": true,
-  "currentTeamModeAppliedOnEveryReopen": true,
-  "exactTranscriptBytesAndBindingsPreservedAcrossBothModeChanges": true,
+  "teamModeAppliesOnlyToNewProjects": true,
+  "existingProjectPromptPathsAndTranscriptsPreservedAcrossBothModeChanges": true,
   "idleResumeModelCalls": 0,
   "limits": "Disposable studio and installed Pi SDK/production bridge with a loopback model; no external model requests, production app changes, visible desktop or Windows acceptance."
 }
