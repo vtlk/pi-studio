@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-11-19T08:04:57.636235+00:00",
+  "version": "0.2.0-alpha.119",
+  "runtimeSourceCommit": "86805832d075aab24cb7777e5082285d724e7462",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 482,
+  "tests": {
+    "passed": 573,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "rendererProofs": [
+    "input-refinements-proof.json",
+    "agent-team-drag-proof.json",
+    "html-preview-ui-proof.json",
+    "rich-preview-chat-proof.json"
+  ],
+  "draftTests": "Real private filesystem persistence and fresh registry restore, text and binary/clipboard attachments, exact studios/agents, CAS consumption, write failures, async edits and cleanup. Actual compiled UI reload with controlled native transport; saved drafts do not block update readiness.",
+  "voiceCacheReadOnlyInspection": {
+    "allEightPinnedFilesValid": true,
+    "totalBytes": 761861212,
+    "modelRevision": "360ebcde2559d60bb474678be3c1de9ef347d01a",
+    "networkRequests": 0,
+    "modelWrites": 0
+  },
+  "modelCacheRegression": "New VoiceModels instance reuses valid pinned files with a fetcher that throws on any network call; checking precedes ready and downloading is reserved for missing files.",
+  "voiceInferenceChanged": false,
+  "realMicrophoneOrNativeWindowsAcceptance": false,
+  "installedApplicationOrUserWorkChanged": false
+}

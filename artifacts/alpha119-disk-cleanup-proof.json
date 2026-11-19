@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-19T08:09:15.639219+00:00",
+  "removedNeverExecutedBuildBytes": 359937323,
+  "freeBytesBefore": 7305494528,
+  "freeBytesAfter": 6628970496,
+  "retainedOnlyCurrentReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.119-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.119-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.119-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.119-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.119-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.119-win32-x64.update.json"
+  ],
+  "installedApplicationOrUserDataOrModelCacheTouched": false,
+  "additionalReadOnlyDiskObservation": {
+    "systemVmVolumeAllocatedGiB": 24,
+    "swapTotalMiB": 23552,
+    "swapUsedMiB": 12167.31,
+    "ownedBuildsDirectoryEmpty": true,
+    "systemSwapOrUserProcessesModified": false
+  }
+}
