@@ -40,6 +40,7 @@ interface Options {
   browser: BrowserSupport;
   accounting: UsageRecovery;
   caller(event: IpcMainInvokeEvent): unknown;
+  windowHeartbeat?(): void;
 }
 export function registerNativeUpdates(o: Options) {
   const target = realpathSync(applicationRoot(process.execPath));
@@ -145,7 +146,7 @@ export function registerNativeUpdates(o: Options) {
     releaseStartup,
     quit: () => app.quit(),
   });
-  registerUpdateHandlers(updates, o.caller);
+  registerUpdateHandlers(updates, o.caller, o.windowHeartbeat);
   const wake = () => updates.wake();
   powerMonitor.on('resume', wake);
   app.once('quit', () => powerMonitor.removeListener('resume', wake));

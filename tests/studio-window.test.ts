@@ -11,6 +11,7 @@ import ts from 'typescript';
 test('activation opens/reuses the Studio window even while a hidden rendering window exists', async (t) => {
   const data = await mkdtemp(join(tmpdir(), 'pistudio-window-recovery-'));
   t.after(() => rm(data, { recursive: true, force: true }));
+  const appEvents = Object.assign(new EventEmitter(), { getPath: () => data });
   let recoveryDialogs = 0;
   let permissionCheck: (...args: any[]) => boolean;
   let permissionRequest: (...args: any[]) => void;
@@ -20,11 +21,17 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
     static getAllWindows() {
       return FakeWindow.windows;
     }
+    throttled = true;
     shown = 0;
+    hidden = 0;
     destroyed = false;
     loads = 0;
     webContents = Object.assign(new EventEmitter(), {
       id: FakeWindow.windows.length + 1,
+      getBackgroundThrottling: () => this.throttled,
+      setBackgroundThrottling: (value: boolean) => {
+        this.throttled = value;
+      },
       setWindowOpenHandler() {},
       isDestroyed: () => this.destroyed,
     });
@@ -36,6 +43,9 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
     }
     isDestroyed() {
       return this.destroyed;
+    }
+    hide() {
+      this.hidden++;
     }
     show() {
       this.shown++;
@@ -78,7 +88,7 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
             },
           },
         },
-        app: { getPath: () => data },
+        app: appEvents,
         dialog: {
           showMessageBoxSync: () => 0,
           showMessageBox: async () => {
@@ -164,7 +174,34 @@ test('activation opens/reuses the Studio window even while a hidden rendering wi
   assert.ok(first.options.webPreferences.preload.endsWith('preload/index.cjs'));
   assert.equal(instance.exports.createStudioWindow(), first);
   assert.equal(first.shown, 1);
-  first.emit('close');
+  instance.exports.setKeepWindowForUpdate(() => true);
+  instance.exports.refreshUpdateWindowHeartbeat();
+  assert.equal(
+    first.throttled,
+    false,
+    'Authorized update heartbeat is not throttled in the background',
+  );
+  let prevented = false;
+  first.emit('close', {
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
+  assert.equal(prevented, process.platform === 'darwin');
+  assert.equal(first.hidden, process.platform === 'darwin' ? 1 : 0);
+  assert.equal(first.destroyed, false, 'Pending update retains the renderer and unsent input');
+  appEvents.emit('before-quit');
+  prevented = false;
+  first.emit('close', {
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
+  assert.equal(prevented, false, 'Explicit application quit is never replaced with hide');
+  instance.exports.setKeepWindowForUpdate(() => false);
+  instance.exports.refreshUpdateWindowHeartbeat();
+  assert.equal(first.throttled, true, 'Normal background throttling is restored after update ends');
+
   first.webContents.emit('render-process-gone', {}, { reason: 'clean-exit', exitCode: 0 });
   await new Promise((done) => setImmediate(done));
   assert.equal(first.loads, 1, 'intentional closing does not reload');

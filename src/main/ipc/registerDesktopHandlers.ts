@@ -47,7 +47,8 @@ import { registerTeamHandlers } from '../teams/registerTeamHandlers';
 import { registerNativeUpdates } from '../updates/registerNativeUpdates';
 import type { NativeUpdates } from '../updates/NativeUpdates';
 import type { UpdateStartup } from '../updates/UpdateStartup';
-import { createStudioWindow, setUpdateQuitGuard } from '../windows/createStudioWindow';
+import { createStudioWindow, refreshUpdateWindowHeartbeat } from '../windows/createStudioWindow';
+import { bindUpdateWindow } from '../windows/bindUpdateWindow';
 import type { ThemePreferences } from '../appearance/ThemePreferences';
 import type { LanguagePreferences } from '../appearance/LanguagePreferences';
 import { registerLanguage } from '../appearance/registerLanguage';
@@ -187,16 +188,10 @@ export function registerDesktopHandlers(
     browser,
     accounting: usageRecovery,
     caller,
+    windowHeartbeat: refreshUpdateWindowHeartbeat,
   });
   options.updates?.(updates);
-  setUpdateQuitGuard(() => {
-    if (updates.installing) {
-      updates.quitPrevented();
-      return 'keep';
-    }
-    const phase = options.startup?.read().phase;
-    return phase && !['committed', 'restored'].includes(phase) ? 'close' : undefined;
-  });
+  bindUpdateWindow(updates, options.startup);
   registerGracefulQuit(
     [team, runs, setup, computer],
     [

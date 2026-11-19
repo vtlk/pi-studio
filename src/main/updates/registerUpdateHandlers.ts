@@ -8,10 +8,13 @@ import type { UpdateCoordinator } from './UpdateCoordinator.ts';
 export function registerUpdateHandlers(
   updates: Pick<NativeUpdates | UpdateCoordinator, 'read' | 'check' | 'request' | 'report'>,
   caller: (event: IpcMainInvokeEvent) => unknown,
+  refreshWindow?: () => void,
 ) {
   ipcMain.handle(desktopChannels.getUpdateState, (event) => {
     caller(event);
-    return updates.read();
+    const state = updates.read();
+    refreshWindow?.();
+    return state;
   });
   ipcMain.handle(desktopChannels.checkForUpdates, (event) => {
     caller(event);

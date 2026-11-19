@@ -5,6 +5,22 @@ import { atomicJson } from '../storage/files.ts';
 import { RendererRecovery } from './RendererRecovery.ts';
 
 let studioWindow: BrowserWindow | undefined;
+let keepWindowForUpdate: (() => boolean) | undefined;
+let quitting = false;
+app.on('before-quit', () => {
+  quitting = true;
+});
+/** macOS window-close must retain the renderer heartbeat for an explicitly requested update. */
+export function setKeepWindowForUpdate(read: () => boolean) {
+  keepWindowForUpdate = read;
+}
+/** Keep update acknowledgements timely even after Chromium's long-hidden timer throttling. */
+export function refreshUpdateWindowHeartbeat() {
+  if (!studioWindow || studioWindow.isDestroyed() || studioWindow.webContents.isDestroyed()) return;
+  const throttled = !keepWindowForUpdate?.();
+  if (studioWindow.webContents.getBackgroundThrottling() !== throttled)
+    studioWindow.webContents.setBackgroundThrottling(throttled);
+}
 let updateQuitGuard: (() => 'keep' | 'close' | undefined) | undefined;
 export function setUpdateQuitGuard(guard: () => 'keep' | 'close' | undefined) {
   updateQuitGuard = guard;
@@ -14,6 +30,7 @@ export function createStudioWindow(): BrowserWindow {
     studioWindow.show();
     return studioWindow;
   }
+  quitting = false;
   const window = new BrowserWindow({
     width: 1512,
     height: 1000,
@@ -46,7 +63,13 @@ export function createStudioWindow(): BrowserWindow {
   });
   studioWindow = window;
   let closing = false;
-  window.on('close', () => {
+  window.on('close', (event) => {
+    if (process.platform === 'darwin' && !quitting && keepWindowForUpdate?.()) {
+      event.preventDefault();
+      refreshUpdateWindowHeartbeat();
+      window.hide();
+      return;
+    }
     closing = true;
   });
   session.defaultSession.setPermissionCheckHandler(
@@ -89,6 +112,7 @@ export function createStudioWindow(): BrowserWindow {
   });
   window.webContents.on('will-navigate', (event) => event.preventDefault());
   window.webContents.on('will-prevent-unload', (event) => {
+    quitting = false;
     closing = false; // A cancelled close must not disable later renderer recovery.
     // Installation cancellation must keep the window, without opening an OS dialog.
     const updatePolicy = updateQuitGuard?.();
