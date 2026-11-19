@@ -1,5 +1,6 @@
 import { i18n, t } from '../../shared/i18n/index.ts';
 import { EmbeddedChat } from './EmbeddedChat.ts';
+import { reuseIdleTeam, assertIdleTeam } from './reuseIdleTeam.ts';
 import { reuseIdleChain } from './reuseIdleChain.ts';
 import { chatInput } from './chatInput.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
@@ -72,6 +73,24 @@ export async function openRun(
     state.assertUnchanged(request.projectId);
     continuation?.check();
     const active = state.live.get(key);
+    if (active?.embedded?.alive && automaticMessage && teamDelivery && beforeDispatch) {
+      assertIdleTeam(active);
+      const reusable = (await state.dependencies.canReuseTeam?.(active.run)) ?? true;
+      assertIdleTeam(active);
+      if (state.chats.sendingTo(request.projectId, request.agentId)) throw Error(t('Chat.sending'));
+      if (reusable)
+        return await reuseIdleTeam(
+          state,
+          request,
+          active,
+          automaticMessage,
+          teamDelivery,
+          beforeDispatch,
+        );
+      // A changed profile needs fresh native resources, but preserves the canonical dialogue.
+      await stopRunProcess(active, state.dependencies.closed);
+      await state.retiring.get(key);
+    }
     if (
       active?.embedded?.alive &&
       active.embedded.state.phase === 'ready' &&
@@ -176,8 +195,18 @@ export async function openRun(
       },
       async (event) => {
         if (event.type === 'opened') live.opened = true;
+        if (event.type === 'request' && live.pendingTeamText !== undefined) {
+          if (
+            event.message !== live.pendingTeamText ||
+            !live.run.teamDelivery ||
+            (event.messageId && event.messageId !== live.run.teamDelivery.messageId)
+          )
+            throw new Error(t('error.dispatch.theRecipientTeamChangedBefore'));
+          event.messageId = live.run.teamDelivery.messageId;
+        }
         await state.lifecycle.event(live, event);
         if (event.type === 'heartbeat') return;
+        if (event.type === 'request') live.pendingTeamText = undefined;
         if (event.type === 'request' && event.messageId !== live.run.teamDelivery?.messageId)
           live.run.teamDelivery = undefined;
         await state.dependencies.observed?.(live.run, event);
@@ -250,7 +279,12 @@ export async function openRun(
     }
   } catch (error) {
     // A refused handoff belongs to the source chain, not to the recipient's existing chat.
-    if (!(continuation && automaticMessage && !current && state.live.get(key)?.embedded?.alive))
+    if (!(
+      (continuation || teamDelivery) &&
+      automaticMessage &&
+      !current &&
+      state.live.get(key)?.embedded?.alive
+    ))
       state.chats.failed(request, current, error);
     if (!current && prepared) state.dependencies.closed?.(prepared);
     if (current) {

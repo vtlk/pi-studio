@@ -199,6 +199,28 @@ export function createStudioRunHost(service: StudioService, options: Options) {
         chatScopes.set(run, { folder: store.folder, imageInput: selectedModel.imageInput });
         return { run, piPath, piCheck };
       }),
+    canReuseTeam: (run) =>
+      service.serialize(async () => {
+        const store = await service.load();
+        if (store.projects.location(run.project.id) !== run.projectRoot)
+          throw new Error(t('error.createStudioRunHost.theStudioFolderChangedWhile'));
+        const saved = store.projects
+          .snapshot(run.project.id)
+          .agents.find((agent) => agent.profile.id === run.record.agentId);
+        const profile = store
+          .agentCatalog()
+          .agents.find((agent) => agent.id === run.record.agentId);
+        if (!saved || !profile)
+          throw new Error(t('error.createStudioRunHost.theAgentProfileWasDeleted'));
+        return (
+          run.refreshSignature ===
+          agentRefreshSignature(
+            saved.profile,
+            profile,
+            store.bootstrap().sections.resources as Resource[],
+          )
+        );
+      }),
     update: (run, status, session, failure) =>
       service.serialize(async () => {
         const store = await service.load();

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
+import { dispatchTeamMessage } from '../src/main/team-mcp/dispatch.ts';
 import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
 import { TeamJournal, messageId, messageHash } from '../src/main/team-mcp/TeamJournal.ts';
 import { teamMcpId, builtinResource } from '../src/shared/builtinResources.ts';
@@ -443,7 +444,6 @@ test('team deletion revokes the removed sender and preserves output files; chain
   );
 });
 
-
 test('team status, current permissions and project message polling never recursively scan outputs', async (t) => {
   const f = await fixture(t);
   f.store.projects.read = async () => {
@@ -454,4 +454,44 @@ test('team status, current permissions and project message polling never recursi
   assert.equal(scope.project.agents.length, 2);
   assert.ok(await f.support.call(f.run, 'list_agents', {}));
   assert.deepEqual(await f.support.projectMessages(f.project.id), []);
+});
+
+test('a recipient becoming busy before dispatch keeps the same task queued instead of failing or replaying', async (t) => {
+  const f = await fixture(t);
+  const journal = new TeamJournal(f.directory, f.project.id);
+  let busy = false;
+  const item = await journal.accept({
+    version: 1,
+    id: messageId(f.project.id, 'a', 'race-busy'),
+    requestId: 'race-busy',
+    projectId: f.project.id,
+    sourceTeamId: 'team',
+    senderId: 'a',
+    recipientId: 'b',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    state: 'queued',
+    text: 'ONE_TASK',
+    bodyHash: messageHash('ONE_TASK'),
+    lineage: ['a'],
+  });
+  await dispatchTeamMessage(
+    f.service,
+    {
+      inspect: () => undefined,
+      teamUnavailable: () => (busy ? 'Получатель выполняет запрос.' : undefined),
+      assertTeamDispatch: () => {},
+      launchTeamTask: async () => {
+        busy = true;
+        throw Error('busy race');
+      },
+    },
+    f.run,
+    item,
+    journal,
+  );
+  const queued = await journal.get(item.id);
+  assert.equal(queued?.state, 'queued');
+  assert.equal(queued?.text, 'ONE_TASK');
+  assert.equal(queued?.runId, undefined);
 });

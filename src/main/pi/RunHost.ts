@@ -160,6 +160,7 @@ export class RunHost {
     });
   }
   private readonly teamAccess = runTeamAccess({
+    sending: (projectId, agentId) => this.chats.sendingTo(projectId, agentId),
     live: this.live,
     chains: this.chains,
     changing: this.changing,

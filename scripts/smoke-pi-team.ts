@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { changeLanguage } from '../src/shared/i18n/index.ts';
+await changeLanguage('ru');
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -16,6 +18,8 @@ import type { Agent } from '../src/shared/studio.ts';
 
 // Real installed Pi SDK/bridge/MCP/files/sessions; deterministic loopback model, zero external requests.
 const longWait = process.argv.includes('--long-wait');
+const embedded = process.argv.includes('--embedded');
+let warmWorkerRun: string | undefined, warmWorkerPid: number | undefined;
 const startedAt = Date.now();
 const root = await mkdtemp(join(tmpdir(), 'pistudio-team-native-'));
 const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
@@ -90,7 +94,17 @@ const server = createServer(async (req, res) => {
         await new Promise((resolve) => setTimeout(resolve, 600));
         workerFinished = 2;
       }
-      assert.ok(step <= 6, 'No duplicate recipient model requests');
+      if (embedded && step === 7) {
+        assert.ok(lastUser.includes('TASK_THREE'));
+        toolName = 'write';
+        args = { path: 'output/result-three.txt', content: 'TEAM_THIRD_OK' };
+      }
+      if (embedded && step === 8) {
+        toolName = 'complete_stage';
+        args = { outputs: ['result-three.txt'] };
+      }
+      if (embedded && step === 9) workerFinished = 3;
+      assert.ok(step <= (embedded ? 9 : 6), 'No duplicate recipient model requests');
     } else {
       const step = senderStep++;
       if (step === 0) toolName = 'list_agents';
@@ -140,6 +154,18 @@ const server = createServer(async (req, res) => {
         };
       }
       if (step === 5) {
+        if (embedded) {
+          assert.equal(
+            host.inspect(projectId, 'worker')?.run.record.runId,
+            warmWorkerRun,
+            'First team delivery reuses the idle native run',
+          );
+          assert.equal(
+            host.processes().find((p) => p.agentId === 'worker')?.pid,
+            warmWorkerPid,
+            'No replacement Pi process',
+          );
+        }
         assert.equal(
           workerFinished,
           1,
@@ -298,7 +324,8 @@ const host = createStudioRunHost(service, {
   bridge,
   catalog: fileURLToPath(new URL('./catalog.mjs', pathToFileURL(bridge))),
   piPath: () => pi.path,
-  headless: true,
+  headless: !embedded,
+  embedded,
   openTerminal: async (node, bridge, bootstrap) => {
     const transport = JSON.parse(await readFile(bootstrap, 'utf8'));
     const envelope = await (
@@ -332,6 +359,12 @@ const host = createStudioRunHost(service, {
   },
 });
 try {
+  if (embedded) {
+    const opened = await host.launch({ projectId, agentId: 'worker', autoContinue: false });
+    warmWorkerRun = opened.runId;
+    warmWorkerPid = host.processes().find((p) => p.agentId === 'worker')?.pid;
+    assert.ok(warmWorkerPid);
+  }
   await host.launch({
     projectId,
     agentId: 'sender',
@@ -351,7 +384,8 @@ try {
   assert.equal(senderStep, 13);
   assert.equal(liveRevocationPhase, 2);
   assert.equal(workerStep, 7);
-  assert.equal(children.length, 3, 'Only sender and two exact worker opens');
+  if (!embedded) assert.equal(children.length, 3, 'Only sender and two exact worker opens');
+  else assert.equal(host.processes().length, 2, 'Only the two owned embedded agents remain');
   const session = result.agents[1].session!;
   const transcript = await readFile(join(directory, session.path), 'utf8');
   const users = transcript
@@ -367,21 +401,46 @@ try {
     'WAITED_FOR_TEAM_OK',
   );
   await Promise.all(children.map((item) => item.done));
-  profiles = profiles.map((profile) =>
-    profile.id === 'worker' ? { ...profile, mcps: [] } : profile,
-  );
-  await service.serialize(() => store.saveSection('agents', profiles));
-  await host.launch({ projectId, agentId: 'worker', autoContinue: false });
-  await children.at(-1)!.done;
-  assert.equal(envelopes.at(-1)!.firstMessage, undefined, 'Ordinary resume sends nothing');
-  assert.equal(
-    envelopes.at(-1)!.resources.mcpServers.some((item) => item.name === 'team'),
-    false,
-    'Revocation removes actual transport',
-  );
-  assert.equal((await store.projects.read(projectId)).agents[1].session!.path, session.path);
-  assert.equal(workerStep, 7, 'Ordinary resume did not request model');
+  if (embedded) {
+    const worker = host.inspect(projectId, 'worker')!;
+    const workerPid = host.processes().find((p) => p.agentId === 'worker')!.pid;
+    const caller = host.inspect(projectId, 'sender')!.run;
+    const third = await team.groups(caller)[0].call(
+      'say_to_agent',
+      {
+        agent_id: 'worker',
+        text: 'TASK_THREE: write then complete_stage',
+        request_id: 'task-three',
+      },
+      new AbortController().signal,
+    );
+    assert.equal(JSON.parse((third.content[0] as { text: string }).text).state, 'completed');
+    assert.equal(host.inspect(projectId, 'worker')?.run.record.runId, worker.run.record.runId);
+    assert.equal(host.processes().find((p) => p.agentId === 'worker')?.pid, workerPid);
+    assert.equal((await store.projects.read(projectId)).agents[1].session!.id, session.id);
+    assert.equal(workerFinished, 3);
+  }
+  if (!embedded) {
+    profiles = profiles.map((profile) =>
+      profile.id === 'worker' ? { ...profile, mcps: [] } : profile,
+    );
+    await service.serialize(() => store.saveSection('agents', profiles));
+    await host.launch({ projectId, agentId: 'worker', autoContinue: false });
+    await children.at(-1)!.done;
+    assert.equal(envelopes.at(-1)!.firstMessage, undefined, 'Ordinary resume sends nothing');
+    assert.equal(
+      envelopes.at(-1)!.resources.mcpServers.some((item) => item.name === 'team'),
+      false,
+      'Revocation removes actual transport',
+    );
+    assert.equal((await store.projects.read(projectId)).agents[1].session!.path, session.path);
+    assert.equal(workerStep, 7, 'Ordinary resume did not request model');
+  }
   const proof = {
+    embedded,
+    idleRecipientReusedWithoutNewProcess: embedded,
+    initialEmptyDialogueAccepted: embedded,
+    profileChangeRefreshesExactSession: embedded,
     nativePi: pi.version,
     elapsedMilliseconds: Date.now() - startedAt,
     waitBeyondPreviousTwoMinuteDeadline: longWait,
@@ -391,13 +450,15 @@ try {
     externalModelRequests: 0,
     userStudioTouched: false,
     sourceTeamScoped: true,
-    allToolsThroughNativeMcp: true,
+    allToolsThroughNativeMcp: !embedded,
+    firstTwoTasksThroughNativeMcp: true,
+    extraWarmRepeatThroughHostTool: embedded,
     blockingWait: true,
-    recipientTasks: 2,
+    recipientTasks: embedded ? 3 : 2,
     exactExistingBinding: true,
     duplicateReplay: false,
     cycleRejected: true,
-    revokedOnExplicitOpen: true,
+    revokedOnExplicitOpen: !embedded,
     revokedThroughExistingNativeTransport: true,
     reattachmentRestoresSameTransport: true,
     ordinaryResumeUserMessages: 0,
@@ -406,7 +467,11 @@ try {
   };
   await mkdir('artifacts', { recursive: true });
   await writeFile(
-    longWait ? 'artifacts/team-mcp-long-wait-proof.json' : 'artifacts/team-mcp-native-proof.json',
+    embedded
+      ? 'artifacts/team-mcp-embedded-proof.json'
+      : longWait
+        ? 'artifacts/team-mcp-long-wait-proof.json'
+        : 'artifacts/team-mcp-native-proof.json',
     JSON.stringify(proof, null, 2) + '\n',
   );
   console.log(JSON.stringify(proof));

@@ -155,9 +155,10 @@ export async function runSession(bootstrapPath) {
   let failures = 0;
   let openingStage = 'resources';
   let teamRequestAdmitted = false,
-    teamReceiptSent = false;
+    teamReceiptPending;
   async function teamReceipt() {
-    if (!envelope.teamDelivery || !teamRequestAdmitted || teamReceiptSent || !bound) return;
+    if (!teamReceiptPending || teamReceiptPending.sent || !bound) return;
+    const pending = teamReceiptPending;
     const entry = sessions.getEntries().findLast(
       (entry) =>
         entry.type === 'message' &&
@@ -167,15 +168,15 @@ export async function runSession(bootstrapPath) {
           : entry.message.content
               .filter((part) => part.type === 'text')
               .map((part) => part.text)
-              .join('')) === initialMessage,
+              .join('')) === pending.text,
     );
     if (!entry) return;
     await event({
       type: 'team_received',
-      messageId: envelope.teamDelivery.messageId,
+      messageId: pending.messageId,
       entryId: entry.id,
     });
-    teamReceiptSent = true;
+    pending.sent = true;
   }
   async function bindWrittenSession() {
     if (bound || binding) return;
@@ -232,12 +233,17 @@ export async function runSession(bootstrapPath) {
         try {
           const isTeam =
             !!envelope.teamDelivery && !teamRequestAdmitted && input.text === initialMessage;
-          await event({
+          const admitted = await event({
             type: 'request',
             message: input.text,
             ...(isTeam ? { messageId: envelope.teamDelivery.messageId } : {}),
           });
-          if (isTeam) teamRequestAdmitted = true;
+          const messageId =
+            admitted.messageId ?? (isTeam ? envelope.teamDelivery.messageId : undefined);
+          if (messageId) {
+            teamRequestAdmitted = true;
+            teamReceiptPending = { messageId, text: input.text, sent: false };
+          }
         } catch {
           ctx.ui.notify(
             bootstrap.language === 'ru'

@@ -9,9 +9,7 @@ import type { TerminalCloseDetail, RunFailure } from '../../shared/runFailure.ts
 export interface RunDependencies {
   bootstraps: string;
   bridge: string;
-  prepare: (
-    request: LaunchAgentRequest,
-  ) => Promise<{
+  prepare: (request: LaunchAgentRequest) => Promise<{
     run: PreparedRun;
     piPath: string;
     piCheck?: import('../../shared/contracts.ts').PiCheck;
@@ -36,6 +34,7 @@ export interface RunDependencies {
   beforeAutomaticClose?: (run: PreparedRun) => void | Promise<void>;
   captureTerminal?: typeof import('./automaticClose.ts').captureOwnedTab;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
+  canReuseTeam?: (run: PreparedRun) => Promise<boolean>;
   tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
   mcpGroups?: (run: PreparedRun) => readonly SessionMcpGroup[];
   closed?: (run: PreparedRun) => void;
@@ -79,6 +78,7 @@ export interface LiveRun {
   automaticCheck?: () => void;
   preserveProcessOnAdmissionCancel?: boolean;
   userMessage?: string;
+  pendingTeamText?: string;
   completion?: Awaited<ReturnType<typeof validateCompletedOutputs>>;
   blocked: boolean;
   bound?: SessionBinding;

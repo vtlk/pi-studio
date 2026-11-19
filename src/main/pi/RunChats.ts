@@ -118,10 +118,10 @@ export class RunChats {
   async sendChat(request: ChatSend) {
     await this.send(request);
   }
-  sendAutomatic(request: ChatSend, beforeSend: (live: LiveRun) => void) {
+  sendAutomatic(request: ChatSend, beforeSend: (live: LiveRun) => void | Promise<void>) {
     return this.send(request, beforeSend);
   }
-  private async send(request: ChatSend, beforeSend?: (live: LiveRun) => void) {
+  private async send(request: ChatSend, beforeSend?: (live: LiveRun) => void | Promise<void>) {
     this.assertTarget(request);
     this.assertUnchanged(request.projectId);
     const key = runKey(request),
@@ -141,7 +141,10 @@ export class RunChats {
       if (this.live.get(key) !== live) throw new Error(t('Chat.disconnected'));
       const input = await chatInput(live.run.projectRoot, request.text, attachments);
       this.assertTarget(request);
-      beforeSend?.(live);
+      if (beforeSend) await beforeSend(live);
+      this.assertUnchanged(request.projectId);
+      this.assertTarget(request);
+      if (this.live.get(key) !== live) throw new Error(t('Chat.disconnected'));
       return await live.embedded.send(input.message, input.images, request.behavior);
     } finally {
       this.sending.delete(key);

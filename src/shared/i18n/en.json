@@ -1831,5 +1831,7 @@
   "AgentTeamTransfer.move": "Move",
   "AgentTeamTransfer.description": "Agent “{{name}}” → team “{{team}}”.",
   "UpdateAction.installingUpdate": "Installing update…",
-  "UpdateAction.waitingToInstall": "Waiting to install update…"
+  "UpdateAction.waitingToInstall": "Waiting to install update…",
+  "Team.dispatchNotSent": "Message was not sent. {{reason}}",
+  "Team.dispatchUnavailable": "Recipient is unavailable. Check its connection, model, dialogue and resources. Message was not sent."
 }

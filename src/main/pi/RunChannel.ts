@@ -240,6 +240,11 @@ export class RunChannel {
         return json(response, 200, {
           ok: true,
           language: i18n.language,
+          ...(data.type === 'request' &&
+          typeof data.messageId === 'string' &&
+          /^[a-f0-9]{64}$/.test(data.messageId)
+            ? { messageId: data.messageId }
+            : {}),
           ...(lease.stopping ? { stop: true } : {}),
         });
       }

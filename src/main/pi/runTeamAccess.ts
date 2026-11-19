@@ -11,6 +11,7 @@ export function runTeamAccess(state: {
   opening: Set<string>;
   retiring: Map<string, Promise<void>>;
   assertUnchanged: (projectId: string) => void;
+  sending?: (projectId: string, agentId: string) => boolean;
   open: (
     request: LaunchAgentRequest,
     message: string,
@@ -25,7 +26,7 @@ export function runTeamAccess(state: {
       return {
         run: live.run,
         status: live.status,
-        blocked: live.blocked,
+        blocked: live.blocked || !!live.embedded?.state.dialog,
         sequence: live.sequence,
         opened: live.opened === true,
         delivering: !!live.run.teamDelivery && live.sequence === 0,
@@ -35,12 +36,28 @@ export function runTeamAccess(state: {
       const key = runKey({ projectId, agentId });
       if (state.chains.has(projectId))
         return 'В проекте включена цепочка. Доставка team ожидает её завершения или явного выключения.';
-      if (state.changing.has(projectId) || state.opening.has(key) || state.retiring.has(key))
+      if (
+        state.changing.has(projectId) ||
+        state.opening.has(key) ||
+        state.retiring.has(key) ||
+        state.sending?.(projectId, agentId)
+      )
         return 'Диалог/проект ещё подготавливается.';
       const live = this.inspect(projectId, agentId);
-      if (live?.blocked || live?.status === 'waiting' || live?.status === 'error')
+      if (
+        live?.blocked ||
+        (live?.status === 'waiting' && live.sequence > 0) ||
+        live?.status === 'error'
+      )
         return 'Получатель ожидает пользователя.';
-      if (live?.status === 'running' || live?.delivering) return 'Получатель выполняет запрос.';
+      if (
+        live?.status === 'running' ||
+        live?.delivering ||
+        state.live.get(key)?.embedded?.state.working ||
+        state.live.get(key)?.embedded?.state.queue?.steering.length ||
+        state.live.get(key)?.embedded?.state.queue?.followUp.length
+      )
+        return 'Получатель выполняет запрос.';
     },
     launchTeamTask(
       projectId: string,

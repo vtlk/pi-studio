@@ -1831,5 +1831,7 @@
   "AgentTeamTransfer.move": "Переместить",
   "AgentTeamTransfer.description": "Агент «{{name}}» → команда «{{team}}».",
   "UpdateAction.installingUpdate": "Устанавливаем обновление…",
-  "UpdateAction.waitingToInstall": "Ожидаем установки обновления…"
+  "UpdateAction.waitingToInstall": "Ожидаем установки обновления…",
+  "Team.dispatchNotSent": "Сообщение не отправлено. {{reason}}",
+  "Team.dispatchUnavailable": "Получатель недоступен. Проверьте его подключение, модель, диалог и ресурсы. Сообщение не отправлено."
 }
