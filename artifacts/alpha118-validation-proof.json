@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-19T00:41:11.829509+00:00",
+  "runtimeSourceCommit": "9e3c119550b5bec3069a1dcbf89fc69d657e6dfe",
+  "version": "0.2.0-alpha.118",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 475,
+  "updaterSuite": {
+    "passed": 87,
+    "failed": 0
+  },
+  "focusedWindowCoordinatorManualTests": {
+    "passed": 15,
+    "failed": 0,
+    "overlapWithUpdaterSuite": true
+  },
+  "rendererProof": "input-refinements-proof.json",
+  "rendererChecks": "RU/EN \u00d7 light/dark; consecutive right-aligned attach/mic/send in working and idle chat; concrete draft/voice readiness and waiting message",
+  "windowChecks": "Controlled Electron event handlers: pending Mac update hides but retains renderer; explicit before-quit closes; pending heartbeat disables throttling and restores it afterwards; cancelled quit restores recovery",
+  "nativeWindowCloseOrUserAppTouched": false,
+  "nativeWindowsAcceptance": false,
+  "originalIncidentCauseConfirmed": false
+}
