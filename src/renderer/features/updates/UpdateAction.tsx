@@ -127,6 +127,9 @@ export function UpdateDialog() {
     state.phase,
   );
   const message =
+    (state.phase === 'waiting' && state.waitingReason
+      ? t(`UpdateAction.waiting.${state.waitingReason}`)
+      : undefined) ??
     state.message ??
     (state.phase === 'downloading'
       ? t('UpdateAction.downloadingUpdate')

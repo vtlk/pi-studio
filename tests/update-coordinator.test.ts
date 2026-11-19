@@ -368,3 +368,30 @@ test('closing while waiting for a native poll cancels the reservation and never 
   await reading;
   assert.equal(await gate.invoke(() => 7), 7);
 });
+
+test('waiting names the actual blocker and the same authorized update resumes after the draft clears', async (t) => {
+  const { coordinator, state, permit } = await fixture(t);
+  await coordinator.request();
+  assert.equal(coordinator.read().waitingReason, 'interface');
+  coordinator.report({ saved: false, blocker: 'drafts' });
+  assert.equal(coordinator.read().waitingReason, 'drafts');
+  coordinator.wake();
+  assert.equal(state.quits, 0);
+  coordinator.report({ saved: true, blocker: 'voice' });
+  coordinator.wake();
+  assert.equal(coordinator.read().waitingReason, 'voice');
+  assert.equal(coordinator.read().prepareToken, undefined);
+  assert.throws(() => coordinator.report({ saved: false, blocker: 'secret text' } as never));
+  state.idle = false;
+  coordinator.report({ saved: true });
+  assert.equal(coordinator.read().waitingReason, 'work');
+  state.now += 6000;
+  assert.equal(coordinator.read().waitingReason, 'interface');
+  state.idle = true;
+  const token = permit();
+  assert.ok(token);
+  coordinator.report({ saved: true, token });
+  await settle();
+  assert.equal(state.quits, 1);
+  assert.equal(state.downloads, 1);
+});

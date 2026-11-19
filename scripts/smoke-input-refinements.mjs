@@ -446,6 +446,9 @@ try {
         getTheme: async () => ({ theme, preference: theme, revision: 0 }),
         setTheme: async (value) => ({ theme: (theme = value), preference: value, revision: 1 }),
         getUpdateState: async () => window.__qa.update ?? { phase: 'idle', currentVersion: 'QA' },
+        reportUpdateReadiness: async (report) => {
+          window.__qa.readiness = report;
+        },
         getStartup: async () => ({ phase: 'ready', message: 'QA' }),
         getGitHubStar: async () => ({
           due: false,
@@ -468,7 +471,7 @@ try {
         getChat: async (target) => ({
           ...target,
           phase: 'ready',
-          working: true,
+          working: window.__qa.working ?? true,
           runId: 'run-' + target.agentId,
           revision: 1,
           messages: [
@@ -714,6 +717,17 @@ try {
       assert.equal(await js(`document.querySelector('.pi-chat-composer textarea').value`), 'Draft');
       assert.equal(await js(`window.__qa.pastedBytes`), 8);
       assert.equal(await js(`window.__qa.sends||0`), 0);
+      await until(`window.__qa.readiness?.blocker==='drafts'`);
+      await js(
+        `window.__qa.update={phase:'waiting',currentVersion:'QA',waitingReason:'drafts',offer:{version:'QA-next',bytes:1000,notes:'QA',releaseUrl:'https://github.com/vtlk/pi-studio/releases'}}`,
+      );
+      await until(`!!document.querySelector('.update-action')`);
+      await click('.update-action');
+      await until(
+        `document.querySelector('[data-update-dialog]')?.textContent.includes(${JSON.stringify(messages['UpdateAction.waiting.drafts'])})`,
+      );
+      await click('[data-update-dialog] .dialog-header button');
+      await js(`window.__qa.update={phase:'idle',currentVersion:'QA'}`);
       await until(
         `!document.querySelector('.pi-chat-panel').getAnimations().some(animation=>animation.playState==='running')`,
       );
@@ -734,6 +748,7 @@ try {
       });
       await new Promise((done) => setTimeout(done, 500));
       await until(`document.querySelector('.voice-input').dataset.voicePhase==='recording'`);
+      await until(`window.__qa.readiness?.blocker==='voice'`);
       await click('.voice-input button');
       await until(`document.querySelector('.voice-input').dataset.voicePhase==='transcribing'`);
       await file('other.txt');
@@ -747,6 +762,28 @@ try {
       );
       await until(`document.querySelector('.voice-input').dataset.voicePhase==='idle'`);
       assert.equal(await js(`window.__qa.sends||0`), 0, 'Voice and attachments never auto-send');
+      await until(
+        `!document.querySelector('.pi-chat-panel').getAnimations().some(a=>a.playState==='running')`,
+      );
+      const checkActions = async () => {
+        const r = await js(
+          `(()=>{const pane=document.querySelector('.pi-chat-composer'), attach=pane.querySelector('.reference-attachments-compact button'),mic=pane.querySelector('.voice-input button'),send=pane.querySelector('.pi-chat-composer-actions>button:last-child');return [attach,mic,send,pane].map(el=>el.getBoundingClientRect().toJSON());})()`,
+        );
+        assert.ok(
+          Math.abs(r[0].y - r[1].y) < 1 && Math.abs(r[1].y - r[2].y) < 1,
+          'Chat actions share one row',
+        );
+        assert.ok(
+          Math.abs(r[1].left - r[0].right - 8) < 1 && Math.abs(r[2].left - r[1].right - 8) < 1,
+          'Attach, microphone, send are consecutive',
+        );
+        assert.ok(
+          r[3].right - r[2].right >= 8 && r[3].right - r[2].right <= 16,
+          'Actions are at the right edge',
+        );
+      };
+      await checkActions();
+
       await cdp('Page.captureScreenshot', { format: 'png' }).then((shot) =>
         writeFile(
           `artifacts/chat-inputs-${language}-${theme}.png`,
@@ -760,6 +797,12 @@ try {
         `document.querySelector('.pi-chat-composer textarea').value===''&&!document.querySelector('.reference-attachment-list')`,
       );
       assert.equal(await js(`window.__qa.sends`), 1, 'Only the explicit QA send dispatches');
+      await until(`window.__qa.readiness?.saved===true&&!window.__qa.readiness?.blocker`);
+      await js(`window.__qa.working=false`);
+      await until(
+        `Array.from(document.querySelectorAll('.pi-chat-composer-actions>button')).some(b=>b.getAttribute('aria-label')===${JSON.stringify(messages['Chat.send'])})`,
+      );
+      await checkActions();
       assert.deepEqual(await js('window.__qa.calls'), { launch: 0, commands: 0, saves: 0 });
       checks.push({
         language,
@@ -774,6 +817,8 @@ try {
         microphoneUiDecodeAndInsertion: true,
         hiddenChatVoicePreserved: true,
         noAutomaticSend: true,
+        rightAlignedConsecutiveChatActions: true,
+        explicitDraftAndVoiceUpdateBlockers: true,
       });
     }
   assert.deepEqual(errors, []);

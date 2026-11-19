@@ -222,15 +222,6 @@ export function ChatPanel({
           }}
         />
         <div className="pi-chat-composer-actions">
-          {
-            <ReferenceAttachments
-              value={references}
-              onChange={setReferences}
-              disabled={sending}
-              retainOnUnmount
-              compact
-            />
-          }
           {state?.working && (
             <Select
               label={t('Chat.queueMode')}
@@ -242,6 +233,21 @@ export function ChatPanel({
               ]}
             />
           )}
+          <span className="pi-chat-composer-spacer" />
+          {state?.working && (
+            <IconButton title={t('Chat.stop')} onClick={() => void stop()}>
+              <Square size={17} />
+            </IconButton>
+          )}
+          {
+            <ReferenceAttachments
+              value={references}
+              onChange={setReferences}
+              disabled={sending}
+              retainOnUnmount
+              compact
+            />
+          }
           <VoiceInput
             disabled={sending}
             onText={(text) => {
@@ -251,12 +257,6 @@ export function ChatPanel({
               );
             }}
           />
-          <span className="pi-chat-composer-spacer" />
-          {state?.working && (
-            <IconButton title={t('Chat.stop')} onClick={() => void stop()}>
-              <Square size={17} />
-            </IconButton>
-          )}
           <IconButton
             title={state?.working ? t('Chat.enqueue') : t('Chat.send')}
             disabled={!ready || !draft.trim()}

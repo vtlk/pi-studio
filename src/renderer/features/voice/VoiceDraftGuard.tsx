@@ -34,5 +34,7 @@ export function VoiceDraftGuard() {
     window.addEventListener('beforeunload', guard);
     return () => window.removeEventListener('beforeunload', guard);
   }, [active]);
-  return <span hidden data-unsaved-draft={active || undefined} />;
+  return (
+    <span hidden data-voice-draft={active || undefined} data-unsaved-draft={active || undefined} />
+  );
 }

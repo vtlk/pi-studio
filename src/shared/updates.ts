@@ -20,8 +20,18 @@ export interface UpdateView {
   page: 'projects' | 'project' | 'agents' | 'settings' | 'onboarding';
   projectId?: string;
 }
+export const updateBlockers = [
+  'drafts',
+  'voice',
+  'dialog',
+  'credentials',
+  'saving',
+  'save-error',
+] as const;
+export type UpdateBlocker = (typeof updateBlockers)[number];
 export interface UpdateReadiness {
   saved: boolean;
+  blocker?: UpdateBlocker;
   token?: string;
   view?: UpdateView;
   startupToken?: string;
@@ -52,6 +62,7 @@ export interface UpdateState {
   message?: string;
   checkedAt?: number;
   prepareToken?: string;
+  waitingReason?: UpdateBlocker | 'work' | 'interface';
   startup?: UpdateStartupInfo;
   maintenanceError?: string;
   manualCheckToken?: string;

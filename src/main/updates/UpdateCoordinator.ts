@@ -1,7 +1,13 @@
 import { t } from '../../shared/i18n/index.ts';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import type { UpdateState, UpdateReadiness, UpdateView } from '../../shared/updates.ts';
+import {
+  updateBlockers,
+  type UpdateBlocker,
+  type UpdateState,
+  type UpdateReadiness,
+  type UpdateView,
+} from '../../shared/updates.ts';
 import type { UpdateTarget } from './releasePolicy.ts';
 import type { UpdateInstaller, PreparedInstallation, InstallLease } from './installation.ts';
 import { checkGitHubReleases, type VerifiedUpdate } from './githubReleases.ts';
@@ -37,6 +43,7 @@ export class UpdateCoordinator {
   private closed = false;
   private committed = false;
   private rendererSaved = false;
+  private rendererBlocker?: UpdateBlocker;
   private rendererSeen = 0;
   private tokenIssued = 0;
   private view?: UpdateView;
@@ -84,7 +91,18 @@ export class UpdateCoordinator {
     this.tick();
   }
   read() {
-    return structuredClone(this.state);
+    const state = structuredClone(this.state);
+    if (state.phase === 'waiting') {
+      state.waitingReason =
+        this.now() - this.rendererSeen > 5000
+          ? 'interface'
+          : !this.rendererSaved
+            ? (this.rendererBlocker ?? 'saving')
+            : !this.options.idle()
+              ? 'work'
+              : undefined;
+    }
+    return state;
   }
   check() {
     return this.schedule.checkNow(true).then(() => this.read());
@@ -153,13 +171,16 @@ export class UpdateCoordinator {
   report(ready: UpdateReadiness) {
     if (
       typeof ready?.saved !== 'boolean' ||
+      (ready.blocker !== undefined && !updateBlockers.includes(ready.blocker)) ||
       (ready.token !== undefined && (typeof ready.token !== 'string' || ready.token.length > 100))
     )
       throw new Error(t('UpdateCoordinator.invalidSaveConfirmation'));
     this.rendererSeen = this.now();
-    this.rendererSaved = ready.saved;
+    const saved = ready.saved && !ready.blocker;
+    this.rendererSaved = saved;
+    this.rendererBlocker = ready.blocker;
     if (ready.token && ready.token === this.state.prepareToken && this.state.phase === 'waiting') {
-      if (!ready.saved) {
+      if (!saved) {
         this.state = { ...this.state, prepareToken: undefined };
         return;
       }

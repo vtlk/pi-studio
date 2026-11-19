@@ -1,22 +1,27 @@
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { UpdateState } from '../../../shared/updates';
+import type { UpdateState, UpdateBlocker } from '../../../shared/updates';
 import { useStorage } from '@/shared/storage/Storage';
 import { useNavigation } from '@/shared/model/Navigation';
 import { useWorkspace } from '@/features/project/model/Workspace';
 import { UpdatesContext } from './Updates.context';
 
-function hasTransientDraft() {
-  return (
+function transientDraftBlocker(): UpdateBlocker | undefined {
+  if (
     [...document.querySelectorAll('[role="dialog"],[role="alertdialog"]')].some(
       (element) => !element.closest('[data-update-dialog]'),
-    ) ||
+    )
+  )
+    return 'dialog';
+  if (
     [...document.querySelectorAll<HTMLInputElement>('input[type="password"]')].some(
       (element) => !!element.value,
-    ) ||
-    !!document.querySelector('[data-unsaved-draft="true"]')
-  );
+    )
+  )
+    return 'credentials';
+  if (document.querySelector('[data-voice-draft="true"]')) return 'voice';
+  if (document.querySelector('[data-unsaved-draft="true"]')) return 'drafts';
 }
 export function UpdatesProvider({
   children,
@@ -93,13 +98,18 @@ export function UpdatesProvider({
         setState((previous) =>
           JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
         );
+        const blocker = current.current.error
+          ? 'save-error'
+          : current.current.saving
+            ? 'saving'
+            : next.startup?.phase === 'starting'
+              ? undefined
+              : transientDraftBlocker();
         await api.reportUpdateReadiness({
           // The replacement was inert before its first editable frame: automatic legacy/info
           // dialogs contain no new user draft and must not deadlock startup health.
-          saved:
-            !current.current.saving &&
-            !current.current.error &&
-            (next.startup?.phase === 'starting' || !hasTransientDraft()),
+          saved: !blocker,
+          blocker,
           startupToken: next.startup?.token,
           hydrated: current.current.hydrated && current.current.restored === next.startup?.token,
           manualCheckToken: next.manualCheckToken,
@@ -130,14 +140,17 @@ export function UpdatesProvider({
     // The containing app is already inert in this committed render, before flushing begins.
     void (async () => {
       let saved: boolean;
+      let blocker = transientDraftBlocker();
       try {
-        saved = !hasTransientDraft() && (await current.current.saveNow()) && !current.current.error;
+        saved = !blocker && (await current.current.saveNow()) && !current.current.error;
       } catch {
         saved = false;
       }
       if (cancelled) return;
+      if (!saved && !blocker) blocker = current.current.error ? 'save-error' : 'saving';
       await api.reportUpdateReadiness({
         saved,
+        blocker: saved ? undefined : blocker,
         token,
         view: { page: current.current.page, projectId: current.current.projectId },
       });

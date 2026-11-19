@@ -1808,5 +1808,13 @@
   "Voice.inferenceFailed": "Could not transcribe the recording. Try again.",
   "HtmlPreview.enableScripts": "Enable JavaScript",
   "HtmlPreview.disableScripts": "Disable JavaScript",
-  "HtmlPreview.scriptRestrictions": "JavaScript is isolated. External network and navigation are blocked."
+  "HtmlPreview.scriptRestrictions": "JavaScript is isolated. External network and navigation are blocked.",
+  "UpdateAction.waiting.drafts": "There is unsent text, an attachment or an unapplied setting. Hide this window, send or clear the draft, and the update will continue automatically.",
+  "UpdateAction.waiting.voice": "A voice recording or transcription is still in progress. The update will wait to preserve your text.",
+  "UpdateAction.waiting.dialog": "Another dialog is open. Finish or cancel it; the update will continue automatically.",
+  "UpdateAction.waiting.credentials": "A protected field contains unsaved input. Save or clear it to continue the update.",
+  "UpdateAction.waiting.saving": "Waiting for settings to finish saving.",
+  "UpdateAction.waiting.save-error": "Settings could not be saved. Hide this window and resolve the save error to continue the update.",
+  "UpdateAction.waiting.work": "An agent or another Studio operation is still running. The update will continue automatically when it finishes.",
+  "UpdateAction.waiting.interface": "Waiting for the Studio window to confirm that changes are saved. Reopen its window from the Dock or taskbar."
 }
