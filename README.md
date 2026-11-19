@@ -10,7 +10,7 @@ One agent researches, another creates, a third reviews.<br>Set up the workflow o
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/status-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Status: alpha" /> <img src="https://img.shields.io/badge/platforms-macOS_·_Windows_preview-FFD83D?style=flat-square&labelColor=252525" alt="macOS and Windows preview" />
 
-**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.119/Pi-Studio-0.2.0-alpha.119-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)**
+**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)**
 
 **[How it works](#one-team-many-projects)** &nbsp; · &nbsp; **[Models](#your-models-your-tools)** &nbsp; · &nbsp; **[Get started](#quick-start)**
 
@@ -129,15 +129,15 @@ Choose a connection and model for the assistant, then open its conversation unde
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.119/Pi-Studio-0.2.0-alpha.119-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)** |
+| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)** |
 | **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Version** | alpha.119 | alpha.120 · preview |
+| **Version** | alpha.120 | alpha.120 · preview |
 
 > **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. Full native Windows validation remains in progress.
 
 [What's new in alpha.120 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.120)
 
-Alpha.120 adds a floating agent card and an insertion marker when dragging between teams. Copy or Move keeps the chosen position and all settings. The update action shows distinct verification, waiting and installation icons while retaining its size. Existing projects retain their folder mode when team settings change. Windows x64 is available first; macOS arm64 currently remains on alpha.119.
+Alpha.120 adds a floating agent card and an insertion marker when dragging between teams. Copy or Move keeps the chosen position and all settings. The update action shows distinct verification, waiting and installation icons while retaining its size. Existing projects retain their folder mode when team settings change. Available for macOS arm64 and Windows x64.
 
 Agent teams remember whether they are expanded or collapsed. The Projects tab returns to the last open project when switching sections. Click the project heading or its back icon to return to the list; Refresh agents stays independent. Project headers are black in both themes, with a thin gray lower divider.
 

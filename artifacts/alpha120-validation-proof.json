@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-19T08:40:42.103344+00:00",
+  "version": "0.2.0-alpha.120",
+  "runtimeSourceCommit": "a3d1c59f22dc7991a8fcab5c129c61a572ac8fdd",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 483,
+  "tests": {
+    "passed": 574,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "rendererProofs": [
+    "agent-team-drag-proof.json",
+    "rich-preview-chat-proof.json"
+  ],
+  "dragChecks": "Actual pointer clone beside cursor, stationary original, stable middle insertion line and exact committed position, collapsed header append, Cancel and ordinary reorder; RU/EN light/dark compiled renderer with controlled native APIs.",
+  "updateIcons": "Distinct verifying/waiting/installing icons, localized action labels, 38x38 area and 19px glyph and offer dot across all phases. Controlled updater state, no actual user update.",
+  "workspacePiProof": "team-workspace-pi-proof.json",
+  "installedApplicationOrUserWorkChanged": false,
+  "nativeWindowsAcceptance": false
+}

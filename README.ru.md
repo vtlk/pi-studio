@@ -10,7 +10,7 @@
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.119/Pi-Studio-0.2.0-alpha.119-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)**
+**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)**
 
 **[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
 
@@ -129,15 +129,15 @@
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.119/Pi-Studio-0.2.0-alpha.119-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)** |
+| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.120/Pi-Studio-0.2.0-alpha.120-win-x64.zip)** |
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.119 | alpha.120 · preview |
+| **Версия** | alpha.120 | alpha.120 · preview |
 
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
 [Что изменилось в alpha.120 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.120)
 
-Alpha.120: при переносе агента между командами видны плавающая копия карточки и место вставки. Копирование или перенос сохраняет выбранную позицию и все настройки. Кнопка обновления показывает отдельные значки проверки, ожидания и установки, сохраняя свой размер. Существующие проекты сохраняют режим папок при изменении команды. Сначала доступна Windows x64; для macOS arm64 пока остаётся alpha.119.
+Alpha.120: при переносе агента между командами видны плавающая копия карточки и место вставки. Копирование или перенос сохраняет выбранную позицию и все настройки. Кнопка обновления показывает отдельные значки проверки, ожидания и установки, сохраняя свой размер. Существующие проекты сохраняют режим папок при изменении команды. Доступна для macOS arm64 и Windows x64.
 
 Команды агентов запоминают состояние раскрытия. При переключении разделов вкладка «Проекты» возвращает в последний открытый проект. Нажатие на название проекта или иконку возврата открывает список; «Перечитать агентов» работает отдельно. Строка проекта чёрная в обеих темах, с тонким серым нижним бордюром.
 

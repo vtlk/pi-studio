@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-19T08:48:53.062801+00:00",
+  "removedNeverExecutedBuildBytes": 359907656,
+  "freeBytesBefore": 18104659968,
+  "freeBytesAfter": 18479443968,
+  "retainedOnlyCurrentReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.120-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.120-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.120-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.120-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.120-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.120-win32-x64.update.json"
+  ],
+  "installedApplicationOrUserDataOrModelCacheTouched": false
+}
