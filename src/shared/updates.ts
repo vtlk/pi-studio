@@ -22,6 +22,8 @@ export interface UpdateView {
 }
 export const updateBlockers = [
   'drafts',
+  'draft-saving',
+  'draft-error',
   'voice',
   'dialog',
   'credentials',

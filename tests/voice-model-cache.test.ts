@@ -33,7 +33,13 @@ test('voice model cache verifies every download, persists across instances and s
       },
       manifest,
     );
-    await next.prepare();
+    const cached = next.prepare();
+    assert.equal(
+      next.read().phase,
+      'checking',
+      'Hash verification must not be labelled as a download',
+    );
+    await cached;
     assert.equal(next.read().phase, 'ready');
     const response = await next.response(
       new Request('studio-voice://models/qa/model/onnx/model.onnx'),

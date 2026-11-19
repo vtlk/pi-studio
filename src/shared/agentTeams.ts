@@ -32,3 +32,35 @@ export function teamAgents(catalog: AgentCatalog, teamId: string): Agent[] {
     return agent;
   });
 }
+
+/** Catalog-only transfer: projects, sessions and shared resource definitions are never copied or moved. */
+export function transferTeamAgent(
+  catalog: AgentCatalog,
+  agentId: string,
+  sourceTeamId: string,
+  targetTeamId: string,
+  copyId?: string,
+): AgentCatalog {
+  const source = catalog.teams.find((team) => team.id === sourceTeamId);
+  const target = catalog.teams.find((team) => team.id === targetTeamId);
+  const agent = catalog.agents.find((item) => item.id === agentId);
+  if (!source || !target || !agent || source === target || !source.agentIds.includes(agentId))
+    return catalog;
+  const id = copyId ?? agentId;
+  if (target.agentIds.includes(id) || (copyId && catalog.agents.some((item) => item.id === id)))
+    return catalog;
+  const profiles = copyId ? [...catalog.agents, { ...structuredClone(agent), id }] : catalog.agents;
+  const next = {
+    agents: profiles,
+    teams: catalog.teams.map((team) => ({
+      ...team,
+      agentIds:
+        team.id === targetTeamId
+          ? [...team.agentIds, id]
+          : team.id === sourceTeamId && !copyId
+            ? team.agentIds.filter((item) => item !== id)
+            : team.agentIds,
+    })),
+  };
+  return { ...next, agents: next.teams.flatMap((team) => teamAgents(next, team.id)) };
+}

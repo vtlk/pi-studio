@@ -4,6 +4,7 @@ import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { UpdateState, UpdateBlocker } from '../../../shared/updates';
 import { useStorage } from '@/shared/storage/Storage';
 import { useNavigation } from '@/shared/model/Navigation';
+import { useChatPanels } from '@/features/chat/ChatPanels.context';
 import { useWorkspace } from '@/features/project/model/Workspace';
 import { UpdatesContext } from './Updates.context';
 
@@ -21,6 +22,8 @@ function transientDraftBlocker(): UpdateBlocker | undefined {
   )
     return 'credentials';
   if (document.querySelector('[data-voice-draft="true"]')) return 'voice';
+  if (document.querySelector('[data-chat-draft-error="true"]')) return 'draft-error';
+  if (document.querySelector('[data-chat-draft-pending="true"]')) return 'draft-saving';
   if (document.querySelector('[data-unsaved-draft="true"]')) return 'drafts';
 }
 export function UpdatesProvider({
@@ -32,6 +35,7 @@ export function UpdatesProvider({
 }) {
   useTranslation(undefined, { i18n });
   const { saving, error, saveNow, bootstrap } = useStorage();
+  const { flushDrafts } = useChatPanels();
   const { page, navigate } = useNavigation();
   const { selectedProject, projects, setProjectId } = useWorkspace();
   const [state, setState] = useState<UpdateState | undefined>(initial);
@@ -44,6 +48,7 @@ export function UpdatesProvider({
     saving,
     error,
     saveNow,
+    flushDrafts,
     page,
     projectId: selectedProject?.id,
     hydrated: !!bootstrap,
@@ -53,6 +58,7 @@ export function UpdatesProvider({
     saving,
     error,
     saveNow,
+    flushDrafts,
     page,
     projectId: selectedProject?.id,
     hydrated: !!bootstrap,
@@ -142,7 +148,10 @@ export function UpdatesProvider({
       let saved: boolean;
       let blocker = transientDraftBlocker();
       try {
-        saved = !blocker && (await current.current.saveNow()) && !current.current.error;
+        const draftsSaved = await current.current.flushDrafts();
+        blocker = transientDraftBlocker();
+        saved =
+          draftsSaved && !blocker && (await current.current.saveNow()) && !current.current.error;
       } catch {
         saved = false;
       }

@@ -13,12 +13,14 @@ import { AgentListLabel } from './AgentListLabel';
 export function AgentListItem({
   agent,
   position,
+  teamId,
   selected,
   onSelect,
   onDelete,
 }: {
   agent: Agent;
   position: number;
+  teamId: string;
   selected: boolean;
   onSelect: () => void;
   onDelete: () => void;
@@ -26,6 +28,7 @@ export function AgentListItem({
   useTranslation(undefined, { i18n });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: agent.id,
+    data: { type: 'agent', teamId },
   });
   return (
     <div

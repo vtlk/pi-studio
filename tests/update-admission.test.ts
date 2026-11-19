@@ -126,6 +126,7 @@ test('startup permits hydration/status reads but denies launch, user edits, auth
     release = gate.hold();
   for (const read of [
     c.loadStudio,
+    c.loadChatDrafts,
     c.getInfo,
     c.getGitHubStar,
     c.readProject,
@@ -137,6 +138,7 @@ test('startup permits hydration/status reads but denies launch, user edits, auth
   for (const mutation of [
     c.launchAgent,
     c.saveSection,
+    c.saveChatDraft,
     c.chooseStudio,
     c.openStudio,
     c.beginConnectionLogin,

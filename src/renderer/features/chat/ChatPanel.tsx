@@ -37,6 +37,8 @@ export function ChatPanel({
   const setReferences = (files: ReferenceAttachment[]) => panels.setAttachments(key, files);
   const [sending, setSending] = useState(false),
     [error, setError] = useState('');
+  const [attachmentList, setAttachmentList] = useState<HTMLDivElement | null>(null);
+  const [voiceStatus, setVoiceStatus] = useState<HTMLDivElement | null>(null);
   const [behavior, setBehavior] = useState<'steer' | 'followUp'>('followUp');
   const transcript = useRef<HTMLDivElement>(null),
     stick = useRef(true),
@@ -46,9 +48,10 @@ export function ChatPanel({
   };
   const editorRequest = useRef('');
   useEffect(() => {
-    if (state?.editorText && state.editorText.id !== editorRequest.current) {
+    if (panels.draftsReady && state?.editorText && state.editorText.id !== editorRequest.current) {
+      const first = !editorRequest.current;
       editorRequest.current = state.editorText.id;
-      panels.setDraft(key, state.editorText.text);
+      if (!first || !(panels.drafts.get(key) ?? '')) panels.setDraft(key, state.editorText.text);
     }
   }, [state?.editorText, panels, key]);
   useEffect(() => {
@@ -63,18 +66,24 @@ export function ChatPanel({
     submitting.current = true;
     setSending(true);
     setError('');
-    const text = draft;
     stick.current = true;
     try {
-      await window.studio.sendChat({
+      if (!(await panels.flushDrafts(key))) throw Error(t('ChatDrafts.saveFailed'));
+      const snapshot = panels.currentDraft(key);
+      const result = await window.studio.sendChat({
         ...target,
-        text,
-        attachments: references.map((item) => item.id),
+        text: snapshot.text,
+        draft: { folder: panels.draftScope, revision: snapshot.revision },
+        attachments: snapshot.attachments.map((item) => item.id),
         ...(state?.working ? { behavior } : {}),
       });
-      updateDraft('');
-      await window.studio.releaseReferenceFiles(references.map((item) => item.id));
-      setReferences([]);
+      panels.draftSent(key, snapshot.revision, result);
+      const retained = new Set((panels.attachments.get(key) ?? []).map((file) => file.id));
+      await window.studio
+        .releaseReferenceFiles(
+          snapshot.attachments.filter((file) => !retained.has(file.id)).map((file) => file.id),
+        )
+        .catch(() => {});
     } catch (error) {
       setError(error instanceof Error ? error.message : t('Chat.commandFailed'));
     } finally {
@@ -110,7 +119,7 @@ export function ChatPanel({
       ariaLabel={t('Chat.title', { name })}
       label={t('Chat.dropFiles')}
       className={`pi-chat-panel${standalone ? ' pi-chat-standalone' : ''}`}
-      disabled={sending}
+      disabled={sending || !panels.draftsReady}
       onFiles={(files) => void attach(files)}
       onImages={(files) => void attach(files, true)}
     >
@@ -207,11 +216,12 @@ export function ChatPanel({
         <ChatExtensionDialog key={state.dialog.id} target={target} dialog={state.dialog} />
       )}
       <footer className="pi-chat-composer" aria-busy={sending || undefined}>
+        <div className="pi-chat-attachments" ref={setAttachmentList} />
         <Textarea
           aria-label={t('Chat.message')}
           placeholder={t('Chat.placeholder')}
           value={draft}
-          disabled={sending}
+          disabled={sending || !panels.draftsReady}
           maxLength={200000}
           onChange={(event) => updateDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -239,17 +249,20 @@ export function ChatPanel({
               <Square size={17} />
             </IconButton>
           )}
+          <div className="pi-chat-voice-status" ref={setVoiceStatus} />
           {
             <ReferenceAttachments
               value={references}
               onChange={setReferences}
-              disabled={sending}
+              disabled={sending || !panels.draftsReady}
               retainOnUnmount
               compact
+              listContainer={attachmentList}
             />
           }
           <VoiceInput
-            disabled={sending}
+            statusContainer={voiceStatus}
+            disabled={sending || !panels.draftsReady}
             onText={(text) => {
               const previous = panels.drafts.get(key) ?? '';
               updateDraft(
@@ -259,7 +272,7 @@ export function ChatPanel({
           />
           <IconButton
             title={state?.working ? t('Chat.enqueue') : t('Chat.send')}
-            disabled={!ready || !draft.trim()}
+            disabled={!ready || !panels.draftsReady || !draft.trim()}
             busy={sending}
             onClick={() => void send()}
           >

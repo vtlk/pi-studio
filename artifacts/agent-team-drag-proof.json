@@ -1,0 +1,57 @@
+{
+  "version": "0.2.0-alpha.119",
+  "checkedAt": "2026-11-19T07:59:46.204Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "actualPointerDrag": true,
+      "collapsedTeamHeaderDrop": true,
+      "expandedAgentListDrop": true,
+      "copyPreservesFullSettings": true,
+      "movePreservesStableId": true,
+      "cancelLeavesCatalogUnchanged": true,
+      "sameTeamReorderWithoutDialog": true,
+      "piOrProjectWorkDispatched": false
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "actualPointerDrag": true,
+      "collapsedTeamHeaderDrop": true,
+      "expandedAgentListDrop": true,
+      "copyPreservesFullSettings": true,
+      "movePreservesStableId": true,
+      "cancelLeavesCatalogUnchanged": true,
+      "sameTeamReorderWithoutDialog": true,
+      "piOrProjectWorkDispatched": false
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "actualPointerDrag": true,
+      "collapsedTeamHeaderDrop": true,
+      "expandedAgentListDrop": true,
+      "copyPreservesFullSettings": true,
+      "movePreservesStableId": true,
+      "cancelLeavesCatalogUnchanged": true,
+      "sameTeamReorderWithoutDialog": true,
+      "piOrProjectWorkDispatched": false
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "actualPointerDrag": true,
+      "collapsedTeamHeaderDrop": true,
+      "expandedAgentListDrop": true,
+      "copyPreservesFullSettings": true,
+      "movePreservesStableId": true,
+      "cancelLeavesCatalogUnchanged": true,
+      "sameTeamReorderWithoutDialog": true,
+      "piOrProjectWorkDispatched": false
+    }
+  ],
+  "scope": "Production compiled renderer in an isolated pinned headless shell with mock native APIs; not native platform acceptance",
+  "userAppOrDataChanged": false,
+  "realPiLaunches": 0
+}

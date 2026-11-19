@@ -7,6 +7,16 @@ import { themeState, type ThemeState } from '../shared/appearance';
 import { isLanguageState, type LanguageState } from '../shared/i18n/locale';
 
 const desktopApi: DesktopApi = {
+  loadChatDrafts: (request) => ipcRenderer.invoke(desktopChannels.loadChatDrafts, request),
+  saveChatDraft: (request) => ipcRenderer.invoke(desktopChannels.saveChatDraft, request),
+  onChatDraftConsumed: (listener) => {
+    const callback = (_event: unknown, change: import('../shared/chatDrafts').ChatDraftConsumed) =>
+      listener(change);
+    ipcRenderer.on(desktopChannels.chatDraftConsumed, callback);
+    return () => {
+      ipcRenderer.removeListener(desktopChannels.chatDraftConsumed, callback);
+    };
+  },
   prepareVoiceModel: () => ipcRenderer.invoke(desktopChannels.prepareVoiceModel),
   getVoiceModelState: () => ipcRenderer.invoke(desktopChannels.getVoiceModelState),
   cancelVoiceModel: () => ipcRenderer.invoke(desktopChannels.cancelVoiceModel),

@@ -15,6 +15,7 @@ const executable =
     'Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell',
   );
 if (executable.includes('/Applications/')) throw Error('QA must not launch the system browser');
+const dragOnly = process.argv.includes('--team-drag');
 const root = await mkdtemp(join(tmpdir(), 'pistudio-navigation-'));
 const webRoot = resolve('out/renderer');
 const server = createServer(async (request, response) => {
@@ -144,6 +145,21 @@ try {
       plugins: [],
       instructions: [],
     }));
+    Object.assign(agents[0], {
+      mainInstruction: 'PROMPT русский',
+      instructions: [{ id: 'rule', name: 'Rule', content: 'INSTRUCTION', enabled: false }],
+      skills: ['qa-skill'],
+      plugins: ['qa-plugin'],
+      mcps: ['pistudio-project', 'pistudio-team'],
+      capabilitySettings: { 'pistudio-team': { enabled: false } },
+      model: {
+        connectionId: 'qa-connection',
+        provider: 'qa',
+        id: 'qa-model',
+        reasoning: 'high',
+        temperature: '0.5',
+      },
+    });
     const teams = agents.map((agent) => ({
       id: 'team-' + agent.id,
       name: 'Team ' + agent.id,
@@ -178,6 +194,8 @@ try {
         getLanguage: async () => ({ language, preference: language, revision: 0 }),
         getTheme: async () => ({ theme, preference: theme, revision: 0 }),
         setTheme: async (value) => ({ theme: (theme = value), preference: value, revision: 1 }),
+        loadChatDrafts: async ({ folder }) => ({ folder, drafts: [] }),
+        saveChatDraft: async ({ revision }) => ({ revision }),
         getUpdateState: async () => ({ phase: 'idle', currentVersion: 'QA' }),
         getStartup: async () => ({ phase: 'ready', message: 'QA' }),
         getGitHubStar: async () => ({
@@ -281,6 +299,138 @@ try {
       await until(
         `document.querySelector('[data-team-id="team-a"] .disclosure-trigger')?.getAttribute('aria-expanded')==='true'`,
       );
+      if (dragOnly) {
+        const readCatalog = () => js('window.__qa.state.sections.agentCatalog');
+        const original = await readCatalog();
+        const button = async (name) => {
+          await new Promise((done) => setTimeout(done, 100));
+          return js(
+            `Array.from(document.querySelectorAll('[role="dialog"] button')).find(b=>b.textContent===${JSON.stringify(name)}).click()`,
+          );
+        };
+        const drag = async (source, target) => {
+          const center = async (selector) =>
+            js(
+              `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'nearest'});const r=el.getBoundingClientRect();return{x:r.x+Math.min(100,r.width/2),y:r.y+r.height/2};})()`,
+            );
+          const a = await center(source),
+            b = await center(target);
+          await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...a });
+          await cdp('Input.dispatchMouseEvent', {
+            type: 'mousePressed',
+            button: 'left',
+            clickCount: 1,
+            ...a,
+          });
+          for (let i = 1; i <= 12; i++) {
+            await cdp('Input.dispatchMouseEvent', {
+              type: 'mouseMoved',
+              button: 'left',
+              buttons: 1,
+              x: a.x + ((b.x - a.x) * i) / 12,
+              y: a.y + ((b.y - a.y) * i) / 12,
+            });
+            await new Promise((done) => setTimeout(done, 25));
+          }
+          await cdp('Input.dispatchMouseEvent', {
+            type: 'mouseReleased',
+            button: 'left',
+            clickCount: 1,
+            ...b,
+          });
+          await until(
+            `document.querySelector('[role="dialog"] h2')?.textContent===${JSON.stringify(messages['AgentTeamTransfer.title'])}`,
+          );
+        };
+        const sourceA = '[data-team-id="team-a"] .agent-list-item';
+        const targetHeader = '[data-team-id="team-b"] .disclosure-heading';
+        await click('[data-team-id="team-b"] .disclosure-trigger');
+        await drag(sourceA, targetHeader);
+        assert.deepEqual(await readCatalog(), original, 'Drop waits for a choice');
+        await button(messages['TeamNameDialog.cancel']);
+        await until(`!document.querySelector('[role="dialog"]')`);
+        assert.deepEqual(await readCatalog(), original, 'Cancel changes nothing');
+        await drag(sourceA, targetHeader);
+        await button(messages['AgentTeamTransfer.copy']);
+        await until(`window.__qa.state.sections.agentCatalog.agents.length===3`);
+        const copied = await readCatalog();
+        const clone = copied.agents.find((a) => !['a', 'b'].includes(a.id));
+        assert.ok(clone);
+        assert.deepEqual(clone, { ...original.agents[0], id: clone.id });
+        assert.deepEqual(copied.teams[0].agentIds, ['a']);
+        assert.deepEqual(copied.teams[1].agentIds, ['b', clone.id]);
+        assert.equal(
+          await js(
+            `document.querySelector('[data-team-id="team-b"] .disclosure-trigger').getAttribute('aria-expanded')`,
+          ),
+          'true',
+        );
+        // Drop into the expanded list, directly on an existing agent row.
+        await drag(sourceA, '[data-team-id="team-b"] .agent-list-item');
+        await button(messages['AgentTeamTransfer.move']);
+        await until(`window.__qa.state.sections.agentCatalog.teams[0].agentIds.length===0`);
+        const moved = await readCatalog();
+        assert.deepEqual(
+          moved.teams.map((t) => t.agentIds),
+          [[], ['b', clone.id, 'a']],
+        );
+        assert.deepEqual(
+          moved.agents.find((a) => a.id === 'a'),
+          original.agents[0],
+        );
+        assert.deepEqual(
+          moved.agents.find((a) => a.id === 'b'),
+          original.agents[1],
+        );
+        assert.equal(await js('window.__qa.calls.launch'), 0);
+        assert.equal(await js('window.__qa.calls.commands'), 0);
+        // Existing within-team reorder remains direct, without the transfer question.
+        const rows = await js(
+          `Array.from(document.querySelectorAll('[data-team-id="team-b"] .agent-list-item')).map(el=>({id:el.id,rect:el.getBoundingClientRect().toJSON()}))`,
+        );
+        const a = rows[2].rect,
+          b = rows[0].rect;
+        const from = { x: a.x + 80, y: a.y + a.height / 2 },
+          to = { x: b.x + 80, y: b.y + b.height / 2 };
+        await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...from });
+        await cdp('Input.dispatchMouseEvent', {
+          type: 'mousePressed',
+          button: 'left',
+          clickCount: 1,
+          ...from,
+        });
+        for (let i = 1; i <= 12; i++) {
+          await cdp('Input.dispatchMouseEvent', {
+            type: 'mouseMoved',
+            button: 'left',
+            buttons: 1,
+            x: from.x,
+            y: from.y + ((to.y - from.y) * i) / 12,
+          });
+          await new Promise((done) => setTimeout(done, 25));
+        }
+        await cdp('Input.dispatchMouseEvent', {
+          type: 'mouseReleased',
+          button: 'left',
+          clickCount: 1,
+          ...to,
+        });
+        await until(`window.__qa.state.sections.agentCatalog.teams[1].agentIds[0]==='a'`);
+        assert.equal(await js(`!!document.querySelector('[role="dialog"]')`), false);
+        checks.push({
+          language,
+          theme,
+          actualPointerDrag: true,
+          collapsedTeamHeaderDrop: true,
+          expandedAgentListDrop: true,
+          copyPreservesFullSettings: true,
+          movePreservesStableId: true,
+          cancelLeavesCatalogUnchanged: true,
+          sameTeamReorderWithoutDialog: true,
+          piOrProjectWorkDispatched: false,
+        });
+        continue;
+      }
       await click('[data-team-id="team-a"] .disclosure-trigger');
       await until(
         `document.querySelector('[data-team-id="team-a"] .disclosure-trigger')?.getAttribute('aria-expanded')==='false'`,
@@ -463,7 +613,10 @@ try {
     userAppOrDataChanged: false,
     realPiLaunches: 0,
   };
-  await writeFile('artifacts/navigation-ui-proof.json', JSON.stringify(proof, null, 2) + '\n');
+  await writeFile(
+    dragOnly ? 'artifacts/agent-team-drag-proof.json' : 'artifacts/navigation-ui-proof.json',
+    JSON.stringify(proof, null, 2) + '\n',
+  );
   console.log(JSON.stringify(proof));
 } finally {
   socket?.close();

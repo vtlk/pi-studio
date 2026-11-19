@@ -176,22 +176,13 @@
   align-items: center;
   gap: 8px;
   margin-top: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .pi-chat-composer-spacer {
-  flex: 1;
-}
-.pi-chat-composer .reference-attachments {
-  flex: 1;
-  min-width: 100px;
+  display: none;
 }
 .pi-chat-composer .reference-attachments-label {
   display: none;
-}
-.pi-chat-composer .reference-attachments .add-area {
-  min-height: 28px;
-  padding: 3px 6px;
-  font-size: 11px;
 }
 .pi-chat-composer .reference-attachment-list {
   max-height: 100px;
@@ -263,16 +254,6 @@
   .pi-chat-panel {
     animation: none;
   }
-}
-.pi-chat-composer .reference-attachments-compact {
-  flex: 0 1 auto;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  max-width: 240px;
-}
-.pi-chat-composer .reference-attachments-compact .reference-attachment-list {
-  flex-basis: 100%;
 }
 .pi-chat-composer-actions > .ui-select-trigger {
   width: auto;
@@ -411,15 +392,14 @@
 .pi-chat-composer .reference-attachments-compact {
   display: contents;
 }
-.pi-chat-composer .reference-attachments-compact .reference-attachment-list {
+.pi-chat-attachments .reference-attachment-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  order: 2;
   flex: 1 0 100%;
   max-height: 112px;
   overflow: auto;
-  margin-top: 4px;
+  margin: 0 0 8px;
 }
 .pi-chat-composer .reference-attachment {
   flex: 0 1 calc(50% - 3px);
@@ -443,4 +423,47 @@
 }
 .pi-chat-composer .reference-file-info small {
   font-size: 10px;
+}
+.chat-draft-save-error {
+  position: fixed;
+  left: 24px;
+  right: 24px;
+  bottom: 16px;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--danger);
+  border-radius: var(--control-radius);
+  background: var(--surface);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.pi-chat-attachments:empty {
+  display: none;
+}
+.pi-chat-composer-actions > .ui-select-trigger {
+  min-width: 0;
+  flex: 0 1 180px;
+}
+.pi-chat-voice-status {
+  flex: 1;
+  min-width: 0;
+}
+.pi-chat-composer-actions > button,
+.pi-chat-composer-actions .voice-input {
+  flex-shrink: 0;
+}
+.pi-chat-voice-status .voice-input-status {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+.pi-chat-voice-status small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

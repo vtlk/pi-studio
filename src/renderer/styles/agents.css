@@ -364,3 +364,8 @@
   > :is(.hover-delete, .agent-helper-launch):is(:hover, :focus-visible):not(:disabled) {
   border-color: var(--control-border, var(--muted));
 }
+
+.agent-team[data-drop-target] {
+  background: var(--hover-soft);
+  box-shadow: inset 3px 0 var(--pill-active);
+}

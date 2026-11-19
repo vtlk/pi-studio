@@ -1,3 +1,5 @@
+import type { VoiceModelState } from '../../../shared/voice';
+import { createPortal } from 'react-dom';
 import { retainVoiceDraft } from './VoiceDraftGuard';
 import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, Mic, Square, X } from 'lucide-react';
@@ -9,13 +11,16 @@ import './voice.css';
 export function VoiceInput({
   onText,
   disabled,
+  statusContainer,
 }: {
   onText: (text: string) => void;
   disabled?: boolean;
+  statusContainer?: HTMLElement | null;
 }) {
   useTranslation(undefined, { i18n });
   const [phase, setPhase] = useState<'idle' | 'loading' | 'recording' | 'transcribing'>('idle');
   const [percent, setPercent] = useState(0);
+  const [modelPhase, setModelPhase] = useState<VoiceModelState['phase']>('checking');
   const [error, setError] = useState('');
   const recorder = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -36,8 +41,10 @@ export function VoiceInput({
     let alive = true;
     const poll = async () => {
       const state = await window.studio?.getVoiceModelState().catch(() => undefined);
-      if (alive && state)
+      if (alive && state) {
+        setModelPhase(state.phase);
         setPercent(Math.min(100, Math.round((100 * state.downloaded) / Math.max(1, state.total))));
+      }
     };
     void poll();
     const timer = setInterval(() => void poll(), 500);
@@ -51,6 +58,7 @@ export function VoiceInput({
     cancelled.current = false;
     setError('');
     setPhase('loading');
+    setModelPhase('checking');
     setPercent(0);
     try {
       await prepareVoice();
@@ -127,29 +135,16 @@ export function VoiceInput({
       }
     }
   };
-  return (
-    <div className="voice-input" data-voice-phase={phase}>
-      <IconButton
-        className={phase === 'recording' ? 'voice-recording' : undefined}
-        title={phase === 'recording' ? t('Voice.stop') : t('Voice.start')}
-        disabled={disabled || phase === 'loading' || phase === 'transcribing'}
-        onClick={() => {
-          if (phase === 'recording') recorder.current?.stop();
-          else void start();
-        }}
-      >
-        {phase === 'loading' || phase === 'transcribing' ? (
-          <LoaderCircle size={18} className="project-launch-spinner" />
-        ) : phase === 'recording' ? (
-          <Square size={18} />
-        ) : (
-          <Mic size={18} />
-        )}
-      </IconButton>
+  const status = (
+    <div className="voice-input-status">
       {phase === 'loading' && (
         <>
           <small role="status">
-            {percent < 100 ? t('Voice.downloading', { percent }) : t('Voice.loading')}
+            {modelPhase === 'downloading'
+              ? t('Voice.downloading', { percent })
+              : modelPhase === 'checking'
+                ? t('Voice.checking')
+                : t('Voice.loading')}
           </small>
           <IconButton
             title={t('Voice.cancel')}
@@ -174,6 +169,30 @@ export function VoiceInput({
           {error}
         </small>
       )}
+    </div>
+  );
+  return (
+    <div className="voice-input" data-voice-phase={phase}>
+      <IconButton
+        className={phase === 'recording' ? 'voice-recording' : undefined}
+        title={phase === 'recording' ? t('Voice.stop') : t('Voice.start')}
+        disabled={disabled || phase === 'loading' || phase === 'transcribing'}
+        onClick={() => {
+          if (phase === 'recording') recorder.current?.stop();
+          else void start();
+        }}
+      >
+        {phase === 'loading' || phase === 'transcribing' ? (
+          <LoaderCircle size={18} className="project-launch-spinner" />
+        ) : phase === 'recording' ? (
+          <Square size={18} />
+        ) : (
+          <Mic size={18} />
+        )}
+      </IconButton>
+      {statusContainer === undefined
+        ? status
+        : statusContainer && createPortal(status, statusContainer)}
     </div>
   );
 }

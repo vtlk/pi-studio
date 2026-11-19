@@ -36,6 +36,15 @@ export interface DesktopInfo {
 }
 
 export interface DesktopApi {
+  loadChatDrafts(request: {
+    folder: string;
+  }): Promise<{ folder: string; drafts: import('./chatDrafts').ChatDraft[] }>;
+  saveChatDraft(
+    request: import('./chatDrafts').ChatDraftSave,
+  ): Promise<{ revision: number; conflict?: boolean }>;
+  onChatDraftConsumed(
+    listener: (change: import('./chatDrafts').ChatDraftConsumed) => void,
+  ): () => void;
   prepareVoiceModel(): Promise<void>;
   getVoiceModelState(): Promise<import('./voice').VoiceModelState>;
   cancelVoiceModel(): Promise<void>;
@@ -45,7 +54,9 @@ export interface DesktopApi {
     updateExisting: boolean;
   }): Promise<import('./agentRefresh').AgentRefreshReview>;
   getChat(target: import('./chat').ChatTarget): Promise<import('./chat').ChatState | null>;
-  sendChat(request: import('./chat').ChatSend): Promise<void>;
+  sendChat(
+    request: import('./chat').ChatSend,
+  ): Promise<import('./chatDrafts').ChatSendResult | void>;
   abortChat(target: import('./chat').ChatTarget): Promise<void>;
   answerChat(answer: import('./chat').ChatAnswer): Promise<void>;
   closeChat(target: import('./chat').ChatTarget): Promise<void>;
@@ -180,6 +191,9 @@ export const desktopChannels = {
   cancelVoiceModel: 'studio:cancel-voice-model',
   requestVoiceMicrophone: 'studio:request-voice-microphone',
   prepareAgentRefresh: 'studio:prepare-agent-refresh',
+  loadChatDrafts: 'studio:chat-drafts-load',
+  saveChatDraft: 'studio:chat-drafts-save',
+  chatDraftConsumed: 'studio:chat-draft-consumed',
   getChat: 'studio:chat-get',
   sendChat: 'studio:chat-send',
   abortChat: 'studio:chat-abort',

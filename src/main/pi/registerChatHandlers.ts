@@ -6,6 +6,7 @@ import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { stableId } from '../storage/validation.ts';
 import type { RunHost } from './RunHost.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
+import type { ChatDrafts } from './ChatDrafts.ts';
 import { join } from 'node:path';
 import { safePath } from '../storage/files.ts';
 
@@ -14,6 +15,7 @@ export function registerChatHandlers(
   runs: RunHost,
   setup: RunHost,
   caller: (event: IpcMainInvokeEvent) => BrowserWindow,
+  drafts?: ChatDrafts,
 ) {
   const host = (target: ChatTarget) => {
     if (!target || typeof target !== 'object') throw new Error(t('Chat.invalidRequest'));
@@ -59,7 +61,30 @@ export function registerChatHandlers(
           request.attachments.some((id) => typeof id !== 'string')))
     )
       throw new Error(t('Chat.invalidRequest'));
-    return selected.sendChat(request);
+    const folder = service.peek()!.folder;
+    if (
+      request.draft &&
+      (request.draft.folder !== folder ||
+        !Number.isSafeInteger(request.draft.revision) ||
+        request.draft.revision < 0)
+    )
+      throw Error(t('Chat.invalidRequest'));
+    await selected.sendChat(request);
+    if (request.draft && drafts) {
+      try {
+        return {
+          draft: await drafts.consume(
+            folder,
+            request.projectId,
+            request.agentId,
+            request.draft.revision,
+          ),
+        };
+      } catch {
+        return { draft: { cleared: false, saveFailed: true } };
+      } // The message was accepted: never report this as a failed send.
+    }
+    return {};
   });
   handleDesktopInvoke(desktopChannels.abortChat, async (event, target: ChatTarget) => {
     caller(event);

@@ -83,7 +83,10 @@ test('legacy team migration preserves exact IDs, order, paths, output and canoni
   const catalog = migrated.agentCatalog();
   assert.equal(catalog.teams.length, 1);
   assert.deepEqual(catalog.teams[0].agentIds, ['two', 'one']);
-  assert.deepEqual(catalog.agents, parseAgentCatalog({ agents: profiles, teams: catalog.teams }).agents);
+  assert.deepEqual(
+    catalog.agents,
+    parseAgentCatalog({ agents: profiles, teams: catalog.teams }).agents,
+  );
   assert.equal(migrated.bootstrap().projects[0].sourceTeamId, catalog.teams[0].id);
   assert.deepEqual(migrated.bootstrap().projects[0].agents, project.agents);
   assert.equal(await readFile(output, 'utf8'), 'Keep output bytes');
@@ -221,5 +224,71 @@ test('project create, refresh, clone, rename and missing source remain scoped to
       'utf8',
     ),
     'keep',
+  );
+});
+
+test('cross-team copy deeply preserves the full profile and assignments; move preserves identity, order and unrelated teams', async () => {
+  const { transferTeamAgent } = await import('../src/shared/agentTeams.ts');
+  const a = {
+    ...agent('a'),
+    enabled: false,
+    skills: ['skill'],
+    mcps: ['pistudio-project', 'pistudio-team'],
+    plugins: ['plugin'],
+    capabilitySettings: { 'pistudio-team': { enabled: false } },
+    model: {
+      connectionId: 'connection',
+      provider: 'provider',
+      id: 'model',
+      reasoning: 'high',
+      temperature: '0.5',
+    },
+  };
+  const catalog = {
+    agents: [a, agent('b'), agent('c')],
+    teams: [
+      { id: 'source', name: 'Source', agentIds: ['a', 'b'] },
+      { id: 'target', name: 'Target', agentIds: ['c'] },
+    ],
+  };
+  const original = structuredClone(catalog);
+  const copied = transferTeamAgent(catalog, 'a', 'source', 'target', 'copy');
+  assert.deepEqual(catalog, original, 'No optimistic move or mutation of source data');
+  assert.deepEqual(
+    copied.teams.map((t) => t.agentIds),
+    [
+      ['a', 'b'],
+      ['c', 'copy'],
+    ],
+  );
+  const clone = copied.agents.find((a) => a.id === 'copy')!;
+  assert.deepEqual(clone, { ...a, id: 'copy' });
+  clone.instructions[0].content = 'independent';
+  clone.capabilitySettings!['pistudio-team'].enabled = true;
+  assert.equal(a.instructions[0].content, 'Current instruction a');
+  assert.equal(a.capabilitySettings['pistudio-team'].enabled, false);
+  assert.equal(parseAgentCatalog(copied).agents.length, 4);
+  const moved = transferTeamAgent(catalog, 'a', 'source', 'target');
+  assert.deepEqual(
+    moved.teams.map((t) => t.agentIds),
+    [['b'], ['c', 'a']],
+  );
+  assert.equal(
+    moved.agents.find((item) => item.id === 'a'),
+    a,
+    'Move keeps stable identity and settings',
+  );
+  assert.equal(moved.agents.length, 3);
+  assert.equal(
+    transferTeamAgent(catalog, 'a', 'target', 'source'),
+    catalog,
+    'Stale source is rejected',
+  );
+  assert.equal(transferTeamAgent(catalog, 'a', 'source', 'missing'), catalog);
+  assert.equal(transferTeamAgent(catalog, 'a', 'source', 'source'), catalog);
+  assert.equal(
+    transferTeamAgent(catalog, 'a', 'source', 'target', 'b'),
+    catalog,
+    'Copy cannot overwrite another profile',
   );
 });

@@ -1,4 +1,5 @@
-.voice-input {
+.voice-input,
+.voice-input-status {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -6,11 +7,11 @@
   min-width: 0;
   max-width: 100%;
 }
-.voice-input small {
+.voice-input-status small {
   color: var(--muted);
   font-size: 12px;
 }
-.voice-input .error-message {
+.voice-input-status .error-message {
   max-width: 260px;
   color: var(--danger);
 }

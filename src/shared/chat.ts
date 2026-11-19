@@ -54,6 +54,7 @@ export interface ChatSend extends ChatTarget {
   text: string;
   attachments?: string[];
   behavior?: 'steer' | 'followUp';
+  draft?: { folder: string; revision: number };
 }
 export interface ChatAnswer extends ChatTarget {
   id: string;

@@ -95,7 +95,11 @@ try {
   const pending = new Map();
   socket.onmessage = ({ data }) => {
     const message = JSON.parse(data);
-    if(message.method === 'Runtime.executionContextCreated' && message.params.context.auxData?.isDefault) contexts.set(message.params.context.auxData.frameId, message.params.context.id);
+    if (
+      message.method === 'Runtime.executionContextCreated' &&
+      message.params.context.auxData?.isDefault
+    )
+      contexts.set(message.params.context.auxData.frameId, message.params.context.id);
     if (message.method === 'Runtime.exceptionThrown')
       errors.push(
         message.params.exceptionDetails.exception?.description ||
@@ -135,7 +139,7 @@ try {
     mobile: false,
   });
   function fixture() {
-    if(window.top !== window) return;
+    if (window.top !== window) return;
     const params = new URL(location.href).searchParams;
     const language = params.get('language') || 'ru';
     let theme = params.get('theme') || 'light';
@@ -234,6 +238,8 @@ try {
         getLanguage: async () => ({ language, preference: language, revision: 0 }),
         getTheme: async () => ({ theme, preference: theme, revision: 0 }),
         setTheme: async (value) => ({ theme: (theme = value), preference: value, revision: 1 }),
+        loadChatDrafts: async ({ folder }) => ({ folder, drafts: [] }),
+        saveChatDraft: async ({ revision }) => ({ revision }),
         getUpdateState: async () => ({ phase: 'idle', currentVersion: 'QA' }),
         getStartup: async () => ({ phase: 'ready', message: 'QA' }),
         getGitHubStar: async () => ({

@@ -4,7 +4,7 @@ import { useStoredState } from '@/shared/storage/Storage';
 import { ProfilesContext } from './AgentProfiles.context';
 import { useContext, useState, type ReactNode } from 'react';
 import type { AgentCatalog, AgentTeam, TeamWorkspaceMode } from '../../../../shared/agentTeams';
-import { teamAgents } from '../../../../shared/agentTeams';
+import { teamAgents, transferTeamAgent } from '../../../../shared/agentTeams';
 import type { Agent, Instruction } from '../../../../shared/studio';
 import { createSystemAgents, type SystemAgent } from '../../../../shared/systemAgents';
 
@@ -118,6 +118,14 @@ function useProfilesState(initial: Agent[]) {
       };
       return { ...next, agents: next.teams.flatMap((item) => teamAgents(next, item.id)) };
     });
+  const transferAgent = (id: string, sourceTeamId: string, targetTeamId: string, copy: boolean) => {
+    const nextId = copy ? crypto.randomUUID() : id;
+    setCatalog((previous) =>
+      transferTeamAgent(previous, id, sourceTeamId, targetTeamId, copy ? nextId : undefined),
+    );
+    setAgentId(nextId);
+    return nextId;
+  };
   const removeAgent = (id: string) => {
     const position = agents.findIndex((agent) => agent.id === id);
     setCatalog((previous) => ({
@@ -188,6 +196,7 @@ function useProfilesState(initial: Agent[]) {
     selectedAgent,
     addAgent,
     moveAgent,
+    transferAgent,
     removeAgent,
     restoreAgent,
     updateAgent,

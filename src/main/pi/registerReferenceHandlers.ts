@@ -44,10 +44,9 @@ export function registerReferenceHandlers(
         join(app.getPath('userData'), 'runtime/pasted-images'),
         folder,
       );
-      return {
-        ...file,
+      return Object.assign(file, {
         preview: image.resize({ width: 120, height: 120, quality: 'good' }).toDataURL(),
-      };
+      });
     },
   );
   handleDesktopInvoke(
@@ -83,10 +82,9 @@ export function registerReferenceHandlers(
         try {
           const png = await referenceImage(result.filePaths[index], file.type),
             image = nativeImage.createFromBuffer(png);
-          return {
-            ...file,
+          return Object.assign(file, {
             preview: image.resize({ width: 120, height: 120, quality: 'good' }).toDataURL(),
-          };
+          });
         } catch {
           return file;
         }

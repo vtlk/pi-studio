@@ -32,7 +32,7 @@ export class VoiceModels {
     if (this.state.phase === 'ready') return Promise.resolve();
     if (this.task) return this.task;
     const controller = (this.controller = new AbortController());
-    this.state = { ...this.state, phase: 'downloading', downloaded: 0 };
+    this.state = { ...this.state, phase: 'checking', downloaded: 0 };
     this.task = this.download(controller.signal)
       .then(() => {
         this.state.phase = 'ready';
@@ -73,12 +73,16 @@ export class VoiceModels {
     }
   }
   private async download(signal: AbortSignal) {
+    const missing: typeof this.manifest.files = [];
     for (const file of this.manifest.files) {
       signal.throwIfAborted();
-      if (await this.verified(file)) {
-        this.state.downloaded += file.bytes;
-        continue;
-      }
+      if (await this.verified(file)) this.state.downloaded += file.bytes;
+      else missing.push(file);
+    }
+    signal.throwIfAborted();
+    if (missing.length) this.state.phase = 'downloading';
+    for (const file of missing) {
+      signal.throwIfAborted();
       const target = join(this.root, file.name),
         temporary = target + '.download';
       await mkdir(dirname(target), { recursive: true, mode: 0o700 });

@@ -352,7 +352,7 @@ try {
                   ...(data.command === 'load' ? { ready: true } : { text: 'VOICE_TEXT' }),
                 },
               }),
-            data.command === 'load' ? 100 : 1000,
+            data.command === 'load' ? 600 : 1000,
           );
         };
         this.terminate = () => {};
@@ -400,8 +400,32 @@ try {
       }
     };
     const staged = new Map();
+    const draftStorageKey = 'qa-drafts-' + language + '-' + theme;
+    const readDrafts = () => JSON.parse(sessionStorage.getItem(draftStorageKey) || '{}');
+    const draftKey = (request) =>
+      JSON.stringify([request.folder, request.projectId, request.agentId]);
+    const writeDrafts = (value) => sessionStorage.setItem(draftStorageKey, JSON.stringify(value));
     window.studio = new Proxy(
       {
+        loadChatDrafts: async ({ folder }) => {
+          const drafts = Object.entries(readDrafts())
+            .filter(([key]) => JSON.parse(key)[0] === folder)
+            .map(([, draft]) => {
+              for (const file of draft.attachments) staged.set(file.id, file);
+              return draft;
+            });
+          return { folder, drafts };
+        },
+        saveChatDraft: async (request) => {
+          await new Promise((done) => setTimeout(done, 800));
+          const drafts = readDrafts();
+          drafts[draftKey(request)] = {
+            ...request,
+            attachments: request.attachments.map((id) => staged.get(id)),
+          };
+          writeDrafts(drafts);
+          return { revision: request.revision };
+        },
         getVoiceModelState: async () => ({ phase: 'ready', downloaded: 100, total: 100 }),
         prepareVoiceModel: async () => {
           window.__qa.voicePrepare = (window.__qa.voicePrepare || 0) + 1;
@@ -412,15 +436,29 @@ try {
           Promise.all(
             files.map(async (file) => {
               const id = crypto.randomUUID();
-              staged.set(id, { name: file.name, text: await file.text() });
-              return { id, name: file.name, size: file.size, type: file.type };
+              const item = {
+                id,
+                name: file.name,
+                text: await file.text(),
+                size: file.size,
+                type: file.type,
+              };
+              staged.set(id, item);
+              return item;
             }),
           ),
         stageClipboardImage: async (request) => {
           window.__qa.pastedBytes = request.bytes.byteLength;
           const id = crypto.randomUUID();
-          staged.set(id, { name: 'clipboard.png', text: '' });
-          return { id, name: 'clipboard.png', size: request.bytes.byteLength, type: 'image/png' };
+          const item = {
+            id,
+            name: 'clipboard.png',
+            text: '',
+            size: request.bytes.byteLength,
+            type: 'image/png',
+          };
+          staged.set(id, item);
+          return item;
         },
         releaseReferenceFiles: async (ids) => {
           for (const id of ids) staged.delete(id);
@@ -440,6 +478,12 @@ try {
         sendChat: async (request) => {
           window.__qa.sends = (window.__qa.sends || 0) + 1;
           window.__qa.sent = request;
+          const drafts = readDrafts();
+          const key = draftKey({ ...request, folder: request.draft.folder });
+          const revision = request.draft.revision + 1;
+          drafts[key] = { ...drafts[key], text: '', attachments: [], revision };
+          writeDrafts(drafts);
+          return { draft: { cleared: true, revision } };
         },
         getInfo: async () => ({ platform: 'darwin', version: 'QA', runtimeConnected: true }),
         getLanguage: async () => ({ language, preference: language, revision: 0 }),
@@ -717,20 +761,17 @@ try {
       assert.equal(await js(`document.querySelector('.pi-chat-composer textarea').value`), 'Draft');
       assert.equal(await js(`window.__qa.pastedBytes`), 8);
       assert.equal(await js(`window.__qa.sends||0`), 0);
-      await until(`window.__qa.readiness?.blocker==='drafts'`);
-      await js(
-        `window.__qa.update={phase:'waiting',currentVersion:'QA',waitingReason:'drafts',offer:{version:'QA-next',bytes:1000,notes:'QA',releaseUrl:'https://github.com/vtlk/pi-studio/releases'}}`,
-      );
-      await until(`!!document.querySelector('.update-action')`);
-      await click('.update-action');
-      await until(
-        `document.querySelector('[data-update-dialog]')?.textContent.includes(${JSON.stringify(messages['UpdateAction.waiting.drafts'])})`,
-      );
-      await click('[data-update-dialog] .dialog-header button');
-      await js(`window.__qa.update={phase:'idle',currentVersion:'QA'}`);
+      await until(`window.__qa.readiness?.blocker==='draft-saving'`);
+      await until(`window.__qa.readiness?.saved===true&&!window.__qa.readiness?.blocker`);
+      assert.equal(await js(`document.querySelector('.pi-chat-composer textarea').value`), 'Draft');
       await until(
         `!document.querySelector('.pi-chat-panel').getAnimations().some(animation=>animation.playState==='running')`,
       );
+      const actionXs = () =>
+        js(
+          `['.reference-attachments-compact button','.voice-input button','.pi-chat-composer-actions>button:last-child'].map(s=>document.querySelector(s).getBoundingClientRect().x)`,
+        );
+      const idleActionXs = await actionXs();
       const mic = await js(
         `(()=>{const b=Array.from(document.querySelectorAll('.voice-input button')).find(b=>b.getAttribute('aria-label')===${JSON.stringify(messages['Voice.start'])});const r=b.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`,
       );
@@ -746,8 +787,17 @@ try {
         clickCount: 1,
         ...mic,
       });
-      await new Promise((done) => setTimeout(done, 500));
+      await until(
+        `document.querySelector('.pi-chat-voice-status')?.textContent.includes(${JSON.stringify(messages['Voice.loading'])})`,
+      );
       await until(`document.querySelector('.voice-input').dataset.voicePhase==='recording'`);
+      assert.deepEqual(await actionXs(), idleActionXs, 'Voice status never shifts action buttons');
+      assert.equal(
+        await js(
+          `(()=>{const s=document.querySelector('.pi-chat-voice-status').getBoundingClientRect(),a=document.querySelector('.reference-attachments-compact button').getBoundingClientRect();return s.right<=a.left;})()`,
+        ),
+        true,
+      );
       await until(`window.__qa.readiness?.blocker==='voice'`);
       await click('.voice-input button');
       await until(`document.querySelector('.voice-input').dataset.voicePhase==='transcribing'`);
@@ -764,6 +814,48 @@ try {
       assert.equal(await js(`window.__qa.sends||0`), 0, 'Voice and attachments never auto-send');
       await until(
         `!document.querySelector('.pi-chat-panel').getAnimations().some(a=>a.playState==='running')`,
+      );
+      await until(`window.__qa.readiness?.saved===true&&!window.__qa.readiness?.blocker`);
+      const reopen = async (studio = 'A') => {
+        await until(`!document.querySelector('[data-chat-draft-pending="true"]')`);
+        await visit(language, theme, studio);
+        await js(
+          `Array.from(document.querySelectorAll('.project-list-row')).find(row=>row.textContent.includes('Project a')).click()`,
+        );
+        await until(`!!document.querySelector('.project-agent-menu')`);
+        await agent('Agent a');
+        await until(
+          `!!document.querySelector('.pi-chat-composer textarea')&&!document.querySelector('.pi-chat-composer textarea').disabled`,
+        );
+      };
+      await reopen();
+      assert.equal(
+        await js(`document.querySelector('.pi-chat-composer textarea').value`),
+        'Draft VOICE_TEXT',
+      );
+      assert.equal(
+        await js(
+          `document.querySelectorAll('.reference-attachment-list li').length || document.querySelectorAll('.reference-attachment-list .reference-attachment').length`,
+        ),
+        2,
+      );
+      assert.equal(await js(`window.__qa.sends||0`), 0);
+      await until(`window.__qa.readiness?.saved===true&&!window.__qa.readiness?.blocker`);
+      await reopen('B');
+      assert.equal(await js(`document.querySelector('.pi-chat-composer textarea').value`), '');
+      await js(`document.querySelector('.pi-chat-composer textarea').focus()`);
+      await cdp('Input.insertText', { text: 'OTHER_STUDIO' });
+      await until(`window.__qa.readiness?.saved===true&&!window.__qa.readiness?.blocker`);
+      await reopen();
+      assert.equal(
+        await js(`document.querySelector('.pi-chat-composer textarea').value`),
+        'Draft VOICE_TEXT',
+      );
+      assert.equal(
+        await js(
+          `(()=>{const a=document.querySelector('.pi-chat-attachments').getBoundingClientRect(),t=document.querySelector('.pi-chat-composer .ui-textarea-control').getBoundingClientRect();return a.bottom<=t.top;})()`,
+        ),
+        true,
       );
       const checkActions = async () => {
         const r = await js(
@@ -782,7 +874,16 @@ try {
           'Actions are at the right edge',
         );
       };
+      await until(
+        `!document.querySelector('.pi-chat-panel').getAnimations().some(a=>a.playState==='running')`,
+      );
       await checkActions();
+      assert.equal(
+        await js(
+          `(()=>{const r=document.querySelector('.pi-chat-panel').getBoundingClientRect();return r.right<=innerWidth&&r.left>=0;})()`,
+        ),
+        true,
+      );
 
       await cdp('Page.captureScreenshot', { format: 'png' }).then((shot) =>
         writeFile(
@@ -804,6 +905,9 @@ try {
       );
       await checkActions();
       assert.deepEqual(await js('window.__qa.calls'), { launch: 0, commands: 0, saves: 0 });
+      await reopen();
+      assert.equal(await js(`document.querySelector('.pi-chat-composer textarea').value`), '');
+      assert.equal(await js(`window.__qa.sends||0`), 0);
       checks.push({
         language,
         theme,
@@ -814,11 +918,18 @@ try {
         opaqueNoIPCOrNetwork: true,
         dropToChatAndAgent: true,
         pasteImageKeepsDraft: true,
+        attachmentsAboveTextarea: true,
+        voiceStatusLeftOfStableActions: true,
         microphoneUiDecodeAndInsertion: true,
         hiddenChatVoicePreserved: true,
         noAutomaticSend: true,
         rightAlignedConsecutiveChatActions: true,
-        explicitDraftAndVoiceUpdateBlockers: true,
+        pendingDraftSaveAndVoiceUpdateBlockers: true,
+        savedDraftRestoresWithoutBlockingUpdates: true,
+        restoredAttachments: 2,
+        studioDraftIsolation: true,
+        sentDraftDoesNotResurrect: true,
+        cachedModelShowsLocalLoading: true,
       });
     }
   assert.deepEqual(errors, []);

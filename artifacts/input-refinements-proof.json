@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-19T00:21:08.906Z",
+  "checkedAt": "2026-11-19T08:02:13.636Z",
   "checks": [
     {
       "language": "ru",
@@ -11,11 +11,18 @@
       "opaqueNoIPCOrNetwork": true,
       "dropToChatAndAgent": true,
       "pasteImageKeepsDraft": true,
+      "attachmentsAboveTextarea": true,
+      "voiceStatusLeftOfStableActions": true,
       "microphoneUiDecodeAndInsertion": true,
       "hiddenChatVoicePreserved": true,
       "noAutomaticSend": true,
       "rightAlignedConsecutiveChatActions": true,
-      "explicitDraftAndVoiceUpdateBlockers": true
+      "pendingDraftSaveAndVoiceUpdateBlockers": true,
+      "savedDraftRestoresWithoutBlockingUpdates": true,
+      "restoredAttachments": 2,
+      "studioDraftIsolation": true,
+      "sentDraftDoesNotResurrect": true,
+      "cachedModelShowsLocalLoading": true
     },
     {
       "language": "ru",
@@ -27,11 +34,18 @@
       "opaqueNoIPCOrNetwork": true,
       "dropToChatAndAgent": true,
       "pasteImageKeepsDraft": true,
+      "attachmentsAboveTextarea": true,
+      "voiceStatusLeftOfStableActions": true,
       "microphoneUiDecodeAndInsertion": true,
       "hiddenChatVoicePreserved": true,
       "noAutomaticSend": true,
       "rightAlignedConsecutiveChatActions": true,
-      "explicitDraftAndVoiceUpdateBlockers": true
+      "pendingDraftSaveAndVoiceUpdateBlockers": true,
+      "savedDraftRestoresWithoutBlockingUpdates": true,
+      "restoredAttachments": 2,
+      "studioDraftIsolation": true,
+      "sentDraftDoesNotResurrect": true,
+      "cachedModelShowsLocalLoading": true
     },
     {
       "language": "en",
@@ -43,11 +57,18 @@
       "opaqueNoIPCOrNetwork": true,
       "dropToChatAndAgent": true,
       "pasteImageKeepsDraft": true,
+      "attachmentsAboveTextarea": true,
+      "voiceStatusLeftOfStableActions": true,
       "microphoneUiDecodeAndInsertion": true,
       "hiddenChatVoicePreserved": true,
       "noAutomaticSend": true,
       "rightAlignedConsecutiveChatActions": true,
-      "explicitDraftAndVoiceUpdateBlockers": true
+      "pendingDraftSaveAndVoiceUpdateBlockers": true,
+      "savedDraftRestoresWithoutBlockingUpdates": true,
+      "restoredAttachments": 2,
+      "studioDraftIsolation": true,
+      "sentDraftDoesNotResurrect": true,
+      "cachedModelShowsLocalLoading": true
     },
     {
       "language": "en",
@@ -59,11 +80,18 @@
       "opaqueNoIPCOrNetwork": true,
       "dropToChatAndAgent": true,
       "pasteImageKeepsDraft": true,
+      "attachmentsAboveTextarea": true,
+      "voiceStatusLeftOfStableActions": true,
       "microphoneUiDecodeAndInsertion": true,
       "hiddenChatVoicePreserved": true,
       "noAutomaticSend": true,
       "rightAlignedConsecutiveChatActions": true,
-      "explicitDraftAndVoiceUpdateBlockers": true
+      "pendingDraftSaveAndVoiceUpdateBlockers": true,
+      "savedDraftRestoresWithoutBlockingUpdates": true,
+      "restoredAttachments": 2,
+      "studioDraftIsolation": true,
+      "sentDraftDoesNotResurrect": true,
+      "cachedModelShowsLocalLoading": true
     }
   ],
   "actualProbeRequests": 0,

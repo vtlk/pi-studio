@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { ChatDraft, ChatSendResult } from '../../../shared/chatDrafts';
 import type { ChatTarget } from '../../../shared/chat';
 import type { ReferenceAttachment } from '@/shared/ui/ReferenceAttachments';
 
@@ -14,6 +15,10 @@ export interface ChatPanelsValue {
   drafts: Map<string, string>;
   attachments: Map<string, ReferenceAttachment[]>;
   draftScope: string;
+  draftsReady: boolean;
+  flushDrafts: (key?: string) => Promise<boolean>;
+  currentDraft: (key: string) => ChatDraft;
+  draftSent: (key: string, revision: number, result: ChatSendResult | void) => boolean;
   setDraft: (key: string, text: string) => void;
   setAttachments: (key: string, files: ReferenceAttachment[]) => void;
 }

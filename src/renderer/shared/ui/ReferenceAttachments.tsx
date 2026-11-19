@@ -1,5 +1,6 @@
 import { uiText } from '@/shared/model/UiText';
 import { t, i18n } from '../../../shared/i18n/index.ts';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { File, Paperclip } from 'lucide-react';
@@ -49,12 +50,14 @@ export function ReferenceAttachments({
   disabled = false,
   retainOnUnmount = false,
   compact = false,
+  listContainer,
 }: {
   value: ReferenceAttachment[];
   onChange: (attachments: ReferenceAttachment[]) => void;
   disabled?: boolean;
   retainOnUnmount?: boolean;
   compact?: boolean;
+  listContainer?: HTMLElement | null;
 }) {
   useTranslation(undefined, { i18n });
   const input = useRef<HTMLInputElement>(null);
@@ -107,6 +110,34 @@ export function ReferenceAttachments({
       if (mounted.current) setChoosing(false);
     }
   };
+  const list = (
+    <ul className="reference-attachment-list">
+      {value.map((attachment) => (
+        <li key={attachment.id} className="reference-attachment" data-removable>
+          <div className="reference-thumbnail">
+            <AttachmentThumbnail attachment={attachment} />
+          </div>
+          <div className="reference-file-info">
+            <Tooltip label={attachment.name} onlyWhenTruncated>
+              <span className="reference-file-name">{attachment.name}</span>
+            </Tooltip>
+            <small>
+              {fileSize(attachment.size)} · {attachment.type || t('ReferenceAttachments.file')}
+            </small>
+          </div>
+          <HoverDeleteButton
+            label={uiText('ReferenceAttachments.removeReference', { value1: attachment.name })}
+            disabled={disabled}
+            description={uiText('ReferenceAttachments.removeThisAttachmentFromTheRequestThe')}
+            onDelete={() => {
+              update(current.current.filter((item) => item.id !== attachment.id));
+              releaseReferences([attachment]);
+            }}
+          />
+        </li>
+      ))}
+    </ul>
+  );
   return (
     <div
       className={`reference-attachments${compact ? ' reference-attachments-compact' : ''}`}
@@ -155,34 +186,8 @@ export function ReferenceAttachments({
           {error}
         </p>
       )}
-      {value.length > 0 && (
-        <ul className="reference-attachment-list">
-          {value.map((attachment) => (
-            <li key={attachment.id} className="reference-attachment" data-removable>
-              <div className="reference-thumbnail">
-                <AttachmentThumbnail attachment={attachment} />
-              </div>
-              <div className="reference-file-info">
-                <Tooltip label={attachment.name} onlyWhenTruncated>
-                  <span className="reference-file-name">{attachment.name}</span>
-                </Tooltip>
-                <small>
-                  {fileSize(attachment.size)} · {attachment.type || t('ReferenceAttachments.file')}
-                </small>
-              </div>
-              <HoverDeleteButton
-                label={uiText('ReferenceAttachments.removeReference', { value1: attachment.name })}
-                disabled={disabled}
-                description={uiText('ReferenceAttachments.removeThisAttachmentFromTheRequestThe')}
-                onDelete={() => {
-                  update(current.current.filter((item) => item.id !== attachment.id));
-                  releaseReferences([attachment]);
-                }}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      {value.length > 0 &&
+        (listContainer === undefined ? list : listContainer && createPortal(list, listContainer))}
     </div>
   );
 }

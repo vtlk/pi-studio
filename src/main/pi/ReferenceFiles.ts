@@ -22,7 +22,7 @@ function mediaType(bytes: Buffer, name: string) {
   if (bytes.toString('ascii', 0, 5) === '%PDF-') return 'application/pdf';
   return bytes.includes(0) ? 'application/octet-stream' : 'text/plain';
 }
-async function read(path: string) {
+export async function readReferenceBytes(path: string) {
   const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const before = await file.stat();
@@ -41,21 +41,32 @@ async function read(path: string) {
     await file.close();
   }
 }
+interface SelectedReference {
+  file: ReferenceFile;
+  path: string;
+  sha256: string;
+  selectedAt: number;
+  folder: string;
+  owned?: boolean;
+  durableKey?: string;
+  pins?: number;
+  released?: boolean;
+  garbage?: string[];
+}
 type ImageConverter = (path: string, type: string) => Promise<Buffer>;
 /** File paths originate only from the native chooser, never from renderer strings. */
 export class ReferenceFiles {
-  private selected = new Map<
-    string,
-    {
-      file: ReferenceFile;
-      path: string;
-      sha256: string;
-      selectedAt: number;
-      folder: string;
-      owned?: boolean;
-    }
-  >();
+  private selected = new Map<string, SelectedReference>();
   private convert?: ImageConverter;
+  private draftRelease?: (key: string) => void;
+  onDraftRelease(listener: (key: string) => void) {
+    this.draftRelease = listener;
+  }
+  draftHashes(key: string) {
+    return [...this.selected.values()]
+      .filter((item) => item.durableKey === key)
+      .map((item) => item.sha256);
+  }
   constructor(convert?: ImageConverter) {
     this.convert = convert;
   }
@@ -65,17 +76,24 @@ export class ReferenceFiles {
     for (const id of ids) {
       const item = this.selected.get(id);
       this.selected.delete(id);
-      if (item?.owned) void rm(item.path, { force: true }).catch(() => {});
+      if (item) {
+        item.released = true;
+        this.clean(item);
+        if (item.durableKey) this.draftRelease?.(item.durableKey);
+      }
     }
   }
   async select(paths: string[], folder: string): Promise<ReferenceFile[]> {
     for (const [id, item] of this.selected)
-      if (Date.now() - item.selectedAt > 4 * 3600_000) this.release([id]);
-    if (paths.length > 32 || this.selected.size + paths.length > 128)
+      if (!item.durableKey && Date.now() - item.selectedAt > 4 * 3600_000) this.release([id]);
+    if (
+      paths.length > 32 ||
+      [...this.selected.values()].filter((item) => !item.durableKey).length + paths.length > 128
+    )
       throw new Error(t('error.referenceFiles.selectNoMoreThanReferences'));
     const items = [];
     for (const path of paths) {
-      const bytes = await read(path);
+      const bytes = await readReferenceBytes(path);
       const name = basename(path);
       const file = { id: randomUUID(), name, size: bytes.length, type: mediaType(bytes, name) };
       items.push({
@@ -116,7 +134,11 @@ export class ReferenceFiles {
       throw new Error(t('error.referenceFiles.invalidReferenceListMaximum'));
     const items = ids.map((id) => {
       const item = typeof id === 'string' ? this.selected.get(id) : undefined;
-      if (!item || item.folder !== folder || Date.now() - item.selectedAt > 4 * 3600_000)
+      if (
+        !item ||
+        item.folder !== folder ||
+        (!item.durableKey && Date.now() - item.selectedAt > 4 * 3600_000)
+      )
         throw new Error(t('error.referenceFiles.selectReferencesAgainTheFile'));
       return item;
     });
@@ -125,6 +147,52 @@ export class ReferenceFiles {
     if (!imageInput && items.some((item) => item.file.type.startsWith('image/')))
       throw new Error(t('error.referenceFiles.theSelectedModelDoesNot'));
     return items;
+  }
+  private clean(item: SelectedReference) {
+    if (item.pins) return;
+    const paths = item.garbage?.splice(0) ?? [];
+    if (item.released && item.owned) paths.push(item.path);
+    for (const path of paths) void rm(path, { force: true }).catch(() => {});
+  }
+  acquire(ids: string[], folder: string) {
+    const items = this.validate(ids, folder, true);
+    for (const item of items) item.pins = (item.pins ?? 0) + 1;
+    let released = false;
+    return {
+      items,
+      release: () => {
+        if (released) return;
+        released = true;
+        for (const item of items) {
+          item.pins = Math.max(0, (item.pins ?? 1) - 1);
+          this.clean(item);
+        }
+      },
+    };
+  }
+  promote(item: SelectedReference, path: string, key: string) {
+    if (item.owned && item.path !== path) (item.garbage ??= []).push(item.path);
+    item.path = path;
+    item.owned = false;
+    item.durableKey = key;
+    this.clean(item);
+  }
+  restore(file: ReferenceFile, path: string, sha256: string, folder: string, key: string) {
+    const restored = { ...file, id: randomUUID() };
+    this.selected.set(restored.id, {
+      file: restored,
+      path,
+      sha256,
+      folder,
+      durableKey: key,
+      selectedAt: Date.now(),
+    });
+    return restored;
+  }
+  forgetDraft(key: string) {
+    this.release(
+      [...this.selected].filter(([, item]) => item.durableKey === key).map(([id]) => id),
+    );
   }
   async attach(run: PreparedRun, ids: unknown, folder: string, imageInput: boolean) {
     const items = this.validate(ids, folder, imageInput);
@@ -135,7 +203,7 @@ export class ReferenceFiles {
     await mkdir(directory, { recursive: true });
     try {
       for (const item of items) {
-        const bytes = await read(item.path);
+        const bytes = await readReferenceBytes(item.path);
         const sha256 = createHash('sha256').update(bytes).digest('hex');
         if (sha256 !== item.sha256)
           throw new Error(
@@ -148,7 +216,8 @@ export class ReferenceFiles {
         const target = await safePath(run.projectRoot, relative, true);
         await mkdir(join(directory, 'attachments', id), { recursive: true });
         await writeFile(target, bytes, { flag: 'wx', mode: 0o600 });
-        const attachment: SavedAttachment = { ...item.file, id, sha256, path: relative };
+        const { preview: _preview, ...file } = item.file;
+        const attachment: SavedAttachment = { ...file, id, sha256, path: relative };
         if (item.file.type.startsWith('image/')) {
           if (bytes.length > 32 * 1024 * 1024)
             throw new Error(t('error.referenceFiles.theImageExceedsMbReduce'));

@@ -56,6 +56,7 @@ import { registerAppearance } from '../appearance/registerAppearance';
 import type { GitHubStarReminder } from '../github-star/GitHubStarReminder';
 import { registerGitHubStar } from '../github-star/registerGitHubStar';
 import { registerOnboardingHandlers } from '../onboarding/registerOnboardingHandlers';
+import { registerChatDrafts } from '../pi/registerChatDrafts';
 import { registerChatHandlers } from '../pi/registerChatHandlers';
 import { notifyChatChanged, notifyChatOpened } from '../pi/notifyChat';
 export function registerDesktopHandlers(
@@ -101,6 +102,7 @@ export function registerDesktopHandlers(
     caller,
   );
   const references = new ReferenceFiles(referenceImage);
+  const drafts = registerChatDrafts(service, references, caller);
   const voice = registerVoice(caller);
   const computer = createComputerSupport();
   registerComputerHandlers(computer, caller);
@@ -198,6 +200,7 @@ export function registerDesktopHandlers(
       browserAuth,
       startup,
       voice,
+      drafts,
       runs,
       setup,
       browser,
@@ -232,7 +235,7 @@ export function registerDesktopHandlers(
     });
   }
   registerReferenceHandlers(service, references, caller);
-  registerChatHandlers(service, runs, setup, caller);
+  registerChatHandlers(service, runs, setup, caller, drafts);
   registerImageHandlers(imageConnections, caller);
   handleDesktopInvoke(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);

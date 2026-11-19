@@ -1,10 +1,11 @@
+import { ChatDraftStore } from './ChatDraftStore';
+import { Button } from '@/shared/ui';
 import { VoiceDraftGuard } from '@/features/voice/VoiceDraftGuard';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { ChatTarget } from '../../../shared/chat';
 import { t } from '../../../shared/i18n';
 import { useStorage } from '@/shared/storage/Storage';
 import { ChatPanelsContext } from './ChatPanels.context';
-import type { ReferenceAttachment } from '@/shared/ui/ReferenceAttachments';
 
 export function ChatPanelsProvider({ children }: { children: ReactNode }) {
   const { saveNow, bootstrap } = useStorage();
@@ -17,9 +18,19 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     selection.current++;
     setTarget(next);
   };
-  const drafts = useRef(new Map<string, string>());
-  const attachments = useRef(new Map<string, ReferenceAttachment[]>());
-  const [, updateDrafts] = useState(0);
+  const [draftStore] = useState(() => new ChatDraftStore(window.studio));
+  useSyncExternalStore(draftStore.subscribe, draftStore.snapshot);
+  const folder = bootstrap?.folder ?? '';
+  useEffect(() => {
+    if (folder) void draftStore.load(folder);
+  }, [draftStore, folder]);
+  useEffect(
+    () =>
+      window.studio?.onChatDraftConsumed((change) => {
+        draftStore.consumed(change);
+      }),
+    [draftStore],
+  );
   useEffect(
     () =>
       window.studio?.onChatOpened((next) => {
@@ -32,18 +43,15 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     selection.current++;
     setTarget(null);
   }, [bootstrap?.folder]);
-  const hasDraft =
-    [...drafts.current.values()].some((text) => text.length > 0) ||
-    [...attachments.current.values()].some((files) => files.length > 0);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (!hasDraft) return;
+      if (!draftStore.unsaved()) return;
       event.preventDefault();
       event.returnValue = '';
     };
     window.addEventListener('beforeunload', beforeUnload);
     return () => window.removeEventListener('beforeunload', beforeUnload);
-  }, [hasDraft]);
+  }, [draftStore]);
   const open = (next: ChatTarget, autoContinue = false) => {
     show(next);
     const key = `${next.projectId}/${next.agentId}`;
@@ -115,22 +123,31 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
         },
         error: errors[key] ?? '',
         opening: opening.includes(key),
-        drafts: drafts.current,
-        attachments: attachments.current,
-        draftScope: bootstrap?.folder ?? '',
-        setDraft: (key, text) => {
-          drafts.current.set(key, text);
-          updateDrafts((value) => value + 1);
-        },
-        setAttachments: (key, files) => {
-          attachments.current.set(key, files);
-          updateDrafts((value) => value + 1);
-        },
+        drafts: draftStore.drafts,
+        attachments: draftStore.attachments,
+        draftScope: folder,
+        draftsReady: draftStore.ready(folder),
+        flushDrafts: (key) => draftStore.flush(key),
+        currentDraft: (key) => draftStore.current(key),
+        draftSent: (key, revision, result) => draftStore.sent(key, revision, result),
+        setDraft: (key, text) => draftStore.setText(key, text),
+        setAttachments: (key, files) => draftStore.setAttachments(key, files),
       }}
     >
       {children}
       <VoiceDraftGuard />
-      <span hidden data-unsaved-draft={hasDraft || undefined} />
+      <span
+        hidden
+        data-chat-draft-error={(draftStore.unsaved() && !!draftStore.error()) || undefined}
+        data-chat-draft-pending={draftStore.unsaved() || undefined}
+        data-unsaved-draft={draftStore.unsaved() || undefined}
+      />
+      {draftStore.error() && (
+        <div className="chat-draft-save-error" role="alert">
+          <span>{draftStore.error()}</span>
+          <Button onClick={() => void draftStore.retry()}>{t('ChatDrafts.retry')}</Button>
+        </div>
+      )}
     </ChatPanelsContext.Provider>
   );
 }

@@ -1,5 +1,5 @@
 export interface VoiceModelState {
-  phase: 'idle' | 'downloading' | 'ready' | 'error';
+  phase: 'idle' | 'checking' | 'downloading' | 'ready' | 'error';
   downloaded: number;
   total: number;
 }
