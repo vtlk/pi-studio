@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-19T11:43:54.549796+00:00",
+  "version": "0.2.0-alpha.122",
+  "runtimeSourceCommit": "0e52591cd9e7476ecd54dcea9d2bfbdb636f80c9",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 484,
+  "tests": {
+    "passed": 584,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "nativePi": "1.5.2",
+  "sourceProofs": [
+    "team-mcp-waiting-idle-proof.json",
+    "team-mcp-cold-idle-proof.json"
+  ],
+  "packagedBridgeProofs": [
+    "alpha122-packaged-waiting-proof.json",
+    "alpha122-packaged-cold-proof.json"
+  ],
+  "cases": [
+    "existing used waiting dialogue with legacy stopped attention",
+    "closed recipient with saved error status and legacy stopped attention"
+  ],
+  "tasksPerCase": 3,
+  "legacyAttentionIgnoredWithoutChangingUserFiles": true,
+  "exactIdleProcessAndSessionReused": true,
+  "changedProfileRefreshPreservesHistory": true,
+  "canonicalReceiptsAndNoReplayVerified": true,
+  "busyDialogsAndQueuesRemainSerialized": true,
+  "appGuiExecuted": false,
+  "installedApplicationOrUserProjectOrProcessModified": false,
+  "externalModelRequests": 0,
+  "nativeWindowsAcceptance": false
+}

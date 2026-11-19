@@ -10,7 +10,7 @@ One agent researches, another creates, a third reviews.<br>Set up the workflow o
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/status-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Status: alpha" /> <img src="https://img.shields.io/badge/platforms-macOS_·_Windows_preview-FFD83D?style=flat-square&labelColor=252525" alt="macOS and Windows preview" />
 
-**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-win-x64.zip)**
+**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-win-x64.zip)**
 
 **[How it works](#one-team-many-projects)** &nbsp; · &nbsp; **[Models](#your-models-your-tools)** &nbsp; · &nbsp; **[Get started](#quick-start)**
 
@@ -129,15 +129,15 @@ Choose a connection and model for the assistant, then open its conversation unde
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-win-x64.zip)** |
+| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-win-x64.zip)** |
 | **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Version** | alpha.121 | alpha.122 · preview |
+| **Version** | alpha.122 | alpha.122 · preview |
 
 > **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. Full native Windows validation remains in progress.
 
 [What's new in alpha.122 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.122)
 
-Alpha.122 fixes a second Team delivery gate: an explicit task starts a configured recipient whether Pi is closed or already idle, including after a previous waiting/stopped/error state. Legacy attention markers no longer demand manual receiver input. Busy work remains queued, exact histories are preserved and cancelled or uncertain tasks are not replayed. Windows x64 alpha.122 is available first; macOS remains at alpha.121 until its assets are uploaded.
+Alpha.122 fixes a second Team delivery gate: an explicit task starts a configured recipient whether Pi is closed or already idle, including after a previous waiting/stopped/error state. Legacy attention markers no longer demand manual receiver input. Busy work remains queued, exact histories are preserved and cancelled or uncertain tasks are not replayed. Available for macOS arm64 and Windows x64.
 
 Agent teams remember whether they are expanded or collapsed. The Projects tab returns to the last open project when switching sections. Click the project heading or its back icon to return to the list; Refresh agents stays independent. Project headers are black in both themes, with a thin gray lower divider.
 
