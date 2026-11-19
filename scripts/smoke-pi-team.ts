@@ -19,6 +19,8 @@ import type { Agent } from '../src/shared/studio.ts';
 // Real installed Pi SDK/bridge/MCP/files/sessions; deterministic loopback model, zero external requests.
 const longWait = process.argv.includes('--long-wait');
 const embedded = process.argv.includes('--embedded');
+const staleIdle = process.argv.includes('--stale-idle');
+const coldRecipient = process.argv.includes('--cold-recipient');
 let warmWorkerRun: string | undefined, warmWorkerPid: number | undefined;
 const startedAt = Date.now();
 const root = await mkdtemp(join(tmpdir(), 'pistudio-team-native-'));
@@ -57,7 +59,9 @@ const server = createServer(async (req, res) => {
     const content = JSON.stringify(body.messages);
     let toolName = '',
       args: object = {};
-    if (worker) {
+    if (staleIdle && lastUser.includes('IDLE_PREVIOUS_TASK')) {
+      // A normal earlier reply, deliberately without complete_stage, leaves Pi waiting.
+    } else if (worker) {
       const step = workerStep++;
       assert.ok(content.includes(directory));
       if (step === 0) {
@@ -154,7 +158,7 @@ const server = createServer(async (req, res) => {
         };
       }
       if (step === 5) {
-        if (embedded) {
+        if (embedded && !coldRecipient) {
           assert.equal(
             host.inspect(projectId, 'worker')?.run.record.runId,
             warmWorkerRun,
@@ -360,10 +364,37 @@ const host = createStudioRunHost(service, {
 });
 try {
   if (embedded) {
-    const opened = await host.launch({ projectId, agentId: 'worker', autoContinue: false });
+    const opened = await host.launch({
+      projectId,
+      agentId: 'worker',
+      autoContinue: false,
+      ...(staleIdle ? { firstMessage: 'IDLE_PREVIOUS_TASK' } : {}),
+    });
     warmWorkerRun = opened.runId;
     warmWorkerPid = host.processes().find((p) => p.agentId === 'worker')?.pid;
     assert.ok(warmWorkerPid);
+    if (staleIdle) {
+      const deadline = Date.now() + 20000;
+      while (
+        Date.now() < deadline &&
+        (host.inspect(projectId, 'worker')?.status !== 'waiting' ||
+          host.chat({ projectId, agentId: 'worker' })?.working)
+      )
+        await new Promise((r) => setTimeout(r, 50));
+      assert.equal(host.inspect(projectId, 'worker')?.status, 'waiting');
+      assert.equal(host.chat({ projectId, agentId: 'worker' })?.working, false);
+      const attention = join(directory, '.pistudio/team/attention');
+      await mkdir(attention, { recursive: true });
+      await writeFile(
+        join(attention, 'worker.json'),
+        JSON.stringify({ status: 'stopped', runId: 'legacy-run' }),
+      );
+      if (coldRecipient) {
+        await host.stopAgent(projectId, 'worker');
+        await store.projects.updateRuntime(projectId, 'worker', 'error');
+        assert.equal(host.inspect(projectId, 'worker'), undefined);
+      }
+    }
   }
   await host.launch({
     projectId,
@@ -393,9 +424,17 @@ try {
     .split('\n')
     .map((line) => JSON.parse(line))
     .filter((entry) => entry.type === 'message' && entry.message.role === 'user');
-  assert.equal(users.length, 2, 'One canonical binding, exactly two delivered tasks');
-  assert.ok(JSON.stringify(users[0]).includes('TASK_ONE'));
-  assert.ok(JSON.stringify(users[1]).includes('TASK_TWO'));
+  if (staleIdle)
+    assert.ok(
+      JSON.stringify(users).includes('IDLE_PREVIOUS_TASK'),
+      'Earlier dialogue is preserved',
+    );
+  const tasks = staleIdle
+    ? users.filter((entry) => !JSON.stringify(entry.message.content).includes('IDLE_PREVIOUS_TASK'))
+    : users;
+  assert.equal(tasks.length, 2, 'One canonical binding, exactly two delivered tasks');
+  assert.ok(JSON.stringify(tasks[0]).includes('TASK_ONE'));
+  assert.ok(JSON.stringify(tasks[1]).includes('TASK_TWO'));
   assert.equal(
     await readFile(join(directory, result.agents[0].outputPath, 'sender.txt'), 'utf8'),
     'WAITED_FOR_TEAM_OK',
@@ -439,7 +478,9 @@ try {
   const proof = {
     embedded,
     idleRecipientReusedWithoutNewProcess: embedded,
-    initialEmptyDialogueAccepted: embedded,
+    initialEmptyDialogueAccepted: embedded && !staleIdle,
+    legacyWaitingStoppedAttentionIgnored: staleIdle,
+    recipientInitiallyClosed: coldRecipient,
     profileChangeRefreshesExactSession: embedded,
     nativePi: pi.version,
     elapsedMilliseconds: Date.now() - startedAt,
@@ -468,7 +509,11 @@ try {
   await mkdir('artifacts', { recursive: true });
   await writeFile(
     embedded
-      ? 'artifacts/team-mcp-embedded-proof.json'
+      ? coldRecipient
+        ? 'artifacts/team-mcp-cold-idle-proof.json'
+        : staleIdle
+          ? 'artifacts/team-mcp-waiting-idle-proof.json'
+          : 'artifacts/team-mcp-embedded-proof.json'
       : longWait
         ? 'artifacts/team-mcp-long-wait-proof.json'
         : 'artifacts/team-mcp-native-proof.json',

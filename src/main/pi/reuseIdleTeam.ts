@@ -4,12 +4,10 @@ import type { TeamDelivery } from '../team-mcp/types.ts';
 import type { RunOpeningState } from './openRun.ts';
 import { runKey, type LiveRun } from './RunTypes.ts';
 
-export function assertIdleTeam(live: LiveRun) {
+export function assertTeamNotBusy(live: LiveRun) {
   const chat = live.embedded;
-  if (!chat?.alive || chat.state.phase !== 'ready') throw Error(t('Chat.disconnected'));
+  if (!chat?.alive) throw Error(t('Chat.disconnected'));
   if (
-    live.blocked ||
-    live.status === 'error' ||
     live.status === 'running' ||
     chat.state.working ||
     chat.state.dialog ||
@@ -17,6 +15,11 @@ export function assertIdleTeam(live: LiveRun) {
     chat.state.queue?.followUp.length
   )
     throw Error(t('error.runHost.theNextAgentIsAlready'));
+}
+
+export function assertIdleTeam(live: LiveRun) {
+  assertTeamNotBusy(live);
+  if (live.embedded?.state.phase !== 'ready') throw Error(t('Chat.disconnected'));
 }
 
 /** One explicit team task in the existing idle dialogue. Never replace its process or history. */

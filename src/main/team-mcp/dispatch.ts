@@ -5,7 +5,6 @@ import { TeamJournal, messageHash } from './TeamJournal.ts';
 import { teamScope, recipient } from './scope.ts';
 import { deliveryText } from './receipt.ts';
 import { teamDispatchFailure } from './dispatchFailure.ts';
-import { needsUser } from './attention.ts';
 export async function dispatchTeamMessage(
   service: StudioService,
   host: TeamHost | undefined,
@@ -24,20 +23,6 @@ export async function dispatchTeamMessage(
     if (scope.project.sourceTeamId !== item.sourceTeamId)
       throw new Error(t('error.teamSupport.theSourceTeamChanged'));
     const { saved } = recipient(scope, { agent_id: item.recipientId });
-    const live = host.inspect(item.projectId, item.recipientId);
-    const initialIdle = live?.opened && live.sequence === 0 && !live.blocked && !live.delivering;
-    if (
-      (saved.runStatus === 'waiting' && !initialIdle) ||
-      saved.runStatus === 'error' ||
-      (await needsUser(scope.root, item.recipientId))
-    ) {
-      await journal.update(item.id, (previous) => ({
-        ...previous,
-        reason:
-          'Получатель ожидает пользователя после вопроса/ошибки. Продолжите его диалог вручную.',
-      }));
-      return;
-    }
     if (
       item.expectedSession &&
       (saved.session?.id !== item.expectedSession.id ||

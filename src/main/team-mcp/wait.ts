@@ -18,10 +18,7 @@ export async function waitForTeamMessage(
             ? 'Поручение завершено. Прочитайте output получателя перед продолжением.'
             : 'Поручение не завершено. Остановитесь и сообщите причину пользователю; не продолжайте зависимую работу и не отправляйте повтор с новым request_id.',
       };
-    if (
-      item.state === 'queued' &&
-      (!armed.has(id) || /ожидает пользователя|вопроса\/ошибки|цепочка/.test(item.reason ?? ''))
-    )
+    if (item.state === 'queued' && (!armed.has(id) || /цепочка/.test(item.reason ?? '')))
       return {
         ...publicMessage(item, armed.has(id)),
         instruction:

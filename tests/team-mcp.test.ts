@@ -354,29 +354,41 @@ test('busy queue survives restart without auto-launch; explicit same-key retry d
   assert.equal(launches, 1);
 });
 
-test('questions remain gated across closing Pi and restart; only explicit manual input clears attention', async (t) => {
-  const f = await fixture(t);
-  const { observeAttention, needsUser } = await import('../src/main/team-mcp/attention.ts');
-  const target = await buildRunContext(f.directory, f.project, 'b', f.agents, []);
-  const runtime = {
-    run: target,
-    status: 'waiting' as const,
-    blocked: true,
-    sequence: 1,
-    opened: true,
-    delivering: false,
-  };
-  const host = { inspect: () => runtime } as Parameters<typeof observeAttention>[2];
-  await observeAttention(target, { type: 'settled' }, host);
-  assert.equal(await needsUser(f.directory, 'b'), true);
-  await observeAttention(target, { type: 'request', messageId: 'automatic' }, host);
-  assert.equal(
-    await needsUser(f.directory, 'b'),
-    true,
-    'Automatic delivery cannot clear a question',
-  );
-  await observeAttention(target, { type: 'request' }, host);
-  assert.equal(await needsUser(f.directory, 'b'), false);
+test('legacy attention and saved waiting/error status never block a fresh explicit task, with or without a live recipient', async (t) => {
+  for (const status of ['waiting', 'error', 'stopped'] as const) {
+    for (const opened of [false, true]) {
+      const f = await fixture(t);
+      await f.store.projects.updateRuntime(f.project.id, 'b', status);
+      const dir = join(f.directory, '.pistudio/team/attention');
+      await mkdir(dir, { recursive: true });
+      await writeFile(join(dir, 'b.json'), JSON.stringify({ status: 'stopped', runId: 'old-run' }));
+      const target = await buildRunContext(f.directory, f.project, 'b', f.agents, []);
+      let delivered = 0;
+      f.support.attach({
+        inspect: () =>
+          opened
+            ? { run: target, status, blocked: true, sequence: 5, opened: true, delivering: false }
+            : undefined,
+        teamUnavailable: () => undefined,
+        assertTeamDispatch: () => {},
+        launchTeamTask: async (_p, _a, _text, _delivery, before) => {
+          await before(target);
+          delivered++;
+        },
+      });
+      const result = (await f.support.call(f.run, 'say_to', {
+        agent_id: 'b',
+        text: 'NEW_EXPLICIT_TASK',
+        request_id: 'fresh-after-old-status',
+      })) as { id: string };
+      for (let i = 0; i < 50 && !delivered; i++) await new Promise((r) => setTimeout(r, 10));
+      assert.equal(delivered, 1);
+      assert.equal(
+        (await new TeamJournal(f.directory, f.project.id).get(result.id))?.state,
+        'dispatching',
+      );
+    }
+  }
 });
 
 test('cancelling a queued task during preparation wins the final dispatch check (host fixture)', async (t) => {
@@ -494,4 +506,39 @@ test('a recipient becoming busy before dispatch keeps the same task queued inste
   assert.equal(queued?.state, 'queued');
   assert.equal(queued?.text, 'ONE_TASK');
   assert.equal(queued?.runId, undefined);
+});
+
+test('an armed undelivered task ignores its obsolete manual-attention reason while waiting for delivery', async (t) => {
+  const f = await fixture(t),
+    journal = new TeamJournal(f.directory, f.project.id);
+  const item = await journal.accept({
+    version: 1,
+    id: messageId(f.project.id, 'a', 'old-reason'),
+    requestId: 'old-reason',
+    projectId: f.project.id,
+    sourceTeamId: 'team',
+    senderId: 'a',
+    recipientId: 'b',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    state: 'queued',
+    text: 'NEW',
+    bodyHash: messageHash('NEW'),
+    lineage: ['a'],
+    reason: 'Получатель ожидает пользователя после вопроса/ошибки. Продолжите его диалог вручную.',
+  });
+  let done = false;
+  const wait = waitForTeamMessage(
+    journal,
+    new Set([item.id]),
+    item.id,
+    new AbortController().signal,
+  ).then((result) => {
+    done = true;
+    return result;
+  });
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(done, false);
+  await journal.update(item.id, (m) => ({ ...m, state: 'completed', reason: undefined }));
+  assert.equal((await wait).state, 'completed');
 });

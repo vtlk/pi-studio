@@ -2,7 +2,6 @@ import { t } from '../../shared/i18n/index.ts';
 import { dispatchTeamMessage } from './dispatch.ts';
 import { projectCaller } from './projectCaller.ts';
 import type { TeamMessageAction } from '../../shared/teamMessages.ts';
-import { observeAttention } from './attention.ts';
 import { queryTeam } from './queryTeam.ts';
 import { waitForTeamMessage } from './wait.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
@@ -251,7 +250,6 @@ export class TeamSupport {
     }
   }
   async event(run: PreparedRun, event: ChannelEvent) {
-    await observeAttention(run, event, this.host);
     const delivery = run.teamDelivery;
     if (!delivery) return;
     const journal = this.journal(run);

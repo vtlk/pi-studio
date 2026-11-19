@@ -45,15 +45,10 @@ export function runTeamAccess(state: {
         return 'Диалог/проект ещё подготавливается.';
       const live = this.inspect(projectId, agentId);
       if (
-        live?.blocked ||
-        (live?.status === 'waiting' && live.sequence > 0) ||
-        live?.status === 'error'
-      )
-        return 'Получатель ожидает пользователя.';
-      if (
         live?.status === 'running' ||
         live?.delivering ||
         state.live.get(key)?.embedded?.state.working ||
+        state.live.get(key)?.embedded?.state.dialog ||
         state.live.get(key)?.embedded?.state.queue?.steering.length ||
         state.live.get(key)?.embedded?.state.queue?.followUp.length
       )

@@ -1,6 +1,6 @@
 import { i18n, t } from '../../shared/i18n/index.ts';
 import { EmbeddedChat } from './EmbeddedChat.ts';
-import { reuseIdleTeam, assertIdleTeam } from './reuseIdleTeam.ts';
+import { reuseIdleTeam, assertTeamNotBusy } from './reuseIdleTeam.ts';
 import { reuseIdleChain } from './reuseIdleChain.ts';
 import { chatInput } from './chatInput.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
@@ -74,9 +74,11 @@ export async function openRun(
     continuation?.check();
     const active = state.live.get(key);
     if (active?.embedded?.alive && automaticMessage && teamDelivery && beforeDispatch) {
-      assertIdleTeam(active);
-      const reusable = (await state.dependencies.canReuseTeam?.(active.run)) ?? true;
-      assertIdleTeam(active);
+      assertTeamNotBusy(active);
+      const reusable =
+        active.embedded.state.phase === 'ready' &&
+        ((await state.dependencies.canReuseTeam?.(active.run)) ?? true);
+      assertTeamNotBusy(active);
       if (state.chats.sendingTo(request.projectId, request.agentId)) throw Error(t('Chat.sending'));
       if (reusable)
         return await reuseIdleTeam(

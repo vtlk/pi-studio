@@ -92,14 +92,13 @@ test('team task reuses the exact idle process/run/session/history and registers 
   assert.equal(f.chat.state.messages, f.history);
   assert.equal(f.stops(), 0);
 });
-test('busy, queued or blocked recipients never receive input or get stopped', async () => {
-  for (const state of ['working', 'queue', 'dialog', 'blocked'] as const) {
+test('working, queued or interactive-dialog recipients never receive input or get stopped', async () => {
+  for (const state of ['working', 'queue', 'dialog'] as const) {
     const f = fixture();
     if (state === 'working') f.chat.state.working = true;
     if (state === 'queue') f.chat.state.queue!.followUp = ['pending'];
     if (state === 'dialog')
       f.chat.state.dialog = { id: 'pending' } as NonNullable<typeof f.chat.state.dialog>;
-    if (state === 'blocked') f.live.blocked = true;
     await assert.rejects(f.run());
     assert.deepEqual(f.sent, []);
     assert.equal(f.registered(), 0);
@@ -146,4 +145,17 @@ test('native preflight failure after the input hook does not leave an idle recip
   assert.equal(f.live.automaticCheck, undefined);
   assert.equal(f.stops(), 0);
   assert.equal(f.chat.state.messages, f.history);
+});
+
+test('a fresh explicit team task starts in an idle dialogue after previous waiting, blocked or error status', async () => {
+  for (const status of ['waiting', 'error', 'stopped', 'ready'] as const) {
+    const f = fixture();
+    f.live.status = status;
+    f.live.sequence = 3;
+    f.live.blocked = true;
+    await f.run();
+    assert.deepEqual(f.sent, ['TASK']);
+    assert.equal(f.registered(), 1);
+    assert.equal(f.stops(), 0);
+  }
 });
