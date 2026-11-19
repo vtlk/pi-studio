@@ -245,8 +245,7 @@
   cursor: grabbing;
 }
 .agent-list-entry[data-dragging] {
-  z-index: 3;
-  outline: 2px solid var(--primary);
+  opacity: 0.25;
 }
 
 .agent-list-entry {
@@ -368,4 +367,41 @@
 .agent-team[data-drop-target] {
   background: var(--hover-soft);
   box-shadow: inset 3px 0 var(--pill-active);
+}
+
+.agent-drag-preview {
+  pointer-events: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--control-radius);
+  box-shadow: 0 8px 24px var(--shadow);
+  overflow: hidden;
+  cursor: grabbing;
+}
+.agent-drop-marker {
+  position: relative;
+  height: 0;
+}
+.agent-drop-marker::before {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  inset: -1px 12px auto;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.agent-drop-marker::after {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  left: 8px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--pill-active);
+  pointer-events: none;
 }

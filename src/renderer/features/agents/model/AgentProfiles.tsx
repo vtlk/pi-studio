@@ -118,10 +118,23 @@ function useProfilesState(initial: Agent[]) {
       };
       return { ...next, agents: next.teams.flatMap((item) => teamAgents(next, item.id)) };
     });
-  const transferAgent = (id: string, sourceTeamId: string, targetTeamId: string, copy: boolean) => {
+  const transferAgent = (
+    id: string,
+    sourceTeamId: string,
+    targetTeamId: string,
+    copy: boolean,
+    beforeId?: string,
+  ) => {
     const nextId = copy ? crypto.randomUUID() : id;
     setCatalog((previous) =>
-      transferTeamAgent(previous, id, sourceTeamId, targetTeamId, copy ? nextId : undefined),
+      transferTeamAgent(
+        previous,
+        id,
+        sourceTeamId,
+        targetTeamId,
+        copy ? nextId : undefined,
+        beforeId,
+      ),
     );
     setAgentId(nextId);
     return nextId;

@@ -40,23 +40,27 @@ export function transferTeamAgent(
   sourceTeamId: string,
   targetTeamId: string,
   copyId?: string,
+  beforeId?: string,
 ): AgentCatalog {
   const source = catalog.teams.find((team) => team.id === sourceTeamId);
   const target = catalog.teams.find((team) => team.id === targetTeamId);
   const agent = catalog.agents.find((item) => item.id === agentId);
   if (!source || !target || !agent || source === target || !source.agentIds.includes(agentId))
     return catalog;
+  if (beforeId && !target.agentIds.includes(beforeId)) return catalog;
   const id = copyId ?? agentId;
   if (target.agentIds.includes(id) || (copyId && catalog.agents.some((item) => item.id === id)))
     return catalog;
   const profiles = copyId ? [...catalog.agents, { ...structuredClone(agent), id }] : catalog.agents;
+  const targetIds = [...target.agentIds];
+  targetIds.splice(beforeId ? targetIds.indexOf(beforeId) : targetIds.length, 0, id);
   const next = {
     agents: profiles,
     teams: catalog.teams.map((team) => ({
       ...team,
       agentIds:
         team.id === targetTeamId
-          ? [...team.agentIds, id]
+          ? targetIds
           : team.id === sourceTeamId && !copyId
             ? team.agentIds.filter((item) => item !== id)
             : team.agentIds,

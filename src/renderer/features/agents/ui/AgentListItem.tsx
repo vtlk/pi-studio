@@ -36,7 +36,7 @@ export function AgentListItem({
       className="agent-list-entry"
       data-removable
       data-dragging={isDragging || undefined}
-      style={{ transform: CSS.Translate.toString(transform), transition }}
+      style={{ transform: isDragging ? undefined : CSS.Translate.toString(transform), transition }}
     >
       <Tooltip
         label={agentName(agent) || t('AgentList.untitled')}

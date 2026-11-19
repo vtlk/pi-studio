@@ -132,7 +132,7 @@
   "TeamNameDialog.allAgentsInOneFolder": "Все агенты в одной папке",
   "TeamNameDialog.agentsWorkDirectlyInTheProjectFolder": "Агенты работают прямо в папке проекта, без Output и папок с именами агентов. Диалоги остаются отдельными.",
   "TeamNameDialog.eachAgentHasItsOwnWorkingFolder": "У каждого агента своя рабочая папка и свои файлы результатов.",
-  "TeamNameDialog.theChangeAppliesTheNextTimeA": "Изменение применяется при следующем открытии диалога через Studio. Уже созданные файлы сохраняются на своих местах.",
+  "TeamNameDialog.theChangeAppliesTheNextTimeA": "Режим папок применяется только к новым проектам. Существующие проекты сохраняют свой режим.",
   "TeamTransferFeedback.waitingForAssistantSetup": "Ожидает настройки помощником",
   "TeamTransferFeedback.packageReceivedByTheAssistant": "Пакет получен помощником",
   "TeamTransferFeedback.waitingForPackageReceiptConfirmation": "Ожидается подтверждение получения пакета",
@@ -1829,5 +1829,7 @@
   "AgentTeamTransfer.title": "Копировать или переместить?",
   "AgentTeamTransfer.copy": "Копировать",
   "AgentTeamTransfer.move": "Переместить",
-  "AgentTeamTransfer.description": "Агент «{{name}}» → команда «{{team}}»."
+  "AgentTeamTransfer.description": "Агент «{{name}}» → команда «{{team}}».",
+  "UpdateAction.installingUpdate": "Устанавливаем обновление…",
+  "UpdateAction.waitingToInstall": "Ожидаем установки обновления…"
 }

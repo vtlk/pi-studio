@@ -308,13 +308,16 @@ try {
             `Array.from(document.querySelectorAll('[role="dialog"] button')).find(b=>b.textContent===${JSON.stringify(name)}).click()`,
           );
         };
-        const drag = async (source, target) => {
-          const center = async (selector) =>
+        const drag = async (source, target, fraction = 0.5) => {
+          const center = async (selector, part = 0.5) =>
             js(
-              `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'nearest'});const r=el.getBoundingClientRect();return{x:r.x+Math.min(100,r.width/2),y:r.y+r.height/2};})()`,
+              `(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.scrollIntoView({block:'nearest'});const r=el.getBoundingClientRect();return{x:r.x+Math.min(100,r.width/2),y:r.y+r.height*${part}};})()`,
             );
+          const originalSource = await js(
+            `document.querySelector(${JSON.stringify(source)}).getBoundingClientRect().toJSON()`,
+          );
           const a = await center(source),
-            b = await center(target);
+            b = await center(target, fraction);
           await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...a });
           await cdp('Input.dispatchMouseEvent', {
             type: 'mousePressed',
@@ -332,6 +335,43 @@ try {
             });
             await new Promise((done) => setTimeout(done, 25));
           }
+          await until(`!!document.querySelector('.agent-drag-preview')`);
+          assert.equal(
+            await js(`document.querySelectorAll('.agent-list-entry[data-dragging]').length`),
+            1,
+          );
+          const clone = await js(
+            `document.querySelector('.agent-drag-preview').getBoundingClientRect().toJSON()`,
+          );
+          assert.ok(clone.width > 250 && clone.height >= 84);
+          const sourceNow = await js(
+            `document.querySelector(${JSON.stringify(source)}).getBoundingClientRect().toJSON()`,
+          );
+          assert.ok(
+            Math.abs(sourceNow.x - originalSource.x) < 1 &&
+              Math.abs(sourceNow.y - originalSource.y) < 1,
+            'Original row stays in place',
+          );
+          if (fraction !== 0.5) {
+            await until(
+              `!!document.querySelector('[data-insert-before="true"],.agent-drop-marker')`,
+            );
+            const marker = await js(
+              `(()=>{const el=document.querySelector('[data-insert-before="true"],.agent-drop-marker');return{top:el.getBoundingClientRect().top,team:el.closest('[data-team-id]').dataset.teamId};})()`,
+            );
+            assert.equal(marker.team, 'team-b');
+            assert.ok(
+              Math.abs(marker.top - (b.y + (fraction < 0.5 ? -fraction : 1 - fraction) * 84)) < 3,
+              'Insertion line matches the chosen row edge',
+            );
+          }
+          if (fraction !== 0.5)
+            await cdp('Page.captureScreenshot', { format: 'png' }).then((shot) =>
+              writeFile(
+                `artifacts/agent-drag-${language}-${theme}.png`,
+                Buffer.from(shot.data, 'base64'),
+              ),
+            );
           await cdp('Input.dispatchMouseEvent', {
             type: 'mouseReleased',
             button: 'left',
@@ -366,13 +406,13 @@ try {
           'true',
         );
         // Drop into the expanded list, directly on an existing agent row.
-        await drag(sourceA, '[data-team-id="team-b"] .agent-list-item');
+        await drag(sourceA, '[data-team-id="team-b"] .agent-list-item', 0.75);
         await button(messages['AgentTeamTransfer.move']);
         await until(`window.__qa.state.sections.agentCatalog.teams[0].agentIds.length===0`);
         const moved = await readCatalog();
         assert.deepEqual(
           moved.teams.map((t) => t.agentIds),
-          [[], ['b', clone.id, 'a']],
+          [[], ['b', 'a', clone.id]],
         );
         assert.deepEqual(
           moved.agents.find((a) => a.id === 'a'),
@@ -388,7 +428,7 @@ try {
         const rows = await js(
           `Array.from(document.querySelectorAll('[data-team-id="team-b"] .agent-list-item')).map(el=>({id:el.id,rect:el.getBoundingClientRect().toJSON()}))`,
         );
-        const a = rows[2].rect,
+        const a = rows[1].rect,
           b = rows[0].rect;
         const from = { x: a.x + 80, y: a.y + a.height / 2 },
           to = { x: b.x + 80, y: b.y + b.height / 2 };
@@ -421,6 +461,8 @@ try {
           language,
           theme,
           actualPointerDrag: true,
+          floatingCloneAndStationaryOrigin: true,
+          insertionMarkerAndExactMiddlePosition: true,
           collapsedTeamHeaderDrop: true,
           expandedAgentListDrop: true,
           copyPreservesFullSettings: true,

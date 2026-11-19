@@ -3,7 +3,7 @@ import { agentName } from '@/shared/model/localizedProfiles';
 import { t, i18n } from '../../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import type { TeamWorkspaceMode } from '../../../../shared/agentTeams';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { FileInput, FileOutput, Pencil, Trash2 } from 'lucide-react';
 import { Disclosure } from '@/shared/ui/Disclosure';
 import { ActionMenu } from '@/shared/ui/ActionMenu';
@@ -18,6 +18,7 @@ import { AgentTeamDropTarget } from './AgentTeamDropTarget';
 import { AgentTeamTransferDialog } from './AgentTeamTransferDialog';
 import { AddArea } from '@/shared/ui/AddArea';
 import { useAgentProfiles } from '../model/AgentProfiles';
+import { AgentDragOverlay } from './AgentDragOverlay';
 import { AgentListItem } from './AgentListItem';
 import { useNotice } from '@/shared/model/Notice';
 import { Tooltip } from '@/shared/ui/Tooltip';
@@ -67,7 +68,11 @@ export function AgentList() {
               (id) => agents.find((agent) => agent.id === id) ?? [],
             );
             return (
-              <AgentTeamDropTarget key={team.id} id={team.id}>
+              <AgentTeamDropTarget
+                key={team.id}
+                id={team.id}
+                highlighted={drag.insertion?.targetTeamId === team.id}
+              >
                 <Disclosure
                   label={team.name}
                   chevronPosition="start"
@@ -131,26 +136,40 @@ export function AgentList() {
                 >
                   <SortableContext items={profiles} strategy={verticalListSortingStrategy}>
                     {profiles.map((agent, index) => (
-                      <AgentListItem
-                        key={agent.id}
-                        agent={agent}
-                        position={index + 1}
-                        teamId={team.id}
-                        selected={selectedAgent?.id === agent.id}
-                        onSelect={() => setAgentId(agent.id)}
-                        onDelete={() => {
-                          removeAgent(agent.id);
-                          demo(
-                            uiText('AgentList.agentRemovedFromTheBuilder', { value1: agent.name }),
-                            {
-                              label: uiText('useResourceUnlink.undo'),
-                              onClick: () => restoreAgent(agent, index, team.id),
-                            },
-                          );
-                        }}
-                      />
+                      <Fragment key={agent.id}>
+                        {drag.insertion?.targetTeamId === team.id &&
+                          drag.insertion.beforeId === agent.id && (
+                            <div
+                              className="agent-drop-marker"
+                              data-insert-before="true"
+                              aria-hidden="true"
+                            />
+                          )}
+                        <AgentListItem
+                          agent={agent}
+                          position={index + 1}
+                          teamId={team.id}
+                          selected={selectedAgent?.id === agent.id}
+                          onSelect={() => setAgentId(agent.id)}
+                          onDelete={() => {
+                            removeAgent(agent.id);
+                            demo(
+                              uiText('AgentList.agentRemovedFromTheBuilder', {
+                                value1: agent.name,
+                              }),
+                              {
+                                label: uiText('useResourceUnlink.undo'),
+                                onClick: () => restoreAgent(agent, index, team.id),
+                              },
+                            );
+                          }}
+                        />
+                      </Fragment>
                     ))}
                   </SortableContext>
+                  {drag.insertion?.targetTeamId === team.id && !drag.insertion.beforeId && (
+                    <div className="agent-drop-marker" aria-hidden="true" />
+                  )}
                   <AddArea
                     className="agent-team-add"
                     label={t('AgentList.addAnAgentTo', { value1: team.name })}
@@ -167,6 +186,11 @@ export function AgentList() {
             onClick={() => setNaming({})}
           />
         </div>
+        <AgentDragOverlay
+          agent={drag.activeAgent}
+          position={drag.activePosition}
+          selected={selectedAgent?.id === drag.activeAgent?.id}
+        />
       </DndContext>
       {drag.pending && (
         <AgentTeamTransferDialog

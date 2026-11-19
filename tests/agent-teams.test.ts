@@ -292,3 +292,42 @@ test('cross-team copy deeply preserves the full profile and assignments; move pr
     'Copy cannot overwrite another profile',
   );
 });
+
+test('cross-team insertion uses the stable destination row and preserves order for copy, move and header append', async () => {
+  const { transferTeamAgent } = await import('../src/shared/agentTeams.ts');
+  const catalog = {
+    agents: [agent('a'), agent('b'), agent('c')],
+    teams: [
+      { id: 'source', name: 'Source', agentIds: ['a'] },
+      { id: 'target', name: 'Target', agentIds: ['b', 'c'] },
+    ],
+  };
+  const copied = transferTeamAgent(catalog, 'a', 'source', 'target', 'copy', 'b');
+  assert.deepEqual(
+    copied.teams.map((t) => t.agentIds),
+    [['a'], ['copy', 'b', 'c']],
+  );
+  const moved = transferTeamAgent(catalog, 'a', 'source', 'target', undefined, 'c');
+  assert.deepEqual(
+    moved.teams.map((t) => t.agentIds),
+    [[], ['b', 'a', 'c']],
+  );
+  assert.equal(
+    moved.agents.find((a) => a.id === 'a'),
+    catalog.agents[0],
+  );
+  assert.deepEqual(transferTeamAgent(catalog, 'a', 'source', 'target').teams[1].agentIds, [
+    'b',
+    'c',
+    'a',
+  ]);
+  assert.equal(
+    transferTeamAgent(catalog, 'a', 'source', 'target', undefined, 'removed-row'),
+    catalog,
+    'A stale confirmed target must not silently append elsewhere',
+  );
+  assert.deepEqual(
+    catalog.teams.map((t) => t.agentIds),
+    [['a'], ['b', 'c']],
+  );
+});

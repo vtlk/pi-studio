@@ -35,3 +35,17 @@
 .update-workspace {
   height: 100%;
 }
+
+.update-phase-busy {
+  animation: update-phase-pulse 1.4s ease-in-out infinite;
+}
+@keyframes update-phase-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-phase-busy {
+    animation: none;
+  }
+}

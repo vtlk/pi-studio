@@ -1,6 +1,6 @@
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
-import { Download } from 'lucide-react';
+import { Download, ShieldCheck, PackageOpen, Clock3, LoaderCircle } from 'lucide-react';
 import { Button, IconButton } from '@/shared/ui';
 import { Modal } from '@/shared/ui/Modal';
 import { useUpdates } from './Updates';
@@ -13,6 +13,26 @@ export function UpdateAction() {
     state?.startup && ['restored', 'recovery-required'].includes(state.startup.phase);
   if (!state?.offer && !startupProblem && !state?.maintenanceError) return null;
   const downloading = state.phase === 'downloading' && !!state.offer;
+  const PhaseIcon =
+    state.phase === 'verifying'
+      ? ShieldCheck
+      : state.phase === 'installing'
+        ? PackageOpen
+        : state.phase === 'waiting'
+          ? Clock3
+          : state.phase === 'checking'
+            ? LoaderCircle
+            : Download;
+  const phaseLabel =
+    state.phase === 'verifying'
+      ? t('UpdateAction.verifyingPackage')
+      : state.phase === 'installing'
+        ? t('UpdateAction.installingUpdate')
+        : state.phase === 'waiting'
+          ? t('UpdateAction.waitingToInstall')
+          : state.phase === 'checking'
+            ? t('UpdateAction.checkingForUpdates')
+            : undefined;
   const progress =
     state.offer && state.offer.bytes > 0
       ? Math.min(1, Math.max(0, (state.downloaded ?? 0) / state.offer.bytes))
@@ -29,9 +49,11 @@ export function UpdateAction() {
           ? t('UpdateAction.temporaryUpdateFilesRetainedDetails')
           : downloading
             ? `${t('UpdateAction.downloadingUpdate')} ${percent}`
-            : state?.offer
-              ? t('UpdateAction.versionAvailableUpdate', { value1: state.offer.version })
-              : t('UpdateAction.updateIncompleteDetails')
+            : phaseLabel
+              ? phaseLabel
+              : state?.offer
+                ? t('UpdateAction.versionAvailableUpdate', { value1: state.offer.version })
+                : t('UpdateAction.updateIncompleteDetails')
       }
       onClick={show}
     >
@@ -62,7 +84,16 @@ export function UpdateAction() {
           </svg>
         </span>
       ) : (
-        <Download size={19} />
+        <PhaseIcon
+          size={19}
+          className={
+            state.phase === 'checking'
+              ? 'project-launch-spinner'
+              : ['verifying', 'installing'].includes(state.phase)
+                ? 'update-phase-busy'
+                : undefined
+          }
+        />
       )}
       {state.offer && <span className="update-available-dot" aria-hidden="true" />}
     </IconButton>

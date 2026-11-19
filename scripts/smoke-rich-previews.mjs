@@ -465,6 +465,7 @@ try {
   };
   for (const language of ['ru', 'en'])
     for (const theme of ['light', 'dark']) {
+      const messages = language === 'ru' ? ru : en;
       await visit(language, theme);
       await js(
         `Array.from(document.querySelectorAll('.project-list-row')).find(button=>button.textContent.includes('Project a')).click()`,
@@ -664,6 +665,21 @@ try {
       await js(`window.__qa.update={...window.__qa.update,phase:'downloading',downloaded:500}`);
       await until(`!!document.querySelector('.update-download-progress')`);
       assert.deepEqual(await geometry(), { update: [38, 38], theme: [38, 38], icon: [19, 19] });
+      for (const [phase, icon, label] of [
+        ['verifying', 'shield-check', messages['UpdateAction.verifyingPackage']],
+        ['waiting', 'clock-3', messages['UpdateAction.waitingToInstall']],
+        ['installing', 'package-open', messages['UpdateAction.installingUpdate']],
+      ]) {
+        await js(`window.__qa.update={...window.__qa.update,phase:${JSON.stringify(phase)}}`);
+        await until(`!!document.querySelector('.update-action .lucide-${icon}')`);
+        assert.deepEqual(await geometry(), { update: [38, 38], theme: [38, 38], icon: [19, 19] });
+        assert.equal(
+          await js(`document.querySelector('.update-action').getAttribute('aria-label')`),
+          label,
+        );
+        assert.equal(await js(`!!document.querySelector('.update-download-progress')`), false);
+        assert.equal(await js(`!!document.querySelector('.update-available-dot')`), true);
+      }
       await js(`window.__qa.update={phase:'idle',currentVersion:'QA-next'}`);
       await until(`!document.querySelector('.update-available-dot')`);
       checks.push({
@@ -677,6 +693,7 @@ try {
         chatLiveOnlyAndRaceSafe: true,
         updateDotTracksOffer: true,
         updateButtonMatchesTopbarDuringOfferAndDownload: true,
+        distinctVerifyWaitingInstallIconsWithStableGeometry: true,
       });
     }
   assert.deepEqual(errors, []);

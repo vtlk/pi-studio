@@ -132,7 +132,7 @@
   "TeamNameDialog.allAgentsInOneFolder": "All agents in one folder",
   "TeamNameDialog.agentsWorkDirectlyInTheProjectFolder": "Agents work directly in the project folder, without Output or agent-named folders. Dialogues stay separate.",
   "TeamNameDialog.eachAgentHasItsOwnWorkingFolder": "Each agent has its own working folder and result files.",
-  "TeamNameDialog.theChangeAppliesTheNextTimeA": "The change applies the next time a dialogue opens through Studio. Existing files stay where they are.",
+  "TeamNameDialog.theChangeAppliesTheNextTimeA": "The folder mode applies only to new projects. Existing projects keep their saved mode.",
   "TeamTransferFeedback.waitingForAssistantSetup": "Waiting for assistant setup",
   "TeamTransferFeedback.packageReceivedByTheAssistant": "Package received by the assistant",
   "TeamTransferFeedback.waitingForPackageReceiptConfirmation": "Waiting for package receipt confirmation",
@@ -1829,5 +1829,7 @@
   "AgentTeamTransfer.title": "Copy or move?",
   "AgentTeamTransfer.copy": "Copy",
   "AgentTeamTransfer.move": "Move",
-  "AgentTeamTransfer.description": "Agent “{{name}}” → team “{{team}}”."
+  "AgentTeamTransfer.description": "Agent “{{name}}” → team “{{team}}”.",
+  "UpdateAction.installingUpdate": "Installing update…",
+  "UpdateAction.waitingToInstall": "Waiting to install update…"
 }

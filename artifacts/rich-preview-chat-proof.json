@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-19T08:00:52.244Z",
+  "checkedAt": "2026-11-19T08:38:11.930Z",
   "checks": [
     {
       "language": "ru",
@@ -11,7 +11,8 @@
       "mp4FitResizeAndPlaybackPreserved": true,
       "chatLiveOnlyAndRaceSafe": true,
       "updateDotTracksOffer": true,
-      "updateButtonMatchesTopbarDuringOfferAndDownload": true
+      "updateButtonMatchesTopbarDuringOfferAndDownload": true,
+      "distinctVerifyWaitingInstallIconsWithStableGeometry": true
     },
     {
       "language": "ru",
@@ -23,7 +24,8 @@
       "mp4FitResizeAndPlaybackPreserved": true,
       "chatLiveOnlyAndRaceSafe": true,
       "updateDotTracksOffer": true,
-      "updateButtonMatchesTopbarDuringOfferAndDownload": true
+      "updateButtonMatchesTopbarDuringOfferAndDownload": true,
+      "distinctVerifyWaitingInstallIconsWithStableGeometry": true
     },
     {
       "language": "en",
@@ -35,7 +37,8 @@
       "mp4FitResizeAndPlaybackPreserved": true,
       "chatLiveOnlyAndRaceSafe": true,
       "updateDotTracksOffer": true,
-      "updateButtonMatchesTopbarDuringOfferAndDownload": true
+      "updateButtonMatchesTopbarDuringOfferAndDownload": true,
+      "distinctVerifyWaitingInstallIconsWithStableGeometry": true
     },
     {
       "language": "en",
@@ -47,7 +50,8 @@
       "mp4FitResizeAndPlaybackPreserved": true,
       "chatLiveOnlyAndRaceSafe": true,
       "updateDotTracksOffer": true,
-      "updateButtonMatchesTopbarDuringOfferAndDownload": true
+      "updateButtonMatchesTopbarDuringOfferAndDownload": true,
+      "distinctVerifyWaitingInstallIconsWithStableGeometry": true
     }
   ],
   "actualProbeRequests": 0,
