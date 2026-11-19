@@ -10,7 +10,7 @@
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-win-x64.zip)**
+**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-win-x64.zip)**
 
 **[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
 
@@ -129,15 +129,15 @@
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-win-x64.zip)** |
+| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.121/Pi-Studio-0.2.0-alpha.121-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.122/Pi-Studio-0.2.0-alpha.122-win-x64.zip)** |
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.121 | alpha.121 · preview |
+| **Версия** | alpha.121 | alpha.122 · preview |
 
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
-[Что изменилось в alpha.121 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.121)
+[Что изменилось в alpha.122 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.122)
 
-Alpha.121 исправляет доставку поручений через Team агенту с уже открытым свободным чатом Pi. Процесс и диалог используются повторно, каждое поручение получает отдельное подтверждение приёма. Занятый получатель остаётся в очереди; изменённые настройки обновляют свободный процесс с сохранением истории. Для известных ошибок запуска показывается конкретная причина. Доступна для macOS arm64 и Windows x64.
+Alpha.122 исправляет вторую блокировку доставки Team: явное поручение запускает настроенного получателя и с закрытым Pi, и с уже открытым свободным диалогом, в том числе после прежнего ожидания, остановки или ошибки. Старые служебные отметки больше не требуют ручного сообщения получателю. Занятые агенты остаются в очереди, история сохраняется, отменённые и неподтверждённые поручения не повторяются. Сначала опубликована Windows x64 alpha.122; Mac пока остаётся на alpha.121 до загрузки его пакетов.
 
 Команды агентов запоминают состояние раскрытия. При переключении разделов вкладка «Проекты» возвращает в последний открытый проект. Нажатие на название проекта или иконку возврата открывает список; «Перечитать агентов» работает отдельно. Строка проекта чёрная в обеих темах, с тонким серым нижним бордюром.
 
