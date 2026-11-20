@@ -1,6 +1,8 @@
 import { t } from '../../shared/i18n/index.ts';
 import { RunChats } from './RunChats.ts';
 import { openRun } from './openRun.ts';
+import { resetChat } from './resetChat.ts';
+import type { ChatReset } from '../../shared/chat.ts';
 import type { ChatTarget, ChatSend, ChatAnswer } from '../../shared/chat.ts';
 import { checkRunLiveness } from './runLiveness.ts';
 import { RunUpdateGuard } from './RunUpdateGuard.ts';
@@ -95,6 +97,33 @@ export class RunHost {
   sendChat = (request: ChatSend) => this.chats.sendChat(request);
   abortChat = (target: ChatTarget) => this.chats.abortChat(target);
   answerChat = (answer: ChatAnswer) => this.chats.answerChat(answer);
+  resetChat(request: ChatReset) {
+    if (!this.dependencies.resetSession) throw Error(t('Chat.notReady'));
+    return resetChat(request, {
+      assertAvailable: () => this.assertAgentAvailable(request.projectId, request.agentId),
+      busy: () =>
+        this.opening.has(runKey(request)) ||
+        this.retiring.has(runKey(request)) ||
+        this.chats.sendingTo(request.projectId, request.agentId) ||
+        this.live.get(runKey(request))?.status === 'running',
+      chat: () => this.chats.chat(request),
+      run: () => this.chats.binding(request),
+      refreshing: this.refreshing,
+      stop: () => this.stopAgent(request.projectId, request.agentId, true),
+      clear: this.dependencies.resetSession,
+      forget: () => this.chats.forget(request),
+      open: () =>
+        this.open(
+          { projectId: request.projectId, agentId: request.agentId, autoContinue: false },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          true,
+        ),
+      changed: () => this.dependencies.chatChanged?.(request),
+    });
+  }
   private refreshState() {
     return {
       live: this.live,
@@ -166,6 +195,7 @@ export class RunHost {
     changing: this.changing,
     opening: this.opening,
     retiring: this.retiring,
+    refreshing: this.refreshing,
     assertUnchanged: (id) => this.assertUnchanged(id),
     open: (request, text, before, delivery) =>
       this.open(request, text, undefined, before, delivery),

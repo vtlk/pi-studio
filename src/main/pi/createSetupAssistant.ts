@@ -6,6 +6,7 @@ import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { RunHost } from './RunHost.ts';
+import { resetStoredChat } from './resetStoredChat.ts';
 import { migrateAgentSessions } from '../storage/migrateAgentSessions.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
@@ -50,6 +51,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
   const chatScopes = new WeakMap<PreparedRun, { folder: string; imageInput: boolean }>();
   const administration = createAdministration(service, options);
   return new RunHost({
+    resetSession: (run) => resetStoredChat(service, run),
     mcpGroups: (run) => [
       ...(options.computer?.groups(run) ?? []),
       ...(options.team?.groups(run) ?? []),

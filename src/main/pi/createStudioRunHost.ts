@@ -2,6 +2,7 @@ import { t } from '../../shared/i18n/index.ts';
 import { ContinuationCancelled } from './RunTypes.ts';
 import type { TeamSupport } from '../team-mcp/TeamSupport.ts';
 import { RunHost } from './RunHost.ts';
+import { resetStoredChat } from './resetStoredChat.ts';
 import { buildRunContext } from './ContextBuilder.ts';
 import { stableId } from '../storage/validation.ts';
 import type { Connection } from '../../shared/connections.ts';
@@ -54,6 +55,7 @@ export function createStudioRunHost(service: StudioService, options: Options) {
   const permissions = new WeakMap<PreparedRun, (id: string) => Promise<boolean>>();
   const chatScopes = new WeakMap<PreparedRun, { folder: string; imageInput: boolean }>();
   const host: RunHost = new RunHost({
+    resetSession: (run) => resetStoredChat(service, run),
     mcpGroups: (run) => [
       ...(options.computer?.groups(run) ?? []),
       ...(options.team?.groups(run) ?? []),

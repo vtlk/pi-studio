@@ -3,7 +3,7 @@ import { FileDropZone } from '@/shared/ui/FileDropZone';
 import { stageFiles } from '@/shared/ui/stageFiles';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LoaderCircle, MessageSquare, Power, Send, Square, X } from 'lucide-react';
+import { Eraser, LoaderCircle, MessageSquare, Power, Send, Square, X } from 'lucide-react';
 import type { ChatTarget } from '../../../shared/chat';
 import { t, i18n } from '../../../shared/i18n';
 import { Button, IconButton } from '@/shared/ui';
@@ -60,6 +60,12 @@ export function ChatPanel({
   }, [state?.revision]);
   const opening = panels.opening || (!panels.error && !readError && state?.phase === 'opening');
   const ready = state?.phase === 'ready' && !opening;
+  const resetBusy =
+    sending ||
+    !!state?.working ||
+    !!state?.dialog ||
+    !!state?.queue?.steering.length ||
+    !!state?.queue?.followUp.length;
   const issue = error || panels.error || readError || state?.error;
   const send = async () => {
     if (!window.studio || !ready || submitting.current || !draft.trim()) return;
@@ -133,6 +139,27 @@ export function ChatPanel({
             </small>
           )}
         </div>
+        <IconButton
+          title={t('Chat.clearDialogue')}
+          aria-description={resetBusy ? t('Chat.resetBusy') : undefined}
+          disabled={!state?.runId || opening || resetBusy}
+          onClick={() => {
+            if (!state) return;
+            const runId = state.runId;
+            confirm({
+              title: t('Chat.clearDialogueConfirm'),
+              description: t('Chat.clearDialogueDescription'),
+              confirmLabel: t('Chat.clearDialogue'),
+              onConfirm: () => {
+                setError('');
+                stick.current = true;
+                void panels.reset(target, runId);
+              },
+            });
+          }}
+        >
+          <Eraser size={16} />
+        </IconButton>
         <IconButton
           title={t('Chat.closeProcess')}
           disabled={!state || state.phase === 'closed' || opening}

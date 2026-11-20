@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-20T08:26:49.613Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "clearDialogueHeaderOrderAndLocalization": true,
+      "clearCancelAndBusyGuards": true,
+      "confirmedResetKeepsDraftWithoutSend": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "clearDialogueHeaderOrderAndLocalization": true,
+      "clearCancelAndBusyGuards": true,
+      "confirmedResetKeepsDraftWithoutSend": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "clearDialogueHeaderOrderAndLocalization": true,
+      "clearCancelAndBusyGuards": true,
+      "confirmedResetKeepsDraftWithoutSend": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "clearDialogueHeaderOrderAndLocalization": true,
+      "clearCancelAndBusyGuards": true,
+      "confirmedResetKeepsDraftWithoutSend": true
+    }
+  ],
+  "userAppOrDataChanged": false,
+  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance."
+}

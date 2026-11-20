@@ -485,6 +485,11 @@ try {
           writeDrafts(drafts);
           return { draft: { cleared: true, revision } };
         },
+        resetChat: async (request) => {
+          window.__qa.resetCalls = [...(window.__qa.resetCalls || []), clone(request)];
+          window.__qa.resetCount = (window.__qa.resetCount || 0) + 1;
+          return { runId: 'new-run-' + request.agentId };
+        },
         getInfo: async () => ({ platform: 'darwin', version: 'QA', runtimeConnected: true }),
         getLanguage: async () => ({ language, preference: language, revision: 0 }),
         getTheme: async () => ({ theme, preference: theme, revision: 0 }),
@@ -516,15 +521,17 @@ try {
           ...target,
           phase: 'ready',
           working: window.__qa.working ?? true,
-          runId: 'run-' + target.agentId,
-          revision: 1,
-          messages: [
-            {
-              id: 'history',
-              role: 'assistant',
-              parts: [{ type: 'text', text: 'EXISTING_HISTORY_' + target.agentId }],
-            },
-          ],
+          runId: (window.__qa.resetCount ? 'new-run-' : 'run-') + target.agentId,
+          revision: 1 + (window.__qa.resetCount || 0),
+          messages: window.__qa.resetCount
+            ? []
+            : [
+                {
+                  id: 'history',
+                  role: 'assistant',
+                  parts: [{ type: 'text', text: 'EXISTING_HISTORY_' + target.agentId }],
+                },
+              ],
           model: 'qa',
           thinkingLevel: 'low',
         }),
@@ -904,13 +911,60 @@ try {
         `Array.from(document.querySelectorAll('.pi-chat-composer-actions>button')).some(b=>b.getAttribute('aria-label')===${JSON.stringify(messages['Chat.send'])})`,
       );
       await checkActions();
+      const clearLabel = JSON.stringify(messages['Chat.clearDialogue']);
+      const clearSelector = `Array.from(document.querySelectorAll('.pi-chat-header button')).find(b=>b.getAttribute('aria-label')===${clearLabel})`;
+      const headerLabels = await js(
+        `Array.from(document.querySelectorAll('.pi-chat-header button')).map(b=>b.getAttribute('aria-label'))`,
+      );
+      assert.deepEqual(headerLabels, [
+        messages['Chat.clearDialogue'],
+        messages['Chat.closeProcess'],
+        messages['Chat.hide'],
+      ]);
+      await until(`${clearSelector}&&!${clearSelector}.disabled`);
+      await js(`${clearSelector}.click()`);
+      await until(`!!document.querySelector('[role="alertdialog"]')`);
+      assert.ok(
+        (await js(`document.querySelector('[role="alertdialog"]').textContent`)).includes(
+          messages['Chat.clearDialogueDescription'],
+        ),
+      );
+      await js(
+        `Array.from(document.querySelectorAll('[role="alertdialog"] button')).find(b=>b.textContent===${JSON.stringify(messages['TeamNameDialog.cancel'])}).click()`,
+      );
+      assert.equal(await js(`window.__qa.resetCalls?.length||0`), 0, 'Cancel never resets');
+      await js(`document.querySelector('.pi-chat-composer textarea').focus()`);
+      await cdp('Input.insertText', { text: 'PRESERVED_RESET_DRAFT' });
+      await js(`${clearSelector}.click()`);
+      await until(`!!document.querySelector('[role="alertdialog"]')`);
+      await js(
+        `Array.from(document.querySelectorAll('[role="alertdialog"] button')).find(b=>b.textContent===${clearLabel}).click()`,
+      );
+      await until(
+        `window.__qa.resetCalls?.length===1&&!document.querySelector('.pi-chat-loading')&&!document.querySelector('.pi-chat-transcript').textContent.includes('EXISTING_HISTORY_')`,
+      );
+      assert.equal(await js(`window.__qa.resetCalls[0].runId`), 'run-a');
+      assert.equal(
+        await js(`document.querySelector('.pi-chat-composer textarea').value`),
+        'PRESERVED_RESET_DRAFT',
+      );
+      await js(`window.__qa.working=true`);
+      await until(`${clearSelector}.disabled`);
+      await js(`window.__qa.working=false`);
+      await until(`!${clearSelector}.disabled`);
       assert.deepEqual(await js('window.__qa.calls'), { launch: 0, commands: 0, saves: 0 });
       await reopen();
-      assert.equal(await js(`document.querySelector('.pi-chat-composer textarea').value`), '');
+      assert.equal(
+        await js(`document.querySelector('.pi-chat-composer textarea').value`),
+        'PRESERVED_RESET_DRAFT',
+      );
       assert.equal(await js(`window.__qa.sends||0`), 0);
       checks.push({
         language,
         theme,
+        clearDialogueHeaderOrderAndLocalization: true,
+        clearCancelAndBusyGuards: true,
+        confirmedResetKeepsDraftWithoutSend: true,
         rootFileOnly: true,
         locateInsideHover: true,
         wordWrapWithoutEditorRemount: true,

@@ -60,6 +60,7 @@ export interface DesktopApi {
   abortChat(target: import('./chat').ChatTarget): Promise<void>;
   answerChat(answer: import('./chat').ChatAnswer): Promise<void>;
   closeChat(target: import('./chat').ChatTarget): Promise<void>;
+  resetChat(request: import('./chat').ChatReset): Promise<import('./runtime').LaunchAgentResult>;
   listPiProcesses(): Promise<import('./chat').PiProcessInfo[]>;
   onChatChanged(listener: (target: import('./chat').ChatTarget) => void): () => void;
   onChatOpened(listener: (target: import('./chat').ChatTarget) => void): () => void;
@@ -199,6 +200,7 @@ export const desktopChannels = {
   abortChat: 'studio:chat-abort',
   answerChat: 'studio:chat-answer',
   closeChat: 'studio:chat-close',
+  resetChat: 'studio:chat-reset',
   listPiProcesses: 'studio:pi-processes',
   chatChanged: 'studio:chat-changed',
   chatOpened: 'studio:chat-opened',

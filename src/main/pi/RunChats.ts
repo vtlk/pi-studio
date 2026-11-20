@@ -156,6 +156,9 @@ export class RunChats {
       this.retained.get(runKey(target))?.run.projectRoot
     );
   }
+  binding(target: ChatTarget) {
+    return this.live.get(runKey(target))?.run ?? this.retained.get(runKey(target))?.run;
+  }
   assertIdle(projectId?: string) {
     if ([...this.sending].some((key) => !projectId || key.startsWith(`${projectId}/`)))
       throw new Error(t('Chat.sending'));

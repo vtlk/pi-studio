@@ -52,7 +52,7 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     window.addEventListener('beforeunload', beforeUnload);
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [draftStore]);
-  const open = (next: ChatTarget, autoContinue = false) => {
+  const open = (next: ChatTarget, autoContinue = false, resetRunId?: string) => {
     show(next);
     const key = `${next.projectId}/${next.agentId}`;
     const current = pending.current.get(key);
@@ -63,10 +63,11 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
       try {
         if (!window.studio) throw new Error(t('Chat.desktopOnly'));
         const existing = await window.studio.getChat(next);
-        if (existing?.phase !== 'ready') setOpening((previous) => [...previous, key]);
+        if (resetRunId || existing?.phase !== 'ready') setOpening((previous) => [...previous, key]);
         if (!(await saveNow()))
           throw new Error(t('useNativeWorkspaceState.saveCurrentSettingsChangesFirst'));
-        if (next.projectId === 'pi-setup-assistant') await window.studio.openSetupAssistant();
+        if (resetRunId) await window.studio.resetChat({ ...next, runId: resetRunId });
+        else if (next.projectId === 'pi-setup-assistant') await window.studio.openSetupAssistant();
         else await window.studio.launchAgent({ ...next, autoContinue });
       } catch (error) {
         setErrors((previous) => ({
@@ -87,6 +88,7 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
       value={{
         target,
         open,
+        reset: (next, runId) => open(next, false, runId),
         show,
         showRunning: (next) => {
           const revision = ++selection.current;

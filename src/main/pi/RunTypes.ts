@@ -35,6 +35,7 @@ export interface RunDependencies {
   captureTerminal?: typeof import('./automaticClose.ts').captureOwnedTab;
   beforeRequest?: (run: PreparedRun) => Promise<void>;
   canReuseTeam?: (run: PreparedRun) => Promise<boolean>;
+  resetSession?: (run: PreparedRun) => Promise<void>;
   tools?: readonly SessionTool[] | ((run: PreparedRun) => readonly SessionTool[]);
   mcpGroups?: (run: PreparedRun) => readonly SessionMcpGroup[];
   closed?: (run: PreparedRun) => void;

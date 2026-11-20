@@ -8,6 +8,7 @@ export interface ChatPanelsValue {
   error: string;
   opening: boolean;
   open: (target: ChatTarget, autoContinue?: boolean) => Promise<void>;
+  reset: (target: ChatTarget, runId: string) => Promise<void>;
   show: (target: ChatTarget) => void;
   showRunning: (target: ChatTarget) => () => void;
   hide: () => void;

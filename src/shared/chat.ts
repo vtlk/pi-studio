@@ -3,6 +3,10 @@ export interface ChatTarget {
   projectId: string;
   agentId: string;
 }
+export interface ChatReset extends ChatTarget {
+  /** Exact dialogue shown when the user confirmed the reset. */
+  runId: string;
+}
 export interface ChatPart {
   type: 'text' | 'thinking' | 'toolCall' | 'image';
   text?: string;

@@ -1,6 +1,6 @@
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
-import type { ChatTarget, ChatSend, ChatAnswer } from '../../shared/chat.ts';
+import type { ChatTarget, ChatSend, ChatAnswer, ChatReset } from '../../shared/chat.ts';
 import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { stableId } from '../storage/validation.ts';
@@ -93,6 +93,11 @@ export function registerChatHandlers(
   handleDesktopInvoke(desktopChannels.closeChat, async (event, target: ChatTarget) => {
     caller(event);
     return (await scoped(target)).stopAgent(target.projectId, target.agentId);
+  });
+  handleDesktopInvoke(desktopChannels.resetChat, async (event, request: ChatReset) => {
+    caller(event);
+    stableId(request?.runId);
+    return (await scoped(request)).resetChat(request);
   });
   handleDesktopInvoke(desktopChannels.answerChat, async (event, answer: ChatAnswer) => {
     caller(event);

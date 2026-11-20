@@ -10,6 +10,7 @@ export function runTeamAccess(state: {
   changing: Set<string>;
   opening: Set<string>;
   retiring: Map<string, Promise<void>>;
+  refreshing?: ReadonlySet<string>;
   assertUnchanged: (projectId: string) => void;
   sending?: (projectId: string, agentId: string) => boolean;
   open: (
@@ -40,6 +41,7 @@ export function runTeamAccess(state: {
         state.changing.has(projectId) ||
         state.opening.has(key) ||
         state.retiring.has(key) ||
+        state.refreshing?.has(key) ||
         state.sending?.(projectId, agentId)
       )
         return 'Диалог/проект ещё подготавливается.';

@@ -30,6 +30,7 @@ await writeFile(
 }`,
 );
 const waiting = new Map<string, ServerResponse>();
+const received = new Map<string, { messages: unknown[] }>();
 let requests = 0,
   fixtureError: unknown;
 const chunk = (content: unknown, finish_reason: string | null = null) => ({
@@ -62,6 +63,7 @@ const server = createServer(async (req, res) => {
       body.messages.filter((message: { role: string }) => message.role === 'user').at(-1).content,
     );
     const marker = text.match(/CHAT_[A-Z0-9_]+/)?.[0] ?? 'UNKNOWN';
+    received.set(marker, body);
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
     if (marker === 'CHAT_TOOL') {
       const toolResult = body.messages.at(-1).role === 'tool';
@@ -187,7 +189,9 @@ const helperProfile = helperProfiles.find((profile) => profile.systemRole === 'a
 await store.saveSection(
   'systemAgents',
   helperProfiles.map((profile) =>
-    profile.id === helperProfile.id ? { ...profile, model: agents[0].model } : profile,
+    profile.id === helperProfile.id
+      ? { ...profile, model: agents[0].model, skills: agents[0].skills }
+      : profile,
   ),
 );
 const helperHost = createSetupAssistant(service, {
@@ -232,12 +236,62 @@ try {
     agentId: helperProfile.id,
     autoContinue: false,
   });
+  const helperTarget = { projectId: 'pi-setup-assistant', agentId: helperProfile.id };
+  await helperHost.resetChat({ ...helperTarget, runId: helperHost.chat(helperTarget)!.runId });
+  assert.deepEqual(
+    helperHost.chat(helperTarget)!.messages,
+    [],
+    'Never-used helper also resets without an existing state file',
+  );
+  await helperHost.sendChat({ ...helperTarget, text: 'CHAT_HELPER_OLD' });
+  await until(() => waiting.has('CHAT_HELPER_OLD'), 'Helper old response begins');
+  release('CHAT_HELPER_OLD');
+  await until(
+    () => helperHost.inspect(helperTarget.projectId, helperTarget.agentId)?.status !== 'running',
+    'Helper settles',
+  );
+  const helperRoot = join(store.folder, '.pistudio/setup-assistant');
+  const helperState = JSON.parse(await readFile(join(helperRoot, 'state.json'), 'utf8'));
+  const helperHistory = await readFile(join(helperRoot, helperState.session.path));
+  const helperProfilesNow = store.bootstrap().sections.systemAgents as typeof helperProfiles;
+  await store.saveSection(
+    'systemAgents',
+    helperProfilesNow.map((profile) =>
+      profile.id === helperProfile.id
+        ? { ...profile, mainInstruction: 'CHAT_HELPER_FRESH_CONTEXT' }
+        : profile,
+    ),
+  );
+  const helperOldRun = helperHost.chat(helperTarget)!.runId;
+  const helperRequests = requests;
+  await helperHost.resetChat({ ...helperTarget, runId: helperOldRun });
+  assert.equal(requests, helperRequests, 'Reset never sends model input');
+  assert.deepEqual(helperHost.chat(helperTarget)!.messages, []);
+  assert.equal(
+    JSON.parse(await readFile(join(helperRoot, 'state.json'), 'utf8')).session,
+    undefined,
+  );
+  assert.deepEqual(await readFile(join(helperRoot, helperState.session.path)), helperHistory);
+  await helperHost.sendChat({ ...helperTarget, text: 'CHAT_HELPER_NEW' });
+  await until(() => waiting.has('CHAT_HELPER_NEW'), 'Fresh helper request');
+  assert.match(
+    JSON.stringify(received.get('CHAT_HELPER_NEW')!.messages),
+    /CHAT_HELPER_FRESH_CONTEXT/,
+  );
+  assert.doesNotMatch(JSON.stringify(received.get('CHAT_HELPER_NEW')!.messages), /CHAT_HELPER_OLD/);
+  release('CHAT_HELPER_NEW');
+  await until(
+    () => helperHost.inspect(helperTarget.projectId, helperTarget.agentId)?.status !== 'running',
+    'Fresh helper settles',
+  );
+  const newHelperState = JSON.parse(await readFile(join(helperRoot, 'state.json'), 'utf8'));
+  assert.notEqual(newHelperState.session.id, helperState.session.id);
   const helperPid = helperHost.processes()[0].pid;
   await helperHost.drain();
   await helperHost.close();
   assert.equal(helperHost.processes().length, 0, 'Helper process is gone before quit completes');
   assert.throws(() => process.kill(helperPid, 0), { code: 'ESRCH' });
-  assert.equal(requests, 0, 'Helper shutdown never sends a model message');
+  assert.equal(requests, helperRequests + 1, 'Helper shutdown never sends another model message');
   const pid = host.processes()[0].pid;
   await host.launch({ ...target(), autoContinue: false });
   assert.equal(host.processes()[0].pid, pid, 'Reopening chat reuses the same idle process');
@@ -412,6 +466,57 @@ try {
       return false;
     }
   }, 'Idle SDK chats permit the update after lifecycle persistence');
+  const currentOldHistory = await readFile(path);
+  const otherPid = host.processes().find((item) => item.agentId === 'b')!.pid;
+  const currentProfiles = store.bootstrap().sections.agents as Agent[];
+  await store.saveSection(
+    'agents',
+    currentProfiles.map((profile) =>
+      profile.id === 'a'
+        ? {
+            ...profile,
+            mainInstruction: 'CHAT_PROJECT_FRESH_PROMPT',
+            instructions: [
+              {
+                id: 'new-instruction',
+                name: 'Updated instruction',
+                content: 'CHAT_PROJECT_FRESH_INSTRUCTION',
+                enabled: true,
+              },
+            ],
+          }
+        : profile,
+    ),
+  );
+  const requestsBeforeReset = requests;
+  await host.resetChat({ ...target(), runId: host.chat(target())!.runId });
+  assert.equal(requests, requestsBeforeReset, 'Fresh project chat opens without model input');
+  assert.deepEqual(host.chat(target())!.messages, []);
+  assert.equal(
+    host.processes().find((item) => item.agentId === 'b')!.pid,
+    otherPid,
+    'Other process untouched',
+  );
+  assert.equal(store.projects.snapshot(project.id).agents[0].session, undefined);
+  assert.deepEqual(await readFile(path), currentOldHistory, 'Previous JSONL stays byte exact');
+  await host.sendChat({ ...target(), text: 'CHAT_PROJECT_NEW' });
+  await until(() => waiting.has('CHAT_PROJECT_NEW'), 'Fresh project request begins');
+  const freshContext = JSON.stringify(received.get('CHAT_PROJECT_NEW')!.messages);
+  assert.match(freshContext, /CHAT_PROJECT_FRESH_PROMPT/);
+  assert.match(freshContext, /CHAT_PROJECT_FRESH_INSTRUCTION/);
+  assert.ok(
+    freshContext.includes(await store.projects.directory(project.id)),
+    'Fresh context contains project path',
+  );
+  assert.doesNotMatch(freshContext, /CHAT_A1|CHAT_A2|CHAT_TOOL_OK/);
+  release('CHAT_PROJECT_NEW');
+  await until(
+    () => host.inspect(project.id, 'a')?.status !== 'running',
+    'Fresh project response settles',
+  );
+  const freshBinding = store.projects.snapshot(project.id).agents[0].session!;
+  assert.notEqual(freshBinding.id, binding.id);
+  assert.notEqual(freshBinding.path, binding.path);
   const historyBeforeUpdate = await readFile(path);
   const lease = host.updates.hold();
   await assert.rejects(host.sendChat({ ...target(), text: 'CHAT_MUST_NOT_START' }));
@@ -443,6 +548,7 @@ try {
           'authoritative steer/follow-up queue visible before delivery and retained on reopen',
           'steer delivered before follow-up, exactly once in native history',
           'exact session restore and JSONL bytes',
+          'clear project/helper chat: new native session, fresh prompt/instructions/skills/MCP, no automatic message, previous JSONL unchanged',
           'selected model/Skill/Project MCP',
           'extension UI round-trip',
           'tool calls/results',
