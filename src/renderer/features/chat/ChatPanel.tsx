@@ -16,6 +16,7 @@ import { useChat } from './useChat';
 import { ChatExtensionDialog } from './ChatExtensionDialog';
 import { ChatTranscript } from './ChatTranscript';
 import { ChatQueuedMessages } from './ChatQueuedMessages';
+import { useQueueActions } from './useQueueActions';
 import './chat.css';
 
 export function ChatPanel({
@@ -40,6 +41,15 @@ export function ChatPanel({
   const [attachmentList, setAttachmentList] = useState<HTMLDivElement | null>(null);
   const [voiceStatus, setVoiceStatus] = useState<HTMLDivElement | null>(null);
   const [behavior, setBehavior] = useState<'steer' | 'followUp'>('followUp');
+  const composer = useRef<HTMLTextAreaElement>(null);
+  const queueActions = useQueueActions(target, state, panels, key, setError, () => {
+    requestAnimationFrame(() => {
+      const field = composer.current;
+      field?.focus();
+      field?.setSelectionRange(field.value.length, field.value.length);
+    });
+  });
+  const composerBusy = sending || !!queueActions.busy;
   const transcript = useRef<HTMLDivElement>(null),
     stick = useRef(true),
     submitting = useRef(false);
@@ -61,14 +71,15 @@ export function ChatPanel({
   const opening = panels.opening || (!panels.error && !readError && state?.phase === 'opening');
   const ready = state?.phase === 'ready' && !opening;
   const resetBusy =
-    sending ||
+    composerBusy ||
     !!state?.working ||
     !!state?.dialog ||
     !!state?.queue?.steering.length ||
     !!state?.queue?.followUp.length;
   const issue = error || panels.error || readError || state?.error;
   const send = async () => {
-    if (!window.studio || !ready || submitting.current || !draft.trim()) return;
+    if (!window.studio || !ready || submitting.current || queueActions.busy || !draft.trim())
+      return;
     submitting.current = true;
     setSending(true);
     setError('');
@@ -125,7 +136,7 @@ export function ChatPanel({
       ariaLabel={t('Chat.title', { name })}
       label={t('Chat.dropFiles')}
       className={`pi-chat-panel${standalone ? ' pi-chat-standalone' : ''}`}
-      disabled={sending || !panels.draftsReady}
+      disabled={composerBusy || !panels.draftsReady}
       onFiles={(files) => void attach(files)}
       onImages={(files) => void attach(files, true)}
     >
@@ -162,7 +173,7 @@ export function ChatPanel({
         </IconButton>
         <IconButton
           title={t('Chat.closeProcess')}
-          disabled={!state || state.phase === 'closed' || opening}
+          disabled={!state || state.phase === 'closed' || opening || composerBusy}
           onClick={() =>
             confirm({
               title: t('Chat.closeProcess'),
@@ -197,7 +208,14 @@ export function ChatPanel({
       >
         {state?.historyTruncated && <p className="subtle">{t('Chat.historyTruncated')}</p>}
         {state && <ChatTranscript messages={state.messages} name={name} working={state.working} />}
-        {state && <ChatQueuedMessages queue={state.queue} phase={state.phase} />}
+        {state && (
+          <ChatQueuedMessages
+            queue={state.queue}
+            phase={state.phase}
+            busy={queueActions.busy || (sending ? 'sending' : '')}
+            onAction={(id, action) => void queueActions.act(id, action)}
+          />
+        )}
         {!state && !opening && !issue && <p role="status">{t('Chat.loading')}</p>}
         {opening && (
           <div className="pi-chat-loading" role="status">
@@ -245,10 +263,11 @@ export function ChatPanel({
       <footer className="pi-chat-composer" aria-busy={sending || undefined}>
         <div className="pi-chat-attachments" ref={setAttachmentList} />
         <Textarea
+          ref={composer}
           aria-label={t('Chat.message')}
           placeholder={t('Chat.placeholder')}
           value={draft}
-          disabled={sending || !panels.draftsReady}
+          disabled={composerBusy || !panels.draftsReady}
           maxLength={200000}
           onChange={(event) => updateDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -281,7 +300,7 @@ export function ChatPanel({
             <ReferenceAttachments
               value={references}
               onChange={setReferences}
-              disabled={sending || !panels.draftsReady}
+              disabled={composerBusy || !panels.draftsReady}
               retainOnUnmount
               compact
               listContainer={attachmentList}
@@ -289,7 +308,7 @@ export function ChatPanel({
           }
           <VoiceInput
             statusContainer={voiceStatus}
-            disabled={sending || !panels.draftsReady}
+            disabled={composerBusy || !panels.draftsReady}
             onText={(text) => {
               const previous = panels.drafts.get(key) ?? '';
               updateDraft(
@@ -299,7 +318,7 @@ export function ChatPanel({
           />
           <IconButton
             title={state?.working ? t('Chat.enqueue') : t('Chat.send')}
-            disabled={!ready || !panels.draftsReady || !draft.trim()}
+            disabled={composerBusy || !ready || !panels.draftsReady || !draft.trim()}
             busy={sending}
             onClick={() => void send()}
           >

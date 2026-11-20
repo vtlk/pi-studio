@@ -2,7 +2,7 @@ import { t } from '../../shared/i18n/index.ts';
 import { RunChats } from './RunChats.ts';
 import { openRun } from './openRun.ts';
 import { resetChat } from './resetChat.ts';
-import type { ChatReset } from '../../shared/chat.ts';
+import type { ChatReset, ChatQueueAction, ChatQueueResult } from '../../shared/chat.ts';
 import type { ChatTarget, ChatSend, ChatAnswer } from '../../shared/chat.ts';
 import { checkRunLiveness } from './runLiveness.ts';
 import { RunUpdateGuard } from './RunUpdateGuard.ts';
@@ -97,6 +97,10 @@ export class RunHost {
   sendChat = (request: ChatSend) => this.chats.sendChat(request);
   abortChat = (target: ChatTarget) => this.chats.abortChat(target);
   answerChat = (answer: ChatAnswer) => this.chats.answerChat(answer);
+  changeChatQueue = (
+    request: ChatQueueAction,
+    prepareEdit: (data: import('./ChatRpc.ts').RpcData) => Promise<ChatQueueResult>,
+  ) => this.chats.changeQueue(request, prepareEdit);
   resetChat(request: ChatReset) {
     if (!this.dependencies.resetSession) throw Error(t('Chat.notReady'));
     return resetChat(request, {

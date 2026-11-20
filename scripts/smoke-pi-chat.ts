@@ -174,7 +174,7 @@ const connection = {
       {
         id: 'qa-chat',
         name: 'QA chat',
-        imageInput: false,
+        imageInput: true,
         reasoning: false,
         contextWindow: 8192,
         maxTokens: 1024,
@@ -454,9 +454,75 @@ try {
     1,
     'Reopening the existing process preserves its native queue',
   );
+  const queuedItem = (marker: string) =>
+    host.chat(target())?.queue?.items?.find((item) => item.text.includes(marker));
+  await host.sendChat({
+    ...target(),
+    text: 'CHAT_PROMOTE: Interrupt after current tools.',
+    behavior: 'followUp',
+  });
+  await host.sendChat({
+    ...target(),
+    text: 'CHAT_DELETE_QUEUE: Never deliver.',
+    behavior: 'followUp',
+  });
+  const pixel = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+yMksAAAAASUVORK5CYII=',
+    'base64',
+  );
+  const queuedImage = await references.paste(pixel, join(root, 'queue-images'), store.folder);
+  await host.sendChat({
+    ...target(),
+    text: 'CHAT_EDIT_QUEUE: Restore this image input.',
+    attachments: [queuedImage.id],
+    behavior: 'followUp',
+  });
+  await host.sendChat({ ...target(), text: 'CHAT_DUPLICATE', behavior: 'followUp' });
+  await host.sendChat({ ...target(), text: 'CHAT_DUPLICATE', behavior: 'followUp' });
+  await until(
+    () =>
+      host.chat(target())?.queue?.items?.filter((item) => item.text === 'CHAT_DUPLICATE').length ===
+        2 && queuedItem('CHAT_EDIT_QUEUE'),
+    'Native queue stable IDs include identical inputs and images',
+  );
+  const sequenceBeforeQueueActions = host.inspect(project.id, 'a')!.sequence;
+  const changeQueue = (entryId: string, action: 'steer' | 'delete' | 'edit') =>
+    host.changeChatQueue(
+      { ...target(), runId: host.chat(target())!.runId, entryId, action },
+      async (data) => {
+        assert.ok(data.images?.[0]);
+        assert.equal(data.images[0].data, pixel.toString('base64'));
+        return { text: data.text };
+      },
+    );
+  const promotedId = queuedItem('CHAT_PROMOTE')!.id;
+  await changeQueue(promotedId, 'steer');
+  await until(
+    () => queuedItem('CHAT_PROMOTE')?.kind === 'steering',
+    'Follow-up becomes native steering without requeueing neighbors',
+  );
+  await changeQueue(queuedItem('CHAT_DELETE_QUEUE')!.id, 'delete');
+  const edited = await changeQueue(queuedItem('CHAT_EDIT_QUEUE')!.id, 'edit');
+  assert.match(edited.text!, /CHAT_EDIT_QUEUE/);
+  const duplicates = host
+    .chat(target())!
+    .queue!.items!.filter((item) => item.text === 'CHAT_DUPLICATE');
+  assert.notEqual(duplicates[0].id, duplicates[1].id);
+  await changeQueue(duplicates[1].id, 'delete');
+  await assert.rejects(changeQueue(duplicates[1].id, 'delete'), /queue|очеред/i);
+  assert.equal(
+    host.chat(target())!.queue!.items!.filter((item) => item.text === 'CHAT_DUPLICATE').length,
+    1,
+  );
+  await changeQueue(duplicates[0].id, 'delete');
+  assert.equal(
+    host.inspect(project.id, 'a')!.sequence,
+    sequenceBeforeQueueActions,
+    'Queue controls do not run input handlers or create new task sequences',
+  );
   release('CHAT_A1');
   await until(() => waiting.has('CHAT_STEER'), 'Steer is consumed before follow-up');
-  assert.equal(host.chat(target())?.queue?.steering.length, 0);
+  assert.equal(host.chat(target())?.queue?.steering.length, 1);
   assert.equal(host.chat(target())?.queue?.followUp.length, 1);
   assert.equal(
     host
@@ -470,12 +536,20 @@ try {
     'Steer enters actual history exactly once',
   );
   release('CHAT_STEER');
+  await until(() => waiting.has('CHAT_PROMOTE'), 'Promoted steering is delivered before follow-up');
+  release('CHAT_PROMOTE');
   await until(() => waiting.has('CHAT_A2'), 'Queued follow-up starts');
   release('CHAT_A2');
   release('CHAT_B1');
   await until(
     () => !host.chat(target())?.working && !host.chat(target('b'))?.working,
     'Both requests settle',
+  );
+  assert.ok(
+    !received.has('CHAT_DELETE_QUEUE') &&
+      !received.has('CHAT_EDIT_QUEUE') &&
+      !received.has('CHAT_DUPLICATE'),
+    'Deleted/edited native inputs never reached the model',
   );
   const saved = await store.projects.read(project.id),
     binding = saved.agents[0].session!;
@@ -621,6 +695,7 @@ try {
           'streaming',
           'authoritative steer/follow-up queue visible before delivery and retained on reopen',
           'steer delivered before follow-up, exactly once in native history',
+          'native per-entry steer/edit/delete preserves duplicate identities and image bytes without input-hook replay; stale IDs never remove a neighbor',
           'exact session restore and JSONL bytes',
           'clear project/helper chat: new native session, fresh prompt/instructions/skills/MCP, no automatic message, previous JSONL unchanged',
           'helper reads full constructor settings through both Team and Administration native MCP without selecting a production project',

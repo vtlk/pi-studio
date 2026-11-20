@@ -2,6 +2,8 @@ export interface RpcData {
   messages?: unknown[];
   disposition?: string;
   isStreaming?: boolean;
+  text?: string;
+  images?: { type: 'image'; mimeType: string; data: string }[];
 }
 export interface RpcEvent {
   type: string;
@@ -12,6 +14,7 @@ export interface RpcEvent {
   message?: unknown;
   steering?: unknown;
   followUp?: unknown;
+  items?: unknown;
   assistantMessageEvent?: {
     type: string;
     contentIndex?: number;

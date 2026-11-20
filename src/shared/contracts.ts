@@ -61,6 +61,9 @@ export interface DesktopApi {
   answerChat(answer: import('./chat').ChatAnswer): Promise<void>;
   closeChat(target: import('./chat').ChatTarget): Promise<void>;
   resetChat(request: import('./chat').ChatReset): Promise<import('./runtime').LaunchAgentResult>;
+  changeChatQueue(
+    request: import('./chat').ChatQueueAction,
+  ): Promise<import('./chat').ChatQueueResult>;
   listPiProcesses(): Promise<import('./chat').PiProcessInfo[]>;
   onChatChanged(listener: (target: import('./chat').ChatTarget) => void): () => void;
   onChatOpened(listener: (target: import('./chat').ChatTarget) => void): () => void;
@@ -201,6 +204,7 @@ export const desktopChannels = {
   answerChat: 'studio:chat-answer',
   closeChat: 'studio:chat-close',
   resetChat: 'studio:chat-reset',
+  changeChatQueue: 'studio:chat-queue-change',
   listPiProcesses: 'studio:pi-processes',
   chatChanged: 'studio:chat-changed',
   chatOpened: 'studio:chat-opened',

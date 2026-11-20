@@ -38,6 +38,18 @@ export interface ChatDialog {
 export interface ChatQueue {
   steering: string[];
   followUp: string[];
+  items?: { id: string; kind: 'steering' | 'followUp'; text: string }[];
+}
+export interface ChatQueueAction extends ChatTarget {
+  runId: string;
+  entryId: string;
+  action: 'steer' | 'edit' | 'delete';
+  maxTextLength?: number;
+  maxAttachments?: number;
+}
+export interface ChatQueueResult {
+  text?: string;
+  attachments?: import('./attachments').ReferenceFile[];
 }
 export interface ChatState extends ChatTarget {
   runId: string;

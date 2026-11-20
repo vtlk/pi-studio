@@ -29,6 +29,7 @@ const desktopApi: DesktopApi = {
   answerChat: (answer) => ipcRenderer.invoke(desktopChannels.answerChat, answer),
   closeChat: (target) => ipcRenderer.invoke(desktopChannels.closeChat, target),
   resetChat: (request) => ipcRenderer.invoke(desktopChannels.resetChat, request),
+  changeChatQueue: (request) => ipcRenderer.invoke(desktopChannels.changeChatQueue, request),
   listPiProcesses: () => ipcRenderer.invoke(desktopChannels.listPiProcesses),
   onChatChanged: (listener) => {
     const receive = (_event: unknown, target: import('../shared/chat').ChatTarget) => {

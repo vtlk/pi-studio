@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-11-20T09:31:15.772Z",
+  "checks": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true
+    }
+  ],
+  "composerFocusAfterEdit": true,
+  "userAppOrDataChanged": false,
+  "scope": "Actual compiled renderer + isolated headless shell; controlled native APIs and media transport. Not native Windows acceptance."
+}

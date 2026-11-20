@@ -235,7 +235,10 @@ export function registerDesktopHandlers(
     });
   }
   registerReferenceHandlers(service, references, caller);
-  registerChatHandlers(service, runs, setup, caller, drafts);
+  registerChatHandlers(service, runs, setup, caller, drafts, {
+    references,
+    directory: join(app.getPath('userData'), 'queue-inputs'),
+  });
   registerImageHandlers(imageConnections, caller);
   handleDesktopInvoke(desktopChannels.launchAgent, (event, request: LaunchAgentRequest) => {
     caller(event);

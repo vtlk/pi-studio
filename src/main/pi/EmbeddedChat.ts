@@ -8,9 +8,10 @@ import { stopOwnedChat } from './stopOwnedChat.ts';
 import { piEnvironment } from './platform.ts';
 import { findWindowsBash } from './windowsBash.ts';
 import { findGit } from './git.ts';
-import { chatText, projectChatMessage, projectChatQueue } from './chatProjection.ts';
+import { chatText, projectChatMessage } from './chatProjection.ts';
 
 import type { RpcData, RpcEvent } from './ChatRpc.ts';
+import { chatCommand, normalizeQueueEvent, chatQueue } from './chatQueueRpc.ts';
 
 /** Official Pi SDK RPC mode, hosted in an owned background Node process, never a terminal. */
 export class EmbeddedChat {
@@ -185,7 +186,7 @@ export class EmbeddedChat {
           : undefined;
       this.pending.set(id, { resolve, reject, timer });
       try {
-        this.write({ id, type, ...args });
+        this.write(chatCommand(id, type, args));
       } catch (error) {
         clearTimeout(timer);
         this.pending.delete(id);
@@ -214,6 +215,10 @@ export class EmbeddedChat {
     this.dialogs.length = 0;
     this.state.dialog = undefined;
     this.touch();
+  }
+  queueAction(action: 'peek' | 'steer' | 'edit' | 'delete', entryId: string) {
+    if (!this.alive || this.state.phase !== 'ready') throw Error(t('Chat.disconnected'));
+    return this.command('studio_queue_action', { action, entryId });
   }
   answer(answer: ChatAnswer) {
     const dialog = this.dialogs.find((item) => item.id === answer.id);
@@ -275,6 +280,7 @@ export class EmbeddedChat {
   }
   private receive(event: RpcEvent) {
     if (!event || typeof event.type !== 'string') throw new Error('Invalid RPC event');
+    event = normalizeQueueEvent(event);
     if (event.type === 'response') {
       const request = event.id ? this.pending.get(event.id) : undefined;
       if (!request) return;
@@ -284,8 +290,8 @@ export class EmbeddedChat {
       else request.reject(new Error(chatText(event.error, 4000) || t('Chat.commandFailed')));
       return;
     }
-    if (event.type === 'queue_update')
-      this.state.queue = projectChatQueue(event.steering, event.followUp);
+    if (event.type === 'studio_queue_update' || event.type === 'queue_update')
+      this.state.queue = chatQueue(this.state.queue, event);
     else if (event.type === 'message_start')
       this.state.messages.push(projectChatMessage(event.message, randomUUID()));
     else if (event.type === 'message_update') {

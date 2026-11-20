@@ -384,6 +384,18 @@
   overflow-wrap: anywhere;
   margin: 0;
 }
+.pi-chat-queue-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pi-chat-queue-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
 
 /* Keep input actions visible; attached files wrap below them as compact chips. */
 .pi-chat-panel.file-drop-zone {

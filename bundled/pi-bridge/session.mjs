@@ -16,8 +16,12 @@ import { sessionEvents } from './session-events.mjs';
 import { sessionRequest } from './session-request.mjs';
 import { npmSettings, withNodeCommand } from './node-tools.mjs';
 import { shellSettings, shellToolOptions } from './shell-tools.mjs';
+import { createQueueControls } from './queue-controls.mjs';
 
 export async function runSession(bootstrapPath) {
+  // Pi RPC redirects ordinary stdout logs; keep the original stream for owned protocol records.
+  const rawOutput = process.stdout.write.bind(process.stdout);
+  const queueOutput = (value) => rawOutput(JSON.stringify(value) + '\n');
   const bootstrap = JSON.parse(await readFile(bootstrapPath, 'utf8'));
   await rm(bootstrapPath, { force: true });
   await rm(`${bootstrapPath}.command`, { force: true });
@@ -143,6 +147,7 @@ export async function runSession(bootstrapPath) {
     bootstrap,
   );
   const requiredServers = servers.map((server) => server.name);
+  let queueControls;
   let runtime,
     disposeRuntime,
     accounting,
@@ -201,6 +206,7 @@ export async function runSession(bootstrapPath) {
     clearInterval(heartbeat);
     clearInterval(accountingTimer);
     clearInterval(bindingTimer);
+    queueControls?.close();
     await disposeRuntime?.();
     await accounting?.close().catch(() => {});
     await event({ type: 'stopped' }).catch(() => {});
@@ -212,6 +218,40 @@ export async function runSession(bootstrapPath) {
   process.once('SIGHUP', shutdown);
   try {
     const control = (pi) => {
+      if (bootstrap.embedded)
+        pi.registerCommand('pistudio-queue-action', {
+          description: 'Pi Studio queue controls',
+          handler: async (text) => {
+            let command;
+            try {
+              command = JSON.parse(text);
+              if (typeof command.id !== 'string' || command.id.length > 100)
+                throw Error('queue_invalid');
+              const data = queueControls.action(command.action, command.entryId);
+              queueOutput({
+                type: 'studio_queue_result',
+                id: command.id,
+                success: true,
+                data,
+              });
+            } catch (error) {
+              if (command?.id)
+                queueOutput({
+                  type: 'studio_queue_result',
+                  id: command.id,
+                  success: false,
+                  error: [
+                    'queue_changed',
+                    'queue_unsupported',
+                    'queue_invalid',
+                    'queue_too_large',
+                  ].includes(error.message)
+                    ? error.message
+                    : 'queue_unsupported',
+                });
+            }
+          },
+        });
       // Verified with the installed Pi Codex adapter and the user's subscription. No API fallback.
       if (envelope.record.model.provider === 'openai-codex') {
         pi.on('before_provider_request', (event) => {
@@ -387,6 +427,10 @@ export async function runSession(bootstrapPath) {
       sessionManager: sessions,
     });
     disposeRuntime = runtime.dispose.bind(runtime);
+    if (bootstrap.embedded) {
+      queueControls = createQueueControls(runtime.session, queueOutput);
+      queueControls.publish();
+    }
     if (bootstrap.embedded) runtime.dispose = close;
     if (!envelope.serviceAgent) {
       accounting = new RuntimeAccounting(runtime.session, event);

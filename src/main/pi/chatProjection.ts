@@ -62,11 +62,40 @@ export function projectChatMessage(value: unknown, id: string): ChatMessage {
 }
 
 /** queue_update carries complete authoritative queues, including repeated identical messages. */
-export function projectChatQueue(steering: unknown, followUp: unknown): ChatQueue {
+export function projectChatQueue(steering: unknown, followUp: unknown, items?: unknown): ChatQueue {
   const texts = (value: unknown) => {
     if (!Array.isArray(value) || value.some((item) => typeof item !== 'string'))
       throw new Error('Invalid Pi queue update');
     return value.map((item) => chatText(item));
   };
-  return { steering: texts(steering), followUp: texts(followUp) };
+  const queue: ChatQueue = { steering: texts(steering), followUp: texts(followUp) };
+  if (items !== undefined) {
+    if (
+      !Array.isArray(items) ||
+      items.length !== queue.steering.length + queue.followUp.length ||
+      items.some(
+        (item) =>
+          !item ||
+          typeof item.id !== 'string' ||
+          !/^[a-zA-Z0-9_-]{1,100}$/.test(item.id) ||
+          !['steering', 'followUp'].includes(item.kind) ||
+          typeof item.text !== 'string',
+      ) ||
+      new Set(items.map((item) => item.id)).size !== items.length
+    )
+      throw Error('Invalid Pi queue identity');
+    for (const kind of ['steering', 'followUp'] as const)
+      if (
+        JSON.stringify(
+          items.filter((item) => item.kind === kind).map((item) => chatText(item.text)),
+        ) !== JSON.stringify(queue[kind])
+      )
+        throw Error('Invalid Pi queue identity');
+    queue.items = items.map((item) => ({
+      id: item.id,
+      kind: item.kind,
+      text: chatText(item.text),
+    }));
+  }
+  return queue;
 }

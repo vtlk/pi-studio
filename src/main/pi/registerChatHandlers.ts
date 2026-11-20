@@ -1,6 +1,14 @@
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import { desktopChannels } from '../../shared/contracts';
-import type { ChatTarget, ChatSend, ChatAnswer, ChatReset } from '../../shared/chat.ts';
+import type {
+  ChatTarget,
+  ChatSend,
+  ChatAnswer,
+  ChatReset,
+  ChatQueueAction,
+} from '../../shared/chat.ts';
+import type { ReferenceFiles } from './ReferenceFiles.ts';
+import type { ReferenceFile } from '../../shared/attachments.ts';
 import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { stableId } from '../storage/validation.ts';
@@ -16,7 +24,9 @@ export function registerChatHandlers(
   setup: RunHost,
   caller: (event: IpcMainInvokeEvent) => BrowserWindow,
   drafts?: ChatDrafts,
+  queueFiles?: { references: ReferenceFiles; directory: string },
 ) {
+  const { references, directory: queueDirectory } = queueFiles ?? {};
   const host = (target: ChatTarget) => {
     if (!target || typeof target !== 'object') throw new Error(t('Chat.invalidRequest'));
     stableId(target.projectId);
@@ -98,6 +108,53 @@ export function registerChatHandlers(
     caller(event);
     stableId(request?.runId);
     return (await scoped(request)).resetChat(request);
+  });
+  handleDesktopInvoke(desktopChannels.changeChatQueue, async (event, request: ChatQueueAction) => {
+    caller(event);
+    stableId(request?.runId);
+    stableId(request?.entryId);
+    if (!['steer', 'edit', 'delete'].includes(request.action))
+      throw Error(t('Chat.invalidRequest'));
+    const selected = await scoped(request),
+      store = service.peek()!;
+    const staged: ReferenceFile[] = [];
+    try {
+      return await selected.changeChatQueue(request, async (data) => {
+        const capacity = request.maxTextLength ?? 200000,
+          imageCapacity = request.maxAttachments ?? 32;
+        if (
+          !Number.isSafeInteger(capacity) ||
+          capacity < 0 ||
+          capacity > 200000 ||
+          !Number.isSafeInteger(imageCapacity) ||
+          imageCapacity < 0 ||
+          imageCapacity > 32 ||
+          typeof data.text !== 'string' ||
+          data.text.length > capacity ||
+          (data.images !== undefined &&
+            (!Array.isArray(data.images) || data.images.length > imageCapacity))
+        )
+          throw Error(t('Chat.queueEditTooLarge'));
+        for (const image of data.images ?? []) {
+          if (
+            !references ||
+            !queueDirectory ||
+            typeof image.data !== 'string' ||
+            image.data.length > 45000000 ||
+            !/^[A-Za-z0-9+/]*={0,2}$/.test(image.data)
+          )
+            throw Error(t('Chat.invalidImage'));
+          staged.push(
+            await references.paste(Buffer.from(image.data, 'base64'), queueDirectory, store.folder),
+          );
+        }
+        if (service.peek() !== store) throw Error(t('ChatDrafts.scopeChanged'));
+        return { text: data.text, attachments: staged };
+      });
+    } catch (error) {
+      references?.release(staged.map((file) => file.id));
+      throw error;
+    }
   });
   handleDesktopInvoke(desktopChannels.answerChat, async (event, answer: ChatAnswer) => {
     caller(event);

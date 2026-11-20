@@ -26,6 +26,7 @@ import { cx } from '@/shared/ui';
 import { AgentListLabel } from './AgentListLabel';
 import { useTeamDisclosure } from '../model/useTeamDisclosure';
 import { SetupAssistantAction } from './SetupAssistantAction';
+import { useChatPanels } from '@/features/chat/ChatPanels.context';
 
 export function AgentList() {
   useTranslation(undefined, { i18n });
@@ -53,6 +54,11 @@ export function AgentList() {
     workspaceMode?: TeamWorkspaceMode;
   } | null>(null);
   const drag = useAgentTeamDrag();
+  const chats = useChatPanels();
+  const selectAgent = (id: string) => {
+    setAgentId(id);
+    if (chats.target?.projectId === 'pi-setup-assistant') chats.hideFor(chats.target);
+  };
   return (
     <nav className="section-menu" aria-label={t('AgentList.agentBuilder')}>
       <DndContext
@@ -150,7 +156,7 @@ export function AgentList() {
                           position={index + 1}
                           teamId={team.id}
                           selected={selectedAgent?.id === agent.id}
-                          onSelect={() => setAgentId(agent.id)}
+                          onSelect={() => selectAgent(agent.id)}
                           onDelete={() => {
                             removeAgent(agent.id);
                             demo(
@@ -236,7 +242,7 @@ export function AgentList() {
                   value2: agent.enabled ? t('AgentList.enabled') : t('AgentList.disabled'),
                 })}
                 aria-current={selectedAgent?.id === agent.id ? 'true' : undefined}
-                onClick={() => setAgentId(agent.id)}
+                onClick={() => selectAgent(agent.id)}
               >
                 <AgentListLabel agent={agent} position={index + 1} />
               </button>

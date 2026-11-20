@@ -4,6 +4,8 @@ import type {
   ChatAnswer,
   PiProcessInfo,
   ChatState,
+  ChatQueueAction,
+  ChatQueueResult,
 } from '../../shared/chat.ts';
 import { t } from '../../shared/i18n/index.ts';
 import type { RunDependencies, LiveRun } from './RunTypes.ts';
@@ -117,6 +119,39 @@ export class RunChats {
   }
   async sendChat(request: ChatSend) {
     await this.send(request);
+  }
+  async changeQueue(
+    request: ChatQueueAction,
+    prepareEdit: (data: import('./ChatRpc.ts').RpcData) => Promise<ChatQueueResult>,
+  ) {
+    this.assertTarget(request);
+    const key = runKey(request),
+      live = this.live.get(key);
+    const check = () => {
+      this.assertUnchanged(request.projectId);
+      this.assertTarget(request);
+      if (
+        !live?.embedded?.alive ||
+        this.live.get(key) !== live ||
+        live.run.record.runId !== request.runId
+      )
+        throw Error(t('Chat.queueChanged'));
+    };
+    check();
+    if (this.sending.has(key)) throw Error(t('Chat.sending'));
+    this.sending.add(key);
+    try {
+      let edited: ChatQueueResult = {};
+      if (request.action === 'edit') {
+        const data = await live!.embedded!.queueAction('peek', request.entryId);
+        edited = await prepareEdit(data);
+        check();
+      }
+      await live!.embedded!.queueAction(request.action, request.entryId);
+      return edited;
+    } finally {
+      this.sending.delete(key);
+    }
   }
   sendAutomatic(request: ChatSend, beforeSend: (live: LiveRun) => void | Promise<void>) {
     return this.send(request, beforeSend);

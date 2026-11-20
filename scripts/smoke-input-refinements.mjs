@@ -304,13 +304,41 @@ try {
       }
       return originalFetch(url, options);
     };
+    const helper = {
+      id: 'helper',
+      name: 'QA helper',
+      systemRole: 'assistant',
+      enabled: true,
+      skills: [],
+      mcps: ['pistudio-project'],
+      plugins: [],
+      instructions: [],
+      model: {
+        connectionId: 'qa',
+        provider: 'local',
+        id: 'qa',
+        reasoning: 'Низкий',
+        temperature: '',
+      },
+    };
+    const chatOpened = new Set();
     const state = {
       folder,
       sections: {
         agentCatalog: { agents, teams },
-        systemAgents: [],
+        systemAgents: [helper],
         resources: [],
-        connections: [],
+        connections: [
+          {
+            id: 'qa',
+            name: 'QA',
+            providerId: 'local',
+            purpose: 'local',
+            endpoint: 'http://localhost:1',
+            account: '',
+            createdAt: 1,
+          },
+        ],
       },
       projects,
       trashProjects: [],
@@ -517,12 +545,47 @@ try {
           if (window.__qa.delay) await new Promise((done) => setTimeout(done, window.__qa.delay));
           return snapshot;
         },
+        onChatOpened: (listener) => {
+          chatOpened.add(listener);
+          return () => chatOpened.delete(listener);
+        },
+        openSetupAssistant: async () => {
+          const target = { projectId: 'pi-setup-assistant', agentId: helper.id };
+          window.__qa.helperOpens = (window.__qa.helperOpens || 0) + 1;
+          if (!window.__qa.processes.some((item) => item.agentId === helper.id))
+            window.__qa.processes.push({
+              ...target,
+              runId: 'run-helper',
+              agentName: helper.name,
+              pid: 777,
+              working: false,
+              embedded: true,
+            });
+          for (const listener of chatOpened) listener(target);
+          return { runId: 'run-helper' };
+        },
+        getModelCatalog: async () => ({ providers: [], models: [] }),
+        changeChatQueue: async (request) => {
+          window.__qa.queueActions = [...(window.__qa.queueActions || []), clone(request)];
+          const items = window.__qa.queue.items;
+          const selected = items.find((item) => item.id === request.entryId);
+          if (!selected) throw Error('Queue entry changed');
+          if (request.action === 'steer') selected.kind = 'steering';
+          else items.splice(items.indexOf(selected), 1);
+          window.__qa.queue = {
+            items,
+            steering: items.filter((item) => item.kind === 'steering').map((item) => item.text),
+            followUp: items.filter((item) => item.kind === 'followUp').map((item) => item.text),
+          };
+          return request.action === 'edit' ? { text: selected.text, attachments: [] } : {};
+        },
         getChat: async (target) => ({
           ...target,
           phase: 'ready',
           working: window.__qa.working ?? true,
           runId: (window.__qa.resetCount ? 'new-run-' : 'run-') + target.agentId,
-          revision: 1 + (window.__qa.resetCount || 0),
+          revision: 1 + (window.__qa.resetCount || 0) + (window.__qa.queueActions?.length || 0),
+          queue: window.__qa.queue,
           messages: window.__qa.resetCount
             ? []
             : [
@@ -578,8 +641,8 @@ try {
       },
       {
         get(target, key) {
-          if (String(key).startsWith('on')) return () => () => {};
           if (key in target) return target[key];
+          if (String(key).startsWith('on')) return () => () => {};
           return async () => {
             throw Error('Unexpected QA API: ' + String(key));
           };
@@ -959,9 +1022,68 @@ try {
         'PRESERVED_RESET_DRAFT',
       );
       assert.equal(await js(`window.__qa.sends||0`), 0);
+      await js(
+        `window.__qa.queue={steering:[],followUp:['TO_STEER','TO_EDIT','TO_DELETE'],items:[{id:'q-steer',kind:'followUp',text:'TO_STEER'},{id:'q-edit',kind:'followUp',text:'TO_EDIT'},{id:'q-delete',kind:'followUp',text:'TO_DELETE'}]}`,
+      );
+      await until(`document.querySelectorAll('.pi-chat-queued article').length===3`);
+      await cdp('Page.captureScreenshot', { format: 'png' }).then((shot) =>
+        writeFile(
+          `artifacts/queue-actions-${language}-${theme}.png`,
+          Buffer.from(shot.data, 'base64'),
+        ),
+      );
+      const queueClick = (text, label) =>
+        js(
+          `Array.from(document.querySelectorAll('.pi-chat-queued article')).find(row=>row.textContent.includes(${JSON.stringify(text)})).querySelector('[aria-label='+${JSON.stringify(JSON.stringify(label))}+']').click()`,
+        );
+      await queueClick('TO_STEER', messages['Chat.queueMakeSteer']);
+      await until(
+        `Array.from(document.querySelectorAll('.pi-chat-queued article')).some(row=>row.textContent.includes('TO_STEER')&&row.dataset.queueKind==='steering')`,
+      );
+      await queueClick('TO_EDIT', messages['Chat.queueEdit']);
+      await until(
+        `document.querySelector('.pi-chat-composer textarea').value===${JSON.stringify('PRESERVED_RESET_DRAFT\n\nTO_EDIT')}&&!Array.from(document.querySelectorAll('.pi-chat-queued article')).some(row=>row.textContent.includes('TO_EDIT'))`,
+      );
+      await until(`!document.querySelector('.pi-chat-queue-actions button:disabled')`);
+      await until(`document.activeElement===document.querySelector('.pi-chat-composer textarea')`);
+      await queueClick('TO_DELETE', messages['Chat.queueDelete']);
+      await until(`document.querySelectorAll('.pi-chat-queued article').length===1`);
+      assert.deepEqual(await js(`window.__qa.queueActions.map(item=>[item.entryId,item.action])`), [
+        ['q-steer', 'steer'],
+        ['q-edit', 'edit'],
+        ['q-delete', 'delete'],
+      ]);
+      assert.equal(
+        await js(`window.__qa.sends||0`),
+        0,
+        'Queue actions never submit the restored draft',
+      );
+      await until(`!document.querySelector('[data-chat-draft-pending="true"]')`);
+      await js(
+        `Array.from(document.querySelectorAll('.topbar nav button')).find(button=>button.textContent===${JSON.stringify(messages['Topbar.agents'])}).click()`,
+      );
+      await until(`!!document.querySelector('.agent-helper-launch')`);
+      await click('.agent-helper-launch');
+      await until(`document.querySelector('.pi-chat-panel h2')?.textContent==='QA helper'`);
+      await js(`document.querySelector('.pi-chat-composer textarea').focus()`);
+      await cdp('Input.insertText', { text: 'HELPER_DRAFT' });
+      await until(`!document.querySelector('[data-chat-draft-pending="true"]')`);
+      await js(
+        `Array.from(document.querySelectorAll('.agent-teams-scroll .agent-list-item')).find(button=>button.textContent.includes('Agent a')).click()`,
+      );
+      await until(`!document.querySelector('.pi-chat-panel')`);
+      assert.ok(
+        await js(`window.__qa.processes.some(item=>item.agentId==='helper')`),
+        'Selecting a profile does not close the helper process',
+      );
+      assert.equal(await js(`window.__qa.helperOpens`), 1);
+      await click('.agent-helper-launch');
+      await until(`document.querySelector('.pi-chat-composer textarea')?.value==='HELPER_DRAFT'`);
       checks.push({
         language,
         theme,
+        queueSteerEditDelete: true,
+        helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft: true,
         clearDialogueHeaderOrderAndLocalization: true,
         clearCancelAndBusyGuards: true,
         confirmedResetKeepsDraftWithoutSend: true,
