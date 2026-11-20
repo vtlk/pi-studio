@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-20T08:29:56.421079+00:00",
+  "version": "0.2.0-alpha.123",
+  "removedOwnedUnpackedBuildBytes": 359921376,
+  "freeBytesBefore": 15353311232,
+  "freeBytesAfter": 15724462080,
+  "freeBytesChange": 371150848,
+  "appGuiNeverExecuted": true,
+  "allOwnedQaChildrenExitedBeforeCleanup": true,
+  "retainedCurrentReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.123-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.123-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.123-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.123-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.123-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.123-win32-x64.update.json"
+  ],
+  "installedApplicationOrModelCacheOrUserProcessesTouched": false,
+  "browserCloneAudit": "mac-package-browser-clones-proof.json",
+  "auditWorktreeRemoved": true
+}

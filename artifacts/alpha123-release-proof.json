@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-20T08:38:18.269Z",
+  "version": "0.2.0-alpha.123",
+  "windowsPublishedFirst": true,
+  "windowsOnlyPhase": false,
+  "url": "https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.123",
+  "platforms": [
+    {
+      "platform": "win32",
+      "offeredVersion": "0.2.0-alpha.123",
+      "sourceCommit": "69988fb54bc18d6d6da21eef088f9fc600f8568a",
+      "archive": {
+        "name": "Pi-Studio-0.2.0-alpha.123-win-x64.zip",
+        "bytes": 180175312,
+        "unpackedBytes": 447414549,
+        "sha256": "8106b9d42d78f17169b2a3f24624640bffcdc6df1960b3274d40f8ad5bbcfcff"
+      },
+      "productionSignatureAndCurrentVersionCheck": true,
+      "checksumAndZipPrefixChecked": true
+    },
+    {
+      "platform": "darwin",
+      "offeredVersion": "0.2.0-alpha.123",
+      "sourceCommit": "69988fb54bc18d6d6da21eef088f9fc600f8568a",
+      "archive": {
+        "name": "Pi-Studio-0.2.0-alpha.123-mac-arm64.zip",
+        "bytes": 151526910,
+        "unpackedBytes": 359921646,
+        "sha256": "25a265dc1513185b267bf0f066603ae68206339b5d569781c183150c461d863e"
+      },
+      "productionSignatureAndCurrentVersionCheck": true,
+      "checksumAndZipPrefixChecked": true
+    }
+  ],
+  "allPublishedAssetSizesAndDigestsVerified": true,
+  "releasePageHttp": 200,
+  "actionsEnabled": false,
+  "installedApplicationOrUserDataChanged": false,
+  "nativeWindowsAcceptance": false
+}

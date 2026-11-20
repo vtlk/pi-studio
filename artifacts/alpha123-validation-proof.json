@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-20T08:29:56.255980+00:00",
+  "version": "0.2.0-alpha.123",
+  "runtimeSourceCommit": "69988fb54bc18d6d6da21eef088f9fc600f8568a",
+  "buildTypecheckAndLint": true,
+  "architectureModules": 486,
+  "tests": {
+    "passed": 589,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "nativePi": "1.5.2",
+  "sourceProof": "clear-dialogue-native-proof.json",
+  "compiledRendererProof": "clear-dialogue-ui-proof.json",
+  "actualCases": [
+    "used project session",
+    "used setup assistant session",
+    "never-used setup assistant without state file"
+  ],
+  "newOfficialSessionAndFreshContext": true,
+  "previousJsonlBytesPreserved": true,
+  "noAutomaticModelPrompt": true,
+  "draftPreserved": true,
+  "busyQueueDialogSendingStaleConfirmationGuards": true,
+  "appGuiExecuted": false,
+  "installedApplicationOrUserProjectOrProcessModified": false,
+  "externalModelRequests": 0,
+  "nativeWindowsAcceptance": false
+}
