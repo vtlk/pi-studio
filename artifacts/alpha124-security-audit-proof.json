@@ -1,0 +1,2287 @@
+{
+  "checkedAt": "2026-11-20T08:57:52.740Z",
+  "revision": "b9033b6c3a7fd746a1521f2218cf498d6cf64551",
+  "scanner": {
+    "name": "Gitleaks",
+    "version": "8.30.1",
+    "configHashes": {
+      "default": "27630a96d6c55755cc37620f3933d5cab94b1eb78a726a32e11212972525d76e",
+      "tree": "21599dadd1fb1547b07f62aaf6ef9a47d5e900995631f87eb198a7d5a2cad9d5"
+    },
+    "redacted": true,
+    "allowCommentsIgnored": true,
+    "ignoreFileEmpty": true,
+    "exactManualRendererDigestReviews": 1
+  },
+  "source": {
+    "refs": [
+      "refs/codex/turn-diffs/captures/1795164420122/c73eb5b7-49fb-4ccd-a147-cd6f798ff553/base 8405be5cf2bb12a216b0646fec29f5f9bf2508da",
+      "refs/codex/turn-diffs/checkpoints/0ca1633461acca89a05cd7da4d7e29e5/77d8b462586abb75c0d290ce369b17d0/1794596452614/80e4050a-5ed1-4e67-a823-b93a84237461 b53a041c0858f2751e05037c4bf9deefd8529d0f",
+      "refs/codex/turn-diffs/checkpoints/15be6c9164c58b3742d48b28b3eef2ed/4970d949584cffc740d7e1c71378b396/1794931616444/f36cd2b2-3afd-4c6a-a90c-eadcbc4a4dfd a932e2177fc7214cd74955b183f03539dc04de05",
+      "refs/codex/turn-diffs/checkpoints/20a6edfefdf8b655b38e7430aab82384/ec2f22b8d49160688604727e5fabd7bc/1794850874735/01573382-085a-4f6a-8665-77e34ca11808 a9a304798da175809ad1255513b23b67623a2664",
+      "refs/codex/turn-diffs/checkpoints/22699ef67ea9bd497d1824523956a45f/ca0febfae904fb1e873fb25606fcc202/1794936624407/fea72f14-9ae1-41b8-8ba0-98ff2a9fe24a 2d6101ccf8451764b8e07ab4159f3148875f0247",
+      "refs/codex/turn-diffs/checkpoints/2351262f5ce731850082188cf11012db/f9525586cfaa07f1057238b9b09fefe1/1794771168033/a5fdf77e-a994-4928-a896-ba989da3be73 639faeaf0a1023abedd5601db5257f31f1231038",
+      "refs/codex/turn-diffs/checkpoints/2b3371a1ec4a5d27813600b775ea7b3b/745a651293eadb0b5f35201bc269719b/1794951766284/9b940782-21d9-4ced-be89-290fb328a7d4 efb236db02e3a5f874fd170be5d1186e0497d1cf",
+      "refs/codex/turn-diffs/checkpoints/31c7b0b515613d5e8a1daeeedf8399e1/70a1448b130cc2ad3d1755c0ad570673/1795031509752/6af381ed-e29f-4800-8419-0bfe5b20b52a aa623ba8ae1fbff56f5869ccb8842c7ff822ff3d",
+      "refs/codex/turn-diffs/checkpoints/32e6a6f3fe5e0aa343fa3ba29c3c0eef/ca0e5b8e78241a2aac355c89377b2f7c/1794781432000/ebf08faa-b7e9-4adb-afac-b0ef6bb8bec0 529873d337b9e14c9c6ef85b7326f922b4c2168f",
+      "refs/codex/turn-diffs/checkpoints/43310947a72585cbcecc955cb561e263/5c0c75fe8919ba920110ac0e261380c1/1794933282304/ecb56c89-6d8d-4da1-bfab-f253956d5ab2 6b00308832e7a6fef7d616397c15e90de15d796c",
+      "refs/codex/turn-diffs/checkpoints/4e8e74916c9ff5705789f9dcb1f9101c/604ed5ea8fc98fa29101a774181e8f8d/1794851013666/1c7a801f-0967-4190-aa53-f5ad38de9810 0f32f4030088d5ee1eaae910e8118216ee7d488d",
+      "refs/codex/turn-diffs/checkpoints/5502795180511310d213f7b605f416da/38fc3165fe1517e6b60418817fd82485/1794648201770/820fe4da-09f4-486a-9090-72dec15622b5 b174070fa6842e983e4413a77f3e2555ab59a2b6",
+      "refs/codex/turn-diffs/checkpoints/57a916c84f1397e92fd4e6ca3eb08893/489cd427427d8432df86f2d62796bd0e/1794814161596/90c43048-1284-42b5-a983-573df21e6508 7a755523e9008fa82ac03731bed585e225216206",
+      "refs/codex/turn-diffs/checkpoints/57dec89976fda36f5fbf048fcf59ede1/b2d3bdc35e2c3756605851edf8e6b562/1794656021195/06533130-e88c-4f11-ae82-ae36e26351ce f007ebc06eeaa23c072fd96bd41be68bc978d4e5",
+      "refs/codex/turn-diffs/checkpoints/59efccfd517951ad7c99b5b63374a958/aaae167b62e2c15fc0dc2f94849ae046/1794648017514/e52a880c-b6c9-4b2f-a446-219675b11925 d2fc117ff3b7eb2121126717017fa87437b41d65",
+      "refs/codex/turn-diffs/checkpoints/59faf812db0cb1f64d19e16ef14f39b8/e612e198b00106ce4d0624e2a516cedf/1794734953483/9c5164de-22ea-4da9-8226-c19bb2737f66 597252374d186fcbab22372d7ed8ceb1b4f78462",
+      "refs/codex/turn-diffs/checkpoints/5c94ffb4b403a5648e6c55f9ec5259b5/a770a7d1f0506b861a88fb6d749ea51d/1795163945532/34c6a8f4-eda3-4559-a264-a1297cd08ee6 8405be5cf2bb12a216b0646fec29f5f9bf2508da",
+      "refs/codex/turn-diffs/checkpoints/5ea01342dbd91e1a2283d5e0d0adffb1/8ae0acdd0063aed33c2319ee705c3c70/1794828732934/f1a16cea-eade-4fce-8b32-e457d23eafd6 9f4be27e167e7db0c37121efd8c1a71ca634775e",
+      "refs/codex/turn-diffs/checkpoints/61f33551de5ed156ff91a29ec88a9e72/0a0a647ceaffc708d4557d0d322df51f/1794848377107/7ce8bdfe-2c75-4ac8-9a82-54fcd0fa873f b2b53d8858b959bf0155be66bb2bbf22aab6e1e7",
+      "refs/codex/turn-diffs/checkpoints/717ff4469737c8c5f2369ee361da7ec3/e3a36e57f4a0e5ec83a8817dc153025e/1795037836000/4b485de4-76c1-4c1a-8d4d-11e21ed53fce 79036fcdfda05180c07c634549c3e9333163a7dc",
+      "refs/codex/turn-diffs/checkpoints/7d1e98394d9ea67b96882b126c8fe7ca/4bfc0b0d268a8aff34dbac60f3a27d71/1794687097085/781c6925-b5b5-4ce1-8c2f-76c23a7b4c24 04255f69c5280ca1f01a67e017942ba43fc4de0d",
+      "refs/codex/turn-diffs/checkpoints/80be3d16f55986ff9b587afe7239fdc7/b24334b6d13e976964eb29b5346cc0d9/1794998143597/ab703a7c-e90b-4ecc-96f9-31f76b42d84b e5ae3ffb85103219431ce290da420146ab4b3c57",
+      "refs/codex/turn-diffs/checkpoints/80d81bcb860e2e47c9661bddcdb81110/895f262269f0ac76fba2a3087dea23b8/1794657682448/6cb23e87-50ad-4e6f-a498-e092bbd00e79 ed6d0f462a1e32051212cd99261aa9a260461d1a",
+      "refs/codex/turn-diffs/checkpoints/84c161decc0fabc040f418fcb57b2955/98e016f483117f10598690e58e637fac/1794851035151/4c0b8f1e-a38c-4038-a1d3-e73739aa69e5 0f32f4030088d5ee1eaae910e8118216ee7d488d",
+      "refs/codex/turn-diffs/checkpoints/868da353e0bd66e2cababb7a3089c967/6a57f32056034f91a58424d5d9034c81/1794814683430/9a44aff5-5f4d-4ea2-95dc-f61d24a21d0a 61de25ea23999582f98d52713d452cb6061d9a46",
+      "refs/codex/turn-diffs/checkpoints/9670cea84f32ae29fedc76c26f2c57ec/68187f7a25da39616c449278bda8cef8/1794833442698/f9f30e8b-1e43-4efa-b751-7c98f179ed72 035eb03c0cf25e0f3200fcbfbf246bf9a5143ed5",
+      "refs/codex/turn-diffs/checkpoints/ad8b43a2a138cb1d0c7bb1041b64f36a/063db99c7f8bb26c64562ed5a266eff6/1794938643629/ce4d2a7d-a889-4127-bd8f-6a37b872f269 9f276cf3a6efba9aff46327fc119504e9c5002be",
+      "refs/codex/turn-diffs/checkpoints/d3389a5d7703231eb3d40afb798667f6/55e1279e98edffe520c7f490c74b6378/1795077879082/c41b79c8-bf49-4aaa-9e30-066aeb5a5419 fe6f656bde3a393896e4ad096e318a2fd0a66c16",
+      "refs/codex/turn-diffs/checkpoints/d42a1a9ce4ba3e3e6c9099dde8b1df45/5c07709c307bc5cf581f425b24cd49ed/1794753106355/9af58d16-5105-4d85-9ad6-70de84c1748f 812e8d6f4a804b577398fa7c02917d8b666e7a54",
+      "refs/codex/turn-diffs/checkpoints/f08a440e6481a6d1cb5a67780706457f/600e027023e86a909ec323d771a366ea/1794752463068/acb2a5cc-628b-4166-aae2-6396bac07ad5 4d9f09fdc2f2a2d4d0b2ab7425a8a7ba78732708",
+      "refs/codex/turn-diffs/checkpoints/f7afb6bcf3bbe964658799097906ea52/5419b782ee7768daed94997a182829be/1794827966142/b1d2a6c9-22e4-4ab4-b403-2cd20fd8f4aa 644b92a87dd85ffc81b2ac9f51c785f79379725c",
+      "refs/codex/turn-diffs/checkpoints/fc528d42ac3bf0e2a5bb3cc9e9ffc9a2/c5981b77058535092c155f3a47fde243/1794807316864/832b6507-ea22-4095-9f3f-554b1e088d0e 74a57c6e3621200f306020539eb997c148d0b55e",
+      "refs/codex/turn-diffs/checkpoints/feeb5b926ea47622f78a33ac08080d72/c5068f7855015794e4dae2cdf9370713/1794852513824/8837ff74-13b4-4b1d-84c1-7ae0e29d073b a1653e1982c84e8f122e0aa669cc983c741bda02",
+      "refs/heads/main b9033b6c3a7fd746a1521f2218cf498d6cf64551",
+      "refs/remotes/origin/HEAD b9033b6c3a7fd746a1521f2218cf498d6cf64551",
+      "refs/remotes/origin/main b9033b6c3a7fd746a1521f2218cf498d6cf64551",
+      "refs/tags/v0.2.0-alpha.101 fa8f4e040f59912a6eccfc02a468f02fd38d24cb",
+      "refs/tags/v0.2.0-alpha.102 2044ef518d29ccd1ad164fd8509cbc28358e1044",
+      "refs/tags/v0.2.0-alpha.103 a790521c30ab5b0cd0606e560adc408978acebfe",
+      "refs/tags/v0.2.0-alpha.104 aa279a96cceb9c99eff5cdcf71a8c47edec0f58f",
+      "refs/tags/v0.2.0-alpha.105 70bad5bc690059cfcf743fd1fc62914e55485a75",
+      "refs/tags/v0.2.0-alpha.106 9a83bf27766e490b4b0ce7e2811799a92451e207",
+      "refs/tags/v0.2.0-alpha.107 ad61d2881a954558f9592d443e4c928929f3e396",
+      "refs/tags/v0.2.0-alpha.108 326ec17592c45c9f73ee36594799cfe302871199",
+      "refs/tags/v0.2.0-alpha.109 432eda8e6b126ce25c69f42d5c8a8854c15a2b4b",
+      "refs/tags/v0.2.0-alpha.110 a467688987ccc9b7ad1b3e6d09cd5d944267e6e7",
+      "refs/tags/v0.2.0-alpha.111 ac241d98fde28850cbef23530e0ec63297b10db0",
+      "refs/tags/v0.2.0-alpha.112 e48b74017ee732c8d3b32f58937797a728e897ee",
+      "refs/tags/v0.2.0-alpha.113 c044144946aa00fbe3871f6a030a6cb054903b1c",
+      "refs/tags/v0.2.0-alpha.114 c6e39253326f9445e2f87863e9e5593f051c76c7",
+      "refs/tags/v0.2.0-alpha.115 4917c8b57680a59481af5e71ff4b5a4944871739",
+      "refs/tags/v0.2.0-alpha.116 7533dfaf6a158070df1f00db2622f4d57d00e3dc",
+      "refs/tags/v0.2.0-alpha.117 78f510338acd22d165cdf157c4990882b61ceb50",
+      "refs/tags/v0.2.0-alpha.118 9e3c119550b5bec3069a1dcbf89fc69d657e6dfe",
+      "refs/tags/v0.2.0-alpha.119 86805832d075aab24cb7777e5082285d724e7462",
+      "refs/tags/v0.2.0-alpha.120 a3d1c59f22dc7991a8fcab5c129c61a572ac8fdd",
+      "refs/tags/v0.2.0-alpha.121 b95c001ae3abd7dace44b16f3f47156113b96e34",
+      "refs/tags/v0.2.0-alpha.122 0e52591cd9e7476ecd54dcea9d2bfbdb636f80c9",
+      "refs/tags/v0.2.0-alpha.123 69988fb54bc18d6d6da21eef088f9fc600f8568a",
+      "refs/tags/v0.2.0-alpha.22 eddbad9cf9d5fa0c4020576969a9dec08b86442f",
+      "refs/tags/v0.2.0-alpha.24 9184b679001dd65b3b3e847504368d420a958ca5",
+      "refs/tags/v0.2.0-alpha.25 be3aa7a559fb243a3b6c14abc51c37a74705cd73",
+      "refs/tags/v0.2.0-alpha.26 0e1c9fdec8d85c7343d016ccbca5fc6ac6a994d2",
+      "refs/tags/v0.2.0-alpha.27 e1a43bd8dffaee94dfa30c0a9114123ff9de92ea",
+      "refs/tags/v0.2.0-alpha.28 122522f33bf9501ecc271b566cffee5d78304f69",
+      "refs/tags/v0.2.0-alpha.29 14fa198c19fed9842fc8a65bbc271401f5f927c6",
+      "refs/tags/v0.2.0-alpha.30 1f723c7df948668f124bd70b26c9bbc514391e17",
+      "refs/tags/v0.2.0-alpha.31 e64d21ede1111286b1ea60c465b357a7134540af",
+      "refs/tags/v0.2.0-alpha.32 b49744b0a9f944505b78ed54ddbd3d1009af98a3",
+      "refs/tags/v0.2.0-alpha.33 5b4f4f649f53bdc7208e28cd1e3ab623b1f1565d",
+      "refs/tags/v0.2.0-alpha.34 8bf5561ab07a16b744584ed7c614a6e9c2638397",
+      "refs/tags/v0.2.0-alpha.35 1d839943394092377a33a3a0cf7cb81257021c92",
+      "refs/tags/v0.2.0-alpha.36 58a5aed0172b7c5225b100ffa0ad34559f6770a3",
+      "refs/tags/v0.2.0-alpha.37 4b57b7b769bfec9898732b3d46885034c46b0fb4",
+      "refs/tags/v0.2.0-alpha.38 8e83db92af61e138ab02474383e8abe94c13637f",
+      "refs/tags/v0.2.0-alpha.39 a533c3034654a6a00b415dff81f6e7c1f521653b",
+      "refs/tags/v0.2.0-alpha.40 e64bdf3d1bce2e349fc713cf4459e7fd59e59648",
+      "refs/tags/v0.2.0-alpha.41 9949406349878cd51345d3a5d3ddb4a80afd75b3",
+      "refs/tags/v0.2.0-alpha.42 1d5763431ecab46052ee0bc45fd0727e1b61a251",
+      "refs/tags/v0.2.0-alpha.43 8904e9fa119253fe4f0f88af52a4d5c56d97a97f",
+      "refs/tags/v0.2.0-alpha.44 c1f0da5b92f2730ac61020c3e1b4a218e751597c",
+      "refs/tags/v0.2.0-alpha.45 baa54c2251c88c498bdbf46c3be94a6e38bf3c5e",
+      "refs/tags/v0.2.0-alpha.46 1c57593bc143193043c1b31cc8a5d90ff44ea70e",
+      "refs/tags/v0.2.0-alpha.47 a4ace3005bfc4e52882e8665f246fd75de354f77",
+      "refs/tags/v0.2.0-alpha.48 ccd34bd15404ccb1c12c642d85871bd772504485",
+      "refs/tags/v0.2.0-alpha.49 fd8c47aa67e70f18e6eaf925d4b05e92ca490649",
+      "refs/tags/v0.2.0-alpha.50 e019b3311397dbc50634e53428faea1096b96cca",
+      "refs/tags/v0.2.0-alpha.51 4fb6b0a429d92e2ac0647294e3a796d5c520c256",
+      "refs/tags/v0.2.0-alpha.52 991653aa1c6a9a41e8ca4c734894f469d563223a",
+      "refs/tags/v0.2.0-alpha.53 20d7008f551696fee6ea6db723b748ab859ca499",
+      "refs/tags/v0.2.0-alpha.54 8a88a006bb1c84c0c0b6e62931bd61c2862f39ed",
+      "refs/tags/v0.2.0-alpha.55 35c2321f7d643989e91b0be7644dfcbf145b13b7",
+      "refs/tags/v0.2.0-alpha.56 66da1a91e6a481de30db894f585d4b43d66b126d",
+      "refs/tags/v0.2.0-alpha.57 6c226abe661511e49e85ecba9e154f90b9b52de6",
+      "refs/tags/v0.2.0-alpha.58 30b1bb7275a81747f2e82d528a6ac560534a9e42",
+      "refs/tags/v0.2.0-alpha.59 cd9c44c680c9dbb6e8259b5d7e37164d09747f2d",
+      "refs/tags/v0.2.0-alpha.60 b86b39d0dfb5a6124e1e5eb9d85b6ef9dafb03d1",
+      "refs/tags/v0.2.0-alpha.61 96d296ddd3c4463837f255838125d9f1e8d6c6b1",
+      "refs/tags/v0.2.0-alpha.62 5cfbe0d52e4255119f26d275843a58fdc84b5242",
+      "refs/tags/v0.2.0-alpha.63 160c391847e1e525353242a336a65fcdfce5adbd",
+      "refs/tags/v0.2.0-alpha.64 b67a8f92f59d8ff29b86d2fab8925c244afb0eb2",
+      "refs/tags/v0.2.0-alpha.65 7d7f51f5bd59c5ea2e2fb9c531dbd8b20f65b20b",
+      "refs/tags/v0.2.0-alpha.66 ab1197e83f1221705b774a4762b282489d4de39b",
+      "refs/tags/v0.2.0-alpha.67 890b432c97b7fea128ccc4f4e906886f2bd3e9b6",
+      "refs/tags/v0.2.0-alpha.68 89a59b4a34b8acf90f7e90252fc96d67ae58704f",
+      "refs/tags/v0.2.0-alpha.69 654c73c10b01beffe9b491ebcdae7c6e579117cd",
+      "refs/tags/v0.2.0-alpha.70 68e622068e83ea38c311b6ce41b89ac2c760267b",
+      "refs/tags/v0.2.0-alpha.71 57844825bbe39b310fbcf792b655139a0a69253f",
+      "refs/tags/v0.2.0-alpha.73 f0b8738056a8253e35b78d6417d7a7c73e93bdf4",
+      "refs/tags/v0.2.0-alpha.74 b1dfe0027c3c0da7495f76c0867972c9225ae4b6",
+      "refs/tags/v0.2.0-alpha.75 9b7b28d5eb33f0636fbdafba4916413c05d5679a",
+      "refs/tags/v0.2.0-alpha.77 5ca699d931bc32ea93b43c7bbbbaba99d53e2c84",
+      "refs/tags/v0.2.0-alpha.78 86ca803176683a66cdfb545242752b4b0a7eb6a5",
+      "refs/tags/v0.2.0-alpha.79 7fc72a0df446cc8ae41394e485c31581c65819db",
+      "refs/tags/v0.2.0-alpha.80 94667e1b28cd86f2cfee493176fde37bad441cc7",
+      "refs/tags/v0.2.0-alpha.81 7ea54d9c8527887ffd6f704b7f62f7d82f9ee458",
+      "refs/tags/v0.2.0-alpha.82 ac2f46fc24bd9ebf7e05097e6e215da5b838db82",
+      "refs/tags/v0.2.0-alpha.83 a51d643e0535f7e44565720dc3181dacd539121a",
+      "refs/tags/v0.2.0-alpha.84 c8906d791f7d674241ce8af6654e0c306d026c57",
+      "refs/tags/v0.2.0-alpha.85 4de61713ebb23b5a8cfb5677c3825ea89ae4c6de",
+      "refs/tags/v0.2.0-alpha.86 cc16a9735963d932e11e6996ede52ff4fd058008",
+      "refs/tags/v0.2.0-alpha.87 8b88d5bc87c6580d9513b77bf34ddfb990574877",
+      "refs/tags/v0.2.0-alpha.88 cc0f264f5c6b8f01c7b10e171a4dc4dd4f537714",
+      "refs/tags/v0.2.0-alpha.89 ccb9ad2b34229e90deb6d79106645ecb2d795361",
+      "refs/tags/v0.2.0-alpha.90 cb073727bcfd811209dce49db3a20590b7720725",
+      "refs/tags/v0.2.0-alpha.91 e4649ec7aa1bc98389dca2e021be5d45f1651f77",
+      "refs/tags/v0.2.0-alpha.92 8026e994dd05662bad3ed47ed98b2cd5780238c4",
+      "refs/tags/v0.2.0-alpha.93 53ea048bbdeb84f1c61c8098cade671ef647c815",
+      "refs/tags/v0.2.0-alpha.94 9af7b87c2dffca4b116c26d347d1990e6c34f158",
+      "refs/tags/v0.2.0-alpha.95 37a42e57fed0235d2c0d42c7892ee33d6406186a",
+      "refs/tags/v0.2.0-alpha.96 168c464bd50c1afedffb981f3a21b202f2cef99e",
+      "refs/tags/v0.2.0-alpha.97 5769ad0501f6d6d3a6e217a561a8f2b5159a49e3",
+      "refs/tags/v0.2.0-alpha.98 3097a4c28e96e902f980b078ec662be9b3dec1c6",
+      "refs/tags/v0.2.0-alpha.99 7eaedfe97fe51d5de423b050280965380935a805"
+    ],
+    "trackedAndUntrackedFiles": 1563,
+    "sensitiveFileNames": [
+      "artifacts/animated-scene/audit.jsonl"
+    ],
+    "symlinks": [],
+    "lfsPointers": [],
+    "privacyReferences": [
+      {
+        "file": "artifacts/alpha112-cleanup-proof.json",
+        "lines": [
+          4
+        ]
+      },
+      {
+        "file": "artifacts/alpha114-local-cleanup-proof.json",
+        "lines": [
+          4
+        ]
+      },
+      {
+        "file": "artifacts/alpha115-disk-cleanup-proof.json",
+        "lines": [
+          5,
+          10
+        ]
+      },
+      {
+        "file": "artifacts/alpha116-disk-cleanup-proof.json",
+        "lines": [
+          3
+        ]
+      },
+      {
+        "file": "scripts/smoke-native-computer.cjs",
+        "lines": [
+          125
+        ]
+      },
+      {
+        "file": "scripts/smoke-qa-isolation.cjs",
+        "lines": [
+          75
+        ]
+      },
+      {
+        "file": "tests/repository-audit.test.ts",
+        "lines": [
+          187
+        ]
+      }
+    ]
+  },
+  "coverage": [
+    {
+      "scope": "reachable-history-all-refs",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/agent-constructor-proof.json",
+          "line": 24,
+          "commit": "7fc72a0df446cc8ae41394e485c31581c65819db",
+          "disposition": "reviewed-published-renderer-digest"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/confirmation-audit-proof.json",
+          "line": 19,
+          "commit": "b86b39d0dfb5a6124e1e5eb9d85b6ef9dafb03d1",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/confirmation-audit-proof.json",
+          "line": 22,
+          "commit": "b86b39d0dfb5a6124e1e5eb9d85b6ef9dafb03d1",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/confirmation-audit-proof.json",
+          "line": 23,
+          "commit": "b86b39d0dfb5a6124e1e5eb9d85b6ef9dafb03d1",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/image-mcp-runtime-proof.json",
+          "line": 22,
+          "commit": "e7710b7b5875a5355caffb13a3f60060d99373b7",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/passive-image-status-proof.json",
+          "line": 18,
+          "commit": "20d7008f551696fee6ea6db723b748ab859ca499",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/model-catalog-proof.json",
+          "line": 29,
+          "commit": "e019b3311397dbc50634e53428faea1096b96cca",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 42,
+          "commit": "fc13276065bfed641f252341b7486c56fb1df6ac",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 44,
+          "commit": "fc13276065bfed641f252341b7486c56fb1df6ac",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 137,
+          "commit": "fc13276065bfed641f252341b7486c56fb1df6ac",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 139,
+          "commit": "fc13276065bfed641f252341b7486c56fb1df6ac",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 160,
+          "commit": "fc13276065bfed641f252341b7486c56fb1df6ac",
+          "disposition": "verified-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "src/renderer/features/settings/model/legacyTemplateHashes.json",
+          "line": 12,
+          "commit": "7546834969bc9d7de89e2dc66fdf1c7ddcab4a89",
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "working-tree-including-untracked",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/image-mcp-runtime-proof.json",
+          "line": 23,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/model-catalog-proof.json",
+          "line": 29,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/passive-image-status-proof.json",
+          "line": 20,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 42,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 44,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 137,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 139,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/interface-source-proof.json",
+          "line": 160,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/confirmation-audit-proof.json",
+          "line": 19,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/confirmation-audit-proof.json",
+          "line": 22,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "artifacts/confirmation-audit-proof.json",
+          "line": 23,
+          "disposition": "verified-historical-source-file-sha256"
+        },
+        {
+          "rule": "generic-api-key",
+          "file": "src/renderer/features/settings/model/legacyTemplateHashes.json",
+          "line": 12,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "local-archive:Pi-Studio-0.2.0-alpha.124-mac-arm64.zip",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "dist/Pi-Studio-0.2.0-alpha.124-mac-arm64.zip!Pi Studio.app/Contents/Resources/app/out/renderer/assets/index-COpHZkro.js",
+          "line": 49076,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "local-archive:Pi-Studio-0.2.0-alpha.124-win-x64.zip",
+      "findings": [
+        {
+          "rule": "generic-api-key",
+          "file": "dist/Pi-Studio-0.2.0-alpha.124-win-x64.zip!Pi Studio/resources/app/out/renderer/assets/index-COpHZkro.js",
+          "line": 49076,
+          "disposition": "verified-canonical-legacy-digest"
+        }
+      ],
+      "unresolved": 0
+    },
+    {
+      "scope": "github-release-metadata-all-pages",
+      "findings": [],
+      "unresolved": 0
+    }
+  ],
+  "github": {
+    "repository": "vtlk/pi-studio",
+    "releases": 99,
+    "assets": [
+      {
+        "tag": "v0.2.0-alpha.124",
+        "id": 771126668,
+        "name": "Pi-Studio-0.2.0-alpha.124-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:23d3abd620b435f73055f40ba69ef8c73b50038653c095f5b3bd2a3d60625c7a"
+      },
+      {
+        "tag": "v0.2.0-alpha.124",
+        "id": 771126675,
+        "name": "Pi-Studio-0.2.0-alpha.124-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:3f547b4b04b715e851d5ad3db965146ea589aed2de3c63b1a27fe0b29b72b3f2"
+      },
+      {
+        "tag": "v0.2.0-alpha.123",
+        "id": 771050264,
+        "name": "Pi-Studio-0.2.0-alpha.123-win-x64.zip",
+        "bytes": 180175312,
+        "digest": "sha256:8106b9d42d78f17169b2a3f24624640bffcdc6df1960b3274d40f8ad5bbcfcff"
+      },
+      {
+        "tag": "v0.2.0-alpha.123",
+        "id": 771050266,
+        "name": "Pi-Studio-0.2.0-alpha.123-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:39e6a03115fca66e03061e85569c49cb7716446ae0d726fd455e65616da182af"
+      },
+      {
+        "tag": "v0.2.0-alpha.123",
+        "id": 771050267,
+        "name": "Pi-Studio-0.2.0-alpha.123-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:256a80e623a76349e3ffa2580cefe0a2f7efefe38923318e7409922168fe3d94"
+      },
+      {
+        "tag": "v0.2.0-alpha.123",
+        "id": 771064560,
+        "name": "Pi-Studio-0.2.0-alpha.123-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:e300eb8ca361a9acdf9d54824be89ad1834502c7cc5afa7504e1b2de7218d26b"
+      },
+      {
+        "tag": "v0.2.0-alpha.123",
+        "id": 771064562,
+        "name": "Pi-Studio-0.2.0-alpha.123-mac-arm64.zip",
+        "bytes": 151526910,
+        "digest": "sha256:25a265dc1513185b267bf0f066603ae68206339b5d569781c183150c461d863e"
+      },
+      {
+        "tag": "v0.2.0-alpha.123",
+        "id": 771064563,
+        "name": "Pi-Studio-0.2.0-alpha.123-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:257e5559fddd39966405e2ed3ba006d2ac4412964825914a7458c2e80afa389c"
+      },
+      {
+        "tag": "v0.2.0-alpha.122",
+        "id": 767469730,
+        "name": "Pi-Studio-0.2.0-alpha.122-win-x64.zip",
+        "bytes": 180173512,
+        "digest": "sha256:ad081dd2cf4f350e0df9a5970d6d073231572e46b30979393805ef54c7a9c78e"
+      },
+      {
+        "tag": "v0.2.0-alpha.122",
+        "id": 767469731,
+        "name": "Pi-Studio-0.2.0-alpha.122-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:3dc4febf399ceb40a0b22d4d40c50aa5cb20210dbc31a31250053fbf33875b47"
+      },
+      {
+        "tag": "v0.2.0-alpha.122",
+        "id": 767469732,
+        "name": "Pi-Studio-0.2.0-alpha.122-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:1818832b54a48da4173688715bd0be8452f7e594732b9220ff8f99d536e40658"
+      },
+      {
+        "tag": "v0.2.0-alpha.122",
+        "id": 767477995,
+        "name": "Pi-Studio-0.2.0-alpha.122-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:ebb27667924428b8dfc93a7a5abad6c6e7eab7d7b86017734702f54128e33d2e"
+      },
+      {
+        "tag": "v0.2.0-alpha.122",
+        "id": 767477997,
+        "name": "Pi-Studio-0.2.0-alpha.122-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:a2588a03aa0b80ebf757462bb8fd5cfc6454e927cc507790b50adfc957b4d66a"
+      },
+      {
+        "tag": "v0.2.0-alpha.122",
+        "id": 767478008,
+        "name": "Pi-Studio-0.2.0-alpha.122-mac-arm64.zip",
+        "bytes": 151525094,
+        "digest": "sha256:dd15333dace512272bb96a6b63972a1fee1b75c586046d06324854e46c735fa9"
+      },
+      {
+        "tag": "v0.2.0-alpha.121",
+        "id": 767346689,
+        "name": "Pi-Studio-0.2.0-alpha.121-win-x64.zip",
+        "bytes": 180173942,
+        "digest": "sha256:37c7b5d9667227a4a1dfa35b6d8272777bf83df55515ef5185750f4c944c33ae"
+      },
+      {
+        "tag": "v0.2.0-alpha.121",
+        "id": 767346690,
+        "name": "Pi-Studio-0.2.0-alpha.121-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:8c5cfe55125bb566a5061468c6cb741ff7ee416afca0f5b7b186a7d9f171c5cb"
+      },
+      {
+        "tag": "v0.2.0-alpha.121",
+        "id": 767346691,
+        "name": "Pi-Studio-0.2.0-alpha.121-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:af2356e5722f51a9a83e66b523e116c298bbeca122f532c816280e7cc97275b1"
+      },
+      {
+        "tag": "v0.2.0-alpha.121",
+        "id": 767359194,
+        "name": "Pi-Studio-0.2.0-alpha.121-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:022eafa2a8bac8348b58324914d07d800750ecb729f05903659ddd8b69a1500a"
+      },
+      {
+        "tag": "v0.2.0-alpha.121",
+        "id": 767359195,
+        "name": "Pi-Studio-0.2.0-alpha.121-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:ffaf74234082c7b3d2b574a79d180e24e0926767db81ddcd142ebf9dcacaeeff"
+      },
+      {
+        "tag": "v0.2.0-alpha.121",
+        "id": 767359196,
+        "name": "Pi-Studio-0.2.0-alpha.121-mac-arm64.zip",
+        "bytes": 151525528,
+        "digest": "sha256:5657201c5db12a4d150934c7a274e23a3b9bcff56c91ac2bd38166a48ee3e6d7"
+      },
+      {
+        "tag": "v0.2.0-alpha.120",
+        "id": 766914840,
+        "name": "Pi-Studio-0.2.0-alpha.120-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:a3cd60893332dc7cc52479ba8910cf434b673c36df0a359b39f40fef073f3710"
+      },
+      {
+        "tag": "v0.2.0-alpha.120",
+        "id": 766914843,
+        "name": "Pi-Studio-0.2.0-alpha.120-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:861735ec66d7a9c536062658a71792f933f509c7b04e63fdfb2f22a3c172e55a"
+      },
+      {
+        "tag": "v0.2.0-alpha.120",
+        "id": 766914866,
+        "name": "Pi-Studio-0.2.0-alpha.120-win-x64.zip",
+        "bytes": 180172569,
+        "digest": "sha256:01df7b6f9a08b067b75300f54766e502c02d309c14322bc8c1c972a05ea921e2"
+      },
+      {
+        "tag": "v0.2.0-alpha.120",
+        "id": 766922746,
+        "name": "Pi-Studio-0.2.0-alpha.120-mac-arm64.zip",
+        "bytes": 151524135,
+        "digest": "sha256:0f6a86fbbe72a1124632dae33cc87934a2794a4247f09f53dad8bc3bd58bf1a5"
+      },
+      {
+        "tag": "v0.2.0-alpha.120",
+        "id": 766922747,
+        "name": "Pi-Studio-0.2.0-alpha.120-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:f045cef849b6ccf258626009075c5c9b484eb04b5fbede755152ae30758d6134"
+      },
+      {
+        "tag": "v0.2.0-alpha.120",
+        "id": 766922749,
+        "name": "Pi-Studio-0.2.0-alpha.120-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:bc794128b3f08f4427823ea4a7118f00a7adf8363afee9059f615c6a88661fce"
+      },
+      {
+        "tag": "v0.2.0-alpha.119",
+        "id": 766803828,
+        "name": "Pi-Studio-0.2.0-alpha.119-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:b3425c3526ee8f20a622bf7fea72af3c67e6262fc00593e54b0f568273fefffb"
+      },
+      {
+        "tag": "v0.2.0-alpha.119",
+        "id": 766803829,
+        "name": "Pi-Studio-0.2.0-alpha.119-win-x64.zip",
+        "bytes": 180175230,
+        "digest": "sha256:888c5875576a4756eaed9e2a12fd44c7a03cb82652238ae66b4308bed2f12808"
+      },
+      {
+        "tag": "v0.2.0-alpha.119",
+        "id": 766803830,
+        "name": "Pi-Studio-0.2.0-alpha.119-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:6e3c7e41e4adbd4f75d8dff3a4b344d026e7bda1dc52355a50f86a9fdf5c61c8"
+      },
+      {
+        "tag": "v0.2.0-alpha.119",
+        "id": 766809600,
+        "name": "Pi-Studio-0.2.0-alpha.119-mac-arm64.zip",
+        "bytes": 151526889,
+        "digest": "sha256:0e427a7893086bd720dbfd63964accf26da1ee30a40bc5ff90cb14e4acfb2a46"
+      },
+      {
+        "tag": "v0.2.0-alpha.119",
+        "id": 766809602,
+        "name": "Pi-Studio-0.2.0-alpha.119-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:d63474d28bd497efd4afe64e8741d54a86dd2ce66e9411d7faa08418d4bdbe62"
+      },
+      {
+        "tag": "v0.2.0-alpha.119",
+        "id": 766809605,
+        "name": "Pi-Studio-0.2.0-alpha.119-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:063609449ec3cee5f646a02736a6d6fd637b9c2c2bd7fa3f4c00343b4a2f5c1b"
+      },
+      {
+        "tag": "v0.2.0-alpha.118",
+        "id": 765603431,
+        "name": "Pi-Studio-0.2.0-alpha.118-win-x64.zip",
+        "bytes": 180161253,
+        "digest": "sha256:769ea4fd73cbe278ccf9cc41bba7b2a2770508b12940e0ab44e97e573b66384d"
+      },
+      {
+        "tag": "v0.2.0-alpha.118",
+        "id": 765603459,
+        "name": "Pi-Studio-0.2.0-alpha.118-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:3a28d4ae5f91f4a61a5a4df27629b75781ef799e2bedcf501df061844c9841b6"
+      },
+      {
+        "tag": "v0.2.0-alpha.118",
+        "id": 765603461,
+        "name": "Pi-Studio-0.2.0-alpha.118-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:7f3548cf1cb962c774c473db372c5a0ec8a2cf30e955d347ac276aba50faa851"
+      },
+      {
+        "tag": "v0.2.0-alpha.118",
+        "id": 765616718,
+        "name": "Pi-Studio-0.2.0-alpha.118-mac-arm64.zip",
+        "bytes": 151512843,
+        "digest": "sha256:300a2b1a7ab9bfc917c157f1a326a76fd0c0044d6156625ef2eefbe35ccdd977"
+      },
+      {
+        "tag": "v0.2.0-alpha.118",
+        "id": 765616719,
+        "name": "Pi-Studio-0.2.0-alpha.118-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:2fc801b3284e10cd90a90df5ea037187373ac9a1b0fa4d773ff00af447d19913"
+      },
+      {
+        "tag": "v0.2.0-alpha.118",
+        "id": 765616720,
+        "name": "Pi-Studio-0.2.0-alpha.118-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:b481417d9bbf4e6ec4580fefa959502c5de886ec29c8e07e9c6fb5692234b568"
+      },
+      {
+        "tag": "v0.2.0-alpha.117",
+        "id": 765445653,
+        "name": "Pi-Studio-0.2.0-alpha.117-win-x64.zip",
+        "bytes": 180159279,
+        "digest": "sha256:b7d9f72ca0b1bfdee4f966a4e8ecb03473aa7f88ee3313a7a732fb19ce0cd6e2"
+      },
+      {
+        "tag": "v0.2.0-alpha.117",
+        "id": 765445659,
+        "name": "Pi-Studio-0.2.0-alpha.117-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:58d42885247cd90b6ac22afdaa55108e8dd94b0189818f599609c9c8abc47cb7"
+      },
+      {
+        "tag": "v0.2.0-alpha.117",
+        "id": 765445660,
+        "name": "Pi-Studio-0.2.0-alpha.117-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:fbf9319dfaced566352a09d34ab809bead523ad58d152099a30b4e822accde7d"
+      },
+      {
+        "tag": "v0.2.0-alpha.117",
+        "id": 765464072,
+        "name": "Pi-Studio-0.2.0-alpha.117-mac-arm64.zip",
+        "bytes": 151510837,
+        "digest": "sha256:0e92df7bc71558d337f12c8b2738344e5c70caf6351dfbfcc463ba9517cc6de6"
+      },
+      {
+        "tag": "v0.2.0-alpha.117",
+        "id": 765464073,
+        "name": "Pi-Studio-0.2.0-alpha.117-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:dba4ca79d6f5869ad3dc4ee0044dec69ed6c175e0e7f0b4f6fbe7c637a33a942"
+      },
+      {
+        "tag": "v0.2.0-alpha.117",
+        "id": 765464074,
+        "name": "Pi-Studio-0.2.0-alpha.117-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:6400e635e84f53fe70dc8d4c42002a530114aaa95661ea387511b284d23b770c"
+      },
+      {
+        "tag": "v0.2.0-alpha.116",
+        "id": 765363890,
+        "name": "Pi-Studio-0.2.0-alpha.116-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:a03ea1be37140797043d917011d5c3004e34e2491f808813c0977a1019c1962b"
+      },
+      {
+        "tag": "v0.2.0-alpha.116",
+        "id": 765363893,
+        "name": "Pi-Studio-0.2.0-alpha.116-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:06f3d159bed97a156e2ec3305f9fcdcf050b3907774fe2f14fef8de5b69985e8"
+      },
+      {
+        "tag": "v0.2.0-alpha.116",
+        "id": 765363895,
+        "name": "Pi-Studio-0.2.0-alpha.116-win-x64.zip",
+        "bytes": 180158405,
+        "digest": "sha256:17cb044773fb01efa84cd1a743d93a585b5cb6d3a245fc6bcbb9500d63b8149a"
+      },
+      {
+        "tag": "v0.2.0-alpha.116",
+        "id": 765375902,
+        "name": "Pi-Studio-0.2.0-alpha.116-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:10d706000b457f5edb2c74ba2c07f7226f48fe20c720df845a73cdfbf01e8907"
+      },
+      {
+        "tag": "v0.2.0-alpha.116",
+        "id": 765375903,
+        "name": "Pi-Studio-0.2.0-alpha.116-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:7585a95cf1133e0e2c7f10a5b06ad09dc10c39407a09aa740735055a090c7a57"
+      },
+      {
+        "tag": "v0.2.0-alpha.116",
+        "id": 765375906,
+        "name": "Pi-Studio-0.2.0-alpha.116-mac-arm64.zip",
+        "bytes": 151509981,
+        "digest": "sha256:18df2df9529672ab66d3fecc0b47193317f50af3e8af37d543f17880b01486e9"
+      },
+      {
+        "tag": "v0.2.0-alpha.115",
+        "id": 765327343,
+        "name": "Pi-Studio-0.2.0-alpha.115-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:d1d9bfd0ce3c4afe370df40244770fc8cbe4c1a4b0bccf289e1237f1ff074c61"
+      },
+      {
+        "tag": "v0.2.0-alpha.115",
+        "id": 765327344,
+        "name": "Pi-Studio-0.2.0-alpha.115-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:dcd0593cc9f8e96976192da18451e31744517a246fd1ab44b44fe02676fe2b63"
+      },
+      {
+        "tag": "v0.2.0-alpha.115",
+        "id": 765327346,
+        "name": "Pi-Studio-0.2.0-alpha.115-win-x64.zip",
+        "bytes": 180158420,
+        "digest": "sha256:3745741faae5898f71f65106360d7d98406d65b951deae001f3a6766baed2535"
+      },
+      {
+        "tag": "v0.2.0-alpha.115",
+        "id": 765334246,
+        "name": "Pi-Studio-0.2.0-alpha.115-mac-arm64.zip",
+        "bytes": 151509995,
+        "digest": "sha256:8bad8384187d5887f6aa1fd440f1bfe32cbc1ca624c9ab110f44b24116f89f0d"
+      },
+      {
+        "tag": "v0.2.0-alpha.115",
+        "id": 765334248,
+        "name": "Pi-Studio-0.2.0-alpha.115-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:db4853beef3ee223998f89c1da8ad71d52bd7a891401997673e4b976938fe384"
+      },
+      {
+        "tag": "v0.2.0-alpha.115",
+        "id": 765334259,
+        "name": "Pi-Studio-0.2.0-alpha.115-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:5626498890cfa3ea0cb50e75a18920fa3a3f1a5dcc0414d324860a4fb9a781d9"
+      },
+      {
+        "tag": "v0.2.0-alpha.114",
+        "id": 764956249,
+        "name": "Pi-Studio-0.2.0-alpha.114-win-x64.zip",
+        "bytes": 173168198,
+        "digest": "sha256:ae0e3d894b41542550a866fcc13128d614f0a8c43b4e4dcb62c003117674e7ca"
+      },
+      {
+        "tag": "v0.2.0-alpha.114",
+        "id": 764956250,
+        "name": "Pi-Studio-0.2.0-alpha.114-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:4fe16cc6f5e51f4d07edc4419a0dae2aeefdb6da968a40474b8a7ba4545edd0b"
+      },
+      {
+        "tag": "v0.2.0-alpha.114",
+        "id": 764956261,
+        "name": "Pi-Studio-0.2.0-alpha.114-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:d48042b6dabf05a0645aa1e2030fb50652181736934ca25b0940ec63ab74ce32"
+      },
+      {
+        "tag": "v0.2.0-alpha.114",
+        "id": 764964776,
+        "name": "Pi-Studio-0.2.0-alpha.114-mac-arm64.zip",
+        "bytes": 144519429,
+        "digest": "sha256:2289c3f23f9a3a12299fa774d621a472ae93e0d8a0dd62036e3b127153a08bd5"
+      },
+      {
+        "tag": "v0.2.0-alpha.114",
+        "id": 764964787,
+        "name": "Pi-Studio-0.2.0-alpha.114-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:2e0d12d85b1a119e48f0b37d8ee95e48267ddba2b0ddadfa105d855913b4bdce"
+      },
+      {
+        "tag": "v0.2.0-alpha.114",
+        "id": 764964797,
+        "name": "Pi-Studio-0.2.0-alpha.114-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:53875e633e187b4bdd3b6a76e8117c7f26782541df953b958e7c4911f8db4d8e"
+      },
+      {
+        "tag": "v0.2.0-alpha.113",
+        "id": 763989786,
+        "name": "Pi-Studio-0.2.0-alpha.113-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:10ab0d8c3012207a4e7d68431497252866d6042974dc2bde06be15948488246b"
+      },
+      {
+        "tag": "v0.2.0-alpha.113",
+        "id": 763989787,
+        "name": "Pi-Studio-0.2.0-alpha.113-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:84cdb725d14e51afbdd183d4ab74965c5342a1e5e622a1528280d16f54c76cd4"
+      },
+      {
+        "tag": "v0.2.0-alpha.113",
+        "id": 763989799,
+        "name": "Pi-Studio-0.2.0-alpha.113-win-x64.zip",
+        "bytes": 171685512,
+        "digest": "sha256:5283d459606c3a088d1240b7344ef06b3f21755d3ba7bdd7b48c10caf1a29774"
+      },
+      {
+        "tag": "v0.2.0-alpha.113",
+        "id": 763999569,
+        "name": "Pi-Studio-0.2.0-alpha.113-mac-arm64.zip",
+        "bytes": 142957039,
+        "digest": "sha256:1c692e5a2ccfbd8b660340258150bcca16cc94c8f2df7d451af5b129f48656b6"
+      },
+      {
+        "tag": "v0.2.0-alpha.113",
+        "id": 763999570,
+        "name": "Pi-Studio-0.2.0-alpha.113-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:2728b9442d2c47536f87bac852ce9b6db0ca8bab4682f31f48661458a9edf4a4"
+      },
+      {
+        "tag": "v0.2.0-alpha.113",
+        "id": 763999572,
+        "name": "Pi-Studio-0.2.0-alpha.113-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:07c8af27d8d6b30322992a715a661bbc375a8e00bccaaa16a6641f1df97f3a22"
+      },
+      {
+        "tag": "v0.2.0-alpha.112",
+        "id": 763384306,
+        "name": "Pi-Studio-0.2.0-alpha.112-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:159434babebe6c0d5c52a7f9beacbb17db9fc097d1f6230c4eee61e76e4a82c0"
+      },
+      {
+        "tag": "v0.2.0-alpha.112",
+        "id": 763384308,
+        "name": "Pi-Studio-0.2.0-alpha.112-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:6753ee48fdb32501dfd5ba97484b59c7d163e4f7a6b179efe1bda023b0065728"
+      },
+      {
+        "tag": "v0.2.0-alpha.112",
+        "id": 763384309,
+        "name": "Pi-Studio-0.2.0-alpha.112-win-x64.zip",
+        "bytes": 171684477,
+        "digest": "sha256:bcb0be06fcab8e9dcd1f3fac98e2186c10b77bf6c90e43b4159676c03454efdb"
+      },
+      {
+        "tag": "v0.2.0-alpha.112",
+        "id": 763397533,
+        "name": "Pi-Studio-0.2.0-alpha.112-mac-arm64.zip",
+        "bytes": 142956009,
+        "digest": "sha256:052faca9ea062ee2d392fcdf3b214b83a1a1a24695b0eeb91c0dffb5490031b6"
+      },
+      {
+        "tag": "v0.2.0-alpha.112",
+        "id": 763397534,
+        "name": "Pi-Studio-0.2.0-alpha.112-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:8a41d390df4fd053f923fff7b8f9e97cd2f5ae79d3f40949624d52ce658204da"
+      },
+      {
+        "tag": "v0.2.0-alpha.112",
+        "id": 763397536,
+        "name": "Pi-Studio-0.2.0-alpha.112-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:0f861efe810377db0b9b511417785404cd12933a7e24e4bcc8989c9befa8d80c"
+      },
+      {
+        "tag": "v0.2.0-alpha.111",
+        "id": 763166768,
+        "name": "Pi-Studio-0.2.0-alpha.111-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:4b8453cf233f1b4868325074102deef908edd2a9b6f74046faeaca94a2a2a7e9"
+      },
+      {
+        "tag": "v0.2.0-alpha.111",
+        "id": 763166771,
+        "name": "Pi-Studio-0.2.0-alpha.111-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:877d602a668c6165758537aa5c7bd9e492fa1c6a775306953f556638a8928041"
+      },
+      {
+        "tag": "v0.2.0-alpha.111",
+        "id": 763166773,
+        "name": "Pi-Studio-0.2.0-alpha.111-win-x64.zip",
+        "bytes": 171682024,
+        "digest": "sha256:ed91b9b1187b471bb3830f0a9a6f7d898f5a0481b2039214329d8d9afb96d308"
+      },
+      {
+        "tag": "v0.2.0-alpha.111",
+        "id": 763176360,
+        "name": "Pi-Studio-0.2.0-alpha.111-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:c0b09a184cf575b3f16cccb7a63cc20ded29afd8f3f6a2da0468367d63c9b4ca"
+      },
+      {
+        "tag": "v0.2.0-alpha.111",
+        "id": 763176362,
+        "name": "Pi-Studio-0.2.0-alpha.111-mac-arm64.zip",
+        "bytes": 142953503,
+        "digest": "sha256:7090d0973789c5ea31e8f3520debdb746210c57d3e443ed1b7a469437e4bf871"
+      },
+      {
+        "tag": "v0.2.0-alpha.111",
+        "id": 763176367,
+        "name": "Pi-Studio-0.2.0-alpha.111-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:a10fb63f9d489bd860a8f463928df377471814a69ed24848738ffa5b9296f0c2"
+      },
+      {
+        "tag": "v0.2.0-alpha.110",
+        "id": 763012920,
+        "name": "Pi-Studio-0.2.0-alpha.110-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:1d25f307ed52ef1a14f20a2bc205f439a9a631177e2a347bb2adbd35c7ae2dd4"
+      },
+      {
+        "tag": "v0.2.0-alpha.110",
+        "id": 763012921,
+        "name": "Pi-Studio-0.2.0-alpha.110-win-x64.zip",
+        "bytes": 171597920,
+        "digest": "sha256:1a05d31b161234daa28591f7434e219124baeb7deb66cf6eebb535c47e699615"
+      },
+      {
+        "tag": "v0.2.0-alpha.110",
+        "id": 763012923,
+        "name": "Pi-Studio-0.2.0-alpha.110-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:fb9e561ee0c56d042ecf8cfc9528beb9cc29ed716a0b1f2d332d3bfccd2da201"
+      },
+      {
+        "tag": "v0.2.0-alpha.110",
+        "id": 763016361,
+        "name": "Pi-Studio-0.2.0-alpha.110-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:b21144a71cfcfcc21162af6066540f40a2c6c804b5105c6642cfc04afbbc9053"
+      },
+      {
+        "tag": "v0.2.0-alpha.110",
+        "id": 763016362,
+        "name": "Pi-Studio-0.2.0-alpha.110-mac-arm64.zip",
+        "bytes": 142952526,
+        "digest": "sha256:b87c483b0c6a761b7321d2ad3c7be1dcd6e5393689e232392c7f9f7132d0d07d"
+      },
+      {
+        "tag": "v0.2.0-alpha.110",
+        "id": 763016363,
+        "name": "Pi-Studio-0.2.0-alpha.110-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:a950c7dcf5b60d8b4ed6c4454fac2915e9eeb6d9979b1453c3a96633def51b17"
+      },
+      {
+        "tag": "v0.2.0-alpha.99",
+        "id": 760154433,
+        "name": "Pi-Studio-0.2.0-alpha.99-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:a3ac300254f3768c3b71a0d1aa592636daa402ff6e85fbd9cf7f2d7793b6c6e7"
+      },
+      {
+        "tag": "v0.2.0-alpha.99",
+        "id": 760154434,
+        "name": "Pi-Studio-0.2.0-alpha.99-win-x64.zip",
+        "bytes": 171477164,
+        "digest": "sha256:a82f862caac6c24037c98eb65cedfde4fd20170069bdd1d9069a6a4f8789cdc5"
+      },
+      {
+        "tag": "v0.2.0-alpha.99",
+        "id": 760154435,
+        "name": "Pi-Studio-0.2.0-alpha.99-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:e0f8be1c26033a0a9b322e26bf4d1fedd4ac69cbe753e9dae7734fe4cbb4c711"
+      },
+      {
+        "tag": "v0.2.0-alpha.99",
+        "id": 760161854,
+        "name": "Pi-Studio-0.2.0-alpha.99-mac-arm64.zip",
+        "bytes": 142914664,
+        "digest": "sha256:a37cb14c12883f4c0ab38c687753c357a75bda21d18a6df0fc4bc336e0839a39"
+      },
+      {
+        "tag": "v0.2.0-alpha.99",
+        "id": 760161855,
+        "name": "Pi-Studio-0.2.0-alpha.99-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:52a0025ed3fbb5eb936d9cbc16b7433d6ae7a679c654334a683e6dc0acf2cfd0"
+      },
+      {
+        "tag": "v0.2.0-alpha.99",
+        "id": 760161857,
+        "name": "Pi-Studio-0.2.0-alpha.99-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:e376ecd0c5f14e7742e69d9ad16ffa583334f087db9edce0b6977681f6420e09"
+      },
+      {
+        "tag": "v0.2.0-alpha.98",
+        "id": 760040879,
+        "name": "Pi-Studio-0.2.0-alpha.98-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:15bb976a3a3540c801390c943df1117b46b7c91a95aac702eb55e755bf032a7a"
+      },
+      {
+        "tag": "v0.2.0-alpha.98",
+        "id": 760040880,
+        "name": "Pi-Studio-0.2.0-alpha.98-mac-arm64.zip",
+        "bytes": 142905372,
+        "digest": "sha256:69ebfdfdef3475ae8eb80bf2ee18938d857bffe2254dd47f0529c974f6a2236f"
+      },
+      {
+        "tag": "v0.2.0-alpha.98",
+        "id": 760040881,
+        "name": "Pi-Studio-0.2.0-alpha.98-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:92752f9dfa3aaa2204dfcdec9ccaaff7ebb5150e76c1b9bc286a7e82f212da7a"
+      },
+      {
+        "tag": "v0.2.0-alpha.98",
+        "id": 760040882,
+        "name": "Pi-Studio-0.2.0-alpha.98-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:56a2964ceab3927bfd827dd699280a6389c1781180a832d4d0abf557d3d9b8de"
+      },
+      {
+        "tag": "v0.2.0-alpha.98",
+        "id": 760040886,
+        "name": "Pi-Studio-0.2.0-alpha.98-win-x64.zip",
+        "bytes": 171467871,
+        "digest": "sha256:24eaba0783226606998e0494720c5649b6304922fe8a4141ef7121c56165706b"
+      },
+      {
+        "tag": "v0.2.0-alpha.98",
+        "id": 760040930,
+        "name": "Pi-Studio-0.2.0-alpha.98-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:893c41412dd1d09c9634e3e7e679e2e9d44f1302547d83de4eedbb81acc6fbf1"
+      },
+      {
+        "tag": "v0.2.0-alpha.97",
+        "id": 759940368,
+        "name": "Pi-Studio-0.2.0-alpha.97-win-x64.zip",
+        "bytes": 171465548,
+        "digest": "sha256:7922dc25242de246debc253448ca8654d3cc6d74c544cd5698fe73300f2bd37a"
+      },
+      {
+        "tag": "v0.2.0-alpha.97",
+        "id": 759940370,
+        "name": "Pi-Studio-0.2.0-alpha.97-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:b2e5f4a414e8fe3582ff647495cd60871d4b6528477dc8d8a4933e895f312ae9"
+      },
+      {
+        "tag": "v0.2.0-alpha.97",
+        "id": 759940380,
+        "name": "Pi-Studio-0.2.0-alpha.97-mac-arm64.zip",
+        "bytes": 142903022,
+        "digest": "sha256:01385c7edf472f41a58dc6c7f4ad7d4db15337bcdc48b03e9b01af1584477d8c"
+      },
+      {
+        "tag": "v0.2.0-alpha.97",
+        "id": 759940387,
+        "name": "Pi-Studio-0.2.0-alpha.97-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:8424371a66bec6d17f94da8667b12cf7858caf30c67364f96afe0d8b2bbff67a"
+      },
+      {
+        "tag": "v0.2.0-alpha.97",
+        "id": 759940388,
+        "name": "Pi-Studio-0.2.0-alpha.97-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:f5e98370da77daf90dc3177809bded99e6fc82dbfc1805d5a56b24adc6f7181c"
+      },
+      {
+        "tag": "v0.2.0-alpha.97",
+        "id": 759940441,
+        "name": "Pi-Studio-0.2.0-alpha.97-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:1524a7973fa4a5263fbf59aa4d2d0c819ea39b433b2343b6fb2ab03040b3c71a"
+      },
+      {
+        "tag": "v0.2.0-alpha.96",
+        "id": 759858146,
+        "name": "Pi-Studio-0.2.0-alpha.96-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:069f3ba308cf47e579753b02b864353861f6902dda52fc926f2f03fdaf81abf3"
+      },
+      {
+        "tag": "v0.2.0-alpha.96",
+        "id": 759858147,
+        "name": "Pi-Studio-0.2.0-alpha.96-win-x64.zip",
+        "bytes": 171464022,
+        "digest": "sha256:8bc66c74e78ca11ca8b2cc6b93cb171892472c43a888ec217be25dba028be235"
+      },
+      {
+        "tag": "v0.2.0-alpha.96",
+        "id": 759858150,
+        "name": "Pi-Studio-0.2.0-alpha.96-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:84fbb0d6477519a5c21d6101ffb13e18f0056ad1d3eadb13da8140f3068ead78"
+      },
+      {
+        "tag": "v0.2.0-alpha.96",
+        "id": 759858173,
+        "name": "Pi-Studio-0.2.0-alpha.96-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:968a909a02603f923118690454660acb73a4c8d9ce91f9bcd3f1430ff7ebaa04"
+      },
+      {
+        "tag": "v0.2.0-alpha.96",
+        "id": 759858175,
+        "name": "Pi-Studio-0.2.0-alpha.96-mac-arm64.zip",
+        "bytes": 142901521,
+        "digest": "sha256:e10b6089b6ee2b7b3e68a1d21e8ba5934bc9863090e4264fc761a9fbc626564e"
+      },
+      {
+        "tag": "v0.2.0-alpha.96",
+        "id": 759858208,
+        "name": "Pi-Studio-0.2.0-alpha.96-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:36248b040ff43d1054f8ff0d291305ad8b4764facbf9924c0e8d92021ba59b02"
+      },
+      {
+        "tag": "v0.2.0-alpha.95",
+        "id": 759742527,
+        "name": "Pi-Studio-0.2.0-alpha.95-win-x64.zip",
+        "bytes": 171463424,
+        "digest": "sha256:a9cbd898a1a286d745123cc11b2754bb7bb20c860464fbb1df2d8b1970d5a0c2"
+      },
+      {
+        "tag": "v0.2.0-alpha.95",
+        "id": 759742528,
+        "name": "Pi-Studio-0.2.0-alpha.95-mac-arm64.zip",
+        "bytes": 142901023,
+        "digest": "sha256:db9f7fe1af2966aeda5251910554633bf9bbec803a725a6f7c5adb68628b03b5"
+      },
+      {
+        "tag": "v0.2.0-alpha.95",
+        "id": 759742538,
+        "name": "Pi-Studio-0.2.0-alpha.95-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:83280a58127e53c155516af4955411c6b504a81419236477ba0fea87bd5f5193"
+      },
+      {
+        "tag": "v0.2.0-alpha.95",
+        "id": 759742540,
+        "name": "Pi-Studio-0.2.0-alpha.95-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:0192957d4785cc9c24fc411437e8d199b4c9894ad75f69ae0d9ec41165434033"
+      },
+      {
+        "tag": "v0.2.0-alpha.95",
+        "id": 759742544,
+        "name": "Pi-Studio-0.2.0-alpha.95-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:a90e28cb72029e49d8c8dc82f780c7b13c877b88e4398a2653fa17a9be70d6ce"
+      },
+      {
+        "tag": "v0.2.0-alpha.95",
+        "id": 759742587,
+        "name": "Pi-Studio-0.2.0-alpha.95-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:2b1431d21596fe202c253d071fa6d18f629a9cd0b489b39ff26caf6c368731a2"
+      },
+      {
+        "tag": "v0.2.0-alpha.94",
+        "id": 759685201,
+        "name": "Pi-Studio-0.2.0-alpha.94-mac-arm64.zip",
+        "bytes": 142901172,
+        "digest": "sha256:931a106c9c4eecbe41d730eae90ccb45dd88d8e265b55f368260818948bfbe51"
+      },
+      {
+        "tag": "v0.2.0-alpha.94",
+        "id": 759685203,
+        "name": "Pi-Studio-0.2.0-alpha.94-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:a5527ef48e165bb1e51463f65b240d1e807881f3fa6e40d2e5c71d5254c1eb51"
+      },
+      {
+        "tag": "v0.2.0-alpha.94",
+        "id": 759685218,
+        "name": "Pi-Studio-0.2.0-alpha.94-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:657ffddbc7bd2eaa28ced225f32e22ffbc697747ee2bb48afdc5ef4153cca72d"
+      },
+      {
+        "tag": "v0.2.0-alpha.94",
+        "id": 759685222,
+        "name": "Pi-Studio-0.2.0-alpha.94-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:83183c6db4236fce8a25a6ce53e9280fa9cd00ac9752af164592f8be5e482e96"
+      },
+      {
+        "tag": "v0.2.0-alpha.94",
+        "id": 759685224,
+        "name": "Pi-Studio-0.2.0-alpha.94-win-x64.zip",
+        "bytes": 171463597,
+        "digest": "sha256:20fe2c196e4e81a182f664ef6813807afd1e38083b9bface2e1d7c719277a1df"
+      },
+      {
+        "tag": "v0.2.0-alpha.94",
+        "id": 759685306,
+        "name": "Pi-Studio-0.2.0-alpha.94-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:78a80079ddc44373704ce3fa2bd771851cea174fdcd09977a6b459706f48a70a"
+      },
+      {
+        "tag": "v0.2.0-alpha.93",
+        "id": 759530273,
+        "name": "Pi-Studio-0.2.0-alpha.93-mac-arm64.zip",
+        "bytes": 142892425,
+        "digest": "sha256:4e0ea29c9cb50df45cc2eaf0cb668d2b86681188f6ce4cbe155e204d0a11c682"
+      },
+      {
+        "tag": "v0.2.0-alpha.93",
+        "id": 759530274,
+        "name": "Pi-Studio-0.2.0-alpha.93-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:5d0c4637dc8221da932f39dc583f088bec453f19bc7ede9d271530f9e281487c"
+      },
+      {
+        "tag": "v0.2.0-alpha.93",
+        "id": 759530292,
+        "name": "Pi-Studio-0.2.0-alpha.93-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:29cc9237198f3423ad69d258756d254176df61619074d434f9a846870e4a92b5"
+      },
+      {
+        "tag": "v0.2.0-alpha.93",
+        "id": 759530295,
+        "name": "Pi-Studio-0.2.0-alpha.93-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:452ebd7b0c7d19199deff033648aec6cd32aefbe1ac99c0efe46dbf21f195e8e"
+      },
+      {
+        "tag": "v0.2.0-alpha.93",
+        "id": 759530296,
+        "name": "Pi-Studio-0.2.0-alpha.93-win-x64.zip",
+        "bytes": 171454622,
+        "digest": "sha256:1566d2dc1b6e65dc9f5685d5eeba8dc3051d19287dd76f093dfa6d479f56a4e9"
+      },
+      {
+        "tag": "v0.2.0-alpha.93",
+        "id": 759530388,
+        "name": "Pi-Studio-0.2.0-alpha.93-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:34c6070cf877acca312ef19a1e850911a08e65a4acfbaed3d95276366981923c"
+      },
+      {
+        "tag": "v0.2.0-alpha.92",
+        "id": 759307997,
+        "name": "Pi-Studio-0.2.0-alpha.92-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:cccde8e58df9a1eb7277c31a322c5e48d07d869063c0ed95b88780510e03ed20"
+      },
+      {
+        "tag": "v0.2.0-alpha.92",
+        "id": 759307998,
+        "name": "Pi-Studio-0.2.0-alpha.92-mac-arm64.zip",
+        "bytes": 142889640,
+        "digest": "sha256:54300f3781d3b73d29973d1341dc4d3203851d4cd964040e27dc9a2dadedd806"
+      },
+      {
+        "tag": "v0.2.0-alpha.92",
+        "id": 759308010,
+        "name": "Pi-Studio-0.2.0-alpha.92-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:5ff9c4875f481d4aa9d71ce3886c4198d5077f9eb705181266a55c1892f38e47"
+      },
+      {
+        "tag": "v0.2.0-alpha.92",
+        "id": 759331228,
+        "name": "Pi-Studio-0.2.0-alpha.92-win-x64.zip",
+        "bytes": 171451820,
+        "digest": "sha256:f9aa526a975b3a386984b20d5fbd0cbf0e1a7ecc4b6743af6efb8772f2de3a3e"
+      },
+      {
+        "tag": "v0.2.0-alpha.92",
+        "id": 759331230,
+        "name": "Pi-Studio-0.2.0-alpha.92-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:b0976a1c38989b8a0528532ce7a32f356a5d893fa0fecaf589064961c81d0d6b"
+      },
+      {
+        "tag": "v0.2.0-alpha.92",
+        "id": 759331245,
+        "name": "Pi-Studio-0.2.0-alpha.92-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:f26e916d4ac6a8161507e546e62ccf3f85b89db5f83970d1c72ed59373ad889e"
+      },
+      {
+        "tag": "v0.2.0-alpha.91",
+        "id": 758964968,
+        "name": "Pi-Studio-0.2.0-alpha.91-mac-arm64.zip",
+        "bytes": 142883527,
+        "digest": "sha256:0bfea13dcf61a81cceeb1af03730fb3c21a5a007f7e17881468746562f2ddd9f"
+      },
+      {
+        "tag": "v0.2.0-alpha.91",
+        "id": 758964971,
+        "name": "Pi-Studio-0.2.0-alpha.91-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:e21e813557dc767ecdf81b048de0fd0819d3222db2228690f4acab30bf7b6aab"
+      },
+      {
+        "tag": "v0.2.0-alpha.91",
+        "id": 758964972,
+        "name": "Pi-Studio-0.2.0-alpha.91-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:1ff6109257d9e19c7bbbec0c23055aff79f0444e7fb43f45c5f49289e0f4a92f"
+      },
+      {
+        "tag": "v0.2.0-alpha.91",
+        "id": 758994255,
+        "name": "Pi-Studio-0.2.0-alpha.91-win-x64.zip",
+        "bytes": 171445695,
+        "digest": "sha256:64c16d10dda7f38481b19f0a8019f3584304609cef84a8139c066f589fa40e1a"
+      },
+      {
+        "tag": "v0.2.0-alpha.91",
+        "id": 758994257,
+        "name": "Pi-Studio-0.2.0-alpha.91-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:cd5df4778b9715954efe5ae5bde62d6d5405055fb7b4690d8de49cf941f86a4a"
+      },
+      {
+        "tag": "v0.2.0-alpha.91",
+        "id": 758994275,
+        "name": "Pi-Studio-0.2.0-alpha.91-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:39ae08bb8fefc8454926df6157fdd92384fe02b14cc5b6d0015034d450faaba2"
+      },
+      {
+        "tag": "v0.2.0-alpha.90",
+        "id": 758867876,
+        "name": "Pi-Studio-0.2.0-alpha.90-mac-arm64.zip",
+        "bytes": 142882302,
+        "digest": "sha256:990c3c4e4311864598ec972e7efb5080e782b2313e77da849cd3e6e0dd466129"
+      },
+      {
+        "tag": "v0.2.0-alpha.90",
+        "id": 758867879,
+        "name": "Pi-Studio-0.2.0-alpha.90-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:03c948a086568da50514d15ceeb24ac1dc0fbc68c60c49e5d878f7bbf233c08b"
+      },
+      {
+        "tag": "v0.2.0-alpha.90",
+        "id": 758867889,
+        "name": "Pi-Studio-0.2.0-alpha.90-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:1dd7f1282bf2f3b1a54d69cc90da86137ea4b587f371ead805fd7d60f1d25a9d"
+      },
+      {
+        "tag": "v0.2.0-alpha.90",
+        "id": 758871819,
+        "name": "Pi-Studio-0.2.0-alpha.90-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:45f7ee3712b0b1a06dce5582f779f5219557014f7bf6b6dcfea4cddde5f60dcd"
+      },
+      {
+        "tag": "v0.2.0-alpha.90",
+        "id": 758871824,
+        "name": "Pi-Studio-0.2.0-alpha.90-win-x64.zip",
+        "bytes": 171444471,
+        "digest": "sha256:ab2d7d87ba45dac80a1eaaf736619d5a25ce5dea3b9913fe370d3bb2c273d5d4"
+      },
+      {
+        "tag": "v0.2.0-alpha.90",
+        "id": 758871826,
+        "name": "Pi-Studio-0.2.0-alpha.90-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:8b107b28bee1d68eb1816f4dbba3b1754961bfc1de7625bc39f46709e3247213"
+      },
+      {
+        "tag": "v0.2.0-alpha.89",
+        "id": 758577631,
+        "name": "Pi-Studio-0.2.0-alpha.89-mac-arm64.zip",
+        "bytes": 142881817,
+        "digest": "sha256:c5bcd20074c8aba87cc8ea39b74c14946af3dc2c4d9d4f3659d64b22bcfb0441"
+      },
+      {
+        "tag": "v0.2.0-alpha.89",
+        "id": 758577633,
+        "name": "Pi-Studio-0.2.0-alpha.89-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:0cf7fbfa5406333b84acd386f7bf483a04f859819c3068af5edd33f95cd3efb4"
+      },
+      {
+        "tag": "v0.2.0-alpha.89",
+        "id": 758577645,
+        "name": "Pi-Studio-0.2.0-alpha.89-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:6e790c4a7c1b717a3d1176e21c024a689c39bf7dce53519c7553ff71d8b937bb"
+      },
+      {
+        "tag": "v0.2.0-alpha.89",
+        "id": 758624950,
+        "name": "Pi-Studio-0.2.0-alpha.89-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:c39a2ccf18a0d58f7ea874ceca57873a0acad520e5614bcae83044e5ae5e96d1"
+      },
+      {
+        "tag": "v0.2.0-alpha.89",
+        "id": 758624958,
+        "name": "Pi-Studio-0.2.0-alpha.89-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:2e64daeb269e7e3daf440212e4b4f4e49c1af37296e5834190ccda998c3ef20e"
+      },
+      {
+        "tag": "v0.2.0-alpha.89",
+        "id": 758624960,
+        "name": "Pi-Studio-0.2.0-alpha.89-win-x64.zip",
+        "bytes": 171443983,
+        "digest": "sha256:435e59d662a70417da8ae0806bb4db6e0c7d4c5b65a7dad74e945645cf1decf7"
+      },
+      {
+        "tag": "v0.2.0-alpha.88",
+        "id": 758137816,
+        "name": "Pi-Studio-0.2.0-alpha.88-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:ff75891295c478cabe46cc2b52029a5008cb3da0790499171bdbb434bdd7f999"
+      },
+      {
+        "tag": "v0.2.0-alpha.88",
+        "id": 758137817,
+        "name": "Pi-Studio-0.2.0-alpha.88-mac-arm64.zip",
+        "bytes": 142881089,
+        "digest": "sha256:375bd943868d0cdbd1567450ed01ed5d0ef4df24037cf136f9d118ef33324e5a"
+      },
+      {
+        "tag": "v0.2.0-alpha.88",
+        "id": 758137844,
+        "name": "Pi-Studio-0.2.0-alpha.88-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:96ce0bc47086fea612c3bb7578e113002fdc3c0c96a87fe0f601124af7c85274"
+      },
+      {
+        "tag": "v0.2.0-alpha.87",
+        "id": 757860916,
+        "name": "Pi-Studio-0.2.0-alpha.87-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:45959ffb69ac5ebb86ee38cabab3b8700b553cd244b802ffab61d7d8ea299323"
+      },
+      {
+        "tag": "v0.2.0-alpha.87",
+        "id": 757860917,
+        "name": "Pi-Studio-0.2.0-alpha.87-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:0dea2544d4aed23de6c574069b4e7a2509cbe16e839a80bac44fa74c09ca1c4b"
+      },
+      {
+        "tag": "v0.2.0-alpha.87",
+        "id": 757860918,
+        "name": "Pi-Studio-0.2.0-alpha.87-mac-arm64.zip",
+        "bytes": 142877484,
+        "digest": "sha256:8b3d70abe8457e762d1956f6b1b5ed46882ff3768e328c95cd0682a8c119d2f5"
+      },
+      {
+        "tag": "v0.2.0-alpha.109",
+        "id": 761132806,
+        "name": "Pi-Studio-0.2.0-alpha.109-win-x64.zip",
+        "bytes": 171510748,
+        "digest": "sha256:c01f567be15623ddf435c4e3717080f846a1e1ef6bb3a2737276fe8e5d754e38"
+      },
+      {
+        "tag": "v0.2.0-alpha.109",
+        "id": 761132809,
+        "name": "Pi-Studio-0.2.0-alpha.109-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:432e752298d5fdf41b73e776b3907b0788c8cecd35151d52ab7298ef5945fd1b"
+      },
+      {
+        "tag": "v0.2.0-alpha.109",
+        "id": 761132850,
+        "name": "Pi-Studio-0.2.0-alpha.109-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:ce2a90fd7053a7865f16cb240004e70307ea334c9d7fad9273075261b53a09fb"
+      },
+      {
+        "tag": "v0.2.0-alpha.109",
+        "id": 761139530,
+        "name": "Pi-Studio-0.2.0-alpha.109-mac-arm64.zip",
+        "bytes": 142948400,
+        "digest": "sha256:5fda6944b0ef3d705e5bcd666ca84b0fc2ff7e316ce7ee096d3efe4fe1b28fbc"
+      },
+      {
+        "tag": "v0.2.0-alpha.109",
+        "id": 761139531,
+        "name": "Pi-Studio-0.2.0-alpha.109-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:c9e7911cf7810513ef77fdba899f1aea2d0e173007c7e8a8ab1c2b4584ab90fe"
+      },
+      {
+        "tag": "v0.2.0-alpha.109",
+        "id": 761139545,
+        "name": "Pi-Studio-0.2.0-alpha.109-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:059426b238567990b60ae5296d8497adf5fd474e60318aa3e203387d6e348951"
+      },
+      {
+        "tag": "v0.2.0-alpha.108",
+        "id": 761017912,
+        "name": "Pi-Studio-0.2.0-alpha.108-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:77d2a8e5d83fa2264261a853e1d55487c21a57fea4843f18060621fbf92b744d"
+      },
+      {
+        "tag": "v0.2.0-alpha.108",
+        "id": 761017915,
+        "name": "Pi-Studio-0.2.0-alpha.108-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:e5f3f2aeae83e80d9363a514ff224480f8e5df67580317c552815f07d39f75bb"
+      },
+      {
+        "tag": "v0.2.0-alpha.108",
+        "id": 761017918,
+        "name": "Pi-Studio-0.2.0-alpha.108-win-x64.zip",
+        "bytes": 171509846,
+        "digest": "sha256:084867458bb434f47d1681920532c83d3745c93d754f9da514c3a0e5acfd0234"
+      },
+      {
+        "tag": "v0.2.0-alpha.108",
+        "id": 761026603,
+        "name": "Pi-Studio-0.2.0-alpha.108-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:18c6b897c5802d93a411805e11f517941061d2d42716270b836c76468e9d2534"
+      },
+      {
+        "tag": "v0.2.0-alpha.108",
+        "id": 761026605,
+        "name": "Pi-Studio-0.2.0-alpha.108-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:53e581fa133aa6c1b5de765b1c190d9fe2936ee6ed7c9b448c3c8552f8cf9b0d"
+      },
+      {
+        "tag": "v0.2.0-alpha.108",
+        "id": 761026617,
+        "name": "Pi-Studio-0.2.0-alpha.108-mac-arm64.zip",
+        "bytes": 142947500,
+        "digest": "sha256:7bcfdd4acd891c1cc0cf5ecace3eedc5dc794a50b1e240f9d6940477d42eedb7"
+      },
+      {
+        "tag": "v0.2.0-alpha.107",
+        "id": 760932998,
+        "name": "Pi-Studio-0.2.0-alpha.107-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:e994bf4282c1a6ba54f567496ecf8b55235c4d2886bea311076c042e0cf321ca"
+      },
+      {
+        "tag": "v0.2.0-alpha.107",
+        "id": 760933010,
+        "name": "Pi-Studio-0.2.0-alpha.107-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:82fcf2a990c79ea24cf707049863bfebbea5b0ea55f6f4af39df2d3ddfe91a93"
+      },
+      {
+        "tag": "v0.2.0-alpha.107",
+        "id": 760933011,
+        "name": "Pi-Studio-0.2.0-alpha.107-win-x64.zip",
+        "bytes": 171502994,
+        "digest": "sha256:620343a6a396a60969f7f5751dfc663b368b973ce13eee1aaadc30c7403c3880"
+      },
+      {
+        "tag": "v0.2.0-alpha.107",
+        "id": 760943823,
+        "name": "Pi-Studio-0.2.0-alpha.107-mac-arm64.zip",
+        "bytes": 142940492,
+        "digest": "sha256:2a6ebcefc8ee0299e79ca20f83a5902996076563d72203dbe6f118518fef22d8"
+      },
+      {
+        "tag": "v0.2.0-alpha.107",
+        "id": 760943826,
+        "name": "Pi-Studio-0.2.0-alpha.107-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:27e1540197cce526b5f64bd81d25bcefcdd80031e88eb9456d3a475178c1a60b"
+      },
+      {
+        "tag": "v0.2.0-alpha.107",
+        "id": 760943828,
+        "name": "Pi-Studio-0.2.0-alpha.107-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:42c135d7b3bdee5db13309b6d3bde02f31f23d6dd9ebf2840a45904387553dbc"
+      },
+      {
+        "tag": "v0.2.0-alpha.106",
+        "id": 760736353,
+        "name": "Pi-Studio-0.2.0-alpha.106-win-x64.zip",
+        "bytes": 171502516,
+        "digest": "sha256:580d9d7aabf384a4de981c594d58e960f62cea7ee5ad2967dadf866493f8f399"
+      },
+      {
+        "tag": "v0.2.0-alpha.106",
+        "id": 760736356,
+        "name": "Pi-Studio-0.2.0-alpha.106-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:2961d9468bd77b3e8a665c3f091d6f7da791f69f29c710e05a257914d42f382b"
+      },
+      {
+        "tag": "v0.2.0-alpha.106",
+        "id": 760736357,
+        "name": "Pi-Studio-0.2.0-alpha.106-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:400db2ddef18322aca676049118fcbd051a687552e042668f70d6db454b79244"
+      },
+      {
+        "tag": "v0.2.0-alpha.106",
+        "id": 760740225,
+        "name": "Pi-Studio-0.2.0-alpha.106-mac-arm64.zip",
+        "bytes": 142940004,
+        "digest": "sha256:424e997f56fbb0f33db87330abc91d45656bea5e0e8befa5643c6f5d4469da52"
+      },
+      {
+        "tag": "v0.2.0-alpha.106",
+        "id": 760740227,
+        "name": "Pi-Studio-0.2.0-alpha.106-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:31206fe8d82f49721812b4bea7637f3fb818bea30a11107c1b588f5c967ace90"
+      },
+      {
+        "tag": "v0.2.0-alpha.106",
+        "id": 760740236,
+        "name": "Pi-Studio-0.2.0-alpha.106-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:ad9496433dd53e49931fce74ae857e818b60f66d46c9ebb8f30cc663cb05e022"
+      },
+      {
+        "tag": "v0.2.0-alpha.105",
+        "id": 760681236,
+        "name": "Pi-Studio-0.2.0-alpha.105-win-x64.zip",
+        "bytes": 171501980,
+        "digest": "sha256:30a4d96a4cbf03428ee80874158b0cf8ee3acadbe7e39604e8bcf82cf66a7949"
+      },
+      {
+        "tag": "v0.2.0-alpha.105",
+        "id": 760681239,
+        "name": "Pi-Studio-0.2.0-alpha.105-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:af8b894459b28640e64fb0c4b8198f74e85c7b05d8f42c568e53bddf1fcaa4b2"
+      },
+      {
+        "tag": "v0.2.0-alpha.105",
+        "id": 760681240,
+        "name": "Pi-Studio-0.2.0-alpha.105-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:bdef3deff86533b5011253164593d56d19ddbe4dc2c5e7c1ce7a54797e6cc995"
+      },
+      {
+        "tag": "v0.2.0-alpha.105",
+        "id": 760687054,
+        "name": "Pi-Studio-0.2.0-alpha.105-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:1e6bd1e226917ee9656cba8cb546d91ed28b78f2725aeb253965f4960f7823aa"
+      },
+      {
+        "tag": "v0.2.0-alpha.105",
+        "id": 760687055,
+        "name": "Pi-Studio-0.2.0-alpha.105-mac-arm64.zip",
+        "bytes": 142939457,
+        "digest": "sha256:4b5841500b2fcee489e5e44891a24a7f3c82224d53985afe74fda434cab89796"
+      },
+      {
+        "tag": "v0.2.0-alpha.105",
+        "id": 760687056,
+        "name": "Pi-Studio-0.2.0-alpha.105-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:f7ce747e086011719952d53f7a07ab894cbf6e8036ef82a4dea9d486915ee0db"
+      },
+      {
+        "tag": "v0.2.0-alpha.104",
+        "id": 760655988,
+        "name": "Pi-Studio-0.2.0-alpha.104-win-x64.zip",
+        "bytes": 171502774,
+        "digest": "sha256:21695c5eccb3a664dbc7ef8efd50d0b5647c140c5356470d4aac7b5d4f7b937d"
+      },
+      {
+        "tag": "v0.2.0-alpha.104",
+        "id": 760656007,
+        "name": "Pi-Studio-0.2.0-alpha.104-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:4f347b8a5a42aee1bb7f59a4562701b4273129c55ddd6b81aae734c819293b70"
+      },
+      {
+        "tag": "v0.2.0-alpha.104",
+        "id": 760656010,
+        "name": "Pi-Studio-0.2.0-alpha.104-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:e6823e413ef05cf87bc0f5ae527b2b022ed2afa3941783a47e1230ea41fbe03b"
+      },
+      {
+        "tag": "v0.2.0-alpha.104",
+        "id": 760660747,
+        "name": "Pi-Studio-0.2.0-alpha.104-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:620d9676773f178d45dafdcc900183813416532e71d49cccf91ceff5479490ae"
+      },
+      {
+        "tag": "v0.2.0-alpha.104",
+        "id": 760660748,
+        "name": "Pi-Studio-0.2.0-alpha.104-mac-arm64.zip",
+        "bytes": 142940281,
+        "digest": "sha256:b0cf964a99b379f2292c7fda5aa71a48a850308e24c3ef48874bd7915be25a6e"
+      },
+      {
+        "tag": "v0.2.0-alpha.104",
+        "id": 760660749,
+        "name": "Pi-Studio-0.2.0-alpha.104-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:beb8b455e25867d14e8ff86369b7d792be2bba8da1bcadf2b535ec8901b7294a"
+      },
+      {
+        "tag": "v0.2.0-alpha.103",
+        "id": 760618836,
+        "name": "Pi-Studio-0.2.0-alpha.103-win-x64.zip",
+        "bytes": 171501562,
+        "digest": "sha256:61b3c1f5986ce02d3c15fb95d46e1722850c556381b6011ecaf6208e69666523"
+      },
+      {
+        "tag": "v0.2.0-alpha.103",
+        "id": 760618837,
+        "name": "Pi-Studio-0.2.0-alpha.103-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:3b991599dac7080f0ebbb93ff1029a54d1a70715e943542f6b4d86eb671707f0"
+      },
+      {
+        "tag": "v0.2.0-alpha.103",
+        "id": 760618840,
+        "name": "Pi-Studio-0.2.0-alpha.103-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:ba71a0375e0878301426e3527730f92b4e3f156b7e0af24281753a52d893be2c"
+      },
+      {
+        "tag": "v0.2.0-alpha.103",
+        "id": 760633569,
+        "name": "Pi-Studio-0.2.0-alpha.103-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:4b6f1bbe18614cfb589f00c81d7895e5e5f3db3cce71b255fd20774ef3ac9afa"
+      },
+      {
+        "tag": "v0.2.0-alpha.103",
+        "id": 760633570,
+        "name": "Pi-Studio-0.2.0-alpha.103-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:e53d0c0454d6efb5381185c3b1973846f03ce2811f4066d137a695be9950864c"
+      },
+      {
+        "tag": "v0.2.0-alpha.103",
+        "id": 760633572,
+        "name": "Pi-Studio-0.2.0-alpha.103-mac-arm64.zip",
+        "bytes": 142939036,
+        "digest": "sha256:234db5a696a5bb397e772409ac90db9428ec72f221084687cebdb1c0bbcefc52"
+      },
+      {
+        "tag": "v0.2.0-alpha.102",
+        "id": 760586337,
+        "name": "Pi-Studio-0.2.0-alpha.102-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:66c9278ef696f31802b5513d5fec70d952b48daaaf52ae9d9963e6d3a4fbb3da"
+      },
+      {
+        "tag": "v0.2.0-alpha.102",
+        "id": 760586338,
+        "name": "Pi-Studio-0.2.0-alpha.102-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:929ba45bbcb9a93ad4a64024dd58b067207d8e8c4e6b9e8dcc5d3879958265b8"
+      },
+      {
+        "tag": "v0.2.0-alpha.102",
+        "id": 760586349,
+        "name": "Pi-Studio-0.2.0-alpha.102-win-x64.zip",
+        "bytes": 171501650,
+        "digest": "sha256:081ac204579793db7703be8972caaf493bd856e48067255e962e9a7c4c996cef"
+      },
+      {
+        "tag": "v0.2.0-alpha.102",
+        "id": 760591880,
+        "name": "Pi-Studio-0.2.0-alpha.102-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:a9e17b3cf07f57e0ecc6304a3e0d79f950120f1baa748c7ebc0c81b82c7c16f4"
+      },
+      {
+        "tag": "v0.2.0-alpha.102",
+        "id": 760591881,
+        "name": "Pi-Studio-0.2.0-alpha.102-mac-arm64.zip",
+        "bytes": 142939154,
+        "digest": "sha256:b3647d44969ed9da03334dad149258f95706aefb9f19e33e0b7a60b008c1c059"
+      },
+      {
+        "tag": "v0.2.0-alpha.102",
+        "id": 760591885,
+        "name": "Pi-Studio-0.2.0-alpha.102-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:0da3ef43b4f0a3c96ee337d395979e42c4c362f14ef968ba24aa86ed37c623ba"
+      },
+      {
+        "tag": "v0.2.0-alpha.101",
+        "id": 760499544,
+        "name": "Pi-Studio-0.2.0-alpha.101-win32-x64.update.json",
+        "bytes": 634,
+        "digest": "sha256:4159564abffe0a5238ed4eeafe2e41f487568042187497b30182aeb214d3c494"
+      },
+      {
+        "tag": "v0.2.0-alpha.101",
+        "id": 760499547,
+        "name": "Pi-Studio-0.2.0-alpha.101-win-x64.zip.sha256",
+        "bytes": 104,
+        "digest": "sha256:a67379b17a0f87529bca18086aa7a00e51922ebf02c9e78ddb7126bef6d12a2c"
+      },
+      {
+        "tag": "v0.2.0-alpha.101",
+        "id": 760499548,
+        "name": "Pi-Studio-0.2.0-alpha.101-win-x64.zip",
+        "bytes": 171497950,
+        "digest": "sha256:a178066959824eb522fcfce1a0f5985f4d076c2bb6a1cc722a8032311a2cd349"
+      },
+      {
+        "tag": "v0.2.0-alpha.101",
+        "id": 760504069,
+        "name": "Pi-Studio-0.2.0-alpha.101-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:913f0567f292d48bc98da2383d869e48ec2a5546144982e042170606d0bfad64"
+      },
+      {
+        "tag": "v0.2.0-alpha.101",
+        "id": 760504070,
+        "name": "Pi-Studio-0.2.0-alpha.101-mac-arm64.zip",
+        "bytes": 142935439,
+        "digest": "sha256:ed1cfab86d00cdbb6bd3b1097c2d46deab90fd5500b5997aabe1739933e1c12b"
+      },
+      {
+        "tag": "v0.2.0-alpha.101",
+        "id": 760504072,
+        "name": "Pi-Studio-0.2.0-alpha.101-mac-arm64.zip.sha256",
+        "bytes": 106,
+        "digest": "sha256:6178e28255fd1e1383867df82955c7c1b3872d3d34d9977d47bd72eb5d36939a"
+      },
+      {
+        "tag": "v0.2.0-alpha.86",
+        "id": 756099266,
+        "name": "Pi-Studio-0.2.0-alpha.86-mac-arm64.zip",
+        "bytes": 142877313,
+        "digest": "sha256:958d4c5fae0df2e45a08990de0b3f31921ee115b0d8cc75b3a3863ab9b4076b7"
+      },
+      {
+        "tag": "v0.2.0-alpha.86",
+        "id": 756099269,
+        "name": "Pi-Studio-0.2.0-alpha.86-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:f44f7d1111cc514860d10023b53e09c483c632e613dea3e0a9a2f80779a22c34"
+      },
+      {
+        "tag": "v0.2.0-alpha.86",
+        "id": 756099277,
+        "name": "Pi-Studio-0.2.0-alpha.86-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:3c8c059c9914173a358d153372ba24d072982ef2094b32fe0cabd44082afe71e"
+      },
+      {
+        "tag": "v0.2.0-alpha.86",
+        "id": 756158777,
+        "name": "Pi-Studio-0.2.0-alpha.86-win-x64.zip",
+        "bytes": 171439336,
+        "digest": "sha256:dd538e2e6f7efd759e5239e01f27304fa1841a61b1777fd4174f78254f0ebdb7"
+      },
+      {
+        "tag": "v0.2.0-alpha.86",
+        "id": 756175520,
+        "name": "Pi-Studio-0.2.0-alpha.86-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:ea391ce98bb20dbb0bc3d9e010ac3a29ea6523b2fee8cb2c3417383a45636efb"
+      },
+      {
+        "tag": "v0.2.0-alpha.86",
+        "id": 756175521,
+        "name": "Pi-Studio-0.2.0-alpha.86-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:f78455b2fb0e1b7198df5e0bd0885bd480dbffeae054e9722ca0e81e1cde4f05"
+      },
+      {
+        "tag": "v0.2.0-alpha.85",
+        "id": 755882852,
+        "name": "Pi-Studio-0.2.0-alpha.85-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:dba12b6a322743f35262da6b0931d60b5b1c69d3c2d0e43b0b890a658dbb22f2"
+      },
+      {
+        "tag": "v0.2.0-alpha.85",
+        "id": 755882853,
+        "name": "Pi-Studio-0.2.0-alpha.85-mac-arm64.zip",
+        "bytes": 142877127,
+        "digest": "sha256:4e6da0213e6c16825d9dccd06a92a63a7cc6c38dc2a63f5dab148d86a580f1dc"
+      },
+      {
+        "tag": "v0.2.0-alpha.85",
+        "id": 755882875,
+        "name": "Pi-Studio-0.2.0-alpha.85-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:6eeac7952fcf7a3a657b151462453d0c8c83bc9d026f0b93f9138301c11fc5bc"
+      },
+      {
+        "tag": "v0.2.0-alpha.84",
+        "id": 755407822,
+        "name": "Pi-Studio-0.2.0-alpha.84-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:95c2da8268c106cdbadc5c06404595aab5380783e130c6f93f2031f197f5c7e8"
+      },
+      {
+        "tag": "v0.2.0-alpha.84",
+        "id": 755407832,
+        "name": "Pi-Studio-0.2.0-alpha.84-mac-arm64.zip",
+        "bytes": 142782648,
+        "digest": "sha256:9f099ee7ab994abaf2d64623dfba7fc720d69715d1db5dbe88e1c667d8b49342"
+      },
+      {
+        "tag": "v0.2.0-alpha.84",
+        "id": 755413144,
+        "name": "Pi-Studio-0.2.0-alpha.84-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:3c7dbd47dce399b1e7802f59b399abddf5e3c8765e56b13b756840127884005f"
+      },
+      {
+        "tag": "v0.2.0-alpha.83",
+        "id": 754783892,
+        "name": "Pi-Studio-0.2.0-alpha.83-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:482d99537d1540a81a47be4f94be60ec9c09d3afaee670a73c761de457e97e41"
+      },
+      {
+        "tag": "v0.2.0-alpha.83",
+        "id": 754783893,
+        "name": "Pi-Studio-0.2.0-alpha.83-mac-arm64.zip",
+        "bytes": 142923380,
+        "digest": "sha256:b075c71504d29d938b5812a002cff6d4fac5e5db29888534f67faea34b81ae05"
+      },
+      {
+        "tag": "v0.2.0-alpha.83",
+        "id": 754783897,
+        "name": "Pi-Studio-0.2.0-alpha.83-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:839a534ff4561a77c2f984b562955a487bfee0b317406a6cb5b337c0d8783318"
+      },
+      {
+        "tag": "v0.2.0-alpha.82",
+        "id": 754628153,
+        "name": "Pi-Studio-0.2.0-alpha.82-mac-arm64.zip",
+        "bytes": 142922166,
+        "digest": "sha256:32e26bf49316a3566539614090f7fa506170badb2114fd161e0bf13eb5278954"
+      },
+      {
+        "tag": "v0.2.0-alpha.82",
+        "id": 754628155,
+        "name": "Pi-Studio-0.2.0-alpha.82-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:ea8bc66654bbdd68dbaef45bbc5ada7968b430060d9f504109574ed83547f1a5"
+      },
+      {
+        "tag": "v0.2.0-alpha.82",
+        "id": 754628157,
+        "name": "Pi-Studio-0.2.0-alpha.82-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:90ab398b2b108e8a7ede4e4ad7c45b910339a4665b689e25ba8ef178c03e5e63"
+      },
+      {
+        "tag": "v0.2.0-alpha.81",
+        "id": 754427399,
+        "name": "Pi-Studio-0.2.0-alpha.81-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:7fa74b6593066cc5b71de5180f0bf679437e1ea4fec906f86502a46e11dbfe2f"
+      },
+      {
+        "tag": "v0.2.0-alpha.81",
+        "id": 754427400,
+        "name": "Pi-Studio-0.2.0-alpha.81-mac-arm64.zip",
+        "bytes": 142918136,
+        "digest": "sha256:995160dc1094515639c8513c3ecab7051a2740307d7501117cf1dafc965caaf5"
+      },
+      {
+        "tag": "v0.2.0-alpha.81",
+        "id": 754427401,
+        "name": "Pi-Studio-0.2.0-alpha.81-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:c65e1298089f3b42fcd16f4edfa3417bfb1abf840c1009728505d6c7130dced5"
+      },
+      {
+        "tag": "v0.2.0-alpha.80",
+        "id": 754099117,
+        "name": "Pi-Studio-0.2.0-alpha.80-mac-arm64.zip",
+        "bytes": 142913029,
+        "digest": "sha256:f48cc46038abbc34a6810f2448770877fa1793ae4d0935a28730cd60b6eac606"
+      },
+      {
+        "tag": "v0.2.0-alpha.80",
+        "id": 754099119,
+        "name": "Pi-Studio-0.2.0-alpha.80-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:783f64fcbd4e66ab52042df70480ca33d1ba3ee5ca9e1ef2c3b7dd2b6c85190c"
+      },
+      {
+        "tag": "v0.2.0-alpha.80",
+        "id": 754106930,
+        "name": "Pi-Studio-0.2.0-alpha.80-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:19f0ada756779f2b48c3326be6cf78df4a2297b67f5920d37ce3e637c0159ba3"
+      },
+      {
+        "tag": "v0.2.0-alpha.79",
+        "id": 753956456,
+        "name": "Pi-Studio-0.2.0-alpha.79-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:c6f177484c14e90270829238fd63fe115f580813098da010750a9cff10f32040"
+      },
+      {
+        "tag": "v0.2.0-alpha.79",
+        "id": 753956457,
+        "name": "Pi-Studio-0.2.0-alpha.79-mac-arm64.zip",
+        "bytes": 142911791,
+        "digest": "sha256:c68040617dd490c92c77dfab79850263de1f0bbe305c29a9c98a4e7bb8d766c7"
+      },
+      {
+        "tag": "v0.2.0-alpha.79",
+        "id": 753965254,
+        "name": "Pi-Studio-0.2.0-alpha.79-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:18aa8ffd805ac5084f9478d3c0cd0c9dec6809839fadf3aa5bec5400a39e1561"
+      },
+      {
+        "tag": "v0.2.0-alpha.78",
+        "id": 753869674,
+        "name": "Pi-Studio-0.2.0-alpha.78-win-x64.zip",
+        "bytes": 171572416,
+        "digest": "sha256:15c16f4ccbb404e9ec8ec5f9f97bd9f25edf48f5a6a54ef75d70971df4f46e2a"
+      },
+      {
+        "tag": "v0.2.0-alpha.78",
+        "id": 753869675,
+        "name": "Pi-Studio-0.2.0-alpha.78-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:98adc2592de9dc5b1f35fc7fe52eef3af45e6f714eb7ada1b962a4468ab5e8a2"
+      },
+      {
+        "tag": "v0.2.0-alpha.78",
+        "id": 753869676,
+        "name": "Pi-Studio-0.2.0-alpha.78-mac-arm64.zip",
+        "bytes": 143016595,
+        "digest": "sha256:beef212aecd5b29d38fe62f3aef89f5eac4473a15f68f507d49a07b01d05a066"
+      },
+      {
+        "tag": "v0.2.0-alpha.78",
+        "id": 753869681,
+        "name": "Pi-Studio-0.2.0-alpha.78-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:2a8ce5b72e7706ad8f68081388945844cd7cd125901b6204fcef78e1f34172a1"
+      },
+      {
+        "tag": "v0.2.0-alpha.78",
+        "id": 753887453,
+        "name": "Pi-Studio-0.2.0-alpha.78-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:2abb395ab044c3b647fad37b10c1b8202d9e669b5797f7b8c5568cba30f870fb"
+      },
+      {
+        "tag": "v0.2.0-alpha.78",
+        "id": 753887455,
+        "name": "Pi-Studio-0.2.0-alpha.78-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:d0dd995ef3ea623cd264fbbf26a83d528bf0d8bc9f8bb2cd6f626213965b680d"
+      },
+      {
+        "tag": "v0.2.0-alpha.77",
+        "id": 753599655,
+        "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip",
+        "bytes": 143013059,
+        "digest": "sha256:637946c8bbe936b9694b5721f1fb7ace8710bf7f0106557a329e043d6725d356"
+      },
+      {
+        "tag": "v0.2.0-alpha.77",
+        "id": 753599657,
+        "name": "Pi-Studio-0.2.0-alpha.77-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:e250801fd09c779515d49dc5266de7015df7e68b166a35514f3602f351be92e1"
+      },
+      {
+        "tag": "v0.2.0-alpha.77",
+        "id": 753599659,
+        "name": "Pi-Studio-0.2.0-alpha.77-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:1205307407e4da9b3a6094b687cf00da3cfa952d0a429e974c569ef671812936"
+      },
+      {
+        "tag": "v0.2.0-alpha.77",
+        "id": 753599662,
+        "name": "Pi-Studio-0.2.0-alpha.77-win-x64.zip",
+        "bytes": 171568918,
+        "digest": "sha256:336b582e3ed319cec27b319c96416a4cd5136af39e2e5be90c4cdab488c7c5d7"
+      },
+      {
+        "tag": "v0.2.0-alpha.77",
+        "id": 753602225,
+        "name": "Pi-Studio-0.2.0-alpha.77-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:0cff8d060d94f8d25826595a3f55bd9761b1e1259cf1de35275117c49e228848"
+      },
+      {
+        "tag": "v0.2.0-alpha.77",
+        "id": 753602228,
+        "name": "Pi-Studio-0.2.0-alpha.77-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:57490ccd3b272ebf093a21fbdd05c46976d0d3f414ac5ab77258d0e08d5ecda1"
+      },
+      {
+        "tag": "v0.2.0-alpha.75",
+        "id": 752749928,
+        "name": "Pi-Studio-0.2.0-alpha.75-win-x64.zip",
+        "bytes": 171485244,
+        "digest": "sha256:0a530ab7540f8c31cc4aa2914598c27b86b5774a100b82eef8b74ed08693324e"
+      },
+      {
+        "tag": "v0.2.0-alpha.75",
+        "id": 752749929,
+        "name": "Pi-Studio-0.2.0-alpha.75-darwin-arm64.update.json",
+        "bytes": 622,
+        "digest": "sha256:82638f7c96c892acc5323deda749e4f6b761ac51447d4cb57df1c0e34e9a125a"
+      },
+      {
+        "tag": "v0.2.0-alpha.75",
+        "id": 752749930,
+        "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:dddc34b595d521b9405b31ba82756e45b56350a1de0ed7b11277acd6cef70cb7"
+      },
+      {
+        "tag": "v0.2.0-alpha.75",
+        "id": 752749937,
+        "name": "Pi-Studio-0.2.0-alpha.75-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:02caec793b530f02ac487f21f1e78a95c1c67cd8dc7ce7643b5d7a5b65ece61e"
+      },
+      {
+        "tag": "v0.2.0-alpha.75",
+        "id": 752749964,
+        "name": "Pi-Studio-0.2.0-alpha.75-mac-arm64.zip",
+        "bytes": 142268629,
+        "digest": "sha256:c55e5c368686be358095d618ad51195a3e7ae6cad26fbe8de39866d6e0ba15b6"
+      },
+      {
+        "tag": "v0.2.0-alpha.75",
+        "id": 752749972,
+        "name": "Pi-Studio-0.2.0-alpha.75-win32-x64.update.json",
+        "bytes": 630,
+        "digest": "sha256:667a0fd03302b9f30de8f6543b0a9ab136fd8bcdaade9876bc061c412b9b56b6"
+      },
+      {
+        "tag": "v0.2.0-alpha.74",
+        "id": 752492692,
+        "name": "Pi-Studio-0.2.0-alpha.74-mac-arm64.zip",
+        "bytes": 142671872,
+        "digest": "sha256:01a74b390b93e66626b08ccf6ab0879c627e4a0f1fca728c235c1e95512d6de7"
+      },
+      {
+        "tag": "v0.2.0-alpha.74",
+        "id": 752492693,
+        "name": "Pi-Studio-0.2.0-alpha.74-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:fc30206ed596a14d9b2ef034b1fe8639d00b2e010c425a791a79ca097c018fc9"
+      },
+      {
+        "tag": "v0.2.0-alpha.73",
+        "id": 752360480,
+        "name": "Pi-Studio-0.2.0-alpha.73-win-x64.zip.sha256",
+        "bytes": 103,
+        "digest": "sha256:ec1d8777d1cac6f00b3c3dd301a7be685da1a7354e5013e3ae6f2ad39e5e091f"
+      },
+      {
+        "tag": "v0.2.0-alpha.73",
+        "id": 752360481,
+        "name": "Pi-Studio-0.2.0-alpha.73-win-x64.zip",
+        "bytes": 171333793,
+        "digest": "sha256:9e0d4d285f0f8c1daaf759142759861f6bf472572c94c2a2d1fcc0c98a7ed7c9"
+      },
+      {
+        "tag": "v0.2.0-alpha.73",
+        "id": 752360482,
+        "name": "Pi-Studio-0.2.0-alpha.73-mac-arm64.zip.sha256",
+        "bytes": 105,
+        "digest": "sha256:e48c21832be1209dd1341067580b86f339cb9d17bf7909ca8d48d65f161a24db"
+      },
+      {
+        "tag": "v0.2.0-alpha.73",
+        "id": 752360489,
+        "name": "Pi-Studio-0.2.0-alpha.73-mac-arm64.zip",
+        "bytes": 142670416,
+        "digest": "sha256:b8f5b91eda222fad12daa020b8d21839a1692dca199aa1c6f6f7391ceaef7b77"
+      },
+      {
+        "tag": "v0.2.0-alpha.71",
+        "id": 751681363,
+        "name": "Pi-Studio-0.2.0-alpha.71-mac-arm64.zip",
+        "bytes": 142648233,
+        "digest": "sha256:4a28977b48bdeeef733861694a073cbb4457e31dfa8a24aefc23ababb433a267"
+      },
+      {
+        "tag": "v0.2.0-alpha.70",
+        "id": 751631244,
+        "name": "Pi-Studio-0.2.0-alpha.70-mac-arm64.zip",
+        "bytes": 142645843,
+        "digest": "sha256:3722c7a06d616f5901d37e74435b7f1d59212288b4a6a39bc7d4532593297fa2"
+      }
+    ],
+    "allAssetsRequested": false
+  },
+  "failures": [],
+  "exclusions": [
+    "Root node_modules is a local dependency install, not published source. Bundled dependency payloads are scanned inside archives.",
+    "out is scanned through distributables; .git through all fetched reachable refs. Unreachable/dangling Git objects and external user studio/credentials are not scanned.",
+    "Personal paths flagged by location only; images need separate visual/provenance review before public release."
+  ],
+  "unreviewedFindings": 0,
+  "allRequestedScansPassed": true,
+  "cleanupPerformed": false,
+  "historyRewritten": false,
+  "releasesDeleted": false,
+  "repositoryVisibilityChanged": false,
+  "cleanupRequiresExplicitAgreement": true,
+  "fullRel02Accepted": false
+}

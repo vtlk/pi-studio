@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-20T08:58:15.514277+00:00",
+  "version": "0.2.0-alpha.124",
+  "runtimeSourceCommit": "b9033b6c3a7fd746a1521f2218cf498d6cf64551",
+  "tests": {
+    "passed": 591,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "buildTypecheckAndLint": true,
+  "architectureModules": 488,
+  "nativePi": "1.5.2",
+  "nativeProof": "helper-settings-native-proof.json",
+  "realHelperTeamAndAdministrationMcpReads": true,
+  "noImplicitProductionProject": true,
+  "ordinaryProjectTeamScopePreserved": true,
+  "administrationAssignmentAndRevocationRequired": true,
+  "secretsNativeMcpConfigsAndDialoguesExcluded": true,
+  "savedProfileNotRuntimeOrAuthClaim": true,
+  "readWithoutModelCatalogProbe": true,
+  "installedAppUserProfilesAndProcessesModified": false,
+  "externalModelRequests": 0,
+  "nativeWindowsAcceptance": false
+}
