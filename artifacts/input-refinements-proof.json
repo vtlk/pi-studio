@@ -1,9 +1,11 @@
 {
-  "checkedAt": "2026-11-20T08:26:49.613Z",
+  "checkedAt": "2026-11-20T09:31:15.772Z",
   "checks": [
     {
       "language": "ru",
       "theme": "light",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true,
       "clearDialogueHeaderOrderAndLocalization": true,
       "clearCancelAndBusyGuards": true,
       "confirmedResetKeepsDraftWithoutSend": true,
@@ -30,6 +32,8 @@
     {
       "language": "ru",
       "theme": "dark",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true,
       "clearDialogueHeaderOrderAndLocalization": true,
       "clearCancelAndBusyGuards": true,
       "confirmedResetKeepsDraftWithoutSend": true,
@@ -56,6 +60,8 @@
     {
       "language": "en",
       "theme": "light",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true,
       "clearDialogueHeaderOrderAndLocalization": true,
       "clearCancelAndBusyGuards": true,
       "confirmedResetKeepsDraftWithoutSend": true,
@@ -82,6 +88,8 @@
     {
       "language": "en",
       "theme": "dark",
+      "queueSteerEditDelete": true,
+      "helperHiddenByProfileSelectionWithoutStoppingOrLosingDraft": true,
       "clearDialogueHeaderOrderAndLocalization": true,
       "clearCancelAndBusyGuards": true,
       "confirmedResetKeepsDraftWithoutSend": true,

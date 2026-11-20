@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-20T09:39:52.626353+00:00",
+  "version": "0.2.0-alpha.125",
+  "removedOwnedUnpackedBuildBytes": 359946745,
+  "freeBytesBefore": 17227067392,
+  "freeBytesAfter": 17599627264,
+  "freeBytesChange": 372559872,
+  "appGuiNeverExecuted": true,
+  "actualPackagedBridgeTestedInOwnedNode": true,
+  "allOwnedQaChildrenExitedBeforeCleanup": true,
+  "retainedCurrentReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.125-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.125-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.125-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.125-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.125-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.125-win32-x64.update.json"
+  ],
+  "installedApplicationOrModelCacheOrUserProcessesTouched": false,
+  "browserCloneAudit": "mac-packaged-chat-browser-clones-proof.json",
+  "auditWorktreeRemoved": true
+}

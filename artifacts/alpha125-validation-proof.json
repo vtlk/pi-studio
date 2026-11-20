@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-20T09:39:52.364909+00:00",
+  "version": "0.2.0-alpha.125",
+  "runtimeSourceCommit": "1659bf92f309c9199b2a5d8bae7baaa0531a8bd3",
+  "tests": {
+    "passed": 597,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "buildTypecheckAndLint": true,
+  "architectureModules": 490,
+  "nativePi": "1.5.2",
+  "nativeProof": "queue-actions-native-proof.json",
+  "packagedBridgeProof": "alpha125-packaged-chat-proof.json",
+  "compiledUiProof": "queue-actions-ui-proof.json",
+  "stableNativeMessageIdsAndSameObjectImages": true,
+  "steerBeforeFollowUp": true,
+  "noNeighborReplayOrInputHookTaskSequence": true,
+  "removedInputsNeverReachedModel": true,
+  "staleDuplicateAndOversizedEditGuards": true,
+  "editAppendsToDurableDraftAndFocusesComposerWithoutSend": true,
+  "helperHiddenWithoutProcessOrDraftLoss": true,
+  "installedSdkFilesMethodsOrPrototypesPatched": false,
+  "appGuiExecuted": false,
+  "installedAppUserProfilesProcessesOrModelCacheModified": false,
+  "externalModelRequests": 0,
+  "nativeWindowsAcceptance": false
+}

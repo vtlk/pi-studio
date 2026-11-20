@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-20T09:37:58.285Z",
+  "operation": "packaged-chat",
+  "before": {
+    "available": true,
+    "names": [
+      "code_sign_clone.0c5Oyi",
+      "code_sign_clone.Mr0edQ"
+    ]
+  },
+  "after": {
+    "available": true,
+    "names": [
+      "code_sign_clone.0c5Oyi",
+      "code_sign_clone.Mr0edQ"
+    ]
+  },
+  "newClones": [],
+  "noNewRetainedClonesObserved": true,
+  "processOwnershipInferred": false,
+  "browserOrProfileModified": false
+}
