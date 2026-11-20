@@ -10,7 +10,7 @@
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.123/Pi-Studio-0.2.0-alpha.123-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.123/Pi-Studio-0.2.0-alpha.123-win-x64.zip)**
+**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.123/Pi-Studio-0.2.0-alpha.123-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.124/Pi-Studio-0.2.0-alpha.124-win-x64.zip)**
 
 **[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
 
@@ -129,15 +129,15 @@
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.123/Pi-Studio-0.2.0-alpha.123-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.123/Pi-Studio-0.2.0-alpha.123-win-x64.zip)** |
+| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.123/Pi-Studio-0.2.0-alpha.123-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.124/Pi-Studio-0.2.0-alpha.124-win-x64.zip)** |
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.123 | alpha.123 · preview |
+| **Версия** | alpha.123 | alpha.124 · preview |
 
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
-[Что изменилось в alpha.123 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.123)
+[Что изменилось в alpha.124 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.124)
 
-Alpha.123 добавляет «Очистить диалог» в чаты проектных агентов и помощника настройки. После подтверждения открывается новая пустая сессия Pi с заново собранным контекстом. Старые файлы сессий, результаты, настройки и черновики сохраняются. Работающий ответ, очередь и открытые запросы защищены от очистки; сообщение модели автоматически не отправляется. Доступна для macOS arm64 и Windows x64.
+Alpha.124 исправляет чтение полных настроек помощником без открытого проекта: промпт, тексты инструкций, назначения ресурсов и данные модели/подключения доступны через административный MCP и инструменты чтения Team. Отправка поручений и чтение файлов через Team сохраняют проектные границы. Сначала опубликована Windows x64 alpha.124; Mac пока остаётся на alpha.123 до загрузки его пакетов.
 
 Команды агентов запоминают состояние раскрытия. При переключении разделов вкладка «Проекты» возвращает в последний открытый проект. Нажатие на название проекта или иконку возврата открывает список; «Перечитать агентов» работает отдельно. Строка проекта чёрная в обеих темах, с тонким серым нижним бордюром.
 
