@@ -44,12 +44,15 @@ test('ordinary agents receive real administrative tools only through explicit as
       models: [],
     }));
     await assert.rejects(administration.call(run, 'list_configuration', {}));
+    await assert.rejects(administration.call(run, 'read_agent_settings', { agent_id: agent.id }));
     const assigned = { ...agent, mcps: [...agent.mcps, 'pistudio-administration'] };
     await store.saveSection('agents', [assigned]);
     const configuration = (await administration.call(run, 'list_configuration', {})) as {
       resources: unknown[];
     };
     assert.equal(configuration.resources.length, builtinResources.length);
+    const readable = await administration.call(run, 'read_agent_settings', { agent_id: agent.id });
+    assert.equal((readable as { agent: { id: string } }).agent.id, agent.id);
     const catalog = store.agentCatalog();
     const packaged = await exportTeam(catalog, catalog.teams[0].id, [], []);
     assert.equal(
@@ -60,6 +63,7 @@ test('ordinary agents receive real administrative tools only through explicit as
       { ...assigned, capabilitySettings: { 'mcps:pistudio-administration': { enabled: false } } },
     ]);
     await assert.rejects(administration.call(run, 'list_configuration', {}));
+    await assert.rejects(administration.call(run, 'read_agent_settings', { agent_id: agent.id }));
     const helper = (store.bootstrap().sections.systemAgents as { id: string }[])[0];
     const helperRun = {
       projectRoot: join(store.folder, '.pistudio/setup-assistant'),

@@ -7,6 +7,7 @@ import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { readProjectScope } from '../src/main/storage/projectReadScope.ts';
 import { loadOutput } from '../src/main/storage/outputs.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
+import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { ReferenceFiles } from '../src/main/pi/ReferenceFiles.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
@@ -65,6 +66,54 @@ const server = createServer(async (req, res) => {
     const marker = text.match(/CHAT_[A-Z0-9_]+/)?.[0] ?? 'UNKNOWN';
     received.set(marker, body);
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+    if (marker === 'CHAT_HELPER_SETTINGS') {
+      const readers = tools.filter((name: string) => name.endsWith('read_agent_settings'));
+      assert.equal(readers.length, 2, 'Both helper Team and Administration expose profile reads');
+      assert.ok(
+        !tools.some((name: string) =>
+          /mcp__team__.*(?:say_to|read_output|list_output|message_status)/.test(name),
+        ),
+        'Unbound helper does not advertise project tools',
+      );
+      const results = body.messages.filter(
+        (message: { role: string; tool_call_id?: string }) =>
+          message.role === 'tool' && message.tool_call_id?.startsWith('helper-settings-'),
+      );
+      if (results.length) {
+        assert.equal(results.length, 2);
+        for (const result of results) {
+          const data = JSON.stringify(result.content);
+          assert.match(data, /studio-constructor/);
+          assert.match(data, /CHAT_HELPER_FRESH_CONTEXT/);
+          assert.match(data, /currentConstructor/);
+          assert.doesNotMatch(data, /teamRequiresABindingTo|isError.*true/);
+        }
+      }
+      res.write(
+        `data: ${JSON.stringify(
+          chunk(
+            results.length
+              ? { role: 'assistant', content: 'SETTINGS_READ_OK' }
+              : {
+                  role: 'assistant',
+                  tool_calls: readers.map((name: string, index: number) => ({
+                    index,
+                    id: 'helper-settings-' + index,
+                    type: 'function',
+                    function: {
+                      name,
+                      arguments: JSON.stringify({ agent_id: helperProfile.id }),
+                    },
+                  })),
+                },
+          ),
+        )}\n\n`,
+      );
+      res.end(
+        `data: ${JSON.stringify(chunk({}, results.length ? 'stop' : 'tool_calls'))}\n\ndata: [DONE]\n\n`,
+      );
+      return;
+    }
     if (marker === 'CHAT_TOOL') {
       const toolResult = body.messages.at(-1).role === 'tool';
       res.write(
@@ -194,7 +243,9 @@ await store.saveSection(
       : profile,
   ),
 );
+const helperTeam = new TeamSupport(service);
 const helperHost = createSetupAssistant(service, {
+  team: helperTeam,
   embedded: true,
   bootstraps: join(root, 'helper-boots'),
   bridge: new URL('../bundled/pi-bridge/session.mjs', import.meta.url).pathname,
@@ -286,12 +337,27 @@ try {
   );
   const newHelperState = JSON.parse(await readFile(join(helperRoot, 'state.json'), 'utf8'));
   assert.notEqual(newHelperState.session.id, helperState.session.id);
+  await helperHost.sendChat({ ...helperTarget, text: 'CHAT_HELPER_SETTINGS' });
+  await until(
+    () =>
+      helperHost
+        .chat(helperTarget)
+        ?.messages.some((message) =>
+          message.parts.some((part) => part.text?.includes('SETTINGS_READ_OK')),
+        ) && helperHost.inspect(helperTarget.projectId, helperTarget.agentId)?.status !== 'running',
+    'Helper reads full settings through both real native MCP transports without an open project',
+  );
+  const helperRequestsAtClose = requests;
   const helperPid = helperHost.processes()[0].pid;
   await helperHost.drain();
   await helperHost.close();
   assert.equal(helperHost.processes().length, 0, 'Helper process is gone before quit completes');
   assert.throws(() => process.kill(helperPid, 0), { code: 'ESRCH' });
-  assert.equal(requests, helperRequests + 1, 'Helper shutdown never sends another model message');
+  assert.equal(
+    requests,
+    helperRequestsAtClose,
+    'Helper shutdown never sends another model message',
+  );
   const pid = host.processes()[0].pid;
   await host.launch({ ...target(), autoContinue: false });
   assert.equal(host.processes()[0].pid, pid, 'Reopening chat reuses the same idle process');
@@ -517,6 +583,14 @@ try {
   const freshBinding = store.projects.snapshot(project.id).agents[0].session!;
   assert.notEqual(freshBinding.id, binding.id);
   assert.notEqual(freshBinding.path, binding.path);
+  await until(() => {
+    try {
+      host.updates.assertIdle();
+      return true;
+    } catch {
+      return false;
+    }
+  }, 'Fresh request fully settles in both native SDK and Studio before update admission');
   const historyBeforeUpdate = await readFile(path);
   const lease = host.updates.hold();
   await assert.rejects(host.sendChat({ ...target(), text: 'CHAT_MUST_NOT_START' }));
@@ -549,6 +623,7 @@ try {
           'steer delivered before follow-up, exactly once in native history',
           'exact session restore and JSONL bytes',
           'clear project/helper chat: new native session, fresh prompt/instructions/skills/MCP, no automatic message, previous JSONL unchanged',
+          'helper reads full constructor settings through both Team and Administration native MCP without selecting a production project',
           'selected model/Skill/Project MCP',
           'extension UI round-trip',
           'tool calls/results',
@@ -570,6 +645,7 @@ try {
   await host.close();
   await helperHost.drain();
   await helperHost.close();
+  helperTeam.close();
   server.closeAllConnections();
   await new Promise<void>((resolve) => server.close(() => resolve()));
   await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });

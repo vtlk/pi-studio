@@ -16,6 +16,7 @@ import type { Connection } from '../../shared/connections.ts';
 import { builtinResources, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
 import { requiredBuiltinMcpIds } from '../../shared/builtinAssignments.ts';
 import { assertAdministrationScope } from './administrationScope.ts';
+import { readAdminSettings } from './readAgentSettings.ts';
 import { RemoteSkillInstaller } from '../skills/RemoteSkillInstaller.ts';
 import {
   endpointProviderId,
@@ -43,6 +44,7 @@ export class SetupAdministration {
     this.remoteSkills = remoteSkills;
   }
   async call(run: PreparedRun, name: string, args: Record<string, unknown>, signal?: AbortSignal) {
+    if (name === 'read_agent_settings') return readAdminSettings(this.service, run, args.agent_id);
     if (name === 'install_skill_from_url') return this.remoteSkills.install(run, args, signal);
     if (
       [

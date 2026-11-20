@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "version": "1.5.2",
+  "firstLaunchMilliseconds": 2593,
+  "timingScope": "isolated Mac fixture, not the user Windows machine or installed Mac profile",
+  "scope": "isolated native SDK + local model fixture; no external LLM/desktop permissions",
+  "checks": [
+    "startup count/spinner state",
+    "cold launch does not scan project outputs; one shared Pi check and native auth/catalog preflight",
+    "idle/working process reuse",
+    "parallel agents",
+    "file preview and busy chat reopen complete while studio persistence is deliberately held",
+    "streaming",
+    "authoritative steer/follow-up queue visible before delivery and retained on reopen",
+    "steer delivered before follow-up, exactly once in native history",
+    "exact session restore and JSONL bytes",
+    "clear project/helper chat: new native session, fresh prompt/instructions/skills/MCP, no automatic message, previous JSONL unchanged",
+    "helper reads full constructor settings through both Team and Administration native MCP without selecting a production project",
+    "selected model/Skill/Project MCP",
+    "extension UI round-trip",
+    "tool calls/results",
+    "abort without exit",
+    "per-message attachments preserve source files",
+    "process exit count",
+    "setup assistant native RPC process closes and is awaited before quit; no model input",
+    "update waits for busy chats and drains owned idle processes",
+    "update shutdown preserves exact JSONL and blocks new input"
+  ]
+}

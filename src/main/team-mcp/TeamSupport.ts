@@ -11,6 +11,7 @@ import type { ModelConnectionStatus } from '../../shared/connections.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
 import { teamScope, recipient } from './scope.ts';
 import { teamTools } from './tools.ts';
+import { helperTeamSettings, helperTeamTools } from './helperSettings.ts';
 import { TeamJournal, messageHash, messageId } from './TeamJournal.ts';
 import { verifyReceipt } from './receipt.ts';
 import { publicMessage, type TeamHost, type TeamCaller } from './types.ts';
@@ -111,7 +112,7 @@ export class TeamSupport {
     return [
       {
         name: 'team',
-        tools: teamTools,
+        tools: run.project.id === 'pi-setup-assistant' ? helperTeamTools : teamTools,
         call: async (name, args, signal) => {
           if (signal.aborted) throw new Error(t('error.teamSupport.callCancelled'));
           let result = await this.call(run, name, args);
@@ -133,6 +134,8 @@ export class TeamSupport {
   async call(run: TeamCaller, name: string, args: Record<string, unknown>) {
     if (this.stopping) throw new Error(t('error.teamSupport.studioIsClosingNoNew'));
     if (!run.teamAccess) throw new Error(t('error.teamSupport.mcpTeamIsNotAssigned'));
+    if (run.project.id === 'pi-setup-assistant')
+      return helperTeamSettings(this.service, run, name, args);
     // Service workspaces must never select a project implicitly.
     if (!run.project.sourceTeamId) throw new Error(t('error.teamSupport.teamRequiresABindingTo'));
     const scope = await teamScope(this.service, run);
