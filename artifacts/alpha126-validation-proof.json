@@ -15,5 +15,9 @@
   "sameAuthorityRevalidatedEachCall": true,
   "installedAppUserDataProcessesOrModelsChanged": false,
   "externalModelRequests": 0,
-  "nativeWindowsAcceptance": false
+  "nativeWindowsAcceptance": false,
+  "runtimeSourceCommit": "d2b90b1044ce7481e853ef2c0d0e7a08e91f9e16",
+  "packagedBridgeProof": "alpha126-packaged-settings-pages-proof.json",
+  "packageVerification": "release-package-0.2.0-alpha.126-proof.json",
+  "securityAuditPassed": true
 }

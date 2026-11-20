@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-20T10:11:14.741Z",
+  "pi": "1.5.2",
+  "transports": [
+    "Administration",
+    "helper Team"
+  ],
+  "pages": 28,
+  "requests": 29,
+  "maxOutputBytes": 10250,
+  "documentBytes": 87571,
+  "allPromptAndInstructionBytesPreserved": true,
+  "disabledInstructionsPreserved": true,
+  "noNativeTruncationWarning": true,
+  "noOpenProjectOrExternalModel": true,
+  "installedAppAndUserDataUntouched": true
+}
