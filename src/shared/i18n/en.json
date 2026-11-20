@@ -1705,6 +1705,8 @@
   "Chat.queueMakeSteer": "Change to Steer",
   "Chat.queueEdit": "Edit message",
   "Chat.queueDelete": "Remove from queue",
+  "SettingsRead.invalid": "Invalid settings read parameters. Continue with the offset and fingerprint from nextCall.",
+  "SettingsRead.changed": "Settings changed while reading. Start again at offset=0 without the old fingerprint.",
   "Chat.queueMode": "Message delivery",
   "Chat.followUp": "After the current task",
   "Chat.steer": "Update the current task",

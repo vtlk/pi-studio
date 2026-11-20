@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { readAllSettings } from './settingsRead.ts';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, mkdir, writeFile, symlink, readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -114,10 +115,10 @@ test('read settings returns full current blocks and distinguishable runtime, no 
   const f = await fixture(t);
   const before = await readFile(join(f.store.folder, '.pistudio/studio.json'), 'utf8');
   const contexts = await readdir(join(f.directory, '.pistudio/context'));
-  const result = (await f.support.call(f.run, 'read_agent_settings', { agent_id: 'b' })) as Record<
-    string,
-    unknown
-  >;
+  const result = await readAllSettings<Record<string, unknown>>(
+    (args) => f.support.call(f.run, 'read_agent_settings', args),
+    { agent_id: 'b', include_derived_prompts: true },
+  );
   const text = JSON.stringify(result);
   assert.ok(
     text.includes('ROLE_b') &&

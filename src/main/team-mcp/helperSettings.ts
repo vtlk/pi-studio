@@ -7,6 +7,7 @@ import { hasTeamMcp } from '../../shared/builtinResources.ts';
 import { readStudioAgentSettings } from '../pi/readAgentSettings.ts';
 import { t } from '../../shared/i18n/index.ts';
 import { teamTools } from './tools.ts';
+import { settingsOutput, settingsReadGuidance } from '../pi/settingsOutput.ts';
 
 export const helperTeamTools = teamTools
   .filter((tool) => ['list_agents', 'read_agent_settings'].includes(tool.name))
@@ -15,7 +16,8 @@ export const helperTeamTools = teamTools
     description:
       tool.name === 'list_agents'
         ? 'Setup assistant: list current Studio teams, ordinary and system profile IDs. Read-only catalog, not an open project or active session.'
-        : 'Setup assistant: read the full current Studio constructor settings for an exact ordinary or system agent_id, including prompt, instructions, assigned resources and model/connection metadata. No project is required. Excludes secrets and runtime/session claims.',
+        : 'Setup assistant: read current Studio constructor settings for an exact ordinary or system agent_id. No project required. Excludes secrets and runtime/session claims. ' +
+          settingsReadGuidance,
   }));
 
 /** The pinned helper has catalog-read authority, never an implicitly selected production project. */
@@ -38,7 +40,8 @@ export function helperTeamSettings(
       !hasBuiltinMcp(helper, 'pistudio-administration')
     )
       throw Error(t('builtin.assignmentDisabled'));
-    if (name === 'read_agent_settings') return readStudioAgentSettings(store, args.agent_id);
+    if (name === 'read_agent_settings')
+      return settingsOutput(readStudioAgentSettings(store, args.agent_id), args);
     if (name === 'list_agents')
       return {
         scope: 'studio-constructor',

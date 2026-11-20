@@ -9,6 +9,7 @@ import { safePath } from '../storage/files.ts';
 import { listProjectFiles, readProjectFile } from '../pi/projectFiles.ts';
 import { teamScope, outputAgent, type TeamScope } from './scope.ts';
 import { agentSettings } from './settings.ts';
+import { settingsOutput } from '../pi/settingsOutput.ts';
 import type { TeamJournal } from './TeamJournal.ts';
 import { publicMessage, type TeamHost } from './types.ts';
 const mime: Record<string, string> = {
@@ -97,7 +98,7 @@ export async function queryTeam(
       JSON.stringify([fresh.catalog, fresh.connections, fresh.resources, fresh.project])
     )
       throw new Error(t('error.queryTeam.settingsChangedWhileBeingRead'));
-    return result;
+    return settingsOutput(result, args);
   }
   if (name === 'list_output' || name === 'read_output') {
     const target = outputAgent(scope, args.agent_id);

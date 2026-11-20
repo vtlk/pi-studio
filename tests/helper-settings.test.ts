@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { readAllSettings } from './settingsRead.ts';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -108,12 +109,19 @@ test('helper Team and Administration read complete current constructor settings 
     result.currentConstructor.instructions.map((item) => item.content),
     ['FULL_ENABLED_TEXT', 'FULL_DISABLED_TEXT'],
   );
-  assert.ok(!result.currentConstructor.roleInstructions.includes('FULL_DISABLED_TEXT'));
+  assert.equal(result.currentConstructor.roleInstructions, undefined);
+  const derived = (await f.admin.call(f.run, 'read_agent_settings', {
+    agent_id: 'worker',
+    include_derived_prompts: true,
+  })) as typeof result;
+  assert.ok(!derived.currentConstructor.roleInstructions.includes('FULL_DISABLED_TEXT'));
   assert.equal(result.currentConstructor.model.id, 'model');
   assert.ok(result.currentConstructor.resources.some((item) => item.name === 'External MCP'));
   assert.equal(result.appliedRuntime, null);
   assert.ok(!JSON.stringify(result).includes('SECRET_SENTINEL'));
-  const own = await f.team.call(f.run, 'read_agent_settings', { agent_id: f.helper.id });
+  const own = await readAllSettings((args) => f.team.call(f.run, 'read_agent_settings', args), {
+    agent_id: f.helper.id,
+  });
   assert.equal((own as { agent: { systemRole: string } }).agent.systemRole, 'assistant');
   await assert.rejects(f.team.call(f.run, 'read_agent_settings', { agent_id: 'missing' }));
   await assert.rejects(f.team.call(f.run, 'read_agent_settings', { agent_id: '../worker' }));

@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-20T10:09:24.656319+00:00",
+  "version": "0.2.0-alpha.126",
+  "tests": {
+    "passed": 600,
+    "failed": 0,
+    "skippedNativeDesktop": 1
+  },
+  "buildTypecheckLintAndArchitecture": true,
+  "architectureModules": 491,
+  "nativeProof": "alpha126-native-settings-pages-proof.json",
+  "settingsByteBudgetUtf8AndRevisionGuards": true,
+  "rawMainAndEnabledDisabledInstructionsLossless": true,
+  "derivedPromptViewsExplicitlyReadable": true,
+  "sameAuthorityRevalidatedEachCall": true,
+  "installedAppUserDataProcessesOrModelsChanged": false,
+  "externalModelRequests": 0,
+  "nativeWindowsAcceptance": false
+}

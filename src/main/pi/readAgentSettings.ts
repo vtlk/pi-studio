@@ -8,12 +8,17 @@ import type { Resource } from '../../shared/resources.ts';
 import type { Connection } from '../../shared/connections.ts';
 import { builtinResource } from '../../shared/builtinResources.ts';
 import { t } from '../../shared/i18n/index.ts';
+import { settingsOutput } from './settingsOutput.ts';
 
-export function readAdminSettings(service: StudioService, run: PreparedRun, id: unknown) {
+export function readAdminSettings(
+  service: StudioService,
+  run: PreparedRun,
+  args: Record<string, unknown>,
+) {
   return service.serialize(async () => {
     const store = await service.load();
     await assertAdministrationScope(store, run);
-    return readStudioAgentSettings(store, id);
+    return settingsOutput(readStudioAgentSettings(store, args.agent_id), args);
   });
 }
 
