@@ -168,6 +168,11 @@ const server = createServer(async (req, res) => {
     );
     assert.match(systemPrompt, /Use set_agent_reasoning for an effort-only change/);
     assert.match(systemPrompt, /Never read studio\.json/);
+    assert.match(systemPrompt, /agent 5 can read agent 3's files/);
+    assert.match(
+      systemPrompt,
+      /Never write a prompt or instruction that makes agent 1 read agent 3's results or call agent 3 through team\.say_to/,
+    );
     const readers = body.tools
       .map((tool: any) => tool.function)
       .filter((tool: any) => tool.name.endsWith('read_agent_settings'));
