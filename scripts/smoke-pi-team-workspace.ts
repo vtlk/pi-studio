@@ -46,8 +46,16 @@ function checkWorkspacePrompt(
         ];
   for (const line of [
     `Project directory (absolute): ${JSON.stringify(root)}`,
-    `Working directory (${shared ? 'shared team' : 'agent'}): ${JSON.stringify(cwd)}`,
-    `Write all deliverables under: ${JSON.stringify(output)}`,
+    ...(shared
+      ? [
+          `Working directory (shared team): ${JSON.stringify(cwd)}`,
+          `Write all deliverables under: ${JSON.stringify(output)}`,
+        ]
+      : [
+          `Task working directory (absolute): ${JSON.stringify(output)}`,
+          `Native Pi tools start from (absolute): ${JSON.stringify(cwd)}`,
+          `Write all task files under: ${JSON.stringify(output)}`,
+        ]),
     `Earlier agents' outputs: ${JSON.stringify(previousOutputs)}`,
   ])
     assert.ok(prompt.split('\n').includes(line), line);
@@ -74,8 +82,10 @@ const server = createServer(async (req, res) => {
       id,
       separate ? 'per-agent' : 'shared',
     );
-    if (separate) assert.match(prompt, /Prefer cwd-relative output\//);
-    else assert.match(prompt, /directly in the project root/);
+    if (separate) {
+      assert.match(prompt, /work\/ means output\/work\/ and trash\/ means output\/trash\//);
+      assert.match(prompt, /including intermediate files, scripts, caches, older versions/);
+    } else assert.match(prompt, /directly in the project root/);
     const name = step === 0 ? 'write' : step === 1 ? 'complete_stage' : '';
     const tool = body.tools?.find((tool: { function: { name: string } }) =>
       name === 'write' ? tool.function.name === name : tool.function.name.endsWith('__' + name),

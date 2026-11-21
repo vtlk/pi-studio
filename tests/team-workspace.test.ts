@@ -71,7 +71,7 @@ test('shared team work uses the actual project root with hidden separate session
       prompt,
       /Do not create or use an Output\/output directory or a directory named after an agent/,
     );
-    assert.doesNotMatch(prompt, /Prefer cwd-relative output\//);
+    assert.doesNotMatch(prompt, /work\/ means output\/work\//);
   }
   assert.notEqual(first.record.leaseDirectory, second.record.leaseDirectory);
   assert.notEqual(first.record.sessionDirectory, second.record.sessionDirectory);
@@ -120,7 +120,17 @@ test('legacy projects default to separate folders even when their source team us
   assert.equal(run.record.cwd, join(root, 'agents/two'));
   assert.equal(run.record.output, join(root, 'agents/two/output'));
   assert.equal(run.record.previousOutputs[0].path, join(root, 'agents/one/output'));
-  assert.match(sessionSystemPrompt(run), /Prefer cwd-relative output\//);
+  const prompt = sessionSystemPrompt({ ...run, instructions: 'Рабочие файлы — work/.' });
+  assert.ok(
+    prompt.includes(`Task working directory (absolute): ${JSON.stringify(run.record.output)}`),
+  );
+  assert.ok(
+    prompt.includes(`Native Pi tools start from (absolute): ${JSON.stringify(run.record.cwd)}`),
+  );
+  assert.match(prompt, /including intermediate files, scripts, caches, older versions/);
+  assert.match(prompt, /work\/ means output\/work\/ and trash\/ means output\/trash\//);
+  assert.match(prompt, /first change to the absolute output directory with cd or Set-Location/);
+  assert.match(prompt, /Рабочие файлы — work\/\./);
 });
 
 test('team mode is portable, legacy defaults stay separate, administration preserves mode and invalid values fail closed', async (t) => {
