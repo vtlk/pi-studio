@@ -1356,6 +1356,7 @@
   "error.teamSupport.mcpTeamIsNotAssigned": "MCP team is not assigned to this opening.",
   "error.teamSupport.teamRequiresABindingTo": "team requires a binding to the open project and its source team.",
   "error.teamSupport.chainCorrectionExpired": "The original chain step is no longer active. The correction was not sent.",
+  "error.teamSupport.recipientNetwork": "The recipient lost contact with its model provider. The task remains unfinished in the recipient's dialogue.",
   "error.teamSupport.taskNotSentTheProject": "The chain is active. Only its current step can request a correction from an earlier enabled agent.",
   "error.teamSupport.theRecipientSConnectionModel": "The recipient's connection, model or reasoning level is not configured.",
   "error.teamSupport.textAndAStableRequest": "text and a stable request_id (letters/digits/_/-) are required.",

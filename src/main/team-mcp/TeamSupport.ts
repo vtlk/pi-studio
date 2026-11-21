@@ -49,9 +49,8 @@ export class TeamSupport {
     if (this.armed.size || this.pumping.size)
       throw new Error(t('error.teamSupport.waitForPendingTeamTasks'));
   }
-  drain() {
+  async drain() {
     this.close();
-    return Promise.resolve();
   }
   close() {
     this.stopping = true;
@@ -337,7 +336,9 @@ export class TeamSupport {
         reason:
           state?.status === 'ready'
             ? undefined
-            : 'Запрос завершён без подтверждённого complete_stage; проверьте диалог получателя.',
+            : event.failure === 'network'
+              ? t('error.teamSupport.recipientNetwork')
+              : 'Запрос завершён без подтверждённого complete_stage; проверьте диалог получателя.',
       }));
     } else if (
       ['stopped', 'error'].includes(event.type) &&

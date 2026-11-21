@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { zstdDecompressSync } from 'node:zlib';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
 import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
@@ -22,11 +23,35 @@ await mkdir(process.env.PI_CODING_AGENT_DIR);
 const pi = await checkPi('');
 assert.ok(pi.supported);
 const testCorrections = process.argv.includes('--correction');
+const testReconnect = process.argv.includes('--codex-reconnect');
+const codexModel = 'gpt-6-sol';
+const codexFixture = new URL('./fixtures/codex-loopback.mjs', import.meta.url);
+const codex = testReconnect ? await import(codexFixture.href) : undefined;
+if (testReconnect) {
+  const payload = Buffer.from(
+    JSON.stringify({ 'https://api.openai.com/auth': { chatgpt_account_id: 'qa-account' } }),
+  ).toString('base64url');
+  await writeFile(
+    join(process.env.PI_CODING_AGENT_DIR, 'auth.json'),
+    JSON.stringify({
+      'openai-codex': {
+        type: 'oauth',
+        access: `qa.${payload}.qa`,
+        refresh: 'qa-refresh',
+        expires: Date.now() + 3_600_000,
+      },
+    }),
+    { mode: 0o600 },
+  );
+  process.env.NODE_OPTIONS = `--import=${codexFixture.href}`;
+}
 const reports: unknown[] = [];
 try {
-  const modes = testCorrections
-    ? (['correction-closed', 'correction-idle'] as const)
-    : (['idle', 'busy'] as const);
+  const modes = testReconnect
+    ? (['correction-closed'] as const)
+    : testCorrections
+      ? (['correction-closed', 'correction-idle'] as const)
+      : (['idle', 'busy'] as const);
   for (const mode of modes) {
     const correction = mode === 'correction-closed' || mode === 'correction-idle';
     let host: ReturnType<typeof createStudioRunHost>;
@@ -36,7 +61,8 @@ try {
       releaseSource: (() => void) | undefined,
       releaseCorrectionRequest: (() => void) | undefined,
       releaseCorrectedOutput: (() => void) | undefined,
-      correctionPid: number | undefined;
+      correctionPid: number | undefined,
+      disconnects = 0;
     const steps = new Map<string, number>();
     const autoPidChecks: { agentId: string; pid: number }[] = [];
     const expectedPids = new Map<string, number>();
@@ -54,21 +80,48 @@ try {
       );
     const server = createServer(async (request, response) => {
       try {
-        assert.equal(request.url, '/v1/chat/completions');
-        assert.equal(request.headers.authorization, undefined);
+        const fromCodex = testReconnect && request.url === '/codex';
+        if (fromCodex) {
+          assert.equal(request.headers['chatgpt-account-id'], 'qa-account');
+          assert.match(request.headers.authorization ?? '', /^Bearer qa\.[A-Za-z0-9_-]+\.qa$/);
+        } else {
+          assert.equal(request.url, '/v1/chat/completions');
+          assert.equal(request.headers.authorization, undefined);
+        }
         const parts: Buffer[] = [];
         for await (const part of request) parts.push(Buffer.from(part));
-        const body = JSON.parse(Buffer.concat(parts).toString());
-        assert.equal(body.model, 'qa-chain');
-        requests++;
-        const system = JSON.stringify(
-          body.messages.filter((m: { role: string }) => m.role === 'system'),
+        const payload = Buffer.concat(parts);
+        const body = JSON.parse(
+          (request.headers['content-encoding'] === 'zstd'
+            ? zstdDecompressSync(payload)
+            : payload
+          ).toString(),
         );
+        assert.equal(body.model, fromCodex ? codexModel : 'qa-chain');
+        requests++;
+        const system = fromCodex
+          ? body.instructions
+          : JSON.stringify(body.messages.filter((m: { role: string }) => m.role === 'system'));
         const stage = system.match(/QA_CHAIN_STAGE:(first|next|last)/)?.[1];
         assert.ok(stage);
         const lastUser = JSON.stringify(
-          body.messages.findLast((m: { role: string }) => m.role === 'user').content,
+          (fromCodex ? body.input : body.messages).findLast(
+            (m: { role: string }) => m.role === 'user',
+          ).content,
         );
+        const revising = lastUser.includes('QA_BACKWARD_CORRECTION');
+        if (fromCodex && revising && steps.get('revision') === 1 && disconnects < 4) {
+          disconnects++;
+          assert.equal(
+            host.processes().find((item) => item.agentId === 'first')?.pid,
+            correctionPid,
+          );
+          assert.equal(host.inspect(project.id, 'next')?.status, 'running');
+          assert.equal(steps.get('next'), 1);
+          assert.ok(body.input.some((m: { type: string }) => m.type === 'function_call_output'));
+          response.writeHead(200, { 'x-qa-connect-timeout': '1' }).end();
+          return;
+        }
         response.writeHead(200, { 'Content-Type': 'text/event-stream' });
         if (lastUser.includes('PRIOR_HISTORY_')) {
           response.write(
@@ -95,7 +148,6 @@ try {
           busyResponse = response;
           return;
         }
-        const revising = lastUser.includes('QA_BACKWARD_CORRECTION');
         assert.ok(
           lastUser.includes('CHAIN_CURRENT_TASK') || (correction && revising && stage === 'first'),
         );
@@ -114,16 +166,31 @@ try {
         const askingForCorrection = correction && stage === 'next';
         const outputStep = step - Number(askingForCorrection);
         assert.ok(outputStep < 3, 'No duplicate generation/task');
-        const tools = body.tools.map((t: { function: { name: string } }) => t.function);
+        const tools = fromCodex
+          ? [
+              ...body.tools,
+              ...body.input.flatMap((item: { tools?: unknown[] }) => item.tools ?? []),
+            ]
+          : body.tools.map((t: { function: { name: string } }) => t.function);
         const tool =
           outputStep === -1
-            ? tools.find((t: { name: string }) => t.name.endsWith('__say_to'))
+            ? tools.find((t: { name?: string }) => t.name?.endsWith('__say_to'))
             : outputStep === 0
               ? tools.find((t: { name: string }) => t.name === 'write')
               : outputStep === 1
-                ? tools.find((t: { name: string }) => t.name.endsWith('complete_stage'))
+                ? tools.find((t: { name?: string }) => t.name?.endsWith('complete_stage'))
                 : undefined;
-        if (outputStep < 2) assert.ok(tool);
+        if (outputStep < 2)
+          assert.ok(
+            tool,
+            `Expected tool for ${key}/${outputStep}; received ${JSON.stringify(
+              tools.map((t: { name?: string; type?: string; tools?: { name: string }[] }) => ({
+                name: t.name,
+                type: t.type,
+                children: t.tools?.map((child) => child.name),
+              })),
+            )}`,
+          );
         const args =
           outputStep === -1
             ? {
@@ -161,8 +228,19 @@ try {
             }
           : { role: 'assistant', content: 'CHAIN_FINISHED_' + stage };
         const respond = () => {
-          response.write(`data: ${JSON.stringify(chunk(delta))}\n\n`);
-          end(response, !!tool);
+          if (fromCodex)
+            codex!.codexResponse(
+              response,
+              key + step,
+              tool,
+              args,
+              'CHAIN_FINISHED_' + stage,
+              codexModel,
+            );
+          else {
+            response.write(`data: ${JSON.stringify(chunk(delta))}\n\n`);
+            end(response, !!tool);
+          }
         };
         if (revising && step === 0) releaseCorrectedOutput = respond;
         else if (askingForCorrection && step === 0) releaseCorrectionRequest = respond;
@@ -174,6 +252,8 @@ try {
       }
     });
     await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+    if (testReconnect)
+      process.env.PI_STUDIO_QA_CODEX_ORIGIN = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
     const service = new StudioService(
       join(root, mode, 'preferences.json'),
       join(root, mode, 'Studio'),
@@ -203,7 +283,19 @@ try {
         ],
       },
     };
-    await store.saveSection('connections', [connection]);
+    const codexConnection = {
+      id: 'qa-codex',
+      name: 'Local Codex fixture',
+      purpose: 'codex',
+      providerId: 'openai-codex',
+      endpoint: '',
+      account: '',
+      createdAt: 1,
+    };
+    await store.saveSection(
+      'connections',
+      testReconnect ? [connection, codexConnection] : [connection],
+    );
     const agents: Agent[] = ['first', 'next', 'last'].map((id) => ({
       id,
       name: id,
@@ -214,10 +306,11 @@ try {
       mcps: correction ? [teamMcpId] : [],
       plugins: [],
       model: {
-        connectionId: connection.id,
-        provider: connection.providerId,
-        id: 'qa-chain',
-        reasoning: 'off',
+        connectionId: testReconnect && id === 'first' ? codexConnection.id : connection.id,
+        provider:
+          testReconnect && id === 'first' ? codexConnection.providerId : connection.providerId,
+        id: testReconnect && id === 'first' ? codexModel : 'qa-chain',
+        reasoning: testReconnect && id === 'first' ? 'По умолчанию' : 'off',
         temperature: '',
       },
     }));
@@ -342,6 +435,8 @@ try {
         releaseCorrectionRequest!();
         releaseCorrectionRequest = undefined;
         await until(() => releaseCorrectedOutput, 'Earlier stage received the correction');
+        if (testReconnect)
+          correctionPid = host.processes().find((item) => item.agentId === 'first')!.pid;
         assert.equal(host.inspect(project.id, 'next')?.status, 'running');
         assert.equal(steps.get('next'), 1, 'QA waits inside say_to');
         assert.equal(steps.has('last'), false);
@@ -373,6 +468,32 @@ try {
         );
         const finalBytes = await readFile(sessionPath);
         assert.ok(finalBytes.subarray(0, originalBytes.length).equals(originalBytes));
+        if (testReconnect) {
+          assert.equal(disconnects, 4);
+          const entries = finalBytes
+            .toString()
+            .trim()
+            .split('\n')
+            .map((line) => JSON.parse(line));
+          const correctionEntries = entries.filter(
+            (entry) =>
+              entry.type === 'message' &&
+              entry.message.role === 'user' &&
+              JSON.stringify(entry.message.content).includes('QA_BACKWARD_CORRECTION'),
+          );
+          assert.equal(correctionEntries.length, 1);
+          const writes = entries.filter(
+            (entry) =>
+              entry.type === 'message' &&
+              entry.message.role === 'toolResult' &&
+              entry.message.toolName === 'write',
+          );
+          assert.equal(
+            writes.length,
+            2,
+            'One original write and one revision, despite the retries',
+          );
+        }
         const messages = await team!.projectMessages(project.id);
         assert.equal(messages.length, 1);
         assert.equal(messages[0].state, 'completed');
@@ -468,6 +589,7 @@ try {
         busyRecipientPreservedAndNoLateRetry: mode === 'busy',
         earlierAgentCorrectionCompletedAndOriginalChainResumed: correction,
         reusedEarlierAgentPid: mode === 'correction-idle',
+        nativeCodexConnectTimeouts: disconnects,
         nativeWindowsAcceptance: false,
       });
     } finally {
@@ -483,9 +605,11 @@ try {
   }
   await writeFile(
     new URL(
-      testCorrections
-        ? '../artifacts/chain-correction-native-proof.json'
-        : '../artifacts/chain-idle-reuse-native-proof.json',
+      testReconnect
+        ? '../artifacts/codex-reconnect-native-proof.json'
+        : testCorrections
+          ? '../artifacts/chain-correction-native-proof.json'
+          : '../artifacts/chain-idle-reuse-native-proof.json',
       import.meta.url,
     ),
     JSON.stringify(

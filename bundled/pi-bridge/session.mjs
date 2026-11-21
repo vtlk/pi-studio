@@ -5,6 +5,7 @@ import { observeMcpTransport, waitForMcp } from './mcp-health.mjs';
 import { createConnectionServices } from './connection-runtime.mjs';
 import { nativeExtensionPaths } from './native-extensions.mjs';
 import { classifyProviderFailure } from './provider-failure.mjs';
+import { registerCodexReconnect } from './codex-reconnect.mjs';
 import { sessionSystemPrompt } from './prompt.mjs';
 import { resolveAssignedPackages } from './packages.mjs';
 import { loadThinkingApi } from './thinking.mjs';
@@ -254,6 +255,7 @@ export async function runSession(bootstrapPath) {
         });
       // Verified with the installed Pi Codex adapter and the user's subscription. No API fallback.
       if (envelope.record.model.provider === 'openai-codex') {
+        registerCodexReconnect(pi, settings, () => bootstrap.language);
         pi.on('before_provider_request', (event) => {
           const payload = event.payload;
           payload.tools = [...(payload.tools ?? []), { type: 'web_search' }];

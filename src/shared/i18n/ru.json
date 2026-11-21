@@ -1356,6 +1356,7 @@
   "error.teamSupport.mcpTeamIsNotAssigned": "MCP team не назначен этому открытию.",
   "error.teamSupport.teamRequiresABindingTo": "team требует привязки к открытому проекту и его исходной команде.",
   "error.teamSupport.chainCorrectionExpired": "Исходный этап цепочки больше не активен. Поручение на правку не отправлено.",
+  "error.teamSupport.recipientNetwork": "Получатель потерял связь с провайдером модели. Поручение осталось незавершённым в его диалоге.",
   "error.teamSupport.taskNotSentTheProject": "Цепочка включена. Только её текущий этап может попросить предыдущего включённого агента внести правки.",
   "error.teamSupport.theRecipientSConnectionModel": "Подключение, модель или уровень рассуждения получателя не настроены.",
   "error.teamSupport.textAndAStableRequest": "Нужны text и стабильный request_id (буквы/цифры/_/-).",
