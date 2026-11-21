@@ -1,0 +1,41 @@
+{
+  "at": "2026-11-21T17:38:50.170Z",
+  "pi": "1.5.2",
+  "transports": [
+    "Administration",
+    "helper Team"
+  ],
+  "pages": 26,
+  "requests": 42,
+  "maxOutputBytes": 10256,
+  "documentBytes": 87556,
+  "allPromptAndInstructionBytesPreserved": true,
+  "disabledInstructionsPreserved": true,
+  "noNativeTruncationWarning": true,
+  "noOpenProjectOrExternalModel": true,
+  "compactCatalogAndAccountScopedModels": true,
+  "projectedBatchAndExactReorderCopyMove": true,
+  "exactInstructionPatchAndRemoval": true,
+  "effortOnlyKeepsAccountModelAndTemperature": true,
+  "scopedUnlinkAndNativeMcpOptionsPreserveHeadersAndNeighbors": true,
+  "exactSkillRevisionEdit": true,
+  "existingHelperGetsFreshRuntimeGuidance": true,
+  "compactResponsesBytes": [
+    285,
+    401,
+    303,
+    2413,
+    100,
+    150,
+    126,
+    119,
+    119,
+    104,
+    132,
+    129,
+    80,
+    458,
+    166
+  ],
+  "installedAppAndUserDataUntouched": true
+}
