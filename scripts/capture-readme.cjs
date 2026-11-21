@@ -152,7 +152,11 @@ async function parent() {
         browserOrProfileModified: false,
       },
     };
-    await writeFile('docs/media/screenshots-proof.json', JSON.stringify(proof, null, 2) + '\n');
+    await mkdir('artifacts', { recursive: true });
+    await writeFile(
+      'artifacts/readme-screenshots-proof.json',
+      JSON.stringify(proof, null, 2) + '\n',
+    );
     console.log('Captured and framed eight localized screenshots.');
   } finally {
     await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

@@ -12,6 +12,10 @@ import { checkPi } from '../src/main/pi/checkPi.ts';
 import { oauthMcpFixture } from './fixtures/oauth-mcp.mjs';
 import { verifyOAuthResume } from './fixtures/oauth-session.ts';
 import type { Resource } from '../src/shared/resources.ts';
+import { exportTeam } from '../src/main/teams/exportTeam.ts';
+import { importTeam } from '../src/main/teams/importTeam.ts';
+import { encodePackage } from '../src/main/teams/packageCodec.ts';
+import { readImport } from '../src/main/teams/importState.ts';
 
 const root = await mkdtemp(join(tmpdir(), 'pistudio-native-oauth-'));
 const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
@@ -154,6 +158,48 @@ try {
     'The native SDK performs dynamic client registration',
   );
   assert.equal(browsers, count + 1);
+  const packet = await exportTeam(
+    {
+      agents: [
+        {
+          id: 'qa-role',
+          name: 'QA role',
+          enabled: true,
+          instructions: [],
+          skills: [],
+          mcps: [resource.id],
+          plugins: [],
+        },
+      ],
+      teams: [
+        {
+          id: 'qa-team',
+          name: 'QA imported OAuth team',
+          agentIds: ['qa-role'],
+          workspaceMode: 'shared',
+        },
+      ],
+    },
+    'qa-team',
+    [resource],
+    [],
+    async () => dynamic,
+  );
+  const imported = await importTeam(store, encodePackage(packet));
+  const importedMcp = Object.values((await readImport(store, imported.id)).state.resourceMap).find(
+    (id) => id !== 'pistudio-project',
+  )!;
+  const nativeFile = join(process.env.PI_CODING_AGENT_DIR, 'mcp.json');
+  await rm(nativeFile);
+  const fromPackage = await resources.login(importedMcp, store.folder);
+  assert.ok(fromPackage.loginId);
+  await stateUntil(fromPackage.loginId!, (phase) => phase === 'ready');
+  assert.equal((await resources.check(importedMcp, store.folder)).status, 'available');
+  assert.ok((await readFile(nativeFile, 'utf8')).includes('studio_import_'));
+  assert.ok(
+    (store.bootstrap().sections.resources as Resource[]).some((item) => item.id === importedMcp),
+  );
+  assert.equal(browsers, count + 2);
   console.log(
     JSON.stringify({
       ok: true,
@@ -165,6 +211,7 @@ try {
       revoked: true,
       additionalScopeRequiresLogin: true,
       dynamicClientRegistration: true,
+      importedMcpRestoredFromMissingNativeConfigAndAuthorized: true,
       exactIdleResume: !authOnly,
       resourcesReapplied: !authOnly,
       resumeRefresh: !authOnly,

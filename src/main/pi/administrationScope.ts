@@ -6,7 +6,7 @@ import type { PreparedRun } from './ContextBuilder.ts';
 
 /** Administrative access is pinned for the helper and explicit for an exact project agent. */
 export async function assertAdministrationScope(store: StudioStore, run: PreparedRun) {
-  if (run.projectRoot === join(store.folder, '.pistudio/setup-assistant')) return;
+  if (isSetupAssistantRun(store, run)) return;
   const id = run.agent?.profile?.id;
   const current = store.agentCatalog().agents.find((agent) => agent.id === id);
   const project = store.projects.list().find((project) => project.id === run.project?.id);
@@ -18,4 +18,8 @@ export async function assertAdministrationScope(store: StudioStore, run: Prepare
   )
     return;
   throw new Error(t('builtin.assignmentDisabled'));
+}
+
+export function isSetupAssistantRun(store: StudioStore, run: PreparedRun) {
+  return run.projectRoot === join(store.folder, '.pistudio/setup-assistant');
 }

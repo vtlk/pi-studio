@@ -133,6 +133,8 @@
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
 | **Версия** | alpha.126 | alpha.126 · preview |
 
+[Руководство по установке на Windows](docs/WINDOWS.md)
+
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
 [Что изменилось в alpha.126 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.126)

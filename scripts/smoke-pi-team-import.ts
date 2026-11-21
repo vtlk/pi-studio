@@ -336,7 +336,7 @@ try {
     before = await readFile(transcriptPath, 'utf8');
   assert.ok(before.includes('read_team_import'));
   assert.equal(
-    (before.match(/Помоги установить и настроить импортированную команду/g) || []).length,
+    (before.match(/Настрой импортированную команду|Set up imported team/g) || []).length,
     1,
   );
   await handoffTeamImport(service, host, store.folder, reportId);

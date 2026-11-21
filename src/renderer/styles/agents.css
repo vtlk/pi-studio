@@ -405,3 +405,14 @@
   background: var(--pill-active);
   pointer-events: none;
 }
+.agent-teams-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 8px;
+  padding-inline-end: 12px;
+}
+.agent-teams-heading > h2 {
+  margin: 0;
+  font: inherit;
+}

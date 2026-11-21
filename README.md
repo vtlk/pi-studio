@@ -133,6 +133,8 @@ Choose a connection and model for the assistant, then open its conversation unde
 | **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
 | **Version** | alpha.126 | alpha.126 · preview |
 
+[Windows installation guide](docs/WINDOWS.md)
+
 > **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. Full native Windows validation remains in progress.
 
 [What's new in alpha.126 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.126)

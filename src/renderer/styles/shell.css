@@ -32,6 +32,15 @@
   z-index: 1;
   white-space: nowrap;
 }
+.topbar nav > .topbar-onboarding {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  padding-inline: 8px;
+}
+.topbar-onboarding svg {
+  color: #ef4444;
+}
 .topbar-nav-indicator {
   position: absolute;
   top: 0;

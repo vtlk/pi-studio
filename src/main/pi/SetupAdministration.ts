@@ -15,7 +15,7 @@ import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
 import { builtinResources, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
 import { requiredBuiltinMcpIds } from '../../shared/builtinAssignments.ts';
-import { assertAdministrationScope } from './administrationScope.ts';
+import { assertAdministrationScope, isSetupAssistantRun } from './administrationScope.ts';
 import { readAdminSettings } from './readAgentSettings.ts';
 import { RemoteSkillInstaller } from '../skills/RemoteSkillInstaller.ts';
 import {
@@ -51,13 +51,13 @@ export class SetupAdministration {
         'list_team_imports',
         'read_team_import',
         'read_team_import_file',
+        'enable_team_import_builtins',
         'restore_team_import_resource',
         'check_team_import',
       ].includes(name)
     ) {
-      if (!this.teamImports)
-        throw new Error(t('error.setupAdministration.teamImportToolsUnavailable'));
-      return this.teamImports.call(run, name, args);
+      if (this.teamImports) return this.teamImports.call(run, name, args);
+      throw new Error(t('error.setupAdministration.teamImportToolsUnavailable'));
     }
     const resourceTools = [
       'get_runtime',
@@ -224,7 +224,7 @@ export class SetupAdministration {
             enabled: true,
             instructions: [],
             skills: [],
-            mcps: [],
+            mcps: isSetupAssistantRun(store, run) ? builtinResources.map(({ id }) => id) : [],
             plugins: [],
           }),
         };

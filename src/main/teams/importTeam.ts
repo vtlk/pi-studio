@@ -6,6 +6,7 @@ import type { TeamImportReport, TeamPackageManifest } from '../../shared/teamPac
 import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
 import { builtinResources } from '../../shared/builtinResources.ts';
+import { importedMcpName } from './importedMcp.ts';
 import type { StudioStore } from '../storage/StudioStore.ts';
 import { atomicJson, safePath } from '../storage/files.ts';
 import { parseSkill } from '../storage/skills.ts';
@@ -72,7 +73,7 @@ export async function importTeam(store: StudioStore, bytes: Uint8Array): Promise
       }
       if (source.kind === 'mcps') {
         if (!source.mcp) throw new Error(t('error.importTeam.thePackageIsMissingMcp'));
-        resource.source = `pi:studio_import_${localId.replaceAll('-', '_')}`;
+        resource.source = `pi:${importedMcpName(localId)}`;
         resource.transport = typeof source.mcp.url === 'string' ? 'http' : 'stdio';
         resource.mcpSecretNames = [
           ...new Set(

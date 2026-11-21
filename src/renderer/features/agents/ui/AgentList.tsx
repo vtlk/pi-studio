@@ -68,7 +68,16 @@ export function AgentList() {
         }}
       >
         <div className="agent-teams-scroll">
-          <h2 className="agent-list-group-heading column-heading">{t('AgentList.myTeams')}</h2>
+          <div className="agent-teams-heading column-heading">
+            <h2 className="agent-list-group-heading">{t('AgentList.myTeams')}</h2>
+            <IconButton
+              title={t('AgentList.importTeam')}
+              disabled={transfer.busy || !transfer.available}
+              onClick={() => void transfer.importTeam(true)}
+            >
+              <FileInput size={17} />
+            </IconButton>
+          </div>
           {teams.map((team, teamIndex) => {
             const profiles = team.agentIds.flatMap(
               (id) => agents.find((agent) => agent.id === id) ?? [],
@@ -105,12 +114,6 @@ export function AgentList() {
                         className="team-actions-menu"
                         disabled={transfer.busy}
                         actions={[
-                          {
-                            label: t('AgentList.importTeam'),
-                            icon: FileInput,
-                            disabled: !transfer.available,
-                            onSelect: () => void transfer.importTeam(true),
-                          },
                           {
                             label: t('AgentList.exportTeam'),
                             icon: FileOutput,

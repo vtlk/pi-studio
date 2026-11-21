@@ -6,7 +6,7 @@ import { LoaderCircle, Mic, Square, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '@/shared/ui';
 import { t, i18n } from '../../../shared/i18n';
-import { prepareVoice, decodeVoice, transcribeVoice } from './voiceEngine';
+import { prepareVoice, decodeVoice, isVoiceReady, transcribeVoice } from './voiceEngine';
 import './voice.css';
 export function VoiceInput({
   onText,
@@ -18,7 +18,9 @@ export function VoiceInput({
   statusContainer?: HTMLElement | null;
 }) {
   useTranslation(undefined, { i18n });
-  const [phase, setPhase] = useState<'idle' | 'loading' | 'recording' | 'transcribing'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'loading' | 'opening' | 'recording' | 'transcribing'>(
+    'idle',
+  );
   const [percent, setPercent] = useState(0);
   const [modelPhase, setModelPhase] = useState<VoiceModelState['phase']>('checking');
   const [error, setError] = useState('');
@@ -57,7 +59,7 @@ export function VoiceInput({
     const token = ++operation.current;
     cancelled.current = false;
     setError('');
-    setPhase('loading');
+    setPhase(isVoiceReady() ? 'opening' : 'loading');
     setModelPhase('checking');
     setPercent(0);
     try {
@@ -176,7 +178,9 @@ export function VoiceInput({
       <IconButton
         className={phase === 'recording' ? 'voice-recording' : undefined}
         title={phase === 'recording' ? t('Voice.stop') : t('Voice.start')}
-        disabled={disabled || phase === 'loading' || phase === 'transcribing'}
+        disabled={
+          disabled || phase === 'opening' || phase === 'loading' || phase === 'transcribing'
+        }
         onClick={() => {
           if (phase === 'recording') recorder.current?.stop();
           else void start();

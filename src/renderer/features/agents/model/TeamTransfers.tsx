@@ -40,6 +40,7 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(!window.studio);
   const [configure, setConfigure] = useState('');
   const [onboardingTeam, setOnboardingTeam] = useState('');
+  const [setupOffer, setSetupOffer] = useState<TeamImportReport>();
   const [details, setDetails] = useState(false);
   const active = useRef(false),
     mounted = useRef(false),
@@ -169,7 +170,10 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
     importTeam: (notify) =>
       action(async () => {
         const result = await window.studio!.importAgentTeam(folder!);
-        if (result && mounted.current) setOnboardingTeam(result.report.teamId);
+        if (result && mounted.current) {
+          setOnboardingTeam(result.report.teamId);
+          setSetupOffer(result.report);
+        }
         return result && mounted.current ? receive(result) : undefined;
       }, notify),
     continueImport: (id) =>
@@ -186,6 +190,29 @@ export function TeamTransfersProvider({ children }: { children: ReactNode }) {
   return (
     <TeamTransfersContext.Provider value={value}>
       {children}
+      {setupOffer && (
+        <Modal
+          title={t('TeamTransfers.setUpImportedTeam', { name: setupOffer.teamName })}
+          onClose={() => setSetupOffer(undefined)}
+          footer={
+            <>
+              <Button onClick={() => setSetupOffer(undefined)}>{t('UpdateAction.later')}</Button>
+              <Button
+                kind="primary"
+                disabled={busy}
+                onClick={() => {
+                  setSetupOffer(undefined);
+                  void value.continueImport(setupOffer.id);
+                }}
+              >
+                {t('Onboarding.withAssistant')}
+              </Button>
+            </>
+          }
+        >
+          <p>{t('TeamTransfers.importSetupDescription')}</p>
+        </Modal>
+      )}
       {details && !configure && (
         <Modal
           title={t('TeamTransfers.transferTeams')}

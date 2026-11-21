@@ -488,7 +488,7 @@ try {
   };
   const open = () =>
     js(
-      `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim())).click()`,
+      `Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.classList.contains('topbar-onboarding')).click()`,
     );
   const sidebarChecks = [];
   const checkSidebar = async (language) => {
@@ -516,6 +516,23 @@ try {
       before.headings,
       language === 'ru' ? ['Мои команды', 'Системные'] : ['My teams', 'System'],
     );
+    const controls = await js(`(() => {
+      const onboarding = document.querySelector('.topbar-onboarding');
+      const heading = document.querySelector('.agent-teams-heading');
+      const title = heading.querySelector('h2').getBoundingClientRect();
+      const button = heading.querySelector('button');
+      return { onboardingText: onboarding.textContent.trim(), onboardingLabel: onboarding.ariaLabel,
+        alertColor: getComputedStyle(onboarding.querySelector('svg')).color,
+        importLabel: button.ariaLabel, importOnRight: button.getBoundingClientRect().left >= title.right };
+    })()`);
+    const messages = language === 'ru' ? ru : en;
+    assert.deepEqual(controls, {
+      onboardingText: '',
+      onboardingLabel: messages['Onboarding.title'],
+      alertColor: 'rgb(239, 68, 68)',
+      importLabel: messages['AgentList.importTeam'],
+      importOnRight: true,
+    });
     await js(`document.querySelector('.agent-teams-scroll').scrollTop=100000`);
     const after = await geometry();
     assert.equal(after.systemTop, before.systemTop);
@@ -543,6 +560,7 @@ try {
       systemSectionPinned: true,
       translatedHeadings: true,
       navigationLabelsNoWrap: true,
+      redOnboardingIconAndImportInHeading: true,
       teamChevronRightCollapsedAndDownExpanded: true,
     });
     await js(
@@ -559,7 +577,7 @@ try {
     await until(`!!document.querySelector('.onboarding-page')`);
   };
   await until(
-    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
+    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.classList.contains('topbar-onboarding'))`,
   );
   // Exercise the real browser status component, including translated network errors, without
   // downloading a component, opening a window, probing permissions or accessing personal data.
@@ -722,7 +740,7 @@ try {
   await until(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`);
   await js(`window.__qa.authorize();window.dispatchEvent(new Event('focus'))`);
   await until(
-    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
+    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.classList.contains('topbar-onboarding'))`,
   );
   assert.equal(
     await js(`!!document.querySelector('[role="dialog"][aria-label="Receiver"]')`),
@@ -736,7 +754,7 @@ try {
     `window.__qa.state.sections.resources[0].check={status:'needs_auth',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
   );
   await until(
-    `Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
+    `Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.classList.contains('topbar-onboarding'))`,
   );
   await open();
   await until(`document.querySelector('[data-task-id="mcp:qa-mcp"]')?.dataset.complete==='false'`);
@@ -776,7 +794,7 @@ try {
     `window.__qa.state.sections.resources[0].check={status:'available',checkedAt:Date.now()};window.dispatchEvent(new Event('focus'))`,
   );
   await until(
-    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
+    `!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.classList.contains('topbar-onboarding'))`,
   );
   await js(`document.querySelector('.settings-button').click()`);
   await until(`!!document.querySelector('.settings-layout')`);
@@ -794,6 +812,8 @@ try {
   );
   await until(`!!document.querySelector('.onboarding-list [data-task-id="mcp:qa-imported-mcp"]')`);
   assert.equal(await js('window.__qa.calls.imports'), 1);
+  await until(`!!document.querySelector('[role="dialog"] button')`);
+  await js(`document.querySelector('[role="dialog"] .dialog-footer button').click()`);
   assert.equal(
     await js('window.__qa.calls.assistant'),
     2,
@@ -836,15 +856,26 @@ try {
   await until(
     `document.querySelector('[data-task-id="images"]')?.dataset.complete==='true'&&document.querySelector('[data-task-id="terminal"]')?.dataset.complete==='false'&&document.querySelector('[data-task-id="git"]')?.dataset.complete==='false'`,
   );
-  assert.equal(await js(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent`), 'Установить Git Bash');
-  await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+  assert.equal(
+    await js(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent`),
+    'Установить Git Bash',
+  );
+  await js(
+    `document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
   await until(`!!document.querySelector('[role="menuitemradio"][lang="en"]')`);
   await js(`document.querySelector('[role="menuitemradio"][lang="en"]').click()`);
-  await until(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent==='Install Git Bash'`);
-  await js(`document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
+  await until(
+    `document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent==='Install Git Bash'`,
+  );
+  await js(
+    `document.querySelector('.language-select').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`,
+  );
   await until(`!!document.querySelector('[role="menuitemradio"][lang="ru"]')`);
   await js(`document.querySelector('[role="menuitemradio"][lang="ru"]').click()`);
-  await until(`document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent==='Установить Git Bash'`);
+  await until(
+    `document.querySelector('[data-task-id="git"] .onboarding-task-label').textContent==='Установить Git Bash'`,
+  );
   assert.equal(await js('window.__qa.calls.gitDownloads'), 0);
   await js(`document.querySelector('[data-task-id="git"] button').click()`);
   assert.equal(await js('window.__qa.calls.gitDownloads'), 1);
@@ -886,7 +917,9 @@ try {
   );
   await until(`!!document.querySelector('[role="menuitemradio"][lang="ru"]')`);
   await js(`document.querySelector('[role="menuitemradio"][lang="ru"]').click()`);
-  await until(`document.querySelector('[data-computer-status]')?.textContent.includes('Не удалось проверить доступ Computer Use')`);
+  await until(
+    `document.querySelector('[data-computer-status]')?.textContent.includes('Не удалось проверить доступ Computer Use')`,
+  );
   await js(
     `window.__qa.computer={version:'QA',phase:'ready',permissions:{windows:{uia:true,postMessage:true,elevated:false,integrityLevel:'Medium'}}};Array.from(document.querySelectorAll('[data-computer-status] button')).find(b=>b.textContent.trim()==='Проверить разрешения').click();window.dispatchEvent(new Event('focus'))`,
   );
@@ -909,7 +942,7 @@ try {
   // A separate empty studio verifies actual create dialogs and ordering, without manually ticking a task.
   await cdp('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?fresh=1` });
   await until(
-    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
+    `!!Array.from(document.querySelectorAll('.topbar nav button')).find(b=>b.classList.contains('topbar-onboarding'))`,
   );
   await open();
   await until(`document.querySelectorAll('.onboarding-list li').length===5`);
@@ -980,7 +1013,7 @@ try {
     `Array.from(document.querySelectorAll('[role="dialog"] .dialog-footer button')).find(b=>b.textContent.trim()==='Создать').click()`,
   );
   await until(
-    `!document.querySelector('[role="dialog"]')&&!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>['Начало работы','Onboarding'].includes(b.textContent.trim()))`,
+    `!document.querySelector('[role="dialog"]')&&!Array.from(document.querySelectorAll('.topbar nav button')).some(b=>b.classList.contains('topbar-onboarding'))`,
   );
   assert.equal(await js('window.__qa.state.projects.length'), 1);
   assert.equal(await js('window.__qa.calls.otherLaunches+window.__qa.calls.assistant'), 0);

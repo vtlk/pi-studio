@@ -5,31 +5,21 @@ let ready = false,
   counter = 0;
 let preparing: Promise<void> | undefined;
 let inference = Promise.resolve();
-let idle: ReturnType<typeof setTimeout> | undefined;
 const pending = new Map<
   number,
   { resolve: (text: string) => void; reject: (error: Error) => void }
 >();
 function request(command: 'load' | 'transcribe', audio?: Float32Array) {
-  clearTimeout(idle);
   worker ??= new Worker();
   worker.onmessage = ({ data }) => {
     const item = pending.get(data.id);
     if (!item) return;
     pending.delete(data.id);
-    idle = setTimeout(() => {
-      if (!pending.size) {
-        worker?.terminate();
-        worker = undefined;
-        ready = false;
-      }
-    }, 5 * 60_000);
     if (data.error) {
       const error = new Error(t('Voice.inferenceFailed'));
       item.reject(error);
       for (const other of pending.values()) other.reject(error);
       pending.clear();
-      clearTimeout(idle);
       worker?.terminate();
       worker = undefined;
       ready = false;
@@ -47,6 +37,10 @@ function request(command: 'load' | 'transcribe', audio?: Float32Array) {
     pending.set(id, { resolve, reject });
     worker!.postMessage({ id, command, audio }, audio ? [audio.buffer] : []);
   });
+}
+// All chat composers share the worker for the lifetime of the Studio window.
+export function isVoiceReady() {
+  return ready;
 }
 export function prepareVoice() {
   if (ready) return Promise.resolve();

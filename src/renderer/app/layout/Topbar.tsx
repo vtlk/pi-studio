@@ -1,7 +1,8 @@
 import { t, i18n } from '../../../shared/i18n/index.ts';
 import { useTranslation } from 'react-i18next';
 import { useLayoutEffect, useRef } from 'react';
-import { Settings2 } from 'lucide-react';
+import { CircleAlert, Settings2 } from 'lucide-react';
+import { Tooltip } from '@/shared/ui/Tooltip';
 import { useNavigation, type Page } from '@/shared/model/Navigation';
 import { useStorage } from '@/shared/storage/Storage';
 import { UpdateAction } from '@/features/updates/UpdateAction';
@@ -69,12 +70,16 @@ export function Topbar() {
           </button>
         ))}
         {onboarding.visible && (
-          <button
-            aria-current={page === 'onboarding' ? 'page' : undefined}
-            onClick={() => navigate('onboarding')}
-          >
-            {t('Onboarding.title')}
-          </button>
+          <Tooltip label={t('Onboarding.title')}>
+            <button
+              className="topbar-onboarding"
+              aria-label={t('Onboarding.title')}
+              aria-current={page === 'onboarding' ? 'page' : undefined}
+              onClick={() => navigate('onboarding')}
+            >
+              <CircleAlert size={19} aria-hidden="true" />
+            </button>
+          </Tooltip>
         )}
         <span ref={indicator} className="topbar-nav-indicator" aria-hidden="true" hidden />
       </nav>

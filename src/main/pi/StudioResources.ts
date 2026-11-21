@@ -16,6 +16,7 @@ import {
 import { assertCredentialReferences, packageSource } from './resourceConfig.ts';
 import type { McpSecrets } from './McpSecrets.ts';
 import { nativeMcpConfig } from './nativeMcp.ts';
+import { loadMcpForLogin } from '../teams/importedMcp.ts';
 import { mcpConfigRevision } from './mcpSecretValues.ts';
 import type { BrowserAuth } from './BrowserAuth.ts';
 import type { BrowserSupport } from '../browser/BrowserSupport.ts';
@@ -295,7 +296,9 @@ export class StudioResources {
       throw new Error(t('error.studioResources.configureTheServerThroughThe'));
     const name = resource.source.slice(3);
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error(t('error.studioResources.invalidMcpName'));
-    const raw = await nativeMcpConfig(name);
+    const raw = await loadMcpForLogin(this.service, scope.folder, resource, (args) =>
+      this.configureMcp(scope.folder, args),
+    );
     if (raw.enabled === false) throw new Error(t('ResourceActions.serverDisabledInPi'));
     if (raw.auth && typeof raw.auth === 'object' && 'provider' in raw.auth)
       return {

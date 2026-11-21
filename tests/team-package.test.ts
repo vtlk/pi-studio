@@ -17,7 +17,8 @@ import type { Connection } from '../src/shared/connections.ts';
 import type { PreparedRun } from '../src/main/pi/ContextBuilder.ts';
 import type { StudioResources } from '../src/main/pi/StudioResources.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
-import { teamMcpId, builtinResource } from '../src/shared/builtinResources.ts';
+import { teamMcpId, builtinResource, builtinResources } from '../src/shared/builtinResources.ts';
+import { readAllSettings } from './settingsRead.ts';
 import { observeTeamMcpReadiness } from '../src/main/onboarding/observeTeamMcpReadiness.ts';
 
 const profile = (id: string): Agent => ({
@@ -173,6 +174,52 @@ test('portable package includes full current prompts, disabled blocks and comple
       ?.authorization?.required,
     'no',
   );
+});
+
+test('import setup pages large manifests and adds defaults only to mapped teammates, preserving disabled switches', async (t) => {
+  const { root, data } = await fixture(t);
+  data.manifest.agents[0].mainInstruction = 'Длинный промпт 🦜\n'.repeat(1400);
+  const portableTeamId = data.manifest.resources.find(
+    ({ source }) => source === 'builtin:team',
+  )!.id;
+  data.manifest.agents[0].capabilitySettings = { [`mcps:${portableTeamId}`]: { enabled: false } };
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'receiver'));
+  const store = await service.load();
+  const report = await importTeam(store, encodePackage(data));
+  const catalog = store.agentCatalog();
+  const foreign: Agent = {
+    id: 'added-later',
+    name: 'Added later',
+    enabled: true,
+    instructions: [],
+    skills: [],
+    mcps: [],
+    plugins: [],
+  };
+  await store.saveSection('agentCatalog', {
+    agents: [...catalog.agents, foreign],
+    teams: catalog.teams.map((team) =>
+      team.id === report.teamId ? { ...team, agentIds: [...team.agentIds, foreign.id] } : team,
+    ),
+  });
+  const tools = new TeamImportTools(service, {} as StudioResources, async () => {});
+  const run = { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun;
+  const read = await readAllSettings<{ manifest: typeof data.manifest }>(
+    (args) => tools.call(run, 'read_team_import', args),
+    { packageId: report.id },
+  );
+  assert.equal(read.manifest.agents[0].mainInstruction, data.manifest.agents[0].mainInstruction);
+  const result = await tools.call(run, 'enable_team_import_builtins', { packageId: report.id });
+  assert.deepEqual(result, { updatedAgentIds: catalog.agents.map(({ id }) => id) });
+  const [updated] = store.teamProfiles(report.teamId);
+  assert.ok(builtinResources.every(({ id }) => updated.mcps.includes(id)));
+  assert.equal(updated.capabilitySettings?.['mcps:pistudio-team']?.enabled, false);
+  assert.deepEqual(store.agentCatalog().agents.find(({ id }) => id === foreign.id)?.mcps, [
+    'pistudio-project',
+  ]);
+  assert.deepEqual(await tools.call(run, 'enable_team_import_builtins', { packageId: report.id }), {
+    updatedAgentIds: [],
+  });
 });
 
 test('old packages still derive actionable MCP requirements from validated local mappings; current team names survive rename', async (t) => {
@@ -491,9 +538,10 @@ test('narrow administrative tools read only their package, preserve missing mode
     throw new Error('Explicit account mapping required');
   });
   const run = { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun;
-  const read = (await tools.call(run, 'read_team_import', { packageId: report.id })) as {
-    report: typeof report;
-  };
+  const read = await readAllSettings<{ report: typeof report }>(
+    (args) => tools.call(run, 'read_team_import', args),
+    { packageId: report.id },
+  );
   assert.equal(read.report.handoff, 'sent');
   assert.equal((await readImport(store, report.id)).state.report.handoff, 'sent');
   await assert.rejects(

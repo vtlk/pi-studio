@@ -75,7 +75,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'authenticate_mcp',
     description:
-      'For OAuth, start the native Pi SDK browser login; the user completes consent in the system browser. Studio checks actual MCP availability afterward. Settings → MCP servers → Sign in through Pi shows progress/cancellation and a protected redirect fallback. For HTTP/stdio keys or a registered OAuth clientSecret, configure native ${ENV} references and direct the user to Protected parameters, never request values or codes in chat. Returns opened/loginId or guidance, not authenticated. Use check_resource to read actual access after consent.',
+      'Start native Pi OAuth for an exact catalog resourceId. For an imported resource with no Pi entry yet, restore its validated portable configuration first without overwriting other settings. The user completes browser consent; Studio verifies availability afterward. For keys/client secrets, direct the user to Settings → MCP servers → Protected parameters. Never ask for values or redirect codes in chat. Returns opened/loginId or guidance, not authenticated.',
     inputSchema: object({ resourceId: string }, ['resourceId']),
   },
   {
@@ -113,8 +113,17 @@ export const setupTools: SessionTool[] = [
   {
     name: 'read_team_import',
     description:
-      'Read the validated portable manifest, current import report and exact local ID mappings for one imported team. Acknowledges receipt of its installation task. Includes current package prompts/instructions, requirements and file metadata; no credentials or histories.',
-    inputSchema: object({ packageId: string }, ['packageId']),
+      'Read the validated portable manifest, current report and exact local ID mappings. Acknowledges task receipt. Includes package prompt data, requirements and file metadata; excludes credentials and histories. Follow nextCall until pagination.complete=true; concatenate JSON-fragment content in order.',
+    inputSchema: object(
+      {
+        packageId: string,
+        offset: settingsReadProperties.offset,
+        fingerprint: settingsReadProperties.fingerprint,
+        max_bytes: settingsReadProperties.max_bytes,
+        include_derived_prompts: settingsReadProperties.include_derived_prompts,
+      },
+      ['packageId'],
+    ),
   },
   {
     name: 'read_team_import_file',
@@ -129,6 +138,12 @@ export const setupTools: SessionTool[] = [
       },
       ['packageId', 'path'],
     ),
+  },
+  {
+    name: 'enable_team_import_builtins',
+    description:
+      'During user-approved imported-team setup, assign missing built-in MCPs to the exact imported profiles still in that team. Preserve explicit disabled switches, other agents, external resources and existing projects. Does not launch agents.',
+    inputSchema: object({ packageId: string }, ['packageId']),
   },
   {
     name: 'restore_team_import_resource',

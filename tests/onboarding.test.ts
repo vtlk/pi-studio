@@ -252,13 +252,15 @@ test('portable authorization metadata contains requirements and field names only
   );
 });
 
-test('assistant task is scoped to exact team/package and explicitly excludes model selection and production launches', () => {
+test('assistant setup scopes model selection, built-ins and authentication to the exact imported team', () => {
   const prompt = teamMcpSetupPrompt('Same name', 'exact-team', 'exact-import');
   assert.ok(prompt.includes('exact-team'));
   assert.ok(prompt.includes('exact-import'));
   assert.ok(prompt.includes('Same name'));
-  assert.match(prompt, /Не выбирай|Do not choose/);
-  assert.match(prompt, /не запускай производственных агентов|do not launch production agents/i);
+  assert.match(prompt, /configure_agent/);
+  assert.match(prompt, /enable_team_import_builtins/);
+  assert.match(prompt, /authenticate_mcp/);
+  assert.match(prompt, /не запускай проектных агентов|do not launch production agents/i);
 });
 
 test('update view preserves Onboarding and rejects arbitrary pages', () => {

@@ -11,7 +11,11 @@ export const settingsReadGuidance =
   'Bounded output: if pagination.complete=false, follow nextCall with its offset/fingerprint until complete. JSON-fragment pages concatenate their content verbatim into one JSON document. Never claim a full read from the first page or print the combined document into another tool output. Default omits duplicate derived prompt views; full main prompt and ALL instruction texts/enabled flags remain present. Set include_derived_prompts=true only to inspect combined/effective runtime prompts.';
 
 /** Stay below native Pi MCP's 20 KiB limit, including JSON escaping and continuation metadata. */
-export function settingsOutput(value: object, args: Record<string, unknown>) {
+export function settingsOutput(
+  value: object,
+  args: Record<string, unknown>,
+  continuation = { tool: 'read_agent_settings', target: { agent_id: args.agent_id } as object },
+) {
   const cap = args.max_bytes ?? 8192,
     offset = args.offset ?? 0;
   if (
@@ -69,9 +73,9 @@ export function settingsOutput(value: object, args: Record<string, unknown>) {
     nextCall:
       end < bytes.length
         ? {
-            tool: 'read_agent_settings',
+            tool: continuation.tool,
             arguments: {
-              agent_id: args.agent_id,
+              ...continuation.target,
               offset: end,
               fingerprint,
               max_bytes: maximum,

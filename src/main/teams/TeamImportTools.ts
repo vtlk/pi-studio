@@ -9,8 +9,10 @@ import { atomicJson } from '../storage/files.ts';
 import { stableId } from '../storage/validation.ts';
 import { listImports, readImport } from './importState.ts';
 import type { ImportedTeamState } from './importTeam.ts';
-import { isLocalMcpPath } from './portableMcp.ts';
-import { assertAdministrationScope } from '../pi/administrationScope.ts';
+import { importedMcpConfig } from './importedMcp.ts';
+import { builtinResource, builtinResources } from '../../shared/builtinResources.ts';
+import { settingsOutput } from '../pi/settingsOutput.ts';
+import { assertAdministrationScope, isSetupAssistantRun } from '../pi/administrationScope.ts';
 
 type CheckModel = (agent: Agent, store: StudioStore) => Promise<void>;
 export class TeamImportTools {
@@ -35,6 +37,25 @@ export class TeamImportTools {
       const agents = team.agentIds.flatMap(
         (id) => store.agentCatalog().agents.find((agent) => agent.id === id) ?? [],
       );
+      if (name === 'enable_team_import_builtins') {
+        if (!isSetupAssistantRun(store, run)) throw Error(t('builtin.assignmentDisabled'));
+        const ids = new Set(Object.values(imported.state.agentMap));
+        const builtins = builtinResources.map(({ id }) => id);
+        const updates = new Map(
+          agents
+            .filter((agent) => ids.has(agent.id) && builtins.some((id) => !agent.mcps.includes(id)))
+            .map((agent) => [
+              agent.id,
+              { ...agent, mcps: [...new Set([...agent.mcps, ...builtins])] },
+            ]),
+        );
+        if (updates.size)
+          await store.saveSection(
+            'agents',
+            store.agentCatalog().agents.map((agent) => updates.get(agent.id) ?? agent),
+          );
+        return { updatedAgentIds: [...updates.keys()] };
+      }
       return {
         folder: store.folder,
         ...imported,
@@ -43,22 +64,27 @@ export class TeamImportTools {
       };
     });
     if ('reports' in scope) return scope.reports;
+    if ('updatedAgentIds' in scope) return { updatedAgentIds: scope.updatedAgentIds };
     if (name === 'read_team_import') {
       scope.state.report.handoff = 'sent';
       if (scope.state.report.mcpHandoff) scope.state.report.mcpHandoff = 'sent';
       await this.persist(scope.folder, scope.state);
-      return {
-        manifest: scope.data.manifest,
-        report: scope.state.report,
-        agentMap: scope.state.agentMap,
-        resourceMap: scope.state.resourceMap,
-        files: scope.data.files.map(({ path, sha256, executable, data }) => ({
-          path,
-          sha256,
-          executable,
-          bytes: Buffer.from(data, 'base64').length,
-        })),
-      };
+      return settingsOutput(
+        {
+          manifest: scope.data.manifest,
+          report: scope.state.report,
+          agentMap: scope.state.agentMap,
+          resourceMap: scope.state.resourceMap,
+          files: scope.data.files.map(({ path, sha256, executable, data }) => ({
+            path,
+            sha256,
+            executable,
+            bytes: Buffer.from(data, 'base64').length,
+          })),
+        },
+        args,
+        { tool: 'read_team_import', target: { packageId: args.packageId } },
+      );
     }
     if (name === 'read_team_import_file') {
       const file = scope.data.files.find((file) => file.path === args.path);
@@ -99,19 +125,9 @@ export class TeamImportTools {
       )
         throw new Error(t('error.teamImportTools.resourceSettingsChangedAfterImport'));
       if (current.kind === 'mcps') {
-        const expected = `pi:studio_import_${id.replaceAll('-', '_')}`;
-        if (current.source !== expected || !portable.mcp)
-          throw new Error(t('error.teamImportTools.theResourceChangedConfigureIt'));
-        if (
-          (typeof portable.mcp.command === 'string' && isLocalMcpPath(portable.mcp.command)) ||
-          (Array.isArray(portable.mcp.args) &&
-            portable.mcp.args.some((arg) => typeof arg === 'string' && isLocalMcpPath(arg)))
-        )
-          throw new Error(t('error.teamImportTools.explicitlyMapThePackageS'));
         return this.native.configureMcp(scope.folder, {
-          name: expected.slice(3),
+          ...importedMcpConfig(current, portable),
           displayName: current.name,
-          config: portable.mcp,
         });
       }
       if (current.kind === 'plugins') {
@@ -142,7 +158,11 @@ export class TeamImportTools {
         }
         for (const kind of ['skills', 'mcps', 'plugins'] as const)
           for (const id of agent[kind]) {
-            if (agent.capabilitySettings?.[`${kind}:${id}`]?.enabled === false) continue;
+            if (
+              builtinResource(id) ||
+              agent.capabilitySettings?.[`${kind}:${id}`]?.enabled === false
+            )
+              continue;
             try {
               const check = await this.native.check(id, scope.folder);
               if (check.status !== 'available')

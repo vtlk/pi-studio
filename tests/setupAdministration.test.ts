@@ -130,6 +130,16 @@ test('setup tools change only current constructor/catalog links and never snapsh
     },
   })) as { agentId: string };
   const agents = store.bootstrap().sections.agents as Agent[];
+  assert.deepEqual(
+    new Set(agents.find(({ id }) => id === created.agentId)?.mcps),
+    new Set([
+      'pistudio-project',
+      'pistudio-team',
+      'pistudio-browser',
+      'pistudio-computer',
+      'pistudio-administration',
+    ]),
+  );
   const project = (await store.command({ kind: 'create', name: 'My film', agents })).projects[0];
   const snapshot = structuredClone((await store.projects.read(project.id)).agents);
   await admin.call(run, 'configure_agent', {

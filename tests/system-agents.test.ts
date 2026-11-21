@@ -121,6 +121,9 @@ test('the setup assistant edits existing system resources/instructions but creat
   assert.deepEqual((store.bootstrap().sections.agents as { mcps: string[] }[])[0].mcps, [
     'pistudio-project',
     'pistudio-team',
+    'pistudio-browser',
+    'pistudio-computer',
+    'pistudio-administration',
   ]);
   await assert.rejects(
     () =>
