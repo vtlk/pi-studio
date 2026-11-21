@@ -8,17 +8,16 @@ import {
 import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 import { randomUUID } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
-import { parseAgent, stableId } from '../storage/validation.ts';
+import { parseAgent } from '../storage/validation.ts';
 import { importLocalSkill } from '../storage/skills.ts';
-import type { Agent, CapabilityKind } from '../../shared/studio.ts';
+import type { Agent } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { Connection } from '../../shared/connections.ts';
-import { builtinResources, optionalBuiltinMcps } from '../../shared/builtinResources.ts';
-import { requiredBuiltinMcpIds } from '../../shared/builtinAssignments.ts';
+import { builtinResources } from '../../shared/builtinResources.ts';
 import { assertAdministrationScope, isSetupAssistantRun } from './administrationScope.ts';
 import { readAdminSettings } from './readAgentSettings.ts';
 import { RemoteSkillInstaller } from '../skills/RemoteSkillInstaller.ts';
@@ -26,6 +25,12 @@ import { configureConnection } from './connectionAdministration.ts';
 import { readAdminCatalog } from './readAdminCatalog.ts';
 import { catalogReadNames, type ReadModelCatalog } from './catalogReads.ts';
 import { settingsOutput } from './settingsOutput.ts';
+import {
+  editAgentInstruction,
+  editResourceAssignment,
+  setAgentReasoning,
+} from './agentProfileEdits.ts';
+import { editMcp, editSkill, readSkill } from './catalogResourceEdits.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
@@ -48,6 +53,8 @@ export class SetupAdministration {
   }
   async call(run: PreparedRun, name: string, args: Record<string, unknown>, signal?: AbortSignal) {
     if (name === 'read_agent_settings') return readAdminSettings(this.service, run, args);
+    if (name === 'set_agent_reasoning')
+      return setAgentReasoning(this.service, run, args, this.catalog);
     if (catalogReadNames.includes(name))
       return readAdminCatalog(this.service, run, name, args, this.catalog, this.native);
     if (name === 'install_skill_from_url') return this.remoteSkills.install(run, args, signal);
@@ -126,6 +133,11 @@ export class SetupAdministration {
     return this.service.serialize(async () => {
       const store = await this.service.load();
       await assertAdministrationScope(store, run);
+      if (name === 'edit_agent_instruction') return editAgentInstruction(store, args);
+      if (name === 'assign_resource') return editResourceAssignment(store, args);
+      if (name === 'read_skill') return readSkill(store, args);
+      if (name === 'edit_skill') return editSkill(store, args);
+      if (name === 'edit_mcp') return editMcp(store, args);
       const sections = store.bootstrap().sections;
       const agents = (sections.agents ?? []) as Agent[];
       const systems = (sections.systemAgents ?? []) as SystemAgent[];
@@ -249,52 +261,6 @@ export class SetupAdministration {
           args.ids.map((id) => agents.find((agent) => agent.id === id)!),
         );
         return { updated: true, updatedProjectSnapshots: false };
-      }
-      if (name === 'assign_resource') {
-        const agent = [...agents, ...systems].find((item) => item.id === stableId(args.agentId));
-        if (!agent) throw new Error(t('error.setupAdministration.agentMissing'));
-        if (!['skills', 'mcps', 'plugins'].includes(String(args.kind)))
-          throw new Error(t('error.setupAdministration.invalidResourceKind'));
-        const kind = args.kind as CapabilityKind;
-        if (
-          kind === 'mcps' &&
-          args.enabled === false &&
-          requiredBuiltinMcpIds(agent).includes(String(args.resourceId))
-        )
-          throw new Error(t('CapabilitiesPanel.requiredMcpCannotBeDisabledOrRemoved'));
-        const resource = [...resources, ...optionalBuiltinMcps].find(
-          (item) => item.id === args.resourceId && item.kind === kind,
-        );
-        if (!resource)
-          throw new Error(t('error.setupAdministration.resourceMissingFromTheCatalog'));
-        const updated = {
-          ...agent,
-          [kind]: agent[kind].includes(resource.id) ? agent[kind] : [...agent[kind], resource.id],
-          capabilitySettings: {
-            ...agent.capabilitySettings,
-            [`${kind}:${resource.id}`]: { enabled: args.enabled !== false },
-          },
-        };
-        const system = systems.find((item) => item.id === agent.id);
-        if (system)
-          await store.saveSection(
-            'systemAgents',
-            systems.map((item) =>
-              item.id === agent.id ? { ...updated, systemRole: system.systemRole } : item,
-            ),
-          );
-        else
-          await store.saveSection(
-            'agents',
-            agents.map((item) => (item.id === agent.id ? updated : item)),
-          );
-        return {
-          agentId: agent.id,
-          resourceId: resource.id,
-          enabled: args.enabled !== false,
-          updatedProjectSnapshots: false,
-          loadedInAgentSession: false,
-        };
       }
       throw new Error(t('error.setupAdministration.administrativeToolUnavailable'));
     });

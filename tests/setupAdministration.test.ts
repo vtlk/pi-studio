@@ -391,3 +391,88 @@ test('model discovery calls only the exact account and excludes other providers'
   );
   assert.equal(calls, 1);
 });
+
+test('single profile edits preserve sibling fields and reject ambiguous or pinned changes', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-profile-patch-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
+  const store = await service.load();
+  const run = { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun;
+  const admin = new SetupAdministration(service, async () => {
+    throw Error('Unexpected model catalog lookup for a local settings edit');
+  });
+  const { teamId } = (await admin.call(run, 'configure_team', { name: 'Patch team' })) as {
+    teamId: string;
+  };
+  const { agentId } = (await admin.call(run, 'configure_agent', {
+    teamId,
+    name: 'Target',
+    mainInstruction: 'Keep the main prompt',
+    instructions: [
+      { id: 'first', name: 'First', content: 'Unchanged' },
+      { id: 'second', name: 'Second', content: 'Old', enabled: false },
+    ],
+  })) as { agentId: string };
+  const before = structuredClone(store.teamProfiles(teamId)[0]);
+  const update = { agent_id: agentId, action: 'update', instruction_id: 'second' };
+  await admin.call(run, 'edit_agent_instruction', { ...update, enabled: true, content: 'New' });
+  const { instructionId } = (await admin.call(run, 'edit_agent_instruction', {
+    agent_id: agentId,
+    action: 'add',
+    name: 'Last',
+    content: 'Appended',
+  })) as { instructionId: string };
+  const after = structuredClone(store.teamProfiles(teamId)[0]);
+  assert.deepEqual(after, {
+    ...before,
+    instructions: [
+      before.instructions[0],
+      { ...before.instructions[1], content: 'New', enabled: true },
+      { id: instructionId, name: 'Last', content: 'Appended', enabled: true },
+    ],
+  });
+  await assert.rejects(
+    admin.call(run, 'edit_agent_instruction', { ...update, action: 'remove', name: 'Also edit' }),
+  );
+  await assert.rejects(
+    admin.call(run, 'edit_agent_instruction', {
+      ...update,
+      instruction_id: 'unknown',
+      enabled: false,
+    }),
+  );
+  await assert.rejects(
+    admin.call(run, 'assign_resource', {
+      agentId,
+      resourceId: 'pistudio-project',
+      kind: 'mcps',
+      remove: true,
+    }),
+  );
+  await assert.rejects(
+    admin.call({ projectRoot: root } as PreparedRun, 'edit_agent_instruction', {
+      ...update,
+      enabled: false,
+    }),
+  );
+  assert.deepEqual(store.teamProfiles(teamId)[0], after);
+  await admin.call(run, 'assign_resource', {
+    agentId,
+    resourceId: teamMcpId,
+    kind: 'mcps',
+    enabled: false,
+  });
+  assert.deepEqual(store.teamProfiles(teamId)[0].capabilitySettings?.[`mcps:${teamMcpId}`], {
+    enabled: false,
+  });
+  await admin.call(run, 'assign_resource', {
+    agentId,
+    resourceId: teamMcpId,
+    kind: 'mcps',
+    remove: true,
+  });
+  const updated = store.teamProfiles(teamId)[0];
+  assert.ok(!updated.mcps.includes(teamMcpId));
+  assert.equal(updated.capabilitySettings?.[`mcps:${teamMcpId}`], undefined);
+  assert.deepEqual(updated.instructions, after.instructions);
+});

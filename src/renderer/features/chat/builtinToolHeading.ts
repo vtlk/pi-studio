@@ -5,6 +5,8 @@ const builtinNames = /^mcp__(pi_studio_browser|pi_studio_computer|pi_studio|team
 const agentActions = new Set([
   'read_agent_settings',
   'configure_agent',
+  'edit_agent_instruction',
+  'set_agent_reasoning',
   'transfer_agent',
   'assign_resource',
   'say_to',
@@ -23,8 +25,15 @@ export function builtinToolHeading(
   let [, group, action] = match;
   if (group === 'pi_studio_browser') action = action.replace(/^browser_/, '');
   if (action === 'read_agent_settings' && group === 'team') group = 'pi_studio';
-  const key =
-    `ToolCard.builtin.${group}.${action === 'transfer_agent' && args.mode === 'copy' ? 'copy_agent' : action}` as MessageKey;
+  const labelAction =
+    action === 'transfer_agent' && args.mode === 'copy'
+      ? 'copy_agent'
+      : action === 'edit_agent_instruction' && args.action === 'remove'
+        ? 'remove_agent_instruction'
+        : action === 'assign_resource' && args.remove === true
+          ? 'unlink_resource'
+          : action;
+  const key = `ToolCard.builtin.${group}.${labelAction}` as MessageKey;
   if (!Object.hasOwn(messages, key)) return;
   const ids =
     action === 'read_agent_settings' && Array.isArray(args.agent_ids)

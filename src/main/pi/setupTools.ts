@@ -3,6 +3,7 @@ import { productionTools } from './RunChannel.ts';
 import { catalogTools } from './catalogTools.ts';
 import { catalogAgentReadProperties } from './readAgentSettings.ts';
 import { settingsReadProperties, settingsReadGuidance } from './settingsOutput.ts';
+import { profileEditTools } from './profileEditTools.ts';
 
 const object = (properties: Record<string, unknown>, required: string[] = []) => ({
   type: 'object',
@@ -13,6 +14,7 @@ const object = (properties: Record<string, unknown>, required: string[] = []) =>
 const string = { type: 'string' };
 export const setupTools: SessionTool[] = [
   ...catalogTools,
+  ...profileEditTools,
   ...productionTools.filter((tool) =>
     [
       'web_search',
@@ -165,7 +167,7 @@ export const setupTools: SessionTool[] = [
   {
     name: 'configure_agent',
     description:
-      'Create an ordinary constructor agent only when requested with explicit teamId (append inside that team), or update named fields of an existing ordinary profile or the built-in setup assistant by stable ID. Only the setup assistant is a system agent. Never create another system agent. Does not change existing project snapshots or launch work. The administrative MCP stays pinned to the assistant.',
+      'Create an ordinary constructor agent only when requested with explicit teamId (append inside that team), or update named fields of an existing profile by stable ID. instructions replaces the entire list: use edit_agent_instruction for a single block. Use set_agent_reasoning when only effort changes. Does not create system agents, change existing project snapshots or launch work.',
     inputSchema: object({
       id: string,
       name: string,
@@ -267,13 +269,14 @@ export const setupTools: SessionTool[] = [
   {
     name: 'assign_resource',
     description:
-      'Assign an existing catalog resource to one constructor agent or toggle that link. Administration is pinned for the helper and can be explicitly assigned to an ordinary agent. Never changes old project snapshots.',
+      'Assign a single existing catalog skill, MCP or plugin by resourceId to one constructor agent, toggle only that link with enabled, or unlink it with remove:true (omit enabled then). Unlinking leaves the catalog entry, files and other agents untouched. Required built-in MCP links cannot be disabled or removed. Does not change existing project snapshots.',
     inputSchema: object(
       {
         agentId: string,
         resourceId: string,
         kind: { type: 'string', enum: ['skills', 'mcps', 'plugins'] },
         enabled: { type: 'boolean' },
+        remove: { type: 'boolean' },
       },
       ['agentId', 'resourceId', 'kind'],
     ),

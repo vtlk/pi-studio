@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,6 +11,8 @@ import { checkPi } from '../src/main/pi/checkPi.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
+import type { Resource } from '../src/shared/resources.ts';
+import { saveManagedSkill } from '../src/main/storage/managedSkills.ts';
 
 const root = await mkdtemp(join(tmpdir(), 'pistudio-settings-pages-'));
 process.env.PI_CODING_AGENT_DIR = join(root, 'Native');
@@ -21,6 +23,21 @@ const main = 'Полный основной промпт 😀 "quoted" \\ \n'.re
 const instruction = 'Инструкция 🌆 "текст" \\ \n'.repeat(450);
 const documents: unknown[] = [];
 const compactResults: Record<string, any>[] = [];
+const editableSkill = '---\nname: review-skill\ndescription: Review notes\n---\n\nFirst version.\n';
+const editedSkill = editableSkill.replace('First version.', 'Second version.');
+const nativeFile = join(process.env.PI_CODING_AGENT_DIR, 'mcp.json');
+const nativeConfig = {
+  mcpServers: {
+    fixture: {
+      url: 'http://127.0.0.1:1/mcp',
+      timeout: 30,
+      headers: { 'X-Fixture': 'local-only-fixture' },
+    },
+    neighbor: { command: 'never-launch-fixture', enabled: false },
+  },
+};
+await writeFile(nativeFile, JSON.stringify(nativeConfig));
+let skillId = '';
 const compactCalls = [
   ['list_teams', { query: 'Catalog fixture' }],
   ['list_agents', { team_id: 'catalog-team' }],
@@ -46,6 +63,44 @@ const compactCalls = [
       agent_id: 'small-target',
       source_team_id: 'catalog-team',
       target_team_id: 'target-team',
+    },
+  ],
+  [
+    'edit_agent_instruction',
+    { agent_id: 'small-target', instruction_id: 'patch-me', action: 'update', enabled: false },
+  ],
+  [
+    'edit_agent_instruction',
+    { agent_id: 'small-target', instruction_id: 'patch-me', action: 'update', content: 'New body' },
+  ],
+  [
+    'edit_agent_instruction',
+    { agent_id: 'small-target', instruction_id: 'remove-me', action: 'remove' },
+  ],
+  ['set_agent_reasoning', { agent_id: 'small-target', reasoning: 'off' }],
+  [
+    'assign_resource',
+    { agentId: 'small-target', resourceId: 'mcp-fixture', kind: 'mcps', remove: true },
+  ],
+  ['edit_mcp', { resource_id: 'mcp-fixture', timeout_seconds: 75, display_name: 'Edited server' }],
+  [
+    'read_skill',
+    {
+      get resource_id() {
+        return skillId;
+      },
+    },
+  ],
+  [
+    'edit_skill',
+    {
+      get resource_id() {
+        return skillId;
+      },
+      get revision() {
+        return compactResults[13]?.revision;
+      },
+      content: editedSkill,
     },
   ],
 ] as const;
@@ -83,6 +138,10 @@ const server = createServer(async (req, res) => {
     const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     assert.equal(req.headers.authorization, undefined);
     assert.equal(body.model, 'qa-settings');
+    const systemPrompt = JSON.stringify(
+      body.messages.find(({ role }: { role: string }) => role === 'system'),
+    );
+    assert.match(systemPrompt, /Use set_agent_reasoning for an effort-only change/);
     const readers = body.tools
       .map((tool: any) => tool.function)
       .filter((tool: any) => tool.name.endsWith('read_agent_settings'));
@@ -185,6 +244,27 @@ const connection = {
   },
 };
 await store.saveSection('connections', [connection]);
+const skill = await saveManagedSkill(store, {
+  folder: store.folder,
+  name: 'review-skill',
+  description: 'Review notes',
+  content: 'First version.',
+});
+skillId = skill.id;
+const mcp: Resource = {
+  id: 'mcp-fixture',
+  kind: 'mcps',
+  name: 'Fixture server',
+  source: 'pi:fixture',
+  description: '',
+  transport: 'HTTP',
+  args: '',
+  credential: '',
+  contents: '',
+  version: '',
+  createdAt: 1,
+};
+await store.saveSection('resources', [skill, mcp]);
 const profile: Agent = {
   id: 'large-target',
   name: 'Large settings fixture',
@@ -206,7 +286,20 @@ await store.saveSection('agentCatalog', {
       id: 'small-target',
       name: 'Small settings fixture',
       mainInstruction: 'Small',
-      instructions: [],
+      instructions: [
+        { id: 'keep-me', name: 'Keep', enabled: true, content: 'Keep body' },
+        { id: 'patch-me', name: 'Patch', enabled: true, content: 'Old body' },
+        { id: 'remove-me', name: 'Remove', enabled: true, content: 'Remove body' },
+      ],
+      model: {
+        connectionId: connection.id,
+        provider: connection.providerId,
+        id: 'qa-settings',
+        reasoning: 'default',
+        temperature: '0.42',
+      },
+      skills: [skill.id],
+      mcps: [mcp.id, 'pistudio-team'],
     },
   ],
   teams: [
@@ -311,6 +404,31 @@ try {
   assert.deepEqual(cloned, { ...store.teamProfiles('catalog-team')[0], id: cloned.id });
   assert.equal(moved.id, 'small-target');
   assert.equal(compactResults[6].agentId, moved.id);
+  assert.deepEqual(moved.instructions, [
+    { id: 'keep-me', name: 'Keep', enabled: true, content: 'Keep body' },
+    { id: 'patch-me', name: 'Patch', enabled: false, content: 'New body' },
+  ]);
+  assert.deepEqual(moved.model, {
+    connectionId: connection.id,
+    provider: connection.providerId,
+    id: 'qa-settings',
+    reasoning: 'off',
+    temperature: '0.42',
+  });
+  assert.deepEqual(moved.mcps, ['pistudio-project', 'pistudio-team']);
+  assert.deepEqual(moved.skills, [skill.id]);
+  assert.equal(
+    (store.bootstrap().sections.resources as Resource[]).find(({ id }) => id === mcp.id)?.name,
+    'Edited server',
+  );
+  assert.deepEqual(JSON.parse(await readFile(nativeFile, 'utf8')), {
+    mcpServers: {
+      ...nativeConfig.mcpServers,
+      fixture: { ...nativeConfig.mcpServers.fixture, timeout: 75 },
+    },
+  });
+  assert.doesNotMatch(JSON.stringify(compactResults), /local-only-fixture/);
+  assert.equal(await readFile(join(skill.source, 'SKILL.md'), 'utf8'), editedSkill);
   const proof = {
     at: new Date().toISOString(),
     pi: pi.version,
@@ -325,6 +443,11 @@ try {
     noOpenProjectOrExternalModel: true,
     compactCatalogAndAccountScopedModels: true,
     projectedBatchAndExactReorderCopyMove: true,
+    exactInstructionPatchAndRemoval: true,
+    effortOnlyKeepsAccountModelAndTemperature: true,
+    scopedUnlinkAndNativeMcpOptionsPreserveHeadersAndNeighbors: true,
+    exactSkillRevisionEdit: true,
+    existingHelperGetsFreshRuntimeGuidance: true,
     compactResponsesBytes: compactResults.map((value) => Buffer.byteLength(JSON.stringify(value))),
     installedAppAndUserDataUntouched: true,
   };
