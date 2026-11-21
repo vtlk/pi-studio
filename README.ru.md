@@ -10,7 +10,7 @@
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Статус: alpha" /> <img src="https://img.shields.io/badge/%D0%BF%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D1%8B-macOS_%C2%B7_Windows-FFD83D?style=flat-square&labelColor=252525" alt="macOS и Windows preview" />
 
-**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.130/Pi-Studio-0.2.0-alpha.130-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.130/Pi-Studio-0.2.0-alpha.130-win-x64.zip)**
+**[Скачать для macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.130/Pi-Studio-0.2.0-alpha.130-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.131/Pi-Studio-0.2.0-alpha.131-win-x64.zip)**
 
 **[Как это работает](#одна-команда-много-проектов)** &nbsp; · &nbsp; **[Модели](#ваши-модели-ваши-инструменты)** &nbsp; · &nbsp; **[Начать](#быстрый-старт)**
 
@@ -129,17 +129,17 @@
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.130/Pi-Studio-0.2.0-alpha.130-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.130/Pi-Studio-0.2.0-alpha.130-win-x64.zip)** |
+| **Сборка** | **[Скачать для Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.130/Pi-Studio-0.2.0-alpha.130-mac-arm64.zip)** | **[Скачать для Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.131/Pi-Studio-0.2.0-alpha.131-win-x64.zip)** |
 | **Требования** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Версия** | alpha.130 | alpha.130 · preview |
+| **Версия** | alpha.130 | alpha.131 · preview |
 
 [Руководство по установке на Windows](docs/WINDOWS.md)
 
 > **Ранняя версия.** Mac-сборка подписана Apple Development, без нотарификации Apple. Полная проверка Windows-сборки на реальных компьютерах ещё продолжается.
 
-[Что изменилось в alpha.130 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.130)
+[Что изменилось в alpha.131 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.131)
 
-В alpha.130 помощник настройки редактирует отдельные блоки инструкций, меняет уровень рассуждения выбранной модели и управляет каждым назначением скила или MCP. Административный MCP также поддерживает точечные изменения общих ресурсов. Доступна для macOS arm64 и Windows x64.
+В alpha.131 помощник настройки находит проекты и читает файлы результатов выбранного агента. Поиск по промптам, инструкциям, скилам и MCP поддерживает фильтры по команде, агентам и ресурсам. Сначала опубликована Windows x64 alpha.131; Mac пока остаётся на alpha.130 до загрузки его пакетов.
 
 Команды агентов запоминают состояние раскрытия. При переключении разделов вкладка «Проекты» возвращает в последний открытый проект. Нажатие на название проекта или иконку возврата открывает список; «Перечитать агентов» работает отдельно. Строка проекта чёрная в обеих темах, с тонким серым нижним бордюром.
 
