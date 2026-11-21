@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-11-21T17:01:51.073Z",
+  "locales": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "titles": [
+        "Прочитан файл script.md",
+        "Ошибка: mcp__files__lookup",
+        "Чтение настроек агента «Чат агент»",
+        "Запись файла: нет результата missing.md",
+        "Ошибка выполнения команды npm run check"
+      ]
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "titles": [
+        "Прочитан файл script.md",
+        "Ошибка: mcp__files__lookup",
+        "Чтение настроек агента «Чат агент»",
+        "Запись файла: нет результата missing.md",
+        "Ошибка выполнения команды npm run check"
+      ]
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "titles": [
+        "Read file script.md",
+        "Error: mcp__files__lookup",
+        "Reading agent settings «Чат агент»",
+        "File write: no result missing.md",
+        "Command failed npm run check"
+      ]
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "titles": [
+        "Read file script.md",
+        "Error: mcp__files__lookup",
+        "Reading agent settings «Чат агент»",
+        "File write: no result missing.md",
+        "Command failed npm run check"
+      ]
+    }
+  ],
+  "namesInCollapsedBuiltinCards": true,
+  "rawIdentifierInExpandedDetailsOnly": true,
+  "scopedOffscreenProfile": true
+}

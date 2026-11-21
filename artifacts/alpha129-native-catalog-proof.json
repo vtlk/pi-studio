@@ -1,0 +1,28 @@
+{
+  "at": "2026-11-21T16:59:58.215Z",
+  "pi": "1.5.2",
+  "transports": [
+    "Administration",
+    "helper Team"
+  ],
+  "pages": 26,
+  "requests": 34,
+  "maxOutputBytes": 10256,
+  "documentBytes": 87556,
+  "allPromptAndInstructionBytesPreserved": true,
+  "disabledInstructionsPreserved": true,
+  "noNativeTruncationWarning": true,
+  "noOpenProjectOrExternalModel": true,
+  "compactCatalogAndAccountScopedModels": true,
+  "projectedBatchAndExactReorderCopyMove": true,
+  "compactResponsesBytes": [
+    285,
+    401,
+    303,
+    1441,
+    100,
+    150,
+    126
+  ],
+  "installedAppAndUserDataUntouched": true
+}
