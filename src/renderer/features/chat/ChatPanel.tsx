@@ -208,14 +208,6 @@ export function ChatPanel({
       >
         {state?.historyTruncated && <p className="subtle">{t('Chat.historyTruncated')}</p>}
         {state && <ChatTranscript messages={state.messages} name={name} working={state.working} />}
-        {state && (
-          <ChatQueuedMessages
-            queue={state.queue}
-            phase={state.phase}
-            busy={queueActions.busy || (sending ? 'sending' : '')}
-            onAction={(id, action) => void queueActions.act(id, action)}
-          />
-        )}
         {!state && !opening && !issue && <p role="status">{t('Chat.loading')}</p>}
         {opening && (
           <div className="pi-chat-loading" role="status">
@@ -236,6 +228,14 @@ export function ChatPanel({
             <LoaderCircle size={16} className="project-launch-spinner" aria-hidden="true" />
             {t('Chat.working')}
           </div>
+        )}
+        {state && (
+          <ChatQueuedMessages
+            queue={state.queue}
+            phase={state.phase}
+            busy={queueActions.busy || (sending ? 'sending' : '')}
+            onAction={(id, action) => void queueActions.act(id, action)}
+          />
         )}
         {state?.notification && (
           <p className="subtle" role="status">

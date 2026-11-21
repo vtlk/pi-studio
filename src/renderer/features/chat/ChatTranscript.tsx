@@ -25,6 +25,7 @@ export function ChatTranscript({
   const agentNames = new Map(
     [...agents, ...systemAgents].map((agent) => [agent.id, agentName(agent)]),
   );
+  let previousSender: string | undefined;
   return messages.map((message, messageIndex) => {
     if (tools.matchedResults.has(messageIndex)) return null;
     if (message.role === 'toolResult' || message.role === 'bashExecution')
@@ -48,15 +49,23 @@ export function ChatTranscript({
           agentNames={agentNames}
         />
       );
+    const sender =
+      message.role === 'user' || message.role === 'assistant'
+        ? message.role
+        : `${message.role}:${message.toolName ?? ''}`;
+    const showSender = sender !== previousSender;
+    previousSender = sender;
     return (
       <article className="pi-chat-message" data-role={message.role} key={message.id}>
-        <span className="pi-chat-role">
-          {message.role === 'user'
-            ? t('Chat.you')
-            : message.role === 'assistant'
-              ? name
-              : message.toolName || t('Chat.tool')}
-        </span>
+        {showSender && (
+          <span className="pi-chat-role">
+            {message.role === 'user'
+              ? t('Chat.you')
+              : message.role === 'assistant'
+                ? name
+                : message.toolName || t('Chat.tool')}
+          </span>
+        )}
         {message.parts.map((part, index) =>
           part.type === 'toolCall' ? (
             <ToolCallCard

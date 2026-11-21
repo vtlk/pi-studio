@@ -106,6 +106,11 @@ async function child() {
         role: 'assistant',
         parts: [{ type: 'text', text: 'HELPER_HISTORY' }],
       },
+      {
+        id: 'helper-follow-up',
+        role: 'assistant',
+        parts: [{ type: 'text', text: 'HELPER_FOLLOW_UP' }],
+      },
     ],
     model: model.id,
     thinkingLevel: 'medium',
@@ -506,6 +511,15 @@ async function child() {
   await until(
     `document.querySelector(${JSON.stringify(card('new-error'))})?.dataset.status==='running'`,
   );
+  const senderHeadings = () =>
+    js(
+      `Array.from(document.querySelectorAll('.pi-chat-transcript > .pi-chat-message'), e => [e.dataset.role, !!e.querySelector(':scope > .pi-chat-role')])`,
+    );
+  assert.deepEqual(await senderHeadings(), [
+    ['user', true],
+    ['assistant', true],
+    ['assistant', false],
+  ]);
   assert.equal(
     await js(`document.querySelector(${JSON.stringify(card('old-missing'))}).dataset.status`),
     'missing',
@@ -675,6 +689,20 @@ async function child() {
   );
   await until(`document.querySelector('.pi-chat-composer textarea').value===''`);
   assert.equal(sends, 1);
+  state.messages.push({
+    id: 'new-sender-group',
+    role: 'assistant',
+    parts: [{ type: 'text', text: 'Sender heading returns after the user.' }],
+  });
+  state.revision++;
+  send('studio:chat-changed', target);
+  await until(
+    `document.querySelector('.pi-chat-transcript').textContent.includes('Sender heading returns after the user.')`,
+  );
+  assert.deepEqual((await senderHeadings()).slice(-2), [
+    ['user', true],
+    ['assistant', true],
+  ]);
   await js(`window.studio.setLanguage('en');window.studio.setTheme('dark')`);
   await until(
     `document.documentElement.lang==='en'&&document.documentElement.dataset.theme==='dark'`,
@@ -738,6 +766,16 @@ async function child() {
     assert.match(text, lang === 'ru' ? /Steer · в очереди/ : /Steer · queued/);
     assert.match(text, lang === 'ru' ? /После задачи · в очереди/ : /After the task · queued/);
     assert.equal(
+      await js(`(() => {
+      const working = document.querySelector('.pi-chat-working').getBoundingClientRect();
+      return [...document.querySelectorAll('[data-queue-kind]')].every(
+        item => item.getBoundingClientRect().top >= working.bottom
+      );
+    })()`),
+      true,
+      'Both queue modes appear below the working indicator',
+    );
+    assert.equal(
       await js(
         `Array.from(document.querySelectorAll('.pi-chat-message:not([data-queue-kind])')).some(e=>e.textContent.includes('UI_STEER'))`,
       ),
@@ -776,7 +814,9 @@ async function child() {
   for (const lang of ['ru', 'en']) {
     await js(`window.studio.setLanguage(${JSON.stringify(lang)})`);
     await until(`document.documentElement.lang===${JSON.stringify(lang)}`);
-    await js(`document.querySelector('.pi-chat-header button').click()`);
+    const power = lang === 'ru' ? 'Завершить процесс Pi' : 'Stop Pi process';
+    const selector = `.pi-chat-header button[aria-label="${power}"]`;
+    await js(`document.querySelector(${JSON.stringify(selector)}).click()`);
     await until(`!!document.querySelector('[role="alertdialog"]')`);
     assert.match(
       await js(`document.querySelector('[role="alertdialog"]').innerText`),
@@ -901,6 +941,10 @@ async function child() {
   await until(
     `document.querySelectorAll('.pi-chat-panel').length===1&&document.querySelector('.pi-chat-panel').innerText.includes('HELPER_HISTORY')`,
   );
+  assert.deepEqual(await senderHeadings(), [
+    ['assistant', true],
+    ['assistant', false],
+  ]);
   await js(
     `(()=>{const e=document.querySelector('.pi-chat-composer textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'HELPER_DRAFT');e.dispatchEvent(new Event('input',{bubbles:true}));})()`,
   );
@@ -1015,7 +1059,9 @@ async function child() {
           'team column remains clickable; one chat; notification-aware bounds; navigation preserves helper draft and process',
           'footer/overflow geometry',
           'equal message-bubble vertical padding',
+          'sender headings group across tool results and return after author changes in shared chat views',
           'authoritative native queue visible after composer steer sends, duplicates preserved',
+          'both native queue modes render below the working indicator in RU/EN and both themes',
           'queued steer/follow-up translated in RU/EN/light/dark and delivery avoids duplicate history',
           'tool calls/results paired once by native ID',
           'success collapsed; initial and arriving errors auto-open',
