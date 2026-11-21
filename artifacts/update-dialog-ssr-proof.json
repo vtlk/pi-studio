@@ -1,16 +1,18 @@
 {
-  "version": "0.2.0-alpha.126",
+  "version": "0.2.0-alpha.134",
   "ok": true,
   "checks": [
     {
       "language": "ru",
       "headerAndFooterRetainTheirControls": true,
-      "freezeDisablesWithoutRemovingControls": true
+      "freezeDisablesWithoutRemovingControls": true,
+      "manualDialogRetainsUpdateActionForVerifiedOffer": true
     },
     {
       "language": "en",
       "headerAndFooterRetainTheirControls": true,
-      "freezeDisablesWithoutRemovingControls": true
+      "freezeDisablesWithoutRemovingControls": true,
+      "manualDialogRetainsUpdateActionForVerifiedOffer": true
     }
   ],
   "scope": "Production React SSR control structure only; no native desktop or pixel geometry acceptance",

@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { UpdateCoordinator } from '../src/main/updates/UpdateCoordinator.ts';
 import { InvocationGate } from '../src/main/updates/InvocationGate.ts';
 import type { VerifiedUpdate } from '../src/main/updates/githubReleases.ts';
+import { UpdateNetworkError } from '../src/main/updates/githubTransport.ts';
 import type { UpdateView } from '../src/shared/updates.ts';
 
 const update: VerifiedUpdate = {
@@ -60,6 +61,7 @@ async function fixture(t: TestContext, reserve = false) {
     failArm: false,
     failCommit: false,
     available: true,
+    checkError: undefined as Error | undefined,
     preventQuit: false,
     order: [] as string[],
     view: undefined as UpdateView | undefined,
@@ -74,6 +76,7 @@ async function fixture(t: TestContext, reserve = false) {
     now: () => state.now,
     check: async () => {
       state.checks++;
+      if (state.checkError) throw state.checkError;
       return state.available ? structuredClone(update) : undefined;
     },
     download: async ({ destination, progress, signal }) => {
@@ -195,6 +198,62 @@ test('update consent is one flight; checks/read/later never download, saved+idle
   assert.deepEqual(await readdir(root), []); // Archive was discarded after installer preparation.
   await coordinator.close();
   assert.equal(state.disposed, 0); // Committed staging belongs to the helper.
+});
+
+test('a rate-limited catalog keeps the verified offer installable during GitHub cooldown', async (t) => {
+  const { coordinator, state } = await fixture(t);
+  const verified = await coordinator.check();
+  state.checkError = new UpdateNetworkError(
+    'GitHub limited update checks.',
+    Date.now() + 60_000,
+    true,
+    403,
+  );
+  const limited = await coordinator.check();
+  assert.equal(limited.phase, 'available');
+  assert.deepEqual(limited.offer, verified.offer);
+  assert.equal(limited.checkedAt, verified.checkedAt);
+  assert.match(limited.message!, /версию можно установить/);
+  assert.equal(state.downloads, 0);
+  await coordinator.request();
+  assert.equal(state.checks, 2, 'Download must not force a catalog request during cooldown');
+  assert.equal(state.downloads, 1);
+  assert.equal(state.prepared, 1);
+  assert.equal(state.quits, 0, 'Normal installation readiness still applies');
+  assert.equal(coordinator.read().phase, 'waiting');
+  assert.equal(coordinator.read().offer?.version, verified.offer?.version);
+});
+
+test('an unavailable catalog during consent still allows the previously verified download', async (t) => {
+  const { coordinator, state } = await fixture(t);
+  await coordinator.check();
+  state.checkError = new UpdateNetworkError('Network unavailable', undefined, true, 503);
+  await coordinator.request();
+  assert.equal(state.downloads, 1);
+  assert.equal(coordinator.read().phase, 'waiting');
+});
+
+test('an invalid manifest drops the cached offer even if a subsequent check is rate limited', async (t) => {
+  const { coordinator, state } = await fixture(t);
+  await coordinator.check();
+  state.checkError = Error('Invalid update manifest signature');
+  await coordinator.request();
+  assert.equal(coordinator.read().phase, 'error');
+  assert.equal(coordinator.read().offer, undefined);
+  state.checkError = new UpdateNetworkError('Rate limited', Date.now() + 60_000, true, 403);
+  await coordinator.request();
+  assert.equal(coordinator.read().phase, 'error');
+  assert.equal(state.downloads, 0);
+});
+test('a first encounter with a rate limit still needs a verified offer before downloading', async (t) => {
+  const { coordinator, state } = await fixture(t);
+  state.checkError = new UpdateNetworkError('Rate limited', Date.now() + 60_000, true, 429);
+  await coordinator.check();
+  await coordinator.request();
+  assert.equal(coordinator.read().phase, 'error');
+  assert.equal(coordinator.read().offer, undefined);
+  assert.equal(state.downloads, 0);
+  assert.equal(state.checks, 1);
 });
 
 test('new work while flushing or stale renderer readiness cancels before replacement and releases only after helper cancellation', async (t) => {

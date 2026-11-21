@@ -11,6 +11,7 @@ import {
 import type { UpdateTarget } from './releasePolicy.ts';
 import type { UpdateInstaller, PreparedInstallation, InstallLease } from './installation.ts';
 import { checkGitHubReleases, type VerifiedUpdate } from './githubReleases.ts';
+import { UpdateNetworkError } from './githubTransport.ts';
 import { downloadVerifiedUpdate } from './download.ts';
 import { UpdateSchedule } from './UpdateSchedule.ts';
 import { prepareDownload, releaseDownload } from './cleanupDownloads.ts';
@@ -74,7 +75,28 @@ export class UpdateCoordinator {
         };
       },
       error: (error) => {
-        if (!busyPhases.has(this.state.phase)) void this.fail(error);
+        if (busyPhases.has(this.state.phase)) return;
+        if (
+          this.candidate &&
+          !this.lease &&
+          error instanceof UpdateNetworkError &&
+          error.recoverable
+        ) {
+          this.state = {
+            ...this.state,
+            phase: 'available',
+            offer: this.candidate.offer,
+            message: t('UpdateCoordinator.verifiedOfferStillAvailable', {
+              value1: error.message.slice(0, 700),
+            }),
+          };
+          return;
+        }
+        if (!this.lease) {
+          this.candidate = undefined;
+          this.state = { ...this.state, offer: undefined };
+        }
+        void this.fail(error);
       },
     });
     this.timer = setInterval(() => this.tick(), 1000);

@@ -874,6 +874,7 @@
   "registerTeamHandlers.theTeamArchiveExceedsMb": "Архив команды превышает 64 МБ.",
   "UpdateCoordinator.quitCancelledChangesHaveNotBeenSaved": "Выход отменён: изменения ещё не сохранены. Прежняя версия сохранена.",
   "UpdateCoordinator.aCompatibleUpdateIsNoLongerAvailable": "Подходящее обновление больше не доступно.",
+  "UpdateCoordinator.verifiedOfferStillAvailable": "{{value1}} Ранее найденную и проверенную версию можно установить.",
   "UpdateCoordinator.willInstallAfterChangesAreSavedAnd": "Установим после сохранения и завершения работы.",
   "UpdateCoordinator.invalidSaveConfirmation": "Неверное подтверждение сохранения.",
   "UpdateCoordinator.invalidOpenProjectState": "Неверное состояние открытого проекта.",

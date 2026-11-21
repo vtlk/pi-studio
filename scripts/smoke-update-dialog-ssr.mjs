@@ -39,7 +39,13 @@ try {
           frames.push(footer.replace(/<[^>]*>/g,''));
         }
         assert.ok(frames.every(frame=>frame===frames[0]));
-        checks.push({language,headerAndFooterRetainTheirControls:true,freezeDisablesWithoutRemovingControls:true});
+        const cachedOffer={currentVersion:'0.2.0-alpha.130',phase:'available',message:'Previously verified release',offer:{version:'0.2.0-alpha.131',bytes:100,notes:'Inert release notes'}};
+        const cachedDialog=renderToStaticMarkup(<TooltipProvider><UpdatesContext.Provider value={{state:cachedOffer,open:true,frozen:false,manual:true,show(){},hide(){},request(){},check(){}}}><UpdateDialog/></UpdatesContext.Provider></TooltipProvider>);
+        const footer=cachedDialog.split('<footer')[1].split('</footer>')[0].replace(/<[^>]*>/g,'');
+        assert.ok(footer.includes(language==='ru'?'Обновить':'Update'));
+        assert.ok(!footer.includes(language==='ru'?'Повторить проверку':'Check again'));
+        assert.ok(cachedDialog.includes(cachedOffer.message));
+        checks.push({language,headerAndFooterRetainTheirControls:true,freezeDisablesWithoutRemovingControls:true,manualDialogRetainsUpdateActionForVerifiedOffer:true});
       }
       return {ok:true,checks,scope:'Production React SSR control structure only; no native desktop or pixel geometry acceptance',noGuiOrPermissionsInvoked:true};
     }

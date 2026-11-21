@@ -200,9 +200,20 @@ const read = (code) => window.webContents.executeJavaScript(code);
     }
   }
   await read(`window.__updateQaLanguage('ru')`);
-  state = { ...state, phase: 'available', message: undefined };
+  const cachedOfferNotice =
+    'GitHub временно ограничил проверку обновлений. Ранее найденную и проверенную версию можно установить.';
+  state = {
+    ...state,
+    phase: 'available',
+    message: cachedOfferNotice,
+    manualCheckToken: 'cached-offer',
+  };
   await until(
     `[...document.querySelectorAll('[data-update-dialog] button')].some(button=>button.textContent==='Обновить') && !document.querySelector('[data-update-dialog] [role="alert"]')`,
+  );
+  assert.equal(
+    await read(`document.querySelector('[data-update-dialog] [role="status"]').textContent`),
+    cachedOfferNotice,
   );
 
   await read(
@@ -210,13 +221,14 @@ const read = (code) => window.webContents.executeJavaScript(code);
   );
   await until(`!document.querySelector('[data-update-dialog]')`);
   assert.equal(requests, 0);
-  await read(`document.querySelector('button[aria-label*="Доступна версия"]').click()`);
+  state = { ...state, manualCheckToken: 'cached-offer-consent' };
   await until(`document.querySelector('[data-update-dialog]')`);
   await read(
     `[...document.querySelectorAll('[data-update-dialog] button')].find(b=>b.textContent==='Обновить').click()`,
   );
   await until(`document.querySelector('progress')?.value===25000000`);
   assert.equal(requests, 1);
+  assert.equal(checks, 2, 'Cached offer consent does not dispatch another manual check');
   assert.equal(
     await read(
       `[...document.querySelectorAll('[data-update-dialog] button')].some(b=>b.textContent==='Обновить')`,
@@ -325,6 +337,7 @@ const read = (code) => window.webContents.executeJavaScript(code);
     maintenanceErrorTakesPriorityOverNewOffer: true,
     manualCheckingUpToDateAndError: true,
     manualErrorRetryDoesNotAuthorizeDownloadEvenWithStaleOffer: true,
+    previouslyVerifiedOfferCanBeDownloadedFromManualDialogDuringRateLimit: true,
     consumedManualNoticeDoesNotReopenOnBackgroundChecks: true,
     clipboardOrAudioOrModelAccess: false,
     userStudioAccess: false,

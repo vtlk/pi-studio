@@ -874,6 +874,7 @@
   "registerTeamHandlers.theTeamArchiveExceedsMb": "The team archive exceeds 64 MB.",
   "UpdateCoordinator.quitCancelledChangesHaveNotBeenSaved": "Quit cancelled: changes have not been saved. The previous version is preserved.",
   "UpdateCoordinator.aCompatibleUpdateIsNoLongerAvailable": "A compatible update is no longer available.",
+  "UpdateCoordinator.verifiedOfferStillAvailable": "{{value1}} You can still install the previously verified release.",
   "UpdateCoordinator.willInstallAfterChangesAreSavedAnd": "Will install after changes are saved and work is finished.",
   "UpdateCoordinator.invalidSaveConfirmation": "Invalid save confirmation.",
   "UpdateCoordinator.invalidOpenProjectState": "Invalid open project state.",
