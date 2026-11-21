@@ -56,7 +56,8 @@ export function AgentActions({
     setOpening(value);
   };
   const hasSession = !!agent.session;
-  const launchLabel = autoContinue
+  const continueOnLaunch = !window.studio && autoContinue;
+  const launchLabel = continueOnLaunch
     ? t('AgentActions.launchAndContinue')
     : hasSession
       ? t('AgentActions.continueDialogue')
@@ -126,11 +127,11 @@ export function AgentActions({
           className="project-agent-launch"
           busy={opening}
           disabled={busy || !agent.profile.enabled}
-          onClick={() => void launch(autoContinue)}
+          onClick={() => void launch(continueOnLaunch)}
         >
           {opening ? (
             <LoaderCircle size={18} className="project-launch-spinner" aria-hidden="true" />
-          ) : autoContinue ? (
+          ) : continueOnLaunch ? (
             <ListStart size={18} aria-hidden="true" />
           ) : hasSession ? (
             <MessageSquare size={18} aria-hidden="true" />

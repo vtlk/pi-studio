@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-21T16:44:26.209Z",
+  "checkedAt": "2026-11-21T23:42:53.992Z",
   "pi": "1.5.2",
   "realPiSdkProductionBridgeAndMcp": true,
   "localSyntheticModelOnly": true,
@@ -15,6 +15,9 @@
       "sameSessionAndJsonlPrefix": true,
       "oneTaskNoReplay": true,
       "busyRecipientPreservedAndNoLateRetry": false,
+      "earlierAgentCorrectionCompletedAndOriginalChainResumed": false,
+      "reusedEarlierAgentPid": false,
+      "nativeCodexConnectTimeouts": 0,
       "nativeWindowsAcceptance": false
     },
     {
@@ -27,6 +30,9 @@
       "sameSessionAndJsonlPrefix": false,
       "oneTaskNoReplay": false,
       "busyRecipientPreservedAndNoLateRetry": true,
+      "earlierAgentCorrectionCompletedAndOriginalChainResumed": false,
+      "reusedEarlierAgentPid": false,
+      "nativeCodexConnectTimeouts": 0,
       "nativeWindowsAcceptance": false
     }
   ],

@@ -9,6 +9,7 @@ export function registerProjectQueries(
   service: StudioService,
   activity: ProjectActivity,
   caller: (event: IpcMainInvokeEvent) => unknown,
+  autoContinuation: (projectId: string) => boolean,
   recover?: (store: StudioStore) => void,
 ) {
   handleDesktopInvoke(desktopChannels.listProjectActivity, (event) => {
@@ -25,8 +26,9 @@ export function registerProjectQueries(
   });
   handleDesktopInvoke(desktopChannels.readProject, (event, id: string) => {
     caller(event);
-    return readProjectScope(service, id, async (store, _root, signal) =>
-      store.accounting.enrich(await store.projects.read(id, signal)),
-    );
+    return readProjectScope(service, id, async (store, _root, signal) => {
+      const project = store.accounting.enrich(await store.projects.read(id, signal));
+      return { ...project, autoContinue: autoContinuation(id) };
+    });
   });
 }

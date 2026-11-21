@@ -296,7 +296,7 @@ test(
 );
 
 test(
-  'ordinary opening cancels the chain; explicit launch-and-continue arms the running request',
+  'reopening the active dialogue preserves its chain until the switch is turned off',
   { timeout: 15000 },
   async (t) => {
     const f = await fixture(t);
@@ -308,16 +308,14 @@ test(
     assert.equal(f.activatedPids[0], child.pid);
     assert.equal(f.children.length, 1);
     assert.equal(child.exitCode, null);
-    await f.finish();
-    assert.equal(f.tasks.length, 0);
-    await f.request();
+    assert.equal(f.host.autoContinuation('p'), true);
     await f.launch(true);
     assert.equal(f.children.length, 1, 'Changing mode keeps the running Pi');
     const gate = deferred();
     f.hooks.completed = async () => gate.promise;
     await f.finish();
     assert.equal(f.tasks.length, 1);
-    await f.launch(false);
+    f.host.setAutoContinuation({ projectId: 'p', agentId: 'first', enabled: false });
     gate.resolve();
     await f.tasks[0];
     assert.equal(
@@ -325,7 +323,11 @@ test(
       0,
       'A delayed completion must not undo manual cancellation',
     );
-    assert.equal(f.launches[1].message, undefined, 'Ordinary resume never sends a user message');
+    assert.equal(
+      f.launches.length,
+      1,
+      'Reopening never sends a user message or launches another process',
+    );
   },
 );
 
@@ -357,7 +359,7 @@ test('the project switch arms the current reply, cancels on off and never replay
 });
 
 test(
-  'manual intent cancels a handoff already preparing another agent; other projects remain independent',
+  'switching off cancels a handoff already preparing another agent; other projects remain independent',
   { timeout: 15000 },
   async (t) => {
     const f = await fixture(t),
@@ -373,7 +375,7 @@ test(
     await f.request();
     await f.finish();
     await until(() => preparing);
-    await f.launch(false);
+    f.host.setAutoContinuation({ projectId: 'p', agentId: 'first', enabled: false });
     await f.launch(true, 'other');
     await f.request('other');
     await f.finish('other');
@@ -417,6 +419,7 @@ test(
       message: 'automatic input waiting for admission',
     });
     await until(() => admitting);
+    f.host.setAutoContinuation({ projectId: 'p', agentId: 'first', enabled: false });
     await f.launch(false);
     gate.resolve();
     assert.equal((await response).ok, false);
@@ -467,6 +470,9 @@ test(
     await f.request();
     await f.launch(false, 'p', 'side');
     await f.request('p', 'side');
+    await f.launch(false, 'p', 'other-side');
+    await f.host.stopAgent('p', 'other-side');
+    assert.equal(f.host.autoContinuation('p'), true);
     await f.finish();
     await Promise.all(f.tasks);
     assert.equal(f.launches.filter((l) => l.agent === 'next').length, 1);
@@ -474,6 +480,25 @@ test(
     assert.equal(f.children[1].exitCode, null);
   },
 );
+
+test('the switch reserves a closed selected agent without starting Pi or arming another agent', async (t) => {
+  const f = await fixture(t);
+  const target = { projectId: 'p', agentId: 'first' };
+  f.host.setAutoContinuation({ ...target, enabled: true });
+  assert.equal(f.host.autoContinuation('p'), true);
+  assert.equal(f.host.autoContinuation('other'), false);
+  assert.equal(f.launches.length, 0);
+  await f.launch(false, 'p', 'side');
+  await f.request('p', 'side');
+  await f.finish('p', 'side');
+  assert.equal(f.tasks.length, 0);
+  await f.launch(false);
+  await f.request();
+  await f.launch(false);
+  await f.finish();
+  await Promise.all(f.tasks);
+  assert.equal(f.launches.filter(({ agent }) => agent === 'next').length, 1);
+});
 
 test(
   'a legacy terminal chain does not replace an independently opened next dialogue',

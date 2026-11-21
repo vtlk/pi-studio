@@ -222,6 +222,13 @@ export function useNativeWorkspaceState() {
       attachments: string[] = [],
     ): Promise<SessionBinding | undefined> =>
       openAgent(agentId, message, autoContinue, attachments),
-    setAutoContinue: (_enabled: boolean) => {},
+    setAutoContinue: (enabled: boolean) => {
+      invalidateReads();
+      setProjects((previous) =>
+        previous.map((project) =>
+          project.id === projectId ? { ...project, autoContinue: enabled } : project,
+        ),
+      );
+    },
   };
 }

@@ -28,6 +28,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   useTranslation(undefined, { i18n });
   const chats = useChatPanels();
   const { demo } = useNotice();
+  const { setAutoContinue } = useWorkspace();
   const cancelChatSelection = useRef<(() => void) | undefined>(undefined);
   useEffect(() => () => cancelChatSelection.current?.(), []);
   const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
@@ -43,7 +44,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
       '',
   );
   const [refreshOpen, setRefreshOpen] = useState(false);
-  const [autoContinue, setAutoContinue] = useState(false);
+  const autoContinue = project.autoContinue === true;
   const [changingContinuation, setChangingContinuation] = useState(false);
   const [settingsAgentId, setSettingsAgentId] = useState<string | null>(null);
   const closeSettings = () => {

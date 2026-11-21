@@ -2,7 +2,7 @@ import { i18n, t } from '../../shared/i18n/index.ts';
 import { EmbeddedChat } from './EmbeddedChat.ts';
 import { reuseIdleTeam, assertTeamNotBusy } from './reuseIdleTeam.ts';
 import { reuseIdleChain } from './reuseIdleChain.ts';
-import { continuationStartSequence } from './runContinuation.ts';
+import { armContinuation } from './runContinuation.ts';
 import { chatInput } from './chatInput.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
 import type { TeamChainCorrection, TeamDelivery, TeamHost } from '../team-mcp/types.ts';
@@ -62,20 +62,23 @@ export async function openRun(
       throw new Error(t('error.teamSupport.chainCorrectionExpired'));
   };
   checkCorrection();
-  const chain = continuation?.token ?? (request.autoContinue ? Symbol() : undefined);
-  if (!continuation) {
-    const target = state.live.get(key);
-    if (
-      !correction &&
-      (chain || (target?.chain && target.chain === state.chains.get(request.projectId)))
-    )
-      state.chains.delete(request.projectId);
-    if (chain) state.chains.set(request.projectId, chain);
-    for (const live of state.live.values())
-      if (live.run.project.id === request.projectId && (chain || live === target))
-        live.request.autoContinue = false;
-  }
   if (state.opening.has(key)) throw new Error(t('error.runHost.thisAgentIsAlreadyOpening'));
+  const previousToken = state.chains.get(request.projectId);
+  const target = state.live.get(key);
+  const existingToken =
+    target?.request.autoContinue &&
+    target.autoCloseSequence !== target.sequence &&
+    target.chain === previousToken
+      ? previousToken
+      : undefined;
+  const chain =
+    continuation?.token ?? (request.autoContinue ? (existingToken ?? Symbol()) : undefined);
+  const startsChain = !continuation && chain && chain !== previousToken;
+  if (startsChain) {
+    state.chains.set(request.projectId, chain);
+    for (const live of state.live.values())
+      if (live.run.project.id === request.projectId) live.request.autoContinue = false;
+  }
   state.opening.add(key);
   state.chats.clearFailure(key);
   let current: LiveRun | undefined, prepared: PreparedRun | undefined;
@@ -121,9 +124,7 @@ export async function openRun(
     if (active?.embedded?.alive && active.embedded.state.phase === 'ready' && !automaticMessage) {
       if (request.firstMessage !== undefined)
         throw new Error(t('error.runHost.theAgentAlreadyHasAn'));
-      active.request.autoContinue = request.autoContinue;
-      active.chain = chain;
-      active.continueAfterSequence = continuationStartSequence(active);
+      if (chain) armContinuation(active, chain);
       return { runId: active.run.record.runId, project: await state.dependencies.read(active.run) };
     }
     if (active && !active.embedded && active.pid && processAlive(active.pid)) {
@@ -133,10 +134,7 @@ export async function openRun(
         throw new Error(t('error.runHost.theAgentAlreadyHasAn'));
       if (active.status === 'running') {
         if (automaticMessage) throw new Error(t('error.runHost.theNextAgentIsAlready'));
-        active.request.autoContinue = request.autoContinue;
-        active.chain = chain;
-        active.continueAfterSequence = continuationStartSequence(active);
-        active.automaticCheck = undefined;
+        if (chain) armContinuation(active, chain);
         await focusRunningTerminal(active, state.dependencies.activateTerminal);
         return {
           runId: active.run.record.runId,
@@ -302,6 +300,8 @@ export async function openRun(
       clearTimeout(timer);
     }
   } catch (error) {
+    if (startsChain && state.chains.get(request.projectId) === chain)
+      state.chains.delete(request.projectId);
     // A refused handoff belongs to the source chain, not to the recipient's existing chat.
     if (!(
       (continuation || teamDelivery) &&

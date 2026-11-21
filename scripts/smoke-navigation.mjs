@@ -237,7 +237,11 @@ try {
           calls.launch++;
           throw Error('No Pi work is authorized by navigation');
         },
-        setAutoContinuation: async (request) => continuationChanges.push(clone(request)),
+        setAutoContinuation: async (request) => {
+          continuationChanges.push(clone(request));
+          projects.find((project) => project.id === request.projectId).autoContinue =
+            request.enabled;
+        },
         projectCommand: async () => {
           calls.commands++;
           throw Error('Navigation must not mutate projects');
@@ -519,6 +523,11 @@ try {
       await until(`document.querySelector('.project-header h1')?.textContent==='Project b'`);
       const continuationSwitch = '.project-agent-heading [role="switch"]';
       await click(continuationSwitch);
+      await until(
+        `document.querySelector('${continuationSwitch}')?.getAttribute('aria-checked')==='true'`,
+      );
+      await click('.topbar nav button:nth-child(2)');
+      await click('.topbar nav button:first-child');
       await until(
         `document.querySelector('${continuationSwitch}')?.getAttribute('aria-checked')==='true'`,
       );

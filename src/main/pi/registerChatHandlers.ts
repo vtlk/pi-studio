@@ -62,7 +62,17 @@ export function registerChatHandlers(
     desktopChannels.setAutoContinuation,
     async (event, request: AutoContinuationRequest) => {
       caller(event);
-      (await scoped(request)).setAutoContinuation(request);
+      const selected = await scoped(request);
+      if (
+        request.enabled &&
+        selected === runs &&
+        !service
+          .peek()
+          ?.projects.snapshot(request.projectId)
+          .agents.some((agent) => agent.profile.id === request.agentId && agent.profile.enabled)
+      )
+        throw Error(t('Chat.invalidRequest'));
+      selected.setAutoContinuation(request);
     },
   );
   handleDesktopInvoke(desktopChannels.sendChat, async (event, request: ChatSend) => {

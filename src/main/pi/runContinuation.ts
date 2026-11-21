@@ -1,9 +1,80 @@
 import { t } from '../../shared/i18n/index.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
-import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
+import type {
+  AutoContinuationRequest,
+  LaunchAgentRequest,
+  LaunchAgentResult,
+} from '../../shared/runtime.ts';
 import { runKey, ContinuationCancelled, type LiveRun, type Continuation } from './RunTypes.ts';
+import { processAlive } from './terminal.ts';
 export function continuationStartSequence(live: LiveRun) {
   return live.status === 'running' ? Math.max(1, live.sequence) : live.sequence + 1;
+}
+
+export function armContinuation(live: LiveRun, token: symbol) {
+  if (live.request.autoContinue && live.chain === token) return;
+  live.chain = token;
+  live.request.autoContinue = true;
+  live.continueAfterSequence = continuationStartSequence(live);
+}
+
+export function projectContinuationSwitch(live: Map<string, LiveRun>, chains: Map<string, symbol>) {
+  const pending = new Map<string, string>();
+  const clear = (projectId: string) => {
+    pending.delete(projectId);
+    chains.delete(projectId);
+  };
+  return {
+    enabled: (projectId: string) => pending.has(projectId) || chains.has(projectId),
+    clear,
+    launch(request: LaunchAgentRequest) {
+      if (!request.autoContinue && pending.get(request.projectId) !== request.agentId)
+        return request;
+      pending.delete(request.projectId);
+      return { ...request, autoContinue: true };
+    },
+    set(request: AutoContinuationRequest) {
+      const { projectId, agentId, enabled } = request;
+      if (!enabled) return clear(projectId);
+      const selected = live.get(runKey(request));
+      if (
+        !selected ||
+        !(selected.embedded ? selected.embedded.alive : selected.pid && processAlive(selected.pid))
+      ) {
+        clear(projectId);
+        pending.set(projectId, agentId);
+        return;
+      }
+      pending.delete(projectId);
+      if (
+        selected.request.autoContinue &&
+        selected.chain &&
+        chains.get(projectId) === selected.chain
+      )
+        return;
+      const token = Symbol();
+      chains.set(projectId, token);
+      armContinuation(selected, token);
+    },
+    armPending(run: LiveRun) {
+      const { projectId, agentId } = run.request;
+      if (pending.get(projectId) !== agentId) return;
+      pending.delete(projectId);
+      const token = Symbol();
+      chains.set(projectId, token);
+      armContinuation(run, token);
+    },
+    cancelRun(run: LiveRun) {
+      const projectId = run.run.project.id;
+      // A successfully closed stage has already handed ownership forward.
+      if (
+        run.autoCloseSequence !== run.sequence &&
+        run.chain &&
+        chains.get(projectId) === run.chain
+      )
+        chains.delete(projectId);
+    },
+  };
 }
 
 export function runContinuation(

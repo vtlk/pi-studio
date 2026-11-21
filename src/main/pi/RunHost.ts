@@ -9,7 +9,7 @@ import { RunUpdateGuard } from './RunUpdateGuard.ts';
 import { withRunProjectChange } from './runProjectChange.ts';
 import { closeSuccessfulRun } from './automaticClose.ts';
 import { runTeamAccess } from './runTeamAccess.ts';
-import { continuationStartSequence, runContinuation } from './runContinuation.ts';
+import { projectContinuationSwitch, runContinuation } from './runContinuation.ts';
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
 import type {
@@ -38,6 +38,7 @@ export class RunHost {
   private readonly retiring = new Map<string, Promise<void>>();
   private readonly changing = new Set<string>();
   private readonly chains = new Map<string, symbol>();
+  private readonly continuationSwitch = projectContinuationSwitch(this.live, this.chains);
   readonly updates = new RunUpdateGuard(this, this.live, this.chains, () => this.stopping);
   private readonly dependencies: RunDependencies;
   private readonly lifecycle: RunLifecycle;
@@ -48,7 +49,7 @@ export class RunHost {
       this.live,
       dependencies,
       (id) => this.assertUnchanged(id),
-      (id) => this.chains.delete(id),
+      this.continuationSwitch.cancelRun,
       (target) => this.assertAgentAvailable(target.projectId, target.agentId),
     );
     this.lifecycle = new RunLifecycle({
@@ -79,6 +80,7 @@ export class RunHost {
         this.assertAgentAvailable(run.project.id, run.agent.profile.id);
         check();
         if (live) {
+          this.continuationSwitch.armPending(live);
           live.automaticCheck = undefined;
           live.preserveProcessOnAdmissionCancel = undefined;
         }
@@ -116,7 +118,7 @@ export class RunHost {
       chat: () => this.chats.chat(request),
       run: () => this.chats.binding(request),
       refreshing: this.refreshing,
-      stop: () => this.stopAgent(request.projectId, request.agentId, true),
+      stop: () => this.stopAgent(request.projectId, request.agentId),
       clear: this.dependencies.resetSession,
       forget: () => this.chats.forget(request),
       open: () =>
@@ -135,7 +137,7 @@ export class RunHost {
       refreshing: this.refreshing,
       sending: (projectId: string, agentId: string) => this.chats.sendingTo(projectId, agentId),
       assertOpen: (id: string) => this.assertUnchanged(id),
-      stop: (projectId: string, agentId: string) => this.stopAgent(projectId, agentId, true),
+      stop: (projectId: string, agentId: string) => this.stopAgent(projectId, agentId),
       launch: (projectId: string, agentId: string) =>
         this.open({ projectId, agentId, autoContinue: false }, { refresh: true }),
       changed: (projectId: string, agentId: string) =>
@@ -165,26 +167,14 @@ export class RunHost {
   }
   launch = (request: LaunchAgentRequest) => {
     this.dependencies.chatOpened?.(request);
-    return this.open(request);
+    return this.open(this.continuationSwitch.launch(request));
   };
-  setAutoContinuation({ projectId, agentId, enabled }: AutoContinuationRequest) {
-    if (this.dependencies.serviceAgent || typeof enabled !== 'boolean')
+  autoContinuation = this.continuationSwitch.enabled;
+  setAutoContinuation(request: AutoContinuationRequest) {
+    if (this.dependencies.serviceAgent || typeof request.enabled !== 'boolean')
       throw Error(t('error.validateLaunchRequest.invalidLaunchMode'));
-    this.assertAgentAvailable(projectId, agentId);
-    if (!enabled) {
-      this.chains.delete(projectId);
-      return;
-    }
-    const live = this.live.get(runKey({ projectId, agentId }));
-    if (!live || !(live.embedded ? live.embedded.alive : live.pid && processAlive(live.pid)))
-      return;
-    if (live.request.autoContinue && live.chain && this.chains.get(projectId) === live.chain)
-      return;
-    const chain = Symbol();
-    this.chains.set(projectId, chain);
-    live.chain = chain;
-    live.request.autoContinue = true;
-    live.continueAfterSequence = continuationStartSequence(live);
+    this.assertAgentAvailable(request.projectId, request.agentId);
+    this.continuationSwitch.set(request);
   }
   launchServiceTask(
     request: LaunchAgentRequest,
@@ -258,7 +248,10 @@ export class RunHost {
       lifecycle: this.lifecycle,
       opening: this.opening,
       dependencies: this.dependencies,
-      remove: (id) => this.channel.remove(id),
+      remove: (id, live) => {
+        this.continuationSwitch.cancelRun(live);
+        this.channel.remove(id);
+      },
     });
   }
   async drain() {
@@ -290,7 +283,7 @@ export class RunHost {
   }
   outputsCleared(projectId: string, agentId: string, dialogueCleared = false) {
     if (dialogueCleared) this.chats.forget({ projectId, agentId });
-    this.chains.delete(projectId);
+    this.continuationSwitch.clear(projectId);
     const live = this.live.get(runKey({ projectId, agentId }));
     if (live) this.lifecycle.outputsCleared(live);
   }
@@ -311,17 +304,19 @@ export class RunHost {
       stopSessions,
       () => this.assertIdle(projectId),
       (agentId) => this.stopAgent(projectId, agentId),
-      action,
+      () => {
+        if (stopSessions) this.continuationSwitch.clear(projectId);
+        return action();
+      },
     );
   }
-  async stopAgent(projectId: string, agentId: string, preserveUnrelatedChain = false) {
+  async stopAgent(projectId: string, agentId: string) {
     const key = runKey({ projectId, agentId });
     if (this.opening.has(key)) throw new Error(t('error.runHost.waitForPiToOpen'));
     await this.retiring.get(key);
     const live = this.live.get(key);
-    if (!preserveUnrelatedChain || live?.chain === this.chains.get(projectId))
-      this.chains.delete(projectId);
     if (!live) return;
+    this.continuationSwitch.cancelRun(live);
     await stopRunProcess(live, this.dependencies.closed);
     await this.dependencies.accountingLost?.(live.run);
     await this.retiring.get(key);

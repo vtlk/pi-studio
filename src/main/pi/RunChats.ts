@@ -23,13 +23,13 @@ export class RunChats {
   private readonly live: Map<string, LiveRun>;
   private readonly dependencies: RunDependencies;
   private readonly assertUnchanged: (projectId: string) => void;
-  private readonly disarm: (projectId: string) => void;
+  private readonly disarm: (run: LiveRun) => void;
   private readonly assertTarget: (target: ChatTarget) => void;
   constructor(
     live: Map<string, LiveRun>,
     dependencies: RunDependencies,
     assertUnchanged: (id: string) => void,
-    disarm: (id: string) => void,
+    disarm: (run: LiveRun) => void,
     assertTarget: (target: ChatTarget) => void = () => {},
   ) {
     this.live = live;
@@ -205,7 +205,7 @@ export class RunChats {
     const live = this.live.get(runKey(target));
     if (!live?.embedded) throw new Error(t('Chat.disconnected'));
     live.request.autoContinue = false;
-    this.disarm(target.projectId);
+    this.disarm(live);
     return live.embedded.abort();
   }
   answerChat(answer: ChatAnswer) {

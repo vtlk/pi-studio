@@ -257,7 +257,9 @@ export function registerDesktopHandlers(
   });
   registerResourceHandlers(resources, caller);
   registerTeamHandlers(service, setup, caller);
-  registerProjectQueries(service, activity, caller, (store) => usageRecovery.schedule(store));
+  registerProjectQueries(service, activity, caller, runs.autoContinuation, (store) =>
+    usageRecovery.schedule(store),
+  );
   handle(
     desktopChannels.getInfo,
     () =>

@@ -409,6 +409,11 @@ try {
           (await host.launch({ ...target('first'), autoContinue: true })).runId,
           first.runId,
         );
+      assert.equal(
+        (await host.launch({ ...target('first'), autoContinue: false })).runId,
+        first.runId,
+      );
+      assert.equal(host.autoContinuation(project.id), true);
       assert.equal(host.processes().find(({ agentId }) => agentId === 'first')!.pid, pid);
       assert.equal(requests, requestsBeforeArm, 'Arming never sends another model request');
       releaseSource!();

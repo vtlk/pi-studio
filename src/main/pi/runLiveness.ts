@@ -7,7 +7,7 @@ export async function checkRunLiveness(state: {
   opening: ReadonlySet<string>;
   lifecycle: RunLifecycle;
   dependencies: RunDependencies;
-  remove: (id: string) => void;
+  remove: (id: string, live: LiveRun) => void;
 }) {
   for (const [key, live] of state.live) {
     // An owned child's exit event is authoritative. Slow persistence must never kill live model work.
@@ -21,7 +21,7 @@ export async function checkRunLiveness(state: {
     ) {
       const cleanup = state.lifecycle.processLost(live).then(async () => {
         await state.dependencies.observed?.(live.run, { type: 'stopped' });
-        state.remove(live.run.record.runId);
+        state.remove(live.run.record.runId, live);
         state.live.delete(key);
       });
       state.retiring.set(key, cleanup);
