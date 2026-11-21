@@ -13,6 +13,7 @@ import { resolveAgentLaunchConfig } from './resolveAgentLaunchConfig.ts';
 import type { Connection } from '../../shared/connections.ts';
 import { createAdministration } from './createAdministration.ts';
 import { setupTools } from './setupTools.ts';
+import { helperInspectionTools } from './helperInspectionTools.ts';
 import { atomicJson, readJson, isMissing, safePath } from '../storage/files.ts';
 import { parseProject, snapshotAgent } from '../storage/validation.ts';
 import type { StudioService } from '../storage/StudioStore.ts';
@@ -84,7 +85,7 @@ export function createSetupAssistant(service: StudioService, options: Options) {
       }),
     failureChanged: options.failureChanged,
     openTerminal: options.openTerminal,
-    tools: setupTools,
+    tools: [...setupTools, ...helperInspectionTools],
     closed: (run) => {
       options.browser?.release(run);
       options.computer?.release(run);

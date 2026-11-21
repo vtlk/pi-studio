@@ -165,16 +165,21 @@ export class RunLifecycle {
             ? runFailure(event.failure)
             : 'outputs'
           : undefined;
-      await atomicJson(
-        join(live.run.projectRoot, '.pistudio/context', live.run.record.runId, 'result.json'),
-        {
-          runId: live.run.record.runId,
-          request: sequence,
-          status: live.status,
-          ...(live.failure ? { failure: live.failure } : {}),
-          outputs: valid ? completion : [],
-        },
-      );
+      const context = join(live.run.projectRoot, '.pistudio/context', live.run.record.runId);
+      const result = {
+        runId: live.run.record.runId,
+        request: sequence,
+        status: live.status,
+        ...(live.failure ? { failure: live.failure } : {}),
+        outputs: valid ? completion : [],
+      };
+      await atomicJson(join(context, 'result.json'), result);
+      if (
+        live.sequence === sequence &&
+        result.status === 'ready' &&
+        live.run.record.workspaceMode === 'shared'
+      )
+        await atomicJson(join(context, 'agent-result.json'), result).catch(() => {});
       if (live.sequence !== sequence) return;
       await this.dependencies.update(live.run, live.status, undefined, live.failure);
       if (live.sequence !== sequence) return;

@@ -103,6 +103,26 @@ const compactCalls = [
       content: editedSkill,
     },
   ],
+  ['list_projects', { query: 'Result lookup fixture' }],
+  ['list_project_agents', { project: 'Result lookup fixture' }],
+  ['list_agent_results', { project: 'Result lookup fixture', agent: 'Large settings fixture' }],
+  [
+    'read_agent_result',
+    { project: 'Result lookup fixture', agent: 'large-target', path: 'brief.md' },
+  ],
+  [
+    'search_agent_settings',
+    {
+      team_id: 'target-team',
+      agent_ids: ['small-target'],
+      sections: ['instructions', 'skills'],
+      queries: [
+        { id: 'kept', terms: ['keep body'] },
+        { id: 'disabled', terms: ['new body'] },
+        { id: 'skill', terms: ['second', 'version'], match: 'all' },
+      ],
+    },
+  ],
 ] as const;
 const fragments: string[] = [];
 let requests = 0,
@@ -116,7 +136,12 @@ function unwrap(content: unknown): Record<string, any> {
   for (let count = 0; count < 8; count++) {
     if (typeof value === 'string') value = JSON.parse(value);
     else if (Array.isArray(value)) value = value.map((part) => part.text ?? '').join('');
-    else if (value && typeof value === 'object' && 'pagination' in value)
+    else if (
+      value &&
+      typeof value === 'object' &&
+      ('pagination' in value ||
+        ('fingerprint' in value && 'path' in value && 'nextOffset' in value))
+    )
       return value as Record<string, any>;
     else if (value && typeof value === 'object' && 'content' in value) value = value.content;
     else if (value && typeof value === 'object') return value as Record<string, any>;
@@ -142,6 +167,7 @@ const server = createServer(async (req, res) => {
       body.messages.find(({ role }: { role: string }) => role === 'system'),
     );
     assert.match(systemPrompt, /Use set_agent_reasoning for an effort-only change/);
+    assert.match(systemPrompt, /Never read studio\.json/);
     const readers = body.tools
       .map((tool: any) => tool.function)
       .filter((tool: any) => tool.name.endsWith('read_agent_settings'));
@@ -307,6 +333,17 @@ await store.saveSection('agentCatalog', {
     { id: 'target-team', name: 'Destination', agentIds: [] },
   ],
 });
+const projectCreation = await store.command({
+  kind: 'create',
+  name: 'Result lookup fixture',
+  agents: [profile],
+});
+const project = projectCreation.projects.find(({ id }) => id === projectCreation.selectedId)!;
+const resultRoot = await store.projects.directory(project.id);
+await writeFile(
+  join(resultRoot, project.agents[0].outputPath, 'brief.md'),
+  'Точный результат агента.',
+);
 const systems = store.bootstrap().sections.systemAgents as SystemAgent[];
 const helper = systems.find((agent) => agent.systemRole === 'assistant')!;
 await store.saveSection(
@@ -429,6 +466,25 @@ try {
   });
   assert.doesNotMatch(JSON.stringify(compactResults), /local-only-fixture/);
   assert.equal(await readFile(join(skill.source, 'SKILL.md'), 'utf8'), editedSkill);
+  const [projects, members, files, file, search] = compactResults.slice(-5);
+  assert.deepEqual(
+    projects.items.map(({ id }: any) => id),
+    [project.id],
+  );
+  assert.deepEqual(
+    members.items.map(({ id }: any) => id),
+    ['large-target'],
+  );
+  assert.deepEqual(
+    files.items.map(({ path }: any) => path),
+    ['brief.md'],
+  );
+  assert.equal(file.content, 'Точный результат агента.');
+  assert.deepEqual(search.queryMatchCounts, { kept: 1, disabled: 0, skill: 1 });
+  assert.doesNotMatch(
+    JSON.stringify([projects, members, files, file, search]),
+    new RegExp(resultRoot),
+  );
   const proof = {
     at: new Date().toISOString(),
     pi: pi.version,
@@ -448,6 +504,8 @@ try {
     scopedUnlinkAndNativeMcpOptionsPreserveHeadersAndNeighbors: true,
     exactSkillRevisionEdit: true,
     existingHelperGetsFreshRuntimeGuidance: true,
+    agentResultReadByExactProjectAndAgent: true,
+    batchScopedSettingsSearch: true,
     compactResponsesBytes: compactResults.map((value) => Buffer.byteLength(JSON.stringify(value))),
     installedAppAndUserDataUntouched: true,
   };

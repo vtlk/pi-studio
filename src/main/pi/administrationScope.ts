@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { t } from '../../shared/i18n/index.ts';
 import { hasBuiltinMcp } from '../../shared/builtinAssignments.ts';
+import type { SystemAgent } from '../../shared/systemAgents.ts';
 import type { StudioStore } from '../storage/StudioStore.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 
@@ -22,4 +23,17 @@ export async function assertAdministrationScope(store: StudioStore, run: Prepare
 
 export function isSetupAssistantRun(store: StudioStore, run: PreparedRun) {
   return run.projectRoot === join(store.folder, '.pistudio/setup-assistant');
+}
+
+export function assertSetupInspectionScope(store: StudioStore, run: PreparedRun) {
+  const helper = (store.bootstrap().sections.systemAgents as SystemAgent[]).find(
+    (item) => item.systemRole === 'assistant' && item.id === run.record?.agentId,
+  );
+  if (
+    run.project.id !== 'pi-setup-assistant' ||
+    !isSetupAssistantRun(store, run) ||
+    !helper?.enabled ||
+    !hasBuiltinMcp(helper, 'pistudio-administration')
+  )
+    throw Error(t('builtin.assignmentDisabled'));
 }

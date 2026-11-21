@@ -31,7 +31,12 @@ function query(args: Record<string, unknown>) {
     !value || fields.some((field) => field.toLowerCase().includes(value));
 }
 
-export function catalogPage(tool: string, rows: object[], args: Record<string, unknown>) {
+export function catalogPage(
+  tool: string,
+  rows: object[],
+  args: Record<string, unknown>,
+  summary = {},
+) {
   const start = args.start ?? 0;
   const limit = args.limit ?? 20;
   if (
@@ -47,6 +52,7 @@ export function catalogPage(tool: string, rows: object[], args: Record<string, u
   const { offset, fingerprint, max_bytes, ...target } = args;
   return settingsOutput(
     {
+      ...summary,
       items: rows.slice(start, start + limit),
       count: rows.length,
       nextPage:

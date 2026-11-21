@@ -23,11 +23,12 @@ export function listProjectFiles(
   args: Record<string, unknown>,
   foldersFirst = false,
   allowed?: (path: string) => boolean,
+  maxPage = 500,
 ) {
   return withReadDeadline(async () => {
     const relative = projectPath(args.path, true);
     const offset = integer(args.offset, 0, 0, 10000),
-      limit = integer(args.limit, 100, 1, 500);
+      limit = integer(args.limit, 100, 1, maxPage);
     const directory = relative ? await safePath(root, relative) : await realpath(root);
     if (!(await lstat(directory)).isDirectory())
       throw new Error(t('error.projectFiles.theSelectedPathIsNot'));
@@ -70,7 +71,11 @@ export function listProjectFiles(
 }
 
 /** Read a bounded byte window. No commands, writes, or unbounded binary/text payloads. */
-export function readProjectFile(root: string, args: Record<string, unknown>) {
+export function readProjectFile(
+  root: string,
+  args: Record<string, unknown>,
+  assertFile?: (info: { size: number; mtimeMs: number; ctimeMs: number }) => void,
+) {
   return withReadDeadline(async () => {
     const relative = projectPath(args.path);
     const offset = integer(args.offset, 0, 0, Number.MAX_SAFE_INTEGER),
@@ -86,6 +91,7 @@ export function readProjectFile(root: string, args: Record<string, unknown>) {
       if (checked.dev !== before.dev || checked.ino !== before.ino || checked.isSymbolicLink())
         throw new Error(t('error.projectFiles.theFileWasReplacedBefore'));
       if (!before.isFile()) throw new Error(t('error.projectFiles.theSelectedPathIsNot2'));
+      assertFile?.(before);
       if (offset > before.size) throw new Error(t('error.projectFiles.theOffsetExceedsTheFile'));
       const buffer = Buffer.alloc(Math.min(maxBytes, before.size - offset));
       let { bytesRead } = await file.read(buffer, 0, buffer.length, offset);

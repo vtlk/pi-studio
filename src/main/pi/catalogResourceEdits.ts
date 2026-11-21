@@ -37,12 +37,17 @@ function ownedSkillPath(store: StudioStore, resource: Resource) {
     return `${path}/SKILL.md`;
 }
 
-export async function readSkill(store: StudioStore, args: Record<string, unknown>) {
-  const { resource } = resourceRecord(store, args.resource_id, 'skills');
+export async function inspectCatalogSkill(store: StudioStore, resource: Resource) {
   const path = ownedSkillPath(store, resource);
   const skill = path
     ? parseSkill(await readText(await safePath(store.folder, path)))
     : await inspectSkill(resource.source);
+  return { ...skill, editable: !!path };
+}
+
+export async function readSkill(store: StudioStore, args: Record<string, unknown>) {
+  const { resource } = resourceRecord(store, args.resource_id, 'skills');
+  const skill = await inspectCatalogSkill(store, resource);
   return settingsOutput(
     {
       resourceId: resource.id,
@@ -50,7 +55,7 @@ export async function readSkill(store: StudioStore, args: Record<string, unknown
       description: skill.description,
       content: skill.content,
       revision: revision(skill.content),
-      editable: !!path,
+      editable: skill.editable,
     },
     args,
     { tool: 'read_skill', target: { resource_id: resource.id } },

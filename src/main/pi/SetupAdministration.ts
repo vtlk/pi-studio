@@ -31,6 +31,8 @@ import {
   setAgentReasoning,
 } from './agentProfileEdits.ts';
 import { editMcp, editSkill, readSkill } from './catalogResourceEdits.ts';
+import { helperProjectResults, helperProjectToolNames } from './helperProjectResults.ts';
+import { searchAgentSettings } from './searchAgentSettings.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
@@ -52,6 +54,10 @@ export class SetupAdministration {
     this.remoteSkills = remoteSkills;
   }
   async call(run: PreparedRun, name: string, args: Record<string, unknown>, signal?: AbortSignal) {
+    if (helperProjectToolNames.includes(name))
+      return helperProjectResults(this.service, run, name, args, signal);
+    if (name === 'search_agent_settings')
+      return searchAgentSettings(this.service, run, args, signal);
     if (name === 'read_agent_settings') return readAdminSettings(this.service, run, args);
     if (name === 'set_agent_reasoning')
       return setAgentReasoning(this.service, run, args, this.catalog);
