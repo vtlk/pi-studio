@@ -268,9 +268,9 @@ const read = (code) => window.webContents.executeJavaScript(code);
   assert.equal(await read(`document.querySelector('main').inert`), true);
   assert.equal(
     await read(
-      `!!document.querySelector('[data-update-dialog] button[aria-label="Закрыть окно"]')`,
+      `document.querySelector('[data-update-dialog] button[aria-label="Закрыть окно"]')?.disabled`,
     ),
-    false,
+    true,
   );
   await read(
     `document.querySelector('[data-update-dialog] section').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`,

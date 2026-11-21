@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-17T20:50:30.604Z",
+  "checkedAt": "2026-11-21T19:48:03.558Z",
   "scope": "Actual feature provider/shared UI and production preload in an isolated offscreen Electron window; controlled update state only, not a native installer or app lifecycle integration.",
   "noOfferNoIcon": true,
   "keyboardOpen": true,
@@ -16,6 +16,7 @@
   "maintenanceErrorTakesPriorityOverNewOffer": true,
   "manualCheckingUpToDateAndError": true,
   "manualErrorRetryDoesNotAuthorizeDownloadEvenWithStaleOffer": true,
+  "previouslyVerifiedOfferCanBeDownloadedFromManualDialogDuringRateLimit": true,
   "consumedManualNoticeDoesNotReopenOnBackgroundChecks": true,
   "clipboardOrAudioOrModelAccess": false,
   "userStudioAccess": false,

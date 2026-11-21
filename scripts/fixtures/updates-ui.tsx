@@ -6,6 +6,7 @@ import { UpdateAction, UpdateDialog } from '../../src/renderer/features/updates/
 import { StorageContext } from '../../src/renderer/shared/storage/Storage.context';
 import { NavigationContext } from '../../src/renderer/shared/model/Navigation.context';
 import { WorkspaceContext } from '../../src/renderer/features/project/model/Workspace.context';
+import { ChatPanelsProvider } from '../../src/renderer/features/chat/ChatPanels';
 import { TooltipProvider } from '../../src/renderer/shared/ui/Tooltip';
 import { Modal } from '../../src/renderer/shared/ui/Modal';
 import '../../src/renderer/styles/index.css';
@@ -55,9 +56,11 @@ function Fixture() {
       >
         <NavigationContext.Provider value={{ page, setPage, navigate: setPage }}>
           <WorkspaceContext.Provider value={{ selectedProject: { id: 'qa-project' } } as never}>
-            <UpdatesProvider>
-              <Workbench />
-            </UpdatesProvider>
+            <ChatPanelsProvider>
+              <UpdatesProvider>
+                <Workbench />
+              </UpdatesProvider>
+            </ChatPanelsProvider>
           </WorkspaceContext.Provider>
         </NavigationContext.Provider>
       </StorageContext.Provider>
