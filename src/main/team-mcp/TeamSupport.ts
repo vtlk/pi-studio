@@ -249,12 +249,10 @@ export class TeamSupport {
     const journal = this.journal(run);
     const seen = new Set<string>();
     const items = await journal.list();
-    if (this.corrections.size) {
-      // A queued ordinary task waits for the chain. It cannot block the correction the chain awaits.
-      const priority = (item: (typeof items)[number]) =>
-        item.state !== 'queued' ? 0 : this.corrections.has(item.id) ? 1 : 2;
-      items.sort((a, b) => priority(a) - priority(b));
-    }
+    // An ordinary task queued behind the chain cannot block a correction the chain awaits.
+    const priority = (item: (typeof items)[number]) =>
+      item.state !== 'queued' ? 0 : this.corrections.has(item.id) ? 1 : 2;
+    if (this.corrections.size) items.sort((a, b) => priority(a) - priority(b));
     for (const item of items) {
       const correction = this.corrections.get(item.id);
       const expired =

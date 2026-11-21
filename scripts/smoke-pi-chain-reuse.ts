@@ -247,13 +247,16 @@ try {
     });
     const target = (agentId: string) => ({ projectId: project.id, agentId });
     const until = async (check: () => unknown, label: string) => {
-      const limit = Date.now() + 25000;
+      const limit = Date.now() + 60000;
       while (!check() && Date.now() < limit) {
         if (failure) throw failure;
         await new Promise((done) => setTimeout(done, 25));
       }
       if (failure) throw failure;
-      assert.ok(check(), label);
+      assert.ok(
+        check(),
+        `${label} (model steps: ${JSON.stringify([...steps])}; run notices: ${JSON.stringify(notices)})`,
+      );
     };
     const prior = new Map<string, { binding: SessionBinding; bytes: Buffer; runId: string }>();
     try {

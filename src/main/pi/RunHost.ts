@@ -1,6 +1,6 @@
 import { t } from '../../shared/i18n/index.ts';
 import { RunChats } from './RunChats.ts';
-import { openRun } from './openRun.ts';
+import { openRun, type RunOpeningOptions } from './openRun.ts';
 import { resetChat } from './resetChat.ts';
 import type { ChatReset, ChatQueueAction, ChatQueueResult } from '../../shared/chat.ts';
 import type { ChatTarget, ChatSend, ChatAnswer } from '../../shared/chat.ts';
@@ -10,7 +10,6 @@ import { withRunProjectChange } from './runProjectChange.ts';
 import { closeSuccessfulRun } from './automaticClose.ts';
 import { runTeamAccess } from './runTeamAccess.ts';
 import { continuationStartSequence, runContinuation } from './runContinuation.ts';
-import type { TeamChainCorrection, TeamDelivery } from '../team-mcp/types.ts';
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
 import type {
@@ -25,7 +24,7 @@ import { RunLifecycle } from './RunLifecycle.ts';
 import { processAlive } from './terminal.ts';
 import { stopRunProcess, drainRunProcesses, closeRuns } from './stopRunProcess.ts';
 import { assertRunsIdle } from './assertRunsIdle.ts';
-import { ContinuationCancelled, type Continuation } from './RunTypes.ts';
+import { ContinuationCancelled } from './RunTypes.ts';
 import { refreshRuns, refreshRunSnapshot } from './refreshRuns.ts';
 import type { AgentRefreshConsent, AgentRefreshRun } from '../../shared/agentRefresh.ts';
 import type { ProjectCommandResult } from '../../shared/storage.ts';
@@ -123,11 +122,7 @@ export class RunHost {
       open: () =>
         this.open(
           { projectId: request.projectId, agentId: request.agentId, autoContinue: false },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          true,
+          { refresh: true },
         ),
       changed: () => this.dependencies.chatChanged?.(request),
     });
@@ -142,14 +137,7 @@ export class RunHost {
       assertOpen: (id: string) => this.assertUnchanged(id),
       stop: (projectId: string, agentId: string) => this.stopAgent(projectId, agentId, true),
       launch: (projectId: string, agentId: string) =>
-        this.open(
-          { projectId, agentId, autoContinue: false },
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          true,
-        ),
+        this.open({ projectId, agentId, autoContinue: false }, { refresh: true }),
       changed: (projectId: string, agentId: string) =>
         this.dependencies.chatChanged?.({ projectId, agentId }),
     };
@@ -206,13 +194,14 @@ export class RunHost {
     if (!this.dependencies.serviceAgent || !message.trim() || message.length > 200_000)
       throw new Error(t('error.runHost.invalidServiceTask'));
     this.dependencies.chatOpened?.(request);
-    return this.open(request, message, undefined, beforeDispatch);
+    return this.open(request, { automaticMessage: message, beforeDispatch });
   }
   continuation(run: PreparedRun) {
     return runContinuation(run, {
       live: this.live,
       chains: this.chains,
-      open: (request, message, continuation) => this.open(request, message, continuation),
+      open: (request, automaticMessage, continuation) =>
+        this.open(request, { automaticMessage, continuation }),
     });
   }
   private readonly teamAccess = runTeamAccess({
@@ -224,8 +213,8 @@ export class RunHost {
     retiring: this.retiring,
     refreshing: this.refreshing,
     assertUnchanged: (id) => this.assertUnchanged(id),
-    open: (request, text, before, delivery, correction) =>
-      this.open(request, text, undefined, before, delivery, false, correction),
+    open: (request, automaticMessage, beforeDispatch, teamDelivery, correction) =>
+      this.open(request, { automaticMessage, beforeDispatch, teamDelivery, correction }),
   });
   inspect = this.teamAccess.inspect.bind(this.teamAccess);
   chainCorrection = this.teamAccess.chainCorrection.bind(this.teamAccess);
@@ -242,14 +231,9 @@ export class RunHost {
   }
   private async open(
     request: LaunchAgentRequest,
-    automaticMessage?: string,
-    continuation?: Continuation,
-    beforeDispatch?: (run: PreparedRun) => Promise<void>,
-    teamDelivery?: TeamDelivery,
-    refresh = false,
-    correction?: TeamChainCorrection,
+    options: RunOpeningOptions & { refresh?: boolean } = {},
   ): Promise<LaunchAgentResult> {
-    if (!refresh) this.assertAgentAvailable(request.projectId, request.agentId);
+    if (!options.refresh) this.assertAgentAvailable(request.projectId, request.agentId);
     return openRun(
       {
         assertUnchanged: (id) => this.assertUnchanged(id),
@@ -264,11 +248,7 @@ export class RunHost {
         assertTeamDispatch: this.assertTeamDispatch,
       },
       request,
-      automaticMessage,
-      continuation,
-      beforeDispatch,
-      teamDelivery,
-      correction,
+      options,
     );
   }
   private checkLiveness() {

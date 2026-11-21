@@ -41,14 +41,17 @@ export interface RunOpeningState {
   chats: RunChats;
   assertTeamDispatch: TeamHost['assertTeamDispatch'];
 }
+export interface RunOpeningOptions {
+  automaticMessage?: string;
+  continuation?: Continuation;
+  beforeDispatch?: (run: PreparedRun) => Promise<void>;
+  teamDelivery?: TeamDelivery;
+  correction?: TeamChainCorrection;
+}
 export async function openRun(
   state: RunOpeningState,
   request: LaunchAgentRequest,
-  automaticMessage?: string,
-  continuation?: Continuation,
-  beforeDispatch?: (run: PreparedRun) => Promise<void>,
-  teamDelivery?: TeamDelivery,
-  correction?: TeamChainCorrection,
+  { automaticMessage, continuation, beforeDispatch, teamDelivery, correction }: RunOpeningOptions,
 ): Promise<LaunchAgentResult> {
   state.assertUnchanged(request.projectId);
   validateLaunchRequest(request);
