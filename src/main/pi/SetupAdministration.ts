@@ -1,5 +1,10 @@
 import { t } from '../../shared/i18n/index.ts';
-import { configureTeam, saveTeamAgent } from './teamAdministration.ts';
+import {
+  configureTeam,
+  saveTeamAgent,
+  reorderTeamAgents,
+  transferAgentProfile,
+} from './teamAdministration.ts';
 import type { TeamImportTools } from '../teams/TeamImportTools.ts';
 import { randomUUID } from 'node:crypto';
 import type { StudioService } from '../storage/StudioStore.ts';
@@ -7,7 +12,6 @@ import { parseAgent, stableId } from '../storage/validation.ts';
 import { importLocalSkill } from '../storage/skills.ts';
 import type { Agent, CapabilityKind } from '../../shared/studio.ts';
 import type { Resource } from '../../shared/resources.ts';
-import type { PiModelCatalog } from '../../shared/models.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { StudioResources } from './StudioResources.ts';
 import type { NativeResourceResult } from './NativeResources.ts';
@@ -18,21 +22,20 @@ import { requiredBuiltinMcpIds } from '../../shared/builtinAssignments.ts';
 import { assertAdministrationScope, isSetupAssistantRun } from './administrationScope.ts';
 import { readAdminSettings } from './readAgentSettings.ts';
 import { RemoteSkillInstaller } from '../skills/RemoteSkillInstaller.ts';
-import {
-  endpointProviderId,
-  parseModelEndpoint,
-  modelEndpointUrl,
-} from '../../shared/modelEndpoint.ts';
+import { configureConnection } from './connectionAdministration.ts';
+import { readAdminCatalog } from './readAdminCatalog.ts';
+import { catalogReadNames, type ReadModelCatalog } from './catalogReads.ts';
+import { settingsOutput } from './settingsOutput.ts';
 
 export class SetupAdministration {
   private readonly service: StudioService;
-  private readonly catalog: () => Promise<PiModelCatalog>;
+  private readonly catalog: ReadModelCatalog;
   private readonly native?: StudioResources;
   private readonly teamImports?: TeamImportTools;
   private readonly remoteSkills: RemoteSkillInstaller;
   constructor(
     service: StudioService,
-    catalog: () => Promise<PiModelCatalog>,
+    catalog: ReadModelCatalog,
     native?: StudioResources,
     teamImports?: TeamImportTools,
     remoteSkills = new RemoteSkillInstaller(service),
@@ -45,6 +48,8 @@ export class SetupAdministration {
   }
   async call(run: PreparedRun, name: string, args: Record<string, unknown>, signal?: AbortSignal) {
     if (name === 'read_agent_settings') return readAdminSettings(this.service, run, args);
+    if (catalogReadNames.includes(name))
+      return readAdminCatalog(this.service, run, name, args, this.catalog, this.native);
     if (name === 'install_skill_from_url') return this.remoteSkills.install(run, args, signal);
     if (
       [
@@ -112,7 +117,12 @@ export class SetupAdministration {
       }
       nativeMcp = await this.native.listNative(folder);
     }
-    const models = await this.catalog();
+    const models =
+      name === 'list_configuration' ||
+      name === 'register_connection' ||
+      (name === 'configure_agent' && args.model !== undefined)
+        ? await this.catalog()
+        : undefined;
     return this.service.serialize(async () => {
       const store = await this.service.load();
       await assertAdministrationScope(store, run);
@@ -122,93 +132,34 @@ export class SetupAdministration {
       const resources = (sections.resources ?? []) as Resource[];
       const connections = (sections.connections ?? []) as Connection[];
       if (name === 'list_configuration')
-        return {
-          studio: store.folder,
-          teams: store.agentCatalog().teams,
-          agents: agents.map(({ mainInstruction: _text, instructions, ...profile }) => ({
-            ...profile,
-            instructions: instructions.map(({ content: _content, ...block }) => block),
-          })),
-          systemAgents: systems.map(({ mainInstruction: _text, instructions, ...profile }) => ({
-            ...profile,
-            instructions: instructions.map(({ content: _content, ...block }) => block),
-            deletable: false,
-            builtinMcp: 'pinned',
-          })),
-          resources: [...resources, ...builtinResources],
-          connections,
-          models,
-          ...(nativeMcp ? { nativeMcp } : {}),
-        };
-      if (name === 'register_model_endpoint') {
-        const old =
-          typeof args.id === 'string' ? connections.find((item) => item.id === args.id) : undefined;
-        if (args.id && !old) throw new Error(t('error.setupAdministration.connectionMissing'));
-        if (old && !['compatible', 'local'].includes(old.purpose))
-          throw new Error(t('error.setupAdministration.selectAModelServerConnection'));
-        if (
-          typeof args.name !== 'string' ||
-          !args.name.trim() ||
-          !['compatible', 'local'].includes(String(args.purpose)) ||
-          typeof args.endpoint !== 'string'
-        )
-          throw new Error(t('error.setupAdministration.specifyAServerNameType'));
-        const id = old?.id ?? randomUUID();
-        const connection: Connection = {
-          id,
-          name: args.name.trim(),
-          purpose: args.purpose as 'compatible' | 'local',
-          providerId: endpointProviderId(id),
-          authScope: 'connection',
-          endpoint: modelEndpointUrl(args.endpoint),
-          endpointConfig: parseModelEndpoint(args.endpointConfig),
-          account: '',
-          createdAt: old?.createdAt ?? Date.now(),
-        };
-        await store.saveSection('connections', [
-          connection,
-          ...connections.filter((item) => item.id !== id),
-        ]);
-        return {
-          connection,
-          authorization: 'not_checked',
-          next: 'User configures any required API key in Studio. Never request keys in chat.',
-        };
-      }
-      if (name === 'register_connection') {
-        if (
-          typeof args.provider !== 'string' ||
-          !models.providers.some((provider) => provider.id === args.provider)
-        )
-          throw new Error(t('error.setupAdministration.theProviderIsMissingFrom'));
-        if (typeof args.name !== 'string' || !args.name.trim())
-          throw new Error(t('error.setupAdministration.aConnectionNameIsRequired'));
-        const old =
-          typeof args.id === 'string'
-            ? connections.find((connection) => connection.id === args.id)
-            : undefined;
-        if (args.id && !old)
-          throw new Error(t('error.setupAdministration.theRequestedConnectionIsMissing'));
-        const connection: Connection = {
-          ...(old ?? {
-            id: randomUUID(),
-            createdAt: Date.now(),
-            endpoint: '',
-            account: '',
-            authScope: 'connection',
-          }),
-          name: args.name.trim(),
-          providerId: args.provider,
-          purpose: args.provider === 'openai-codex' ? 'codex' : 'pi',
-        };
-        await store.saveSection('connections', [
-          connection,
-          ...connections.filter((item) => item.id !== connection.id),
-        ]);
-        return { connection, authorization: 'not_checked' };
-      }
+        return settingsOutput(
+          {
+            studio: store.folder,
+            teams: store.agentCatalog().teams,
+            agents: agents.map(({ mainInstruction: _text, instructions, ...profile }) => ({
+              ...profile,
+              instructions: instructions.map(({ content: _content, ...block }) => block),
+            })),
+            systemAgents: systems.map(({ mainInstruction: _text, instructions, ...profile }) => ({
+              ...profile,
+              instructions: instructions.map(({ content: _content, ...block }) => block),
+              deletable: false,
+              builtinMcp: 'pinned',
+            })),
+            resources: [...resources, ...builtinResources],
+            connections,
+            models,
+            ...(nativeMcp ? { nativeMcp } : {}),
+          },
+          args,
+          { tool: 'list_configuration', target: {} },
+        );
+      if (name === 'register_model_endpoint' || name === 'register_connection')
+        return configureConnection(store, name, args, models);
       if (name === 'import_skill') return importLocalSkill(store, args);
       if (name === 'configure_team') return configureTeam(store, args);
+      if (name === 'reorder_team_agents') return reorderTeamAgents(store, args);
+      if (name === 'transfer_agent') return transferAgentProfile(store, args);
       if (name === 'configure_agent') {
         const old =
           typeof args.id === 'string'
@@ -256,7 +207,7 @@ export class SetupAdministration {
           )
             throw new Error(t('error.setupAdministration.theModelMustUseAn'));
           if (
-            !models.models.some(
+            !models?.models.some(
               (item) => item.provider === model.provider && item.id === model.id,
             ) &&
             !connections.some(

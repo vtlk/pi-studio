@@ -12,6 +12,7 @@ import type { ImportedTeamState } from './importTeam.ts';
 import { importedMcpConfig } from './importedMcp.ts';
 import { builtinResource, builtinResources } from '../../shared/builtinResources.ts';
 import { settingsOutput } from '../pi/settingsOutput.ts';
+import { readImportedFile } from './readImportedFile.ts';
 import { assertAdministrationScope, isSetupAssistantRun } from '../pi/administrationScope.ts';
 
 type CheckModel = (agent: Agent, store: StudioStore) => Promise<void>;
@@ -63,12 +64,88 @@ export class TeamImportTools {
         resources: store.bootstrap().sections.resources as Resource[],
       };
     });
-    if ('reports' in scope) return scope.reports;
+    if (scope.reports) {
+      if (args.view !== 'summary') return scope.reports;
+      return settingsOutput(
+        {
+          imports: scope.reports.map(({ id, teamId, teamName, handoff, agents }) => ({
+            id,
+            teamId,
+            teamName,
+            handoff,
+            agentCount: agents.length,
+            agentsWithIssues: agents.filter(({ issues }) => issues.length).length,
+          })),
+        },
+        args,
+        { tool: 'list_team_imports', target: { view: 'summary' } },
+      );
+    }
     if ('updatedAgentIds' in scope) return { updatedAgentIds: scope.updatedAgentIds };
     if (name === 'read_team_import') {
       scope.state.report.handoff = 'sent';
       if (scope.state.report.mcpHandoff) scope.state.report.mcpHandoff = 'sent';
       await this.persist(scope.folder, scope.state);
+      if (args.view === 'setup') {
+        const { manifest } = scope.data;
+        const { report, agentMap, resourceMap } = scope.state;
+        const currentIds = new Set(scope.agents.map(({ id }) => id));
+        return settingsOutput(
+          {
+            packageId: report.id,
+            teamId: report.teamId,
+            teamName: report.teamName,
+            workspaceMode: manifest.team.workspaceMode ?? 'per-agent',
+            agents: manifest.agents.flatMap(
+              ({ id, name, model, mcps, skills, plugins, capabilitySettings }) => {
+                const localId = agentMap[id];
+                return currentIds.has(localId)
+                  ? [
+                      {
+                        id: localId,
+                        name,
+                        ...(model
+                          ? {
+                              requestedModel: {
+                                provider: model.provider,
+                                id: model.id,
+                                reasoning: model.reasoning,
+                              },
+                            }
+                          : {}),
+                        resourceIds: [
+                          ...mcps.map((id) => ['mcps', id]),
+                          ...skills.map((id) => ['skills', id]),
+                          ...plugins.map((id) => ['plugins', id]),
+                        ]
+                          .filter(
+                            ([kind, id]) =>
+                              capabilitySettings?.[`${kind}:${id}`]?.enabled !== false,
+                          )
+                          .map(([, id]) => resourceMap[id]),
+                        issues: report.agents.find(({ agentId }) => agentId === localId)?.issues,
+                      },
+                    ]
+                  : [];
+              },
+            ),
+            resources: manifest.resources.map(
+              ({ id, name, kind, authorization, requirements, source }) => ({
+                id: resourceMap[id],
+                name,
+                kind,
+                authorization,
+                requirements,
+                builtin: source.startsWith('builtin:'),
+              }),
+            ),
+            requiresImages: report.requiresImages,
+            requirements: report.requirements,
+          },
+          args,
+          { tool: 'read_team_import', target: { packageId: args.packageId, view: 'setup' } },
+        );
+      }
       return settingsOutput(
         {
           manifest: scope.data.manifest,
@@ -89,26 +166,7 @@ export class TeamImportTools {
     if (name === 'read_team_import_file') {
       const file = scope.data.files.find((file) => file.path === args.path);
       if (!file) throw new Error(t('error.teamImportTools.theFileIsMissingFrom'));
-      const offset = args.offset ?? 0,
-        limit = args.limit ?? 32768;
-      if (
-        !Number.isSafeInteger(offset) ||
-        !Number.isSafeInteger(limit) ||
-        Number(offset) < 0 ||
-        Number(limit) < 1 ||
-        Number(limit) > 65536
-      )
-        throw new Error(t('error.teamImportTools.invalidPackageReadingRange'));
-      const bytes = Buffer.from(file.data, 'base64'),
-        part = bytes.subarray(Number(offset), Number(offset) + Number(limit));
-      return {
-        path: file.path,
-        sha256: file.sha256,
-        totalBytes: bytes.length,
-        offset,
-        base64: part.toString('base64'),
-        utf8: part.toString('utf8'),
-      };
+      return readImportedFile(file, args);
     }
     if (name === 'restore_team_import_resource') {
       const id = stableId(args.resourceId),
@@ -142,6 +200,7 @@ export class TeamImportTools {
     }
     if (name === 'check_team_import') {
       const results = [];
+      const resourceChecks = new Map<string, ReturnType<StudioResources['check']>>();
       for (const agent of scope.agents) {
         const issues: string[] = [];
         try {
@@ -164,7 +223,12 @@ export class TeamImportTools {
             )
               continue;
             try {
-              const check = await this.native.check(id, scope.folder);
+              let pending = resourceChecks.get(id);
+              if (!pending) {
+                pending = this.native.check(id, scope.folder);
+                resourceChecks.set(id, pending);
+              }
+              const check = await pending;
               if (check.status !== 'available')
                 issues.push(
                   t('error.teamImportTools.resource', {

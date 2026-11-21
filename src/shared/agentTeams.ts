@@ -45,7 +45,13 @@ export function transferTeamAgent(
   const source = catalog.teams.find((team) => team.id === sourceTeamId);
   const target = catalog.teams.find((team) => team.id === targetTeamId);
   const agent = catalog.agents.find((item) => item.id === agentId);
-  if (!source || !target || !agent || source === target || !source.agentIds.includes(agentId))
+  if (
+    !source ||
+    !target ||
+    !agent ||
+    (source === target && !copyId) ||
+    !source.agentIds.includes(agentId)
+  )
     return catalog;
   if (beforeId && !target.agentIds.includes(beforeId)) return catalog;
   const id = copyId ?? agentId;

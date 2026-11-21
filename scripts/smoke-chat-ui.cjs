@@ -3,6 +3,7 @@ const { mkdtemp, mkdir, readFile, writeFile, rm, realpath } = require('node:fs/p
 const { join, resolve } = require('node:path');
 const { tmpdir } = require('node:os');
 const { spawn } = require('node:child_process');
+const toolCardsOnly = process.env.PI_STUDIO_QA_TOOL_CARDS_ONLY === '1';
 
 async function parent() {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'pistudio-chat-ui-')));
@@ -23,6 +24,12 @@ async function parent() {
       });
     });
     await mkdir('artifacts', { recursive: true });
+    if (toolCardsOnly) {
+      const file = 'mcp-tool-cards-ui-proof.json';
+      await require('node:fs/promises').copyFile(join(root, file), join('artifacts', file));
+      console.log(await readFile(join(root, file), 'utf8'));
+      return;
+    }
     for (const file of [
       'chat-ui-proof.json',
       'chat-ru-light.png',
@@ -198,6 +205,8 @@ async function child() {
     'studio:get-info': () => ({ platform: 'darwin', version: 'QA', runtimeConnected: true }),
     'studio:startup': () => ({ phase: 'ready', message: 'QA' }),
     'studio:load': () => bootstrap,
+    'studio:chat-drafts-load': (_, { folder }) => ({ folder, drafts: [] }),
+    'studio:chat-drafts-save': (_, { revision }) => ({ revision }),
     'studio:list-project-activity': () => [],
     'studio:list-project-usage': () => [],
     'studio:read-project': () => project,
@@ -397,6 +406,12 @@ async function child() {
           name: 'mcp__files__lookup',
           arguments: '{"query":"script"}',
         },
+        {
+          type: 'toolCall',
+          id: 'builtin-settings',
+          name: 'mcp__pi_studio__read_agent_settings',
+          arguments: JSON.stringify({ agent_id: target.agentId, sections: ['model'] }),
+        },
         { type: 'toolCall', id: 'old-missing', name: 'write', arguments: '{"path":"missing.md"}' },
       ],
     },
@@ -415,6 +430,13 @@ async function child() {
       ],
     },
     {
+      id: 'builtin-settings-result',
+      role: 'toolResult',
+      toolCallId: 'builtin-settings',
+      toolName: 'mcp__pi_studio__read_agent_settings',
+      parts: [{ type: 'text', text: '{"settings":"fixture"}' }],
+    },
+    {
       id: 'mcp-result',
       role: 'toolResult',
       toolCallId: 'mcp-one',
@@ -431,9 +453,21 @@ async function child() {
   );
   const card = (id) => `.pi-tool-card[data-call-id="${id}"]`;
   await until(
-    `document.querySelectorAll('.pi-tool-card').length===3&&document.querySelector(${JSON.stringify(card('mcp-one'))}).open`,
+    `document.querySelectorAll('.pi-tool-card').length===4&&document.querySelector(${JSON.stringify(card('mcp-one'))}).open`,
   );
   assert.equal(await js(`document.querySelector(${JSON.stringify(card('read-one'))}).open`), false);
+  const settingsSummary = await js(
+    `document.querySelector('${card('builtin-settings')} summary').innerText`,
+  );
+  assert.match(settingsSummary, /Чтение настроек агента.*Чат агент/s);
+  assert.doesNotMatch(settingsSummary, /mcp__/);
+  await js(`document.querySelector('${card('builtin-settings')} summary').click()`);
+  await until(`document.querySelector('${card('builtin-settings')}').open`);
+  assert.match(
+    await js(`document.querySelector('${card('builtin-settings')} .pi-tool-details').innerText`),
+    /mcp__pi_studio__read_agent_settings/,
+  );
+  await js(`document.querySelector('${card('builtin-settings')} summary').click()`);
   assert.equal(
     await js(`document.querySelectorAll('.pi-chat-message[data-role="toolResult"]').length`),
     0,
@@ -517,6 +551,15 @@ async function child() {
     const body = await js(`document.querySelector(${JSON.stringify(card('new-error'))}).innerText`);
     assert.match(body, lang === 'ru' ? /Параметры.*Результат/s : /Arguments.*Result/s);
     toolLocales.push({ language: lang, theme: mode, titles });
+    const builtinTitle = await js(
+      `document.querySelector('${card('builtin-settings')} summary').innerText`,
+    );
+    assert.match(
+      builtinTitle,
+      lang === 'ru' ? /Чтение настроек агента.*Чат агент/s : /Reading agent settings.*Чат агент/s,
+    );
+    assert.doesNotMatch(builtinTitle, /mcp__/);
+    if (toolCardsOnly) continue;
     await js(
       `(()=>{const e=document.querySelector('.pi-chat-composer textarea');e.focus();Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,Array.from({length:20},(_,i)=>'Строка / Line '+i).join(String.fromCharCode(10)));e.dispatchEvent(new Event('input',{bubbles:true}));e.setSelectionRange(e.value.length,e.value.length);})()`,
     );
@@ -557,6 +600,25 @@ async function child() {
       join(root, `tools-${lang}-${mode}.png`),
       (await windows.webContents.capturePage()).toPNG(),
     );
+  }
+  if (toolCardsOnly) {
+    await writeFile(
+      join(root, 'mcp-tool-cards-ui-proof.json'),
+      JSON.stringify(
+        {
+          checkedAt: new Date().toISOString(),
+          locales: toolLocales,
+          namesInCollapsedBuiltinCards: true,
+          rawIdentifierInExpandedDetailsOnly: true,
+          scopedOffscreenProfile: true,
+        },
+        null,
+        2,
+      ),
+    );
+    windows.destroy();
+    app.exit(0);
+    return;
   }
   await js(`window.studio.setLanguage('ru');window.studio.setTheme('light')`);
   await until(

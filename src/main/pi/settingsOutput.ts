@@ -79,7 +79,9 @@ export function settingsOutput(
               offset: end,
               fingerprint,
               max_bytes: maximum,
-              include_derived_prompts: args.include_derived_prompts === true,
+              ...(args.include_derived_prompts === undefined
+                ? {}
+                : { include_derived_prompts: args.include_derived_prompts }),
             },
           }
         : null,

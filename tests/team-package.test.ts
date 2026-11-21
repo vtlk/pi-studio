@@ -544,6 +544,25 @@ test('narrow administrative tools read only their package, preserve missing mode
   );
   assert.equal(read.report.handoff, 'sent');
   assert.equal((await readImport(store, report.id)).state.report.handoff, 'sent');
+  const setup = await readAllSettings<{ packageId: string; agents: { id: string }[] }>(
+    (args) => tools.call(run, 'read_team_import', args),
+    { packageId: report.id, view: 'setup' },
+  );
+  assert.equal(setup.packageId, report.id);
+  assert.deepEqual(
+    setup.agents.map(({ id }) => id),
+    store.teamProfiles(report.teamId).map(({ id }) => id),
+  );
+  assert.doesNotMatch(JSON.stringify(setup), /Current user prompt|CURRENT_TEXT/);
+  const path = data.files.find(({ path }) => path.endsWith('SKILL.md'))!.path;
+  const file = (await tools.call(run, 'read_team_import_file', { packageId: report.id, path })) as {
+    utf8?: string;
+    base64?: string;
+    nextOffset: number | null;
+  };
+  assert.match(file.utf8 ?? '', /CURRENT_SKILL/);
+  assert.equal(file.base64, undefined);
+  assert.equal(file.nextOffset, null);
   await assert.rejects(
     tools.call(run, 'read_team_import_file', { packageId: report.id, path: '../../other' }),
   );

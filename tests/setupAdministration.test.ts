@@ -233,3 +233,161 @@ test('administrative tools are scoped separately from every production lease', (
     false,
   );
 });
+
+test('compact exact team reads, profile batch and scoped reorder/copy/move preserve live and saved project state', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-scoped-catalog-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
+  const store = await service.load();
+  const run = { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun;
+  const agent: Agent = {
+    id: 'a',
+    name: 'Сценарист',
+    enabled: true,
+    mainInstruction: 'EXACT_PRIVATE_PROMPT',
+    instructions: [{ id: 'rule', name: 'Rule', content: 'EXACT_DISABLED_TEXT', enabled: false }],
+    skills: ['skill'],
+    plugins: ['plugin'],
+    mcps: ['pistudio-project', 'mcp'],
+    capabilitySettings: { 'mcps:mcp': { enabled: false } },
+    model: {
+      id: 'model',
+      provider: 'provider',
+      connectionId: 'one',
+      reasoning: 'high',
+      temperature: '0.4',
+    },
+  };
+  const other = { ...agent, id: 'b', name: 'Редактор' };
+  const third = { ...agent, id: 'c', name: 'Внешний агент' };
+  await store.saveSection('agentCatalog', {
+    agents: [agent, other, third],
+    teams: [
+      { id: 'one', name: 'Основная', agentIds: ['a', 'b'] },
+      { id: 'two', name: 'Вторая', agentIds: ['c'] },
+    ],
+  });
+  const project = (
+    await store.command({
+      kind: 'create',
+      name: 'Saved project',
+      teamId: 'one',
+      agents: store.teamProfiles('one'),
+    })
+  ).projects[0];
+  const saved = structuredClone(store.projects.snapshot(project.id));
+  const admin = new SetupAdministration(service, async () => {
+    throw Error('Model catalog must not be consulted');
+  });
+  const read = (name: string, args: Record<string, unknown>) => admin.call(run, name, args);
+  const teams = (await read('list_teams', { query: 'основная' })) as { items: object[] };
+  assert.deepEqual(teams.items, [
+    { id: 'one', name: 'Основная', workspaceMode: 'per-agent', agentCount: 2 },
+  ]);
+  const members = (await read('list_agents', { team_id: 'one' })) as { items: { id: string }[] };
+  assert.deepEqual(
+    members.items.map(({ id }) => id),
+    ['a', 'b'],
+  );
+  await assert.rejects(read('list_agents', {}));
+  const batch = (await read('read_agent_settings', {
+    agent_ids: ['b', 'a'],
+    sections: ['model', 'resources'],
+  })) as { agents: { agent: { id: string } }[] };
+  assert.deepEqual(
+    batch.agents.map(({ agent }) => agent.id),
+    ['b', 'a'],
+  );
+  assert.doesNotMatch(JSON.stringify(batch), /EXACT_PRIVATE_PROMPT|EXACT_DISABLED_TEXT/);
+  await assert.rejects(read('read_agent_settings', { agent_ids: ['a', 'a'], sections: ['model'] }));
+  const instruction = await read('read_agent_settings', {
+    agent_id: 'a',
+    sections: ['instructions'],
+    instruction_ids: ['rule'],
+  });
+  assert.match(JSON.stringify(instruction), /EXACT_DISABLED_TEXT/);
+  assert.doesNotMatch(JSON.stringify(instruction), /EXACT_PRIVATE_PROMPT/);
+  await assert.rejects(read('reorder_team_agents', { team_id: 'one', agent_ids: ['b', 'c'] }));
+  await read('reorder_team_agents', { team_id: 'one', agent_ids: ['b', 'a'] });
+  assert.deepEqual(
+    store.teamProfiles('one').map(({ id }) => id),
+    ['b', 'a'],
+  );
+  await assert.rejects(
+    read('transfer_agent', {
+      agent_id: 'a',
+      source_team_id: 'two',
+      target_team_id: 'one',
+      mode: 'move',
+    }),
+  );
+  const copy = (await read('transfer_agent', {
+    agent_id: 'a',
+    source_team_id: 'one',
+    target_team_id: 'one',
+    mode: 'copy',
+    before_agent_id: 'b',
+  })) as { agentId: string };
+  assert.notEqual(copy.agentId, 'a');
+  assert.equal(store.teamProfiles('one')[0].id, copy.agentId);
+  assert.deepEqual(store.teamProfiles('one')[0], { ...agent, id: copy.agentId });
+  await read('transfer_agent', {
+    agent_id: 'a',
+    source_team_id: 'one',
+    target_team_id: 'two',
+    mode: 'move',
+    before_agent_id: 'c',
+  });
+  assert.deepEqual(
+    store.teamProfiles('two').map(({ id }) => id),
+    ['a', 'c'],
+  );
+  assert.deepEqual(store.teamProfiles('two')[0], agent);
+  assert.deepEqual(store.projects.snapshot(project.id), saved);
+});
+
+test('model discovery calls only the exact account and excludes other providers', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'pistudio-scoped-models-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const service = new StudioService(join(root, 'prefs.json'), join(root, 'studio'));
+  const store = await service.load();
+  const run = { projectRoot: join(store.folder, '.pistudio/setup-assistant') } as PreparedRun;
+  await store.saveSection('connections', [
+    {
+      id: 'one',
+      name: 'Local account',
+      purpose: 'pi',
+      providerId: 'provider',
+      endpoint: '',
+      account: 'PRIVATE_ACCOUNT',
+      createdAt: 1,
+    },
+  ]);
+  let calls = 0;
+  const admin = new SetupAdministration(service, async (connection) => {
+    assert.equal(connection?.id, 'one');
+    calls++;
+    return {
+      providers: [],
+      models: ['provider', 'unrelated'].map((provider) => ({
+        provider,
+        id: provider + '-model',
+        name: provider,
+        reasoning: true,
+        reasoningLevels: ['low'],
+        imageInput: true,
+      })),
+    };
+  });
+  const connections = await admin.call(run, 'list_connections', {});
+  assert.equal(calls, 0);
+  assert.doesNotMatch(JSON.stringify(connections), /PRIVATE_ACCOUNT/);
+  const result = (await admin.call(run, 'list_models', { connection_id: 'one' })) as {
+    items: { id: string }[];
+  };
+  assert.deepEqual(
+    result.items.map(({ id }) => id),
+    ['provider-model'],
+  );
+  assert.equal(calls, 1);
+});

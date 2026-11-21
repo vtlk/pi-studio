@@ -19,9 +19,11 @@ export function ToolCallCard({
   entry,
   working,
   preferences,
+  agentNames,
 }: {
   entry: ToolCallEntry;
   working: boolean;
+  agentNames?: ReadonlyMap<string, string>;
   preferences: Map<string, ToolCardPreference>;
 }) {
   useTranslation(undefined, { i18n });
@@ -35,7 +37,7 @@ export function ToolCallCard({
       setOpen(true);
     } else if (!saved) preferences.set(entry.key, { open, errorSeen: false });
   }, [entry.key, error, preferences, open]);
-  const heading = toolHeading(entry, status),
+  const heading = toolHeading(entry, status, agentNames),
     preview = toolResultPreview(entry.result);
   const Icon =
     status === 'running'
@@ -89,7 +91,7 @@ export function ToolCallCard({
               )}
           </span>
         </span>
-        {heading.friendly && (
+        {heading.friendly && !heading.builtin && (
           <Tooltip label={heading.name}>
             <code className="pi-tool-identifier">{heading.name}</code>
           </Tooltip>

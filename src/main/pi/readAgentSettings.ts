@@ -18,8 +18,119 @@ export function readAdminSettings(
   return service.serialize(async () => {
     const store = await service.load();
     await assertAdministrationScope(store, run);
-    return settingsOutput(readStudioAgentSettings(store, args.agent_id), args);
+    return readCatalogAgentSettings(store, args);
   });
+}
+
+const sectionsSchema = [
+  'model',
+  'resources',
+  'prompt',
+  'instructions',
+  'instruction_index',
+] as const;
+export const catalogAgentReadProperties = {
+  agent_id: { type: 'string' },
+  agent_ids: {
+    type: 'array',
+    items: { type: 'string' },
+    minItems: 1,
+    maxItems: 5,
+    uniqueItems: true,
+  },
+  sections: {
+    type: 'array',
+    items: { enum: sectionsSchema },
+    minItems: 1,
+    maxItems: 5,
+    uniqueItems: true,
+  },
+  instruction_ids: {
+    type: 'array',
+    items: { type: 'string' },
+    minItems: 1,
+    maxItems: 50,
+    uniqueItems: true,
+  },
+};
+
+export function readCatalogAgentSettings(store: StudioStore, args: Record<string, unknown>) {
+  const batch = args.agent_ids;
+  const sections = args.sections;
+  const instructionIds = args.instruction_ids;
+  if (
+    (batch !== undefined &&
+      (args.agent_id !== undefined ||
+        !Array.isArray(batch) ||
+        !batch.length ||
+        batch.length > 5 ||
+        new Set(batch).size !== batch.length ||
+        sections === undefined)) ||
+    (sections !== undefined &&
+      (!Array.isArray(sections) ||
+        !sections.length ||
+        new Set(sections).size !== sections.length ||
+        sections.some((key) => !sectionsSchema.includes(key)))) ||
+    (instructionIds !== undefined &&
+      (!Array.isArray(instructionIds) ||
+        !instructionIds.length ||
+        instructionIds.length > 50 ||
+        new Set(instructionIds).size !== instructionIds.length ||
+        !Array.isArray(sections) ||
+        !sections.includes('instructions') ||
+        batch !== undefined)) ||
+    (sections !== undefined && args.include_derived_prompts === true)
+  )
+    throw Error(t('SettingsRead.invalid'));
+  const selectedInstructions = new Set(
+    Array.isArray(instructionIds) ? instructionIds.map(stableId) : [],
+  );
+  const read = (id: unknown) => {
+    const full = readStudioAgentSettings(store, id);
+    if (!Array.isArray(sections)) return full;
+    const current = full.currentConstructor;
+    if (
+      selectedInstructions.size &&
+      [...selectedInstructions].some((id) => !current.instructions.some((item) => item.id === id))
+    )
+      throw Error(t('CatalogRead.instructionMissing'));
+    return {
+      scope: full.scope,
+      agent: full.agent,
+      currentConstructor: {
+        ...(sections.includes('model')
+          ? { model: current.model, connection: current.connection }
+          : {}),
+        ...(sections.includes('resources') ? { resources: current.resources } : {}),
+        ...(sections.includes('prompt') ? { mainInstruction: current.mainInstruction } : {}),
+        ...(sections.includes('instruction_index')
+          ? {
+              instructionIndex: current.instructions.map(({ id, name, enabled, order }) => ({
+                id,
+                name,
+                enabled,
+                order,
+              })),
+            }
+          : {}),
+        ...(sections.includes('instructions')
+          ? {
+              instructions: selectedInstructions.size
+                ? current.instructions.filter((item) => selectedInstructions.has(item.id))
+                : current.instructions,
+            }
+          : {}),
+      },
+    };
+  };
+  const ids = Array.isArray(batch) ? batch : [args.agent_id];
+  const records = ids.map(read);
+  const { offset, fingerprint, max_bytes, include_derived_prompts, ...target } = args;
+  return settingsOutput(
+    Array.isArray(batch) ? { agents: records } : records[0],
+    { offset, fingerprint, max_bytes, include_derived_prompts },
+    { tool: 'read_agent_settings', target },
+  );
 }
 
 /** Current constructor data only: never native MCP config, credentials or an implicit project. */

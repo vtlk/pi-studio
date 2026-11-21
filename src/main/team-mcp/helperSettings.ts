@@ -4,19 +4,28 @@ import type { TeamCaller } from './types.ts';
 import type { SystemAgent } from '../../shared/systemAgents.ts';
 import { hasBuiltinMcp } from '../../shared/builtinAssignments.ts';
 import { hasTeamMcp } from '../../shared/builtinResources.ts';
-import { readStudioAgentSettings } from '../pi/readAgentSettings.ts';
+import { catalogAgentReadProperties, readCatalogAgentSettings } from '../pi/readAgentSettings.ts';
 import { t } from '../../shared/i18n/index.ts';
 import { teamTools } from './tools.ts';
-import { settingsOutput, settingsReadGuidance } from '../pi/settingsOutput.ts';
+import { settingsReadProperties, settingsReadGuidance } from '../pi/settingsOutput.ts';
 
 export const helperTeamTools = teamTools
   .filter((tool) => ['list_agents', 'read_agent_settings'].includes(tool.name))
   .map((tool) => ({
     ...tool,
+    ...(tool.name === 'read_agent_settings'
+      ? {
+          inputSchema: {
+            ...tool.inputSchema,
+            properties: { ...settingsReadProperties, ...catalogAgentReadProperties },
+            required: [],
+          },
+        }
+      : {}),
     description:
       tool.name === 'list_agents'
         ? 'Setup assistant: list current Studio teams, ordinary and system profile IDs. Read-only catalog, not an open project or active session.'
-        : 'Setup assistant: read current Studio constructor settings for an exact ordinary or system agent_id. No project required. Excludes secrets and runtime/session claims. ' +
+        : 'Setup assistant: read current Studio constructor settings for one agent_id or up to five exact agent_ids with explicit sections. No project required. Excludes secrets and runtime/session claims. ' +
           settingsReadGuidance,
   }));
 
@@ -40,8 +49,7 @@ export function helperTeamSettings(
       !hasBuiltinMcp(helper, 'pistudio-administration')
     )
       throw Error(t('builtin.assignmentDisabled'));
-    if (name === 'read_agent_settings')
-      return settingsOutput(readStudioAgentSettings(store, args.agent_id), args);
+    if (name === 'read_agent_settings') return readCatalogAgentSettings(store, args);
     if (name === 'list_agents')
       return {
         scope: 'studio-constructor',

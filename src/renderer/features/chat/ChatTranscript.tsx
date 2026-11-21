@@ -4,6 +4,8 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ChatMessage } from '../../../shared/chat';
 import { t, i18n } from '../../../shared/i18n';
+import { useAgentProfiles } from '@/features/agents/model/AgentProfiles';
+import { agentName } from '@/shared/model/localizedProfiles';
 import { indexToolCalls } from './toolCalls';
 import { ToolCallCard, type ToolCardPreference } from './ToolCallCard';
 
@@ -19,6 +21,10 @@ export function ChatTranscript({
   useTranslation(undefined, { i18n });
   const preferences = useRef(new Map<string, ToolCardPreference>());
   const tools = indexToolCalls(messages);
+  const { agents, systemAgents } = useAgentProfiles();
+  const agentNames = new Map(
+    [...agents, ...systemAgents].map((agent) => [agent.id, agentName(agent)]),
+  );
   return messages.map((message, messageIndex) => {
     if (tools.matchedResults.has(messageIndex)) return null;
     if (message.role === 'toolResult' || message.role === 'bashExecution')
@@ -39,6 +45,7 @@ export function ChatTranscript({
           }}
           working={false}
           preferences={preferences.current}
+          agentNames={agentNames}
         />
       );
     return (
@@ -57,6 +64,7 @@ export function ChatTranscript({
               entry={tools.calls.get(`${messageIndex}:${index}`)!}
               working={working && messageIndex === tools.currentMessageIndex}
               preferences={preferences.current}
+              agentNames={agentNames}
             />
           ) : part.type === 'thinking' ? (
             <details className="pi-chat-thinking" key={index}>

@@ -103,3 +103,27 @@ test('PowerShell uses the shared translated shell card and preserves the command
   }
   await changeLanguage('ru');
 });
+
+test('built-in cards show localized actions and exact known agent names while retaining technical details', async () => {
+  const args = JSON.stringify({ agent_ids: ['a', 'b'], sections: ['model'] });
+  const entry = {
+    key: 'read',
+    call: { ...call('read', 'mcp__pi_studio__read_agent_settings'), arguments: args },
+  };
+  const names = new Map([
+    ['a', 'Сценарист'],
+    ['b', 'Editor'],
+  ]);
+  for (const language of ['ru', 'en'] as const) {
+    await changeLanguage(language);
+    const heading = toolHeading(entry, 'success', names);
+    assert.equal(
+      heading.label,
+      language === 'ru' ? 'Чтение настроек агента' : 'Reading agent settings',
+    );
+    assert.equal(heading.target, '«Сценарист», «Editor»');
+    assert.equal(heading.name, 'mcp__pi_studio__read_agent_settings');
+    assert.equal(heading.builtin, true);
+  }
+  await changeLanguage('ru');
+});

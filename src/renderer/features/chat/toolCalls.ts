@@ -1,5 +1,6 @@
 import type { ChatMessage, ChatPart } from '../../../shared/chat';
 import { t } from '../../../shared/i18n/index.ts';
+import { builtinToolHeading } from './builtinToolHeading.ts';
 
 export interface ToolCallEntry {
   key: string;
@@ -63,8 +64,15 @@ export function prettyToolText(value: string) {
     return value;
   }
 }
-export function toolHeading(entry: ToolCallEntry, status: ToolStatus) {
+export function toolHeading(
+  entry: ToolCallEntry,
+  status: ToolStatus,
+  agentNames?: ReadonlyMap<string, string>,
+) {
   const name = entry.call.name || entry.result?.toolName || t('Chat.tool');
+  const args = parseToolArguments(entry.call.arguments);
+  const builtin = builtinToolHeading(name, args, agentNames);
+  if (builtin) return builtin;
   const kind =
     name === 'read' || name === 'read_project_file' || name.endsWith('_read_project_file')
       ? 'read'
@@ -75,7 +83,6 @@ export function toolHeading(entry: ToolCallEntry, status: ToolStatus) {
           : name === 'bash' || name === 'powershell'
             ? 'bash'
             : 'generic';
-  const args = parseToolArguments(entry.call.arguments);
   const path = typeof args.path === 'string' ? args.path : '';
   const target =
     kind === 'bash'
@@ -89,7 +96,13 @@ export function toolHeading(entry: ToolCallEntry, status: ToolStatus) {
     kind === 'generic'
       ? t(`ToolCard.generic.${status}`, { tool: name })
       : t(`ToolCard.${kind}.${status}`);
-  return { name, label, target, friendly: kind !== 'generic' };
+  return {
+    name,
+    label,
+    target,
+    friendly: kind !== 'generic',
+    builtin: name === 'mcp__pi_studio__read_project_file',
+  };
 }
 export function toolResultPreview(result: ChatMessage | undefined) {
   if (!result) return '';

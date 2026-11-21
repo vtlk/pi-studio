@@ -20,6 +20,35 @@ await mkdir(process.env.PI_CODING_AGENT_DIR, { recursive: true });
 const main = 'Полный основной промпт 😀 "quoted" \\ \n'.repeat(700);
 const instruction = 'Инструкция 🌆 "текст" \\ \n'.repeat(450);
 const documents: unknown[] = [];
+const compactResults: Record<string, any>[] = [];
+const compactCalls = [
+  ['list_teams', { query: 'Catalog fixture' }],
+  ['list_agents', { team_id: 'catalog-team' }],
+  ['list_models', { connection_id: 'qa-settings' }],
+  [
+    'read_agent_settings',
+    { agent_ids: ['large-target', 'small-target'], sections: ['model', 'resources'] },
+  ],
+  ['reorder_team_agents', { team_id: 'catalog-team', agent_ids: ['small-target', 'large-target'] }],
+  [
+    'transfer_agent',
+    {
+      mode: 'copy',
+      agent_id: 'large-target',
+      source_team_id: 'catalog-team',
+      target_team_id: 'target-team',
+    },
+  ],
+  [
+    'transfer_agent',
+    {
+      mode: 'move',
+      agent_id: 'small-target',
+      source_team_id: 'catalog-team',
+      target_team_id: 'target-team',
+    },
+  ],
+] as const;
 const fragments: string[] = [];
 let requests = 0,
   pages = 0,
@@ -35,6 +64,7 @@ function unwrap(content: unknown): Record<string, any> {
     else if (value && typeof value === 'object' && 'pagination' in value)
       return value as Record<string, any>;
     else if (value && typeof value === 'object' && 'content' in value) value = value.content;
+    else if (value && typeof value === 'object') return value as Record<string, any>;
     else break;
   }
   throw Error('Native settings output is not a readable page');
@@ -70,31 +100,39 @@ const server = createServer(async (req, res) => {
       maxOutputBytes = Math.max(maxOutputBytes, Buffer.byteLength(raw));
       const page = unwrap(last.content);
       assert.ok(Buffer.byteLength(JSON.stringify(page)) <= 8192);
-      assert.equal(page.pagination.offset, offset);
-      fingerprint ||= page.pagination.fingerprint;
-      assert.equal(page.pagination.fingerprint, fingerprint);
-      assert.equal(page.format, 'json-fragment');
-      fragments.push(page.content);
-      offset += Buffer.byteLength(page.content);
-      pages++;
-      if (page.pagination.complete) {
-        const text = fragments.join('');
-        assert.equal(createHash('sha256').update(text).digest('hex'), fingerprint);
-        assert.equal(offset, page.pagination.totalBytes);
-        documents.push(JSON.parse(text));
-        fragments.length = 0;
-        offset = 0;
-        fingerprint = '';
-      } else {
-        assert.equal(page.pagination.nextOffset, offset);
-        args = page.nextCall.arguments;
+      if (last.tool_call_id?.startsWith('compact-')) compactResults.push(page);
+      else {
+        assert.equal(page.pagination.offset, offset);
+        fingerprint ||= page.pagination.fingerprint;
+        assert.equal(page.pagination.fingerprint, fingerprint);
+        assert.equal(page.format, 'json-fragment');
+        fragments.push(page.content);
+        offset += Buffer.byteLength(page.content);
+        pages++;
+        if (page.pagination.complete) {
+          const text = fragments.join('');
+          assert.equal(createHash('sha256').update(text).digest('hex'), fingerprint);
+          assert.equal(offset, page.pagination.totalBytes);
+          documents.push(JSON.parse(text));
+          fragments.length = 0;
+          offset = 0;
+          fingerprint = '';
+        } else {
+          assert.equal(page.pagination.nextOffset, offset);
+          args = page.nextCall.arguments;
+        }
       }
     }
     assert.ok(++requests < 100);
-    const done = documents.length === 2;
-    const reader = readers.find((tool: any) =>
-      tool.name.includes(documents.length ? '__team__' : '__pi_studio__'),
-    );
+    const done = documents.length === 2 && compactResults.length === compactCalls.length;
+    const current = documents.length === 2 ? compactCalls[compactResults.length] : undefined;
+    const reader = current
+      ? body.tools
+          .map((tool: any) => tool.function)
+          .find(({ name }: { name: string }) => name === 'mcp__pi_studio__' + current[0])
+      : readers.find((tool: any) =>
+          tool.name.includes(documents.length ? '__team__' : '__pi_studio__'),
+        );
     if (!done) assert.ok(reader);
     const delta = done
       ? { content: 'PAGED_SETTINGS_OK' }
@@ -102,9 +140,9 @@ const server = createServer(async (req, res) => {
           tool_calls: [
             {
               index: 0,
-              id: 'page-' + requests,
+              id: (current ? 'compact-' : 'page-') + requests,
               type: 'function',
-              function: { name: reader.name, arguments: JSON.stringify(args) },
+              function: { name: reader.name, arguments: JSON.stringify(current?.[1] ?? args) },
             },
           ],
         };
@@ -160,7 +198,22 @@ const profile: Agent = {
   mcps: [],
   plugins: [],
 };
-await store.saveSection('agents', [profile]);
+await store.saveSection('agentCatalog', {
+  agents: [
+    profile,
+    {
+      ...profile,
+      id: 'small-target',
+      name: 'Small settings fixture',
+      mainInstruction: 'Small',
+      instructions: [],
+    },
+  ],
+  teams: [
+    { id: 'catalog-team', name: 'Catalog fixture', agentIds: ['large-target', 'small-target'] },
+    { id: 'target-team', name: 'Destination', agentIds: [] },
+  ],
+});
 const systems = store.bootstrap().sections.systemAgents as SystemAgent[];
 const helper = systems.find((agent) => agent.systemRole === 'assistant')!;
 await store.saveSection(
@@ -207,6 +260,7 @@ try {
     if (fixtureError) throw fixtureError;
     if (
       documents.length === 2 &&
+      compactResults.length === compactCalls.length &&
       host.inspect(target.projectId, target.agentId)?.status !== 'running'
     )
       break;
@@ -233,6 +287,30 @@ try {
         message.parts.some((part) => part.text?.includes('PAGED_SETTINGS_OK')),
       ),
   );
+  assert.equal(compactResults.length, compactCalls.length);
+  assert.deepEqual(
+    compactResults[0].items.map(({ id }: any) => id),
+    ['catalog-team'],
+  );
+  assert.deepEqual(
+    compactResults[1].items.map(({ id }: any) => id),
+    ['large-target', 'small-target'],
+  );
+  assert.deepEqual(
+    compactResults[2].items.map(({ id }: any) => id),
+    ['qa-settings'],
+  );
+  assert.deepEqual(
+    compactResults[3].agents.map(({ agent }: any) => agent.id),
+    ['large-target', 'small-target'],
+  );
+  assert.doesNotMatch(JSON.stringify(compactResults[3]), /Полный основной промпт|DISABLED/);
+  assert.deepEqual(compactResults[4].agentIds, ['small-target', 'large-target']);
+  const [cloned, moved] = store.teamProfiles('target-team');
+  assert.equal(cloned.id, compactResults[5].agentId);
+  assert.deepEqual(cloned, { ...store.teamProfiles('catalog-team')[0], id: cloned.id });
+  assert.equal(moved.id, 'small-target');
+  assert.equal(compactResults[6].agentId, moved.id);
   const proof = {
     at: new Date().toISOString(),
     pi: pi.version,
@@ -245,6 +323,9 @@ try {
     disabledInstructionsPreserved: true,
     noNativeTruncationWarning: true,
     noOpenProjectOrExternalModel: true,
+    compactCatalogAndAccountScopedModels: true,
+    projectedBatchAndExactReorderCopyMove: true,
+    compactResponsesBytes: compactResults.map((value) => Buffer.byteLength(JSON.stringify(value))),
     installedAppAndUserDataUntouched: true,
   };
   if (process.env.PI_STUDIO_QA_PROOF)
