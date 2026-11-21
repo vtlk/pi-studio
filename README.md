@@ -10,7 +10,7 @@ One agent researches, another creates, a third reviews.<br>Set up the workflow o
 
 <a href="LICENSE"><img src="https://img.shields.io/badge/open_source-MIT-FFD83D?style=flat-square&labelColor=252525" alt="Open source · MIT" /></a> <img src="https://img.shields.io/badge/status-alpha-FFD83D?style=flat-square&labelColor=252525" alt="Status: alpha" /> <img src="https://img.shields.io/badge/platforms-macOS_·_Windows_preview-FFD83D?style=flat-square&labelColor=252525" alt="macOS and Windows preview" />
 
-**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.126/Pi-Studio-0.2.0-alpha.126-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.126/Pi-Studio-0.2.0-alpha.126-win-x64.zip)**
+**[Download for macOS ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.126/Pi-Studio-0.2.0-alpha.126-mac-arm64.zip)** &nbsp; · &nbsp; **[Windows preview ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.127/Pi-Studio-0.2.0-alpha.127-win-x64.zip)**
 
 **[How it works](#one-team-many-projects)** &nbsp; · &nbsp; **[Models](#your-models-your-tools)** &nbsp; · &nbsp; **[Get started](#quick-start)**
 
@@ -129,17 +129,17 @@ Choose a connection and model for the assistant, then open its conversation unde
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.126/Pi-Studio-0.2.0-alpha.126-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.126/Pi-Studio-0.2.0-alpha.126-win-x64.zip)** |
+| **Build** | **[Download for Mac ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.126/Pi-Studio-0.2.0-alpha.126-mac-arm64.zip)** | **[Download for Windows ↓](https://github.com/vtlk/pi-studio/releases/download/v0.2.0-alpha.127/Pi-Studio-0.2.0-alpha.127-win-x64.zip)** |
 | **Requirements** | macOS 13+, Apple Silicon | Windows 10/11, x64 |
-| **Version** | alpha.126 | alpha.126 · preview |
+| **Version** | alpha.126 | alpha.127 · preview |
 
 [Windows installation guide](docs/WINDOWS.md)
 
 > **Early release.** The Mac build is signed with Apple Development and is not notarized by Apple. Full native Windows validation remains in progress.
 
-[What's new in alpha.126 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.126)
+[What's new in alpha.127 →](https://github.com/vtlk/pi-studio/releases/tag/v0.2.0-alpha.127)
 
-Alpha.126 fixes oversized agent-settings reads: complete prompt and instruction text is returned in bounded pages with explicit continuation and revision checks. Duplicate derived prompts are omitted by default and remain available on request. Available for macOS arm64 and Windows x64.
+Alpha.127 offers assistant setup after importing a team. It can restore missing MCP configuration, start authentication and help configure compatible models and skill checks. The onboarding menu uses a red alert icon, team import is in the My teams heading and dictation reuses its loaded model across chats. Windows x64 alpha.127 is available first; macOS remains alpha.126 until its assets are uploaded.
 
 Agent teams remember whether they are expanded or collapsed. The Projects tab returns to the last open project when switching sections. Click the project heading or its back icon to return to the list; Refresh agents stays independent. Project headers are black in both themes, with a thin gray lower divider.
 
