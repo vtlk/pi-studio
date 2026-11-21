@@ -1,0 +1,645 @@
+{
+  "ok": true,
+  "scope": "isolated offscreen real renderer/preload + controlled IPC; native Windows acceptance remains separate",
+  "checks": [
+    "41-second loading spinner",
+    "one launch for double click",
+    "preview-sized sliding panel",
+    "Agents helper chat reaches the team-column edge at 1080/1280/1760px, short height and RU/EN/light/dark",
+    "team column remains clickable; one chat; notification-aware bounds; navigation preserves helper draft and process",
+    "footer/overflow geometry",
+    "equal message-bubble vertical padding",
+    "sender headings group across tool results and return after author changes in shared chat views",
+    "authoritative native queue visible after composer steer sends, duplicates preserved",
+    "both native queue modes render below the working indicator in RU/EN and both themes",
+    "queued steer/follow-up translated in RU/EN/light/dark and delivery avoids duplicate history",
+    "tool calls/results paired once by native ID",
+    "success collapsed; initial and arriving errors auto-open",
+    "manual collapse survives SDK message ID replacement",
+    "historical incomplete tools stay inactive; output remains inert",
+    "tool summary/details translated in RU/EN and both themes",
+    "multiline composer scroll and keyboard resize keep grip outside text viewport in RU/EN/light/dark",
+    "RU/EN refresh confirmation and cancel without mutation",
+    "refresh consent carries exact run and task sequence",
+    "RU/EN in light/dark",
+    "yellow process count and hidden zero",
+    "hide/reopen without launch",
+    "retained draft",
+    "send with Enter",
+    "stop without exit",
+    "closed state without spinner"
+  ],
+  "geometry": {
+    "chat": {
+      "x": 556,
+      "y": 136,
+      "width": 724,
+      "height": 604
+    },
+    "pane": {
+      "x": 556,
+      "y": 136,
+      "width": 724,
+      "height": 604
+    },
+    "footerBottom": 740,
+    "chatBottom": 740,
+    "overflow": false
+  },
+  "spacing": {
+    "top": 12,
+    "bottom": 12
+  },
+  "refreshOpensComparisonImmediatelyInRussianAndEnglish": true,
+  "refreshComparisonCancelPreservesState": true,
+  "refreshScreens": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "title": "Остановить текущие задачи?"
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "title": "Stop the current tasks?"
+    }
+  ],
+  "toolLocales": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "titles": [
+        "Прочитан файл script.md",
+        "Ошибка: mcp__files__lookup",
+        "Чтение настроек агента «Чат агент»",
+        "Запись файла: нет результата missing.md",
+        "Ошибка выполнения команды npm run check"
+      ]
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "titles": [
+        "Прочитан файл script.md",
+        "Ошибка: mcp__files__lookup",
+        "Чтение настроек агента «Чат агент»",
+        "Запись файла: нет результата missing.md",
+        "Ошибка выполнения команды npm run check"
+      ]
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "titles": [
+        "Read file script.md",
+        "Error: mcp__files__lookup",
+        "Reading agent settings «Чат агент»",
+        "File write: no result missing.md",
+        "Command failed npm run check"
+      ]
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "titles": [
+        "Read file script.md",
+        "Error: mcp__files__lookup",
+        "Reading agent settings «Чат агент»",
+        "File write: no result missing.md",
+        "Command failed npm run check"
+      ]
+    }
+  ],
+  "composerLayouts": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "fieldBottom": 673,
+      "gripTop": 673,
+      "fieldHeight": 80,
+      "scrollable": true,
+      "gripLabel": "Изменить высоту поля"
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "fieldBottom": 673,
+      "gripTop": 673,
+      "fieldHeight": 140,
+      "scrollable": true,
+      "gripLabel": "Изменить высоту поля"
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "fieldBottom": 673,
+      "gripTop": 673,
+      "fieldHeight": 140,
+      "scrollable": true,
+      "gripLabel": "Resize field height"
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "fieldBottom": 673,
+      "gripTop": 673,
+      "fieldHeight": 140,
+      "scrollable": true,
+      "gripLabel": "Resize field height"
+    }
+  ],
+  "assistantLayouts": [
+    {
+      "language": "ru",
+      "theme": "light",
+      "width": 1080,
+      "height": 480,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 480,
+        "width": 320,
+        "height": 414
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 1080,
+        "height": 414
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "ru",
+      "theme": "light",
+      "width": 1280,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 1280,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "ru",
+      "theme": "light",
+      "width": 1760,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1760,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "width": 1080,
+      "height": 480,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 480,
+        "width": 320,
+        "height": 414
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 1080,
+        "height": 414
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "width": 1280,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 1280,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "ru",
+      "theme": "dark",
+      "width": 1760,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1760,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "width": 1080,
+      "height": 480,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 480,
+        "width": 320,
+        "height": 414
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 1080,
+        "height": 414
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "width": 1280,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 1280,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "en",
+      "theme": "light",
+      "width": 1760,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1760,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "width": 1080,
+      "height": 480,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 760,
+        "height": 414
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 480,
+        "width": 320,
+        "height": 414
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1080,
+        "bottom": 480,
+        "width": 1080,
+        "height": 414
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "width": 1280,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 960,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1280,
+        "bottom": 740,
+        "width": 1280,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    },
+    {
+      "language": "en",
+      "theme": "dark",
+      "width": 1760,
+      "height": 740,
+      "chat": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "editor": {
+        "x": 320,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1440,
+        "height": 674
+      },
+      "list": {
+        "x": 0,
+        "y": 66,
+        "right": 320,
+        "bottom": 740,
+        "width": 320,
+        "height": 674
+      },
+      "workspace": {
+        "x": 0,
+        "y": 66,
+        "right": 1760,
+        "bottom": 740,
+        "width": 1760,
+        "height": 674
+      },
+      "overflow": false,
+      "sidebarAccessible": true,
+      "panels": 1
+    }
+  ]
+}
