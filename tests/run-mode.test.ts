@@ -296,7 +296,7 @@ test(
 );
 
 test(
-  'ordinary opening of a running dialogue disables the chain; rearming waits for a new request',
+  'ordinary opening cancels the chain; explicit launch-and-continue arms the running request',
   { timeout: 15000 },
   async (t) => {
     const f = await fixture(t);
@@ -312,15 +312,9 @@ test(
     assert.equal(f.tasks.length, 0);
     await f.request();
     await f.launch(true);
-    await f.finish();
-    assert.equal(
-      f.tasks.length,
-      0,
-      'Dropdown while running must not promote the in-flight old request',
-    );
+    assert.equal(f.children.length, 1, 'Changing mode keeps the running Pi');
     const gate = deferred();
     f.hooks.completed = async () => gate.promise;
-    await f.request();
     await f.finish();
     assert.equal(f.tasks.length, 1);
     await f.launch(false);
@@ -334,6 +328,33 @@ test(
     assert.equal(f.launches[1].message, undefined, 'Ordinary resume never sends a user message');
   },
 );
+
+test('the project switch arms the current reply, cancels on off and never replays a settled result', async (t) => {
+  const f = await fixture(t);
+  const target = { projectId: 'p', agentId: 'first' };
+  await f.launch(false);
+  await f.request();
+  await f.event('p', 'first', { type: 'settled', outcome: 'completed' });
+  assert.equal(f.status.get('p/first'), 'waiting', 'The agent asks a question with no completion');
+  await f.request();
+  f.host.setAutoContinuation({ ...target, enabled: true });
+  f.host.setAutoContinuation({ ...target, enabled: false });
+  await f.finish();
+  assert.equal(f.tasks.length, 0);
+  f.host.setAutoContinuation({ ...target, enabled: true });
+  assert.equal(f.tasks.length, 0);
+  f.host.updates.assertIdle();
+  await f.request();
+  f.host.setAutoContinuation({ ...target, enabled: false });
+  f.host.setAutoContinuation({ ...target, enabled: true });
+  assert.equal(f.launches.length, 1, 'Toggling does not open or send to the current agent');
+  await f.finish();
+  await f.tasks[0];
+  assert.deepEqual(
+    f.launches.map(({ agent }) => agent),
+    ['first', 'next'],
+  );
+});
 
 test(
   'manual intent cancels a handoff already preparing another agent; other projects remain independent',

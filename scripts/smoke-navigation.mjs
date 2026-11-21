@@ -187,7 +187,8 @@ try {
     };
     const calls = { launch: 0, commands: 0, saves: 0 };
     const clone = (value) => structuredClone(value);
-    window.__qa = { state, calls };
+    const continuationChanges = [];
+    window.__qa = { state, calls, continuationChanges };
     window.studio = new Proxy(
       {
         getInfo: async () => ({ platform: 'darwin', version: 'QA', runtimeConnected: true }),
@@ -236,6 +237,7 @@ try {
           calls.launch++;
           throw Error('No Pi work is authorized by navigation');
         },
+        setAutoContinuation: async (request) => continuationChanges.push(clone(request)),
         projectCommand: async () => {
           calls.commands++;
           throw Error('Navigation must not mutate projects');
@@ -515,6 +517,20 @@ try {
         `Array.from(document.querySelectorAll('.project-list-row')).find(button=>button.textContent.includes('Project b')).click()`,
       );
       await until(`document.querySelector('.project-header h1')?.textContent==='Project b'`);
+      const continuationSwitch = '.project-agent-heading [role="switch"]';
+      await click(continuationSwitch);
+      await until(
+        `document.querySelector('${continuationSwitch}')?.getAttribute('aria-checked')==='true'`,
+      );
+      await click(continuationSwitch);
+      await until(
+        `document.querySelector('${continuationSwitch}')?.getAttribute('aria-checked')==='false'`,
+      );
+      assert.deepEqual(await js('window.__qa.continuationChanges'), [
+        { projectId: 'project-b', agentId: 'b', enabled: true },
+        { projectId: 'project-b', agentId: 'b', enabled: false },
+      ]);
+      assert.equal(await js('window.__qa.calls.launch'), 0);
       await click('.topbar nav button:first-child');
       assert.equal(
         await js(`document.querySelector('.project-header h1')?.textContent`),
@@ -640,6 +656,7 @@ try {
         explicitBackRemembersList: true,
         refreshDoesNotNavigateOrMutate: true,
         headerPaddingAndKeyboardBack: true,
+        continuationSwitchTargetsSelectedAgentWithoutLaunching: true,
         hoverAndNoHorizontalOverflow: true,
         chevronLeftIconAndFullWidthBottomBorder: true,
         blackHeaderInBothThemes: true,

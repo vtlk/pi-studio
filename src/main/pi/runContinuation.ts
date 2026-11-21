@@ -2,6 +2,10 @@ import { t } from '../../shared/i18n/index.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
 import { runKey, ContinuationCancelled, type LiveRun, type Continuation } from './RunTypes.ts';
+export function continuationStartSequence(live: LiveRun) {
+  return live.status === 'running' ? Math.max(1, live.sequence) : live.sequence + 1;
+}
+
 export function runContinuation(
   run: PreparedRun,
   state: {
@@ -20,6 +24,7 @@ export function runContinuation(
     live.run !== run ||
     !live.request.autoContinue ||
     !live.chain ||
+    state.chains.get(run.project.id) !== live.chain ||
     live.sequence < (live.continueAfterSequence ?? 1)
   )
     return;

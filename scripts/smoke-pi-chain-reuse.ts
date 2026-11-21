@@ -25,7 +25,8 @@ try {
     let host: ReturnType<typeof createStudioRunHost>;
     let failure: unknown,
       requests = 0,
-      busyResponse: ServerResponse | undefined;
+      busyResponse: ServerResponse | undefined,
+      releaseSource: (() => void) | undefined;
     const steps = new Map<string, number>();
     const autoPidChecks: { agentId: string; pid: number }[] = [];
     const expectedPids = new Map<string, number>();
@@ -62,6 +63,14 @@ try {
         if (lastUser.includes('PRIOR_HISTORY_')) {
           response.write(
             `data: ${JSON.stringify(chunk({ role: 'assistant', content: 'PRIOR_ANSWER_' + stage }))}\n\n`,
+          );
+          end(response, false);
+          return;
+        }
+        if (lastUser.includes('QA_CHAIN_QUESTION')) {
+          assert.equal(stage, 'first');
+          response.write(
+            `data: ${JSON.stringify(chunk({ role: 'assistant', content: 'Which input should I use?' }))}\n\n`,
           );
           end(response, false);
           return;
@@ -114,8 +123,12 @@ try {
               ],
             }
           : { role: 'assistant', content: 'CHAIN_FINISHED_' + stage };
-        response.write(`data: ${JSON.stringify(chunk(delta))}\n\n`);
-        end(response, !!tool);
+        const respond = () => {
+          response.write(`data: ${JSON.stringify(chunk(delta))}\n\n`);
+          end(response, !!tool);
+        };
+        if (stage === 'first' && step === 0) releaseSource = respond;
+        else respond();
       } catch (error) {
         failure = error;
         response.end('QA rejected request');
@@ -231,8 +244,38 @@ try {
           'Manual recipient task is working',
         );
       }
-      await host.launch({ ...target('first'), autoContinue: true });
+      const first = await host.launch({ ...target('first'), autoContinue: false });
+      if (mode === 'idle') {
+        await host.sendChat({ ...target('first'), text: 'QA_CHAIN_QUESTION' });
+        await until(
+          () =>
+            host.inspect(project.id, 'first')?.status === 'waiting' &&
+            host
+              .chat(target('first'))
+              ?.messages.some((message) =>
+                message.parts.some((part) => part.text?.includes('Which input should I use?')),
+              ) &&
+            !host.chat(target('first'))?.working,
+          'The agent has asked a question and is waiting for the user',
+        );
+      }
       await host.sendChat({ ...target('first'), text: 'CHAIN_CURRENT_TASK' });
+      await until(
+        () => releaseSource && host.inspect(project.id, 'first')?.status === 'running',
+        'The current request is already in flight at the model',
+      );
+      const pid = host.processes().find(({ agentId }) => agentId === 'first')!.pid;
+      const requestsBeforeArm = requests;
+      if (mode === 'idle') host.setAutoContinuation({ ...target('first'), enabled: true });
+      else
+        assert.equal(
+          (await host.launch({ ...target('first'), autoContinue: true })).runId,
+          first.runId,
+        );
+      assert.equal(host.processes().find(({ agentId }) => agentId === 'first')!.pid, pid);
+      assert.equal(requests, requestsBeforeArm, 'Arming never sends another model request');
+      releaseSource!();
+      releaseSource = undefined;
       if (mode === 'idle') {
         await until(
           () => host.processes().length === 0,
@@ -297,10 +340,10 @@ try {
         );
         await new Promise((done) => setTimeout(done, 200));
         assert.equal(steps.has('next'), false, 'No automatic retry after recipient becomes idle');
-        assert.deepEqual(host.chat(target('next'))!.queue ?? { steering: [], followUp: [] }, {
-          steering: [],
-          followUp: [],
-        });
+        const queue = host.chat(target('next'))!.queue;
+        assert.deepEqual(queue?.steering ?? [], []);
+        assert.deepEqual(queue?.followUp ?? [], []);
+        assert.deepEqual(queue?.items ?? [], []);
         assert.equal(host.processes()[0].pid, expectedPids.get('next'));
         assert.ok(
           host
@@ -311,6 +354,9 @@ try {
       reports.push({
         mode,
         requests,
+        inFlightRequestWasArmed: true,
+        answeredAnAgentQuestionBeforeArming: mode === 'idle',
+        keptSourcePidAndSentNoExtraInputWhenArmed: true,
         samePidForEachReusedRecipient: mode === 'idle',
         sameSessionAndJsonlPrefix: mode === 'idle',
         oneTaskNoReplay: mode === 'idle',
@@ -318,6 +364,7 @@ try {
         nativeWindowsAcceptance: false,
       });
     } finally {
+      releaseSource?.();
       busyResponse?.destroy();
       await host.drain();
       host.close();

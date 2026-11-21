@@ -13,6 +13,11 @@ export interface LaunchAgentResult {
   runId: string;
   project: WorkspaceProject;
 }
+export interface AutoContinuationRequest {
+  projectId: string;
+  agentId: string;
+  enabled: boolean;
+}
 export interface RunContextRecord {
   schemaVersion: 1;
   runId: string;

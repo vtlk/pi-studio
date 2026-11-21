@@ -9,6 +9,7 @@ import type {
 } from '../../shared/chat.ts';
 import type { ReferenceFiles } from './ReferenceFiles.ts';
 import type { ReferenceFile } from '../../shared/attachments.ts';
+import type { AutoContinuationRequest } from '../../shared/runtime.ts';
 import { t } from '../../shared/i18n/index.ts';
 import { handleDesktopInvoke } from '../ipc/desktopInvoke.ts';
 import { stableId } from '../storage/validation.ts';
@@ -57,6 +58,13 @@ export function registerChatHandlers(
     caller(event);
     return (await scoped(target, true)).chat(target);
   });
+  handleDesktopInvoke(
+    desktopChannels.setAutoContinuation,
+    async (event, request: AutoContinuationRequest) => {
+      caller(event);
+      (await scoped(request)).setAutoContinuation(request);
+    },
+  );
   handleDesktopInvoke(desktopChannels.sendChat, async (event, request: ChatSend) => {
     caller(event);
     const selected = await scoped(request);

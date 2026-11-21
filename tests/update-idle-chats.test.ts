@@ -23,6 +23,7 @@ function chats() {
       status,
       request: { autoContinue: index < 3 },
       chain,
+      sequence: 1,
       embedded: { alive: true, state: { phase: 'ready', working: false } },
       blocked: false,
     } as unknown as LiveRun);

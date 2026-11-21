@@ -155,6 +155,7 @@ export interface DesktopApi {
   getModelCatalog(request?: ModelConnectionRequest): Promise<PiModelCatalog>;
   discoverConnectionModels(request: ModelConnectionRequest): Promise<string[]>;
   launchAgent(request: LaunchAgentRequest): Promise<LaunchAgentResult>;
+  setAutoContinuation(request: import('./runtime').AutoContinuationRequest): Promise<void>;
   onRunFailure(listener: (notice: RunFailureNotice) => void): () => void;
   openSetupAssistant(): Promise<void>;
   chooseReferenceFiles(): Promise<ReferenceFile[]>;
@@ -282,6 +283,7 @@ export const desktopChannels = {
   runFailure: 'studio:run-failure',
   discoverConnectionModels: 'studio:connection-models-discover',
   launchAgent: 'studio:launch-agent',
+  setAutoContinuation: 'studio:set-auto-continuation',
   openSetupAssistant: 'studio:setup-assistant',
   checkResource: 'studio:resource-check',
   installResource: 'studio:resource-install',

@@ -173,6 +173,8 @@ const desktopApi: DesktopApi = {
   discoverConnectionModels: (request) =>
     ipcRenderer.invoke(desktopChannels.discoverConnectionModels, request),
   launchAgent: (request) => ipcRenderer.invoke(desktopChannels.launchAgent, request),
+  setAutoContinuation: (request) =>
+    ipcRenderer.invoke(desktopChannels.setAutoContinuation, request),
   openSetupAssistant: () => ipcRenderer.invoke(desktopChannels.openSetupAssistant),
   checkResource: (id) => ipcRenderer.invoke(desktopChannels.checkResource, id),
   installResource: (id) => ipcRenderer.invoke(desktopChannels.installResource, id),

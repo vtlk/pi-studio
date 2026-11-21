@@ -2,6 +2,7 @@ import { i18n, t } from '../../shared/i18n/index.ts';
 import { EmbeddedChat } from './EmbeddedChat.ts';
 import { reuseIdleTeam, assertTeamNotBusy } from './reuseIdleTeam.ts';
 import { reuseIdleChain } from './reuseIdleChain.ts';
+import { continuationStartSequence } from './runContinuation.ts';
 import { chatInput } from './chatInput.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
 import type { TeamDelivery } from '../team-mcp/types.ts';
@@ -107,7 +108,7 @@ export async function openRun(
         throw new Error(t('error.runHost.theAgentAlreadyHasAn'));
       active.request.autoContinue = request.autoContinue;
       active.chain = chain;
-      active.continueAfterSequence = active.sequence + 1;
+      active.continueAfterSequence = continuationStartSequence(active);
       return { runId: active.run.record.runId, project: await state.dependencies.read(active.run) };
     }
     if (active && !active.embedded && active.pid && processAlive(active.pid)) {
@@ -119,7 +120,7 @@ export async function openRun(
         if (automaticMessage) throw new Error(t('error.runHost.theNextAgentIsAlready'));
         active.request.autoContinue = request.autoContinue;
         active.chain = chain;
-        active.continueAfterSequence = active.sequence + 1;
+        active.continueAfterSequence = continuationStartSequence(active);
         active.automaticCheck = undefined;
         await focusRunningTerminal(active, state.dependencies.activateTerminal);
         return {

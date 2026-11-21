@@ -21,10 +21,13 @@ import { usageAccessible } from '../model/usageFormat';
 import { Switch } from '@/shared/ui/SelectionControls';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { useChatPanels } from '@/features/chat/ChatPanels.context';
+import { useNotice } from '@/shared/model/Notice';
+import { uiText } from '@/shared/model/UiText';
 
 function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   useTranslation(undefined, { i18n });
   const chats = useChatPanels();
+  const { demo } = useNotice();
   const cancelChatSelection = useRef<(() => void) | undefined>(undefined);
   useEffect(() => () => cancelChatSelection.current?.(), []);
   const { agents: profiles, setAgentId: selectProfile, setAgentTab } = useAgentProfiles();
@@ -41,6 +44,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
   );
   const [refreshOpen, setRefreshOpen] = useState(false);
   const [autoContinue, setAutoContinue] = useState(false);
+  const [changingContinuation, setChangingContinuation] = useState(false);
   const [settingsAgentId, setSettingsAgentId] = useState<string | null>(null);
   const closeSettings = () => {
     setSettingsAgentId(null);
@@ -59,6 +63,22 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
         agent.profile.id ===
         (chats.target?.projectId === project.id ? chats.target.agentId : agentId),
     ) ?? project.agents[0];
+  const changeContinuation = async (enabled: boolean) => {
+    if (!selectedAgent || changingContinuation) return;
+    setChangingContinuation(true);
+    try {
+      await window.studio?.setAutoContinuation({
+        projectId: project.id,
+        agentId: selectedAgent.profile.id,
+        enabled,
+      });
+      setAutoContinue(enabled);
+    } catch {
+      demo(uiText('ProjectView.continuationChangeFailed'));
+    } finally {
+      setChangingContinuation(false);
+    }
+  };
   return (
     <div className="project-workspace">
       <ProjectHeader project={project} onRefresh={() => setRefreshOpen(true)} />
@@ -82,7 +102,8 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
               <span className="project-auto-continue">
                 <Switch
                   checked={autoContinue}
-                  onChange={setAutoContinue}
+                  onChange={(enabled) => void changeContinuation(enabled)}
+                  disabled={!selectedAgent || changingContinuation}
                   label={t('ProjectView.automaticContinuationWhenLaunchingADialogue')}
                   trackIcon={
                     autoContinue ? (

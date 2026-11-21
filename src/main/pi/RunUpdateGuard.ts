@@ -33,6 +33,7 @@ export class RunUpdateGuard {
           live.status === 'ready' &&
           !live.blocked &&
           live.request.autoContinue &&
+          live.sequence >= (live.continueAfterSequence ?? 1) &&
           live.chain &&
           this.chains.get(live.run.project.id) === live.chain,
       )

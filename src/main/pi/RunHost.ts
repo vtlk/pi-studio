@@ -9,11 +9,15 @@ import { RunUpdateGuard } from './RunUpdateGuard.ts';
 import { withRunProjectChange } from './runProjectChange.ts';
 import { closeSuccessfulRun } from './automaticClose.ts';
 import { runTeamAccess } from './runTeamAccess.ts';
-import { runContinuation } from './runContinuation.ts';
+import { continuationStartSequence, runContinuation } from './runContinuation.ts';
 import type { TeamDelivery } from '../team-mcp/types.ts';
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
-import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
+import type {
+  AutoContinuationRequest,
+  LaunchAgentRequest,
+  LaunchAgentResult,
+} from '../../shared/runtime.ts';
 import { RunChannel } from './RunChannel.ts';
 import { hasConnectedRun, runKey, type LiveRun, type RunDependencies } from './RunTypes.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
@@ -175,6 +179,25 @@ export class RunHost {
     this.dependencies.chatOpened?.(request);
     return this.open(request);
   };
+  setAutoContinuation({ projectId, agentId, enabled }: AutoContinuationRequest) {
+    if (this.dependencies.serviceAgent || typeof enabled !== 'boolean')
+      throw Error(t('error.validateLaunchRequest.invalidLaunchMode'));
+    this.assertAgentAvailable(projectId, agentId);
+    if (!enabled) {
+      this.chains.delete(projectId);
+      return;
+    }
+    const live = this.live.get(runKey({ projectId, agentId }));
+    if (!live || !(live.embedded ? live.embedded.alive : live.pid && processAlive(live.pid)))
+      return;
+    if (live.request.autoContinue && live.chain && this.chains.get(projectId) === live.chain)
+      return;
+    const chain = Symbol();
+    this.chains.set(projectId, chain);
+    live.chain = chain;
+    live.request.autoContinue = true;
+    live.continueAfterSequence = continuationStartSequence(live);
+  }
   launchServiceTask(
     request: LaunchAgentRequest,
     message: string,
