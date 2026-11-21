@@ -7,7 +7,9 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
+import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
+import { teamMcpId } from '../src/shared/builtinResources.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { SessionBinding } from '../src/shared/project.ts';
@@ -19,14 +21,22 @@ process.env.PI_TELEMETRY = '0';
 await mkdir(process.env.PI_CODING_AGENT_DIR);
 const pi = await checkPi('');
 assert.ok(pi.supported);
+const testCorrections = process.argv.includes('--correction');
 const reports: unknown[] = [];
 try {
-  for (const mode of ['idle', 'busy'] as const) {
+  const modes = testCorrections
+    ? (['correction-closed', 'correction-idle'] as const)
+    : (['idle', 'busy'] as const);
+  for (const mode of modes) {
+    const correction = mode === 'correction-closed' || mode === 'correction-idle';
     let host: ReturnType<typeof createStudioRunHost>;
     let failure: unknown,
       requests = 0,
       busyResponse: ServerResponse | undefined,
-      releaseSource: (() => void) | undefined;
+      releaseSource: (() => void) | undefined,
+      releaseCorrectionRequest: (() => void) | undefined,
+      releaseCorrectedOutput: (() => void) | undefined,
+      correctionPid: number | undefined;
     const steps = new Map<string, number>();
     const autoPidChecks: { agentId: string; pid: number }[] = [];
     const expectedPids = new Map<string, number>();
@@ -85,7 +95,10 @@ try {
           busyResponse = response;
           return;
         }
-        assert.ok(lastUser.includes('CHAIN_CURRENT_TASK'));
+        const revising = lastUser.includes('QA_BACKWARD_CORRECTION');
+        assert.ok(
+          lastUser.includes('CHAIN_CURRENT_TASK') || (correction && revising && stage === 'first'),
+        );
         if (expectedPids.has(stage)) {
           const actual = host.processes().find((p) => p.agentId === stage)!;
           assert.equal(actual.pid, expectedPids.get(stage));
@@ -95,28 +108,52 @@ try {
           mode !== 'busy' || stage === 'first',
           'Busy next agent must never receive the automatic message',
         );
-        const step = steps.get(stage) ?? 0;
-        steps.set(stage, step + 1);
-        assert.ok(step < 3, 'No duplicate generation/task');
+        const key = revising ? 'revision' : stage;
+        const step = steps.get(key) ?? 0;
+        steps.set(key, step + 1);
+        const askingForCorrection = correction && stage === 'next';
+        const outputStep = step - Number(askingForCorrection);
+        assert.ok(outputStep < 3, 'No duplicate generation/task');
         const tools = body.tools.map((t: { function: { name: string } }) => t.function);
         const tool =
-          step === 0
-            ? tools.find((t: { name: string }) => t.name === 'write')
-            : step === 1
-              ? tools.find((t: { name: string }) => t.name.endsWith('complete_stage'))
-              : undefined;
-        if (step < 2) assert.ok(tool);
+          outputStep === -1
+            ? tools.find((t: { name: string }) => t.name.endsWith('__say_to'))
+            : outputStep === 0
+              ? tools.find((t: { name: string }) => t.name === 'write')
+              : outputStep === 1
+                ? tools.find((t: { name: string }) => t.name.endsWith('complete_stage'))
+                : undefined;
+        if (outputStep < 2) assert.ok(tool);
         const args =
-          step === 0
-            ? { path: 'output/result.txt', content: 'RESULT_' + stage }
-            : { outputs: ['result.txt'] };
+          outputStep === -1
+            ? {
+                agent_id: 'first',
+                request_id: 'backward-correction',
+                text: 'QA_BACKWARD_CORRECTION',
+              }
+            : outputStep === 0
+              ? {
+                  path: 'output/result.txt',
+                  content: revising ? 'REVISED_RESULT' : 'RESULT_' + stage,
+                }
+              : { outputs: ['result.txt'] };
+        if (revising && correctionPid)
+          assert.equal(
+            host.processes().find((item) => item.agentId === 'first')?.pid,
+            correctionPid,
+          );
+        if (askingForCorrection && step === 1)
+          assert.match(
+            JSON.stringify(body.messages.filter((m: { role: string }) => m.role === 'tool')),
+            /state\\?"\s*:\s*\\?"completed/,
+          );
         const delta = tool
           ? {
               role: 'assistant',
               tool_calls: [
                 {
                   index: 0,
-                  id: stage + '-' + step,
+                  id: key + '-' + step,
                   type: 'function',
                   function: { name: tool.name, arguments: JSON.stringify(args) },
                 },
@@ -127,7 +164,9 @@ try {
           response.write(`data: ${JSON.stringify(chunk(delta))}\n\n`);
           end(response, !!tool);
         };
-        if (stage === 'first' && step === 0) releaseSource = respond;
+        if (revising && step === 0) releaseCorrectedOutput = respond;
+        else if (askingForCorrection && step === 0) releaseCorrectionRequest = respond;
+        else if (stage === 'first' && step === 0) releaseSource = respond;
         else respond();
       } catch (error) {
         failure = error;
@@ -172,7 +211,7 @@ try {
       mainInstruction: 'QA_CHAIN_STAGE:' + id,
       instructions: [],
       skills: [],
-      mcps: [],
+      mcps: correction ? [teamMcpId] : [],
       plugins: [],
       model: {
         connectionId: connection.id,
@@ -194,7 +233,9 @@ try {
         agents: store.teamProfiles('qa-team'),
       })
     ).projects[0];
+    const team = correction ? new TeamSupport(service) : undefined;
     host = createStudioRunHost(service, {
+      team,
       embedded: true,
       bootstraps: join(root, mode, 'boots'),
       bridge: fileURLToPath(new URL('../bundled/pi-bridge/session.mjs', import.meta.url)),
@@ -216,7 +257,7 @@ try {
     };
     const prior = new Map<string, { binding: SessionBinding; bytes: Buffer; runId: string }>();
     try {
-      for (const id of mode === 'idle' ? ['next', 'last'] : ['next']) {
+      for (const id of correction ? [] : mode === 'idle' ? ['next', 'last'] : ['next']) {
         const opened = await host.launch({ ...target(id), autoContinue: false });
         expectedPids.set(id, host.processes().find((p) => p.agentId === id)!.pid);
         await host.sendChat({ ...target(id), text: 'PRIOR_HISTORY_' + id });
@@ -266,7 +307,7 @@ try {
       );
       const pid = host.processes().find(({ agentId }) => agentId === 'first')!.pid;
       const requestsBeforeArm = requests;
-      if (mode === 'idle') host.setAutoContinuation({ ...target('first'), enabled: true });
+      if (mode !== 'busy') host.setAutoContinuation({ ...target('first'), enabled: true });
       else
         assert.equal(
           (await host.launch({ ...target('first'), autoContinue: true })).runId,
@@ -276,7 +317,68 @@ try {
       assert.equal(requests, requestsBeforeArm, 'Arming never sends another model request');
       releaseSource!();
       releaseSource = undefined;
-      if (mode === 'idle') {
+      if (correction) {
+        await until(
+          () => releaseCorrectionRequest,
+          'QA is ready to send a real native Team request',
+        );
+        assert.equal(
+          host.processes().some((item) => item.agentId === 'first'),
+          false,
+        );
+        const directory = await store.projects.directory(project.id);
+        const original = store.projects.snapshot(project.id).agents[0];
+        assert.ok(original.session);
+        const sessionPath = join(directory, original.session.path);
+        const originalBytes = await readFile(sessionPath);
+        if (mode === 'correction-idle') {
+          await host.launch({ ...target('first'), autoContinue: false });
+          correctionPid = host.processes().find((item) => item.agentId === 'first')!.pid;
+        }
+        const qaPid = host.processes().find((item) => item.agentId === 'next')!.pid;
+        releaseCorrectionRequest!();
+        releaseCorrectionRequest = undefined;
+        await until(() => releaseCorrectedOutput, 'Earlier stage received the correction');
+        assert.equal(host.inspect(project.id, 'next')?.status, 'running');
+        assert.equal(steps.get('next'), 1, 'QA waits inside say_to');
+        assert.equal(steps.has('last'), false);
+        releaseCorrectedOutput!();
+        releaseCorrectedOutput = undefined;
+        await until(
+          () =>
+            store.projects.snapshot(project.id).agents[2].runStatus === 'ready' &&
+            !host.processes().some((item) => item.agentId === 'last'),
+          'The original QA step finished and advanced to the final stage',
+        );
+        assert.deepEqual(
+          [...steps],
+          [
+            ['first', 3],
+            ['next', 4],
+            ['revision', 3],
+            ['last', 3],
+          ],
+        );
+        assert.deepEqual(notices, []);
+        assert.equal(
+          await readFile(join(directory, original.outputPath, 'result.txt'), 'utf8'),
+          'REVISED_RESULT',
+        );
+        assert.equal(
+          store.projects.snapshot(project.id).agents[0].session?.id,
+          original.session.id,
+        );
+        const finalBytes = await readFile(sessionPath);
+        assert.ok(finalBytes.subarray(0, originalBytes.length).equals(originalBytes));
+        const messages = await team!.projectMessages(project.id);
+        assert.equal(messages.length, 1);
+        assert.equal(messages[0].state, 'completed');
+        assert.ok(messages[0].entryId);
+        assert.equal(
+          host.processes().some((item) => item.pid === qaPid),
+          false,
+        );
+      } else if (mode === 'idle') {
         await until(
           () => host.processes().length === 0,
           'Three-stage chain completed, including both pre-opened recipients',
@@ -358,21 +460,31 @@ try {
         answeredAnAgentQuestionBeforeArming: mode === 'idle',
         keptSourcePidAndSentNoExtraInputWhenArmed: true,
         samePidForEachReusedRecipient: mode === 'idle',
-        sameSessionAndJsonlPrefix: mode === 'idle',
-        oneTaskNoReplay: mode === 'idle',
+        sameSessionAndJsonlPrefix: mode === 'idle' || correction,
+        oneTaskNoReplay: mode === 'idle' || correction,
         busyRecipientPreservedAndNoLateRetry: mode === 'busy',
+        earlierAgentCorrectionCompletedAndOriginalChainResumed: correction,
+        reusedEarlierAgentPid: mode === 'correction-idle',
         nativeWindowsAcceptance: false,
       });
     } finally {
       releaseSource?.();
+      releaseCorrectionRequest?.();
+      releaseCorrectedOutput?.();
       busyResponse?.destroy();
       await host.drain();
       host.close();
+      team?.close();
       await new Promise<void>((done) => server.close(() => done()));
     }
   }
   await writeFile(
-    new URL('../artifacts/chain-idle-reuse-native-proof.json', import.meta.url),
+    new URL(
+      testCorrections
+        ? '../artifacts/chain-correction-native-proof.json'
+        : '../artifacts/chain-idle-reuse-native-proof.json',
+      import.meta.url,
+    ),
     JSON.stringify(
       {
         checkedAt: new Date().toISOString(),

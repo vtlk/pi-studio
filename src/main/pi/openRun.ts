@@ -5,7 +5,7 @@ import { reuseIdleChain } from './reuseIdleChain.ts';
 import { continuationStartSequence } from './runContinuation.ts';
 import { chatInput } from './chatInput.ts';
 import { validateLaunchRequest } from './validateLaunchRequest.ts';
-import type { TeamDelivery } from '../team-mcp/types.ts';
+import type { TeamChainCorrection, TeamDelivery, TeamHost } from '../team-mcp/types.ts';
 import { piNode } from './platform.ts';
 import { join } from 'node:path';
 import { mkdir, realpath, rm } from 'node:fs/promises';
@@ -39,7 +39,7 @@ export interface RunOpeningState {
   lifecycle: RunLifecycle;
   channel: RunChannel;
   chats: RunChats;
-  assertTeamDispatch: (projectId: string, agentId: string, runId: string) => void;
+  assertTeamDispatch: TeamHost['assertTeamDispatch'];
 }
 export async function openRun(
   state: RunOpeningState,
@@ -48,15 +48,24 @@ export async function openRun(
   continuation?: Continuation,
   beforeDispatch?: (run: PreparedRun) => Promise<void>,
   teamDelivery?: TeamDelivery,
+  correction?: TeamChainCorrection,
 ): Promise<LaunchAgentResult> {
   state.assertUnchanged(request.projectId);
   validateLaunchRequest(request);
   const key = runKey(request);
   continuation?.check();
+  const checkCorrection = () => {
+    if (correction && !correction.isCurrent(request.projectId, request.agentId))
+      throw new Error(t('error.teamSupport.chainCorrectionExpired'));
+  };
+  checkCorrection();
   const chain = continuation?.token ?? (request.autoContinue ? Symbol() : undefined);
   if (!continuation) {
     const target = state.live.get(key);
-    if (chain || (target?.chain && target.chain === state.chains.get(request.projectId)))
+    if (
+      !correction &&
+      (chain || (target?.chain && target.chain === state.chains.get(request.projectId)))
+    )
       state.chains.delete(request.projectId);
     if (chain) state.chains.set(request.projectId, chain);
     for (const live of state.live.values())
@@ -73,6 +82,7 @@ export async function openRun(
     await state.retiring.get(key);
     state.assertUnchanged(request.projectId);
     continuation?.check();
+    checkCorrection();
     const active = state.live.get(key);
     if (active?.embedded?.alive && automaticMessage && teamDelivery && beforeDispatch) {
       assertTeamNotBusy(active);
@@ -80,6 +90,7 @@ export async function openRun(
         active.embedded.state.phase === 'ready' &&
         ((await state.dependencies.canReuseTeam?.(active.run)) ?? true);
       assertTeamNotBusy(active);
+      checkCorrection();
       if (state.chats.sendingTo(request.projectId, request.agentId)) throw Error(t('Chat.sending'));
       if (reusable)
         return await reuseIdleTeam(
@@ -89,6 +100,7 @@ export async function openRun(
           automaticMessage,
           teamDelivery,
           beforeDispatch,
+          correction,
         );
       // A changed profile needs fresh native resources, but preserves the canonical dialogue.
       await stopRunProcess(active, state.dependencies.closed);
@@ -166,7 +178,13 @@ export async function openRun(
         chain,
         continueAfterSequence: 1,
         automaticCheck: teamDelivery
-          ? () => state.assertTeamDispatch(request.projectId, request.agentId, run.record.runId)
+          ? () =>
+              state.assertTeamDispatch(
+                request.projectId,
+                request.agentId,
+                run.record.runId,
+                correction,
+              )
           : continuation?.check,
         status: 'waiting',
         sequence: 0,
@@ -232,7 +250,7 @@ export async function openRun(
     });
     continuation?.check();
     if (teamDelivery)
-      state.assertTeamDispatch(request.projectId, request.agentId, run.record.runId);
+      state.assertTeamDispatch(request.projectId, request.agentId, run.record.runId, correction);
     await beforeDispatch?.(run);
     state.assertUnchanged(request.projectId);
     const timer = setTimeout(

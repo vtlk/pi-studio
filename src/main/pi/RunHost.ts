@@ -10,7 +10,7 @@ import { withRunProjectChange } from './runProjectChange.ts';
 import { closeSuccessfulRun } from './automaticClose.ts';
 import { runTeamAccess } from './runTeamAccess.ts';
 import { continuationStartSequence, runContinuation } from './runContinuation.ts';
-import type { TeamDelivery } from '../team-mcp/types.ts';
+import type { TeamChainCorrection, TeamDelivery } from '../team-mcp/types.ts';
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
 import type {
@@ -224,10 +224,11 @@ export class RunHost {
     retiring: this.retiring,
     refreshing: this.refreshing,
     assertUnchanged: (id) => this.assertUnchanged(id),
-    open: (request, text, before, delivery) =>
-      this.open(request, text, undefined, before, delivery),
+    open: (request, text, before, delivery, correction) =>
+      this.open(request, text, undefined, before, delivery, false, correction),
   });
   inspect = this.teamAccess.inspect.bind(this.teamAccess);
+  chainCorrection = this.teamAccess.chainCorrection.bind(this.teamAccess);
   teamUnavailable = this.teamAccess.teamUnavailable.bind(this.teamAccess);
   assertTeamDispatch = this.teamAccess.assertTeamDispatch.bind(this.teamAccess);
   launchTeamTask = this.teamAccess.launchTeamTask.bind(this.teamAccess);
@@ -246,6 +247,7 @@ export class RunHost {
     beforeDispatch?: (run: PreparedRun) => Promise<void>,
     teamDelivery?: TeamDelivery,
     refresh = false,
+    correction?: TeamChainCorrection,
   ): Promise<LaunchAgentResult> {
     if (!refresh) this.assertAgentAvailable(request.projectId, request.agentId);
     return openRun(
@@ -266,6 +268,7 @@ export class RunHost {
       continuation,
       beforeDispatch,
       teamDelivery,
+      correction,
     );
   }
   private checkLiveness() {

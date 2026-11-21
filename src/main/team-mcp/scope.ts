@@ -35,6 +35,12 @@ export async function teamScope(service: StudioService, run: TeamCaller) {
   });
 }
 export type TeamScope = Awaited<ReturnType<typeof teamScope>>;
+export function isEarlierStage(scope: TeamScope, senderId: string, recipientId: string) {
+  const order = scope.project.agents;
+  const sender = order.findIndex((item) => item.profile.id === senderId && item.profile.enabled);
+  const target = order.findIndex((item) => item.profile.id === recipientId && item.profile.enabled);
+  return !!scope.team?.agentIds.includes(senderId) && target >= 0 && target < sender;
+}
 export function outputAgent(scope: TeamScope, id: unknown): ProjectAgent {
   if (typeof id !== 'string') throw new Error(t('error.scope.aStableAgentIdIs'));
   const agent = [

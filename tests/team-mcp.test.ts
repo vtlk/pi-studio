@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { buildRunContext } from '../src/main/pi/ContextBuilder.ts';
+import { runTeamAccess } from '../src/main/pi/runTeamAccess.ts';
+import type { LiveRun } from '../src/main/pi/RunTypes.ts';
 import { dispatchTeamMessage } from '../src/main/team-mcp/dispatch.ts';
 import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
 import { TeamJournal, messageId, messageHash } from '../src/main/team-mcp/TeamJournal.ts';
@@ -307,6 +309,7 @@ test('busy queue survives restart without auto-launch; explicit same-key retry d
   const target = await buildRunContext(f.directory, f.project, 'b', f.agents, []);
   const host = {
     inspect: () => undefined,
+    chainCorrection: () => undefined,
     teamUnavailable: () => (busy ? 'Получатель выполняет запрос.' : undefined),
     assertTeamDispatch: () => {},
     launchTeamTask: async (
@@ -370,6 +373,7 @@ test('legacy attention and saved waiting/error status never block a fresh explic
           opened
             ? { run: target, status, blocked: true, sequence: 5, opened: true, delivering: false }
             : undefined,
+        chainCorrection: () => undefined,
         teamUnavailable: () => undefined,
         assertTeamDispatch: () => {},
         launchTeamTask: async (_p, _a, _text, _delivery, before) => {
@@ -401,6 +405,7 @@ test('cancelling a queued task during preparation wins the final dispatch check 
   let terminalDispatch = 0;
   const host = {
     inspect: () => undefined,
+    chainCorrection: () => undefined,
     teamUnavailable: () => undefined,
     assertTeamDispatch: () => {},
     launchTeamTask: async (
@@ -425,6 +430,9 @@ test('team deletion revokes the removed sender and preserves output files; chain
   await writeFile(join(f.directory, f.project.agents[1].outputPath, 'keep.txt'), 'ARCHIVED_RESULT');
   f.support.attach({
     inspect: () => undefined,
+    chainCorrection: () => {
+      throw new Error('В проекте включена цепочка.');
+    },
     teamUnavailable: () => 'В проекте включена цепочка.',
     assertTeamDispatch: () => {},
     launchTeamTask: async () => {
@@ -455,6 +463,90 @@ test('team deletion revokes the removed sender and preserves output files; chain
     }),
     /MCP team отключён/,
   );
+});
+
+test('only the active chain request can send a correction to an earlier saved stage', async (t) => {
+  const f = await fixture(t);
+  const source = await buildRunContext(f.directory, f.project, 'b', f.agents, []);
+  source.requestSequence = 2;
+  const target = f.run;
+  const token = Symbol();
+  const chains = new Map([[f.project.id, token]]);
+  const active = {
+    run: source,
+    request: { autoContinue: true },
+    chain: token,
+    sequence: 2,
+    status: 'running',
+    pid: process.pid,
+  } as LiveRun;
+  const live = new Map([[f.project.id + '/b', active]]);
+  const journal = new TeamJournal(f.directory, f.project.id);
+  // This older task has no active chain authorization.
+  const older = await journal.accept(message(f.project.id, 'b', 'a', 'ordinary-queued'));
+  let dispatched = 0;
+  const host = runTeamAccess({
+    live,
+    chains,
+    changing: new Set(),
+    opening: new Set(),
+    retiring: new Map(),
+    assertUnchanged: () => {},
+    open: async (request, _text, before, delivery, correction) => {
+      assert.equal(request.autoContinue, false);
+      assert.ok(correction?.isCurrent(f.project.id, 'a'));
+      assert.equal(correction?.isCurrent(f.project.id, 'b'), false);
+      live.set(f.project.id + '/a', { run: target } as LiveRun);
+      await before(target);
+      dispatched++;
+      await journal.update(delivery.messageId, (item) => ({ ...item, state: 'completed' }));
+      return { runId: target.record.runId, project: f.project };
+    },
+  });
+  f.support.attach(host);
+  // Editing the team constructor order does not change the project's saved pipeline.
+  await f.store.saveSection('agentCatalog', {
+    agents: f.agents,
+    teams: [{ id: 'team', name: 'Team', agentIds: ['b', 'a'] }],
+  });
+  const args = { agent_id: 'a', text: 'Correct result', request_id: 'correction-1' };
+  assert.throws(() => host.chainCorrection(source, 2, 'a', false), /текущий этап/);
+  await assert.rejects(f.support.call({ ...source }, 'say_to', args), /текущий этап/);
+  await assert.rejects(
+    f.support.call(target, 'say_to', { ...args, agent_id: 'b' }),
+    /текущий этап/,
+  );
+  const result = await f.support.groups(source)[0].call('say_to', args, AbortSignal.timeout(5000));
+  assert.equal(JSON.parse(result.content[0].text!).state, 'completed');
+  assert.equal(dispatched, 1);
+  assert.equal(chains.get(f.project.id), token);
+  assert.equal((await journal.get(older.id))?.state, 'queued');
+  assert.equal(
+    ((await f.support.call(source, 'say_to', args)) as { state: string }).state,
+    'completed',
+  );
+  assert.equal(dispatched, 1);
+
+  // A busy dialogue still holds the correction. Changing the source request invalidates it.
+  Object.assign(live.get(f.project.id + '/a')!, { pid: process.pid, status: 'running' });
+  const waiting = f.support
+    .groups(source)[0]
+    .call(
+      'say_to_agent',
+      { ...args, request_id: 'correction-expiring' },
+      AbortSignal.timeout(5000),
+    );
+  const id = messageId(f.project.id, 'b', 'correction-expiring');
+  for (let i = 0; i < 100 && !(await journal.get(id))?.reason; ++i)
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal((await journal.get(id))?.state, 'queued');
+  assert.match((await journal.get(id))?.reason ?? '', /выполняет запрос/);
+  active.sequence++;
+  source.requestSequence = active.sequence;
+  const expired = await waiting;
+  assert.equal(expired.isError, true);
+  assert.equal(JSON.parse(expired.content[0].text!).state, 'failed');
+  assert.equal(dispatched, 1);
 });
 
 test('team status, current permissions and project message polling never recursively scan outputs', async (t) => {
@@ -492,6 +584,7 @@ test('a recipient becoming busy before dispatch keeps the same task queued inste
     f.service,
     {
       inspect: () => undefined,
+      chainCorrection: () => undefined,
       teamUnavailable: () => (busy ? 'Получатель выполняет запрос.' : undefined),
       assertTeamDispatch: () => {},
       launchTeamTask: async () => {

@@ -1,7 +1,7 @@
 import { t } from '../../shared/i18n/index.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { LaunchAgentRequest, LaunchAgentResult } from '../../shared/runtime.ts';
-import type { TeamDelivery } from '../team-mcp/types.ts';
+import type { TeamCaller, TeamChainCorrection, TeamDelivery } from '../team-mcp/types.ts';
 import { runKey, type LiveRun } from './RunTypes.ts';
 import { processAlive } from './terminal.ts';
 export function runTeamAccess(state: {
@@ -18,8 +18,11 @@ export function runTeamAccess(state: {
     message: string,
     beforeDispatch: (run: PreparedRun) => Promise<void>,
     delivery: TeamDelivery,
+    correction?: TeamChainCorrection,
   ) => Promise<LaunchAgentResult>;
 }) {
+  const chainAllowsTeam = (projectId: string, agentId: string, correction?: TeamChainCorrection) =>
+    correction ? correction.isCurrent(projectId, agentId) : !state.chains.has(projectId);
   return {
     inspect(projectId: string, agentId: string) {
       const live = state.live.get(runKey({ projectId, agentId }));
@@ -33,9 +36,38 @@ export function runTeamAccess(state: {
         delivering: !!live.run.teamDelivery && live.sequence === 0,
       };
     },
-    teamUnavailable(projectId: string, agentId: string) {
+    chainCorrection(
+      run: TeamCaller,
+      sequence: number | undefined,
+      recipientId: string,
+      earlier: boolean,
+    ): TeamChainCorrection | undefined {
+      const projectId = run.project.id;
+      const token = state.chains.get(projectId);
+      if (!token) return;
+      const key = runKey({ projectId, agentId: run.record.agentId });
+      const sender = state.live.get(key);
+      const isCurrent = (project: string, agent: string) =>
+        project === projectId &&
+        agent === recipientId &&
+        !!sender &&
+        state.live.get(key) === sender &&
+        state.chains.get(projectId) === token &&
+        sender.chain === token &&
+        sender.run === run &&
+        sender.request.autoContinue &&
+        sender.sequence === sequence &&
+        sender.sequence >= (sender.continueAfterSequence ?? 1) &&
+        sender.status === 'running' &&
+        !!sender.pid &&
+        processAlive(sender.pid);
+      if (!earlier || !sender || !sequence || !isCurrent(projectId, recipientId))
+        throw new Error(t('error.teamSupport.taskNotSentTheProject'));
+      return { runId: sender.run.record.runId, sequence, isCurrent };
+    },
+    teamUnavailable(projectId: string, agentId: string, correction?: TeamChainCorrection) {
       const key = runKey({ projectId, agentId });
-      if (state.chains.has(projectId))
+      if (!chainAllowsTeam(projectId, agentId, correction))
         return 'В проекте включена цепочка. Доставка team ожидает её завершения или явного выключения.';
       if (
         state.changing.has(projectId) ||
@@ -62,20 +94,27 @@ export function runTeamAccess(state: {
       text: string,
       delivery: TeamDelivery,
       beforeDispatch: (run: PreparedRun) => Promise<void>,
+      correction?: TeamChainCorrection,
     ) {
-      const reason = this.teamUnavailable(projectId, agentId);
+      const reason = this.teamUnavailable(projectId, agentId, correction);
       if (reason) throw new Error(reason);
       return state.open(
         { projectId, agentId, autoContinue: false },
         text,
         beforeDispatch,
         delivery,
+        correction,
       );
     },
-    assertTeamDispatch(projectId: string, agentId: string, runId: string) {
+    assertTeamDispatch(
+      projectId: string,
+      agentId: string,
+      runId: string,
+      correction?: TeamChainCorrection,
+    ) {
       state.assertUnchanged(projectId);
       if (
-        state.chains.has(projectId) ||
+        !chainAllowsTeam(projectId, agentId, correction) ||
         state.live.get(runKey({ projectId, agentId }))?.run.record.runId !== runId
       )
         throw new Error(t('error.runTeamAccess.theChainOrExactDialogue'));

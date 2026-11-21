@@ -28,7 +28,7 @@ const baseTools: readonly SessionTool[] = [
   ),
   tool(
     'say_to',
-    'Explicitly send a new task to the sole exact project dialogue of a teammate. Use agent_id or an exact unique agent_name. request_id is a stable idempotency key for this task; reuse the SAME key on timeout/retry. If Pi is closed, open or resume it; an already idle dialogue accepts this new task immediately, including after earlier waiting, stopped, blocked or error status. No manual user message to the recipient is required. Actually busy recipients queue FIFO. This call WAITS until task completion or an explicit blocked/error result; do not continue dependent work on a blocked/uncertain outcome. No self-send, cycles, chain takeover or paid model substitution.',
+    'Explicitly send a new task to the sole exact project dialogue of a teammate. Use agent_id or an exact unique agent_name. request_id is a stable idempotency key for this task; reuse the SAME key on timeout/retry. If Pi is closed, open or resume it; an already idle dialogue accepts this task without a manual user message. Busy recipients wait in the queue. This call WAITS until task completion or an explicit blocked/error result. Stop dependent work on blocked or uncertain outcomes. While the automatic chain is active, its current step may request a correction from an earlier enabled step. Studio keeps the current step responsible for completing the chain handoff. No self-send, cycles, calls to later steps during the chain, or paid model substitution.',
     {
       agent_id: agent,
       agent_name: agent,

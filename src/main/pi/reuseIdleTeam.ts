@@ -1,6 +1,6 @@
 import { t } from '../../shared/i18n/index.ts';
 import type { LaunchAgentRequest } from '../../shared/runtime.ts';
-import type { TeamDelivery } from '../team-mcp/types.ts';
+import type { TeamChainCorrection, TeamDelivery } from '../team-mcp/types.ts';
 import type { RunOpeningState } from './openRun.ts';
 import { runKey, type LiveRun } from './RunTypes.ts';
 
@@ -33,6 +33,7 @@ export async function reuseIdleTeam(
   text: string,
   delivery: TeamDelivery,
   beforeDispatch: (run: LiveRun['run']) => Promise<void>,
+  correction?: TeamChainCorrection,
 ) {
   const idle = () => {
     const chat = live.embedded;
@@ -40,7 +41,7 @@ export async function reuseIdleTeam(
     if (state.live.get(runKey(request)) !== live || !chat?.alive || chat.state.phase !== 'ready')
       throw Error(t('Chat.disconnected'));
     assertIdleTeam(live);
-    state.assertTeamDispatch(request.projectId, request.agentId, live.run.record.runId);
+    state.assertTeamDispatch(request.projectId, request.agentId, live.run.record.runId, correction);
   };
   idle();
   const previous = {
@@ -61,7 +62,12 @@ export async function reuseIdleTeam(
       live.run.teamDelivery = delivery;
       live.pendingTeamText = text;
       live.automaticCheck = () =>
-        state.assertTeamDispatch(request.projectId, request.agentId, live.run.record.runId);
+        state.assertTeamDispatch(
+          request.projectId,
+          request.agentId,
+          live.run.record.runId,
+          correction,
+        );
     });
     started = disposition === 'started';
     if (!started) throw Error(t('error.runHost.theNextAgentDidNotAccept'));

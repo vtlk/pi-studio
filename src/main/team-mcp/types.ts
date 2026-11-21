@@ -1,6 +1,14 @@
+import { t } from '../../shared/i18n/index.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import type { AgentRunStatus } from '../../shared/project.ts';
 
+interface TeamRequestIdentity {
+  runId: string;
+  sequence: number;
+}
+export interface TeamChainCorrection extends TeamRequestIdentity {
+  isCurrent(projectId: string, agentId: string): boolean;
+}
 export interface TeamDelivery {
   messageId: string;
   senderId: string;
@@ -9,7 +17,7 @@ export interface TeamDelivery {
 }
 export type TeamCaller = Pick<
   PreparedRun,
-  'project' | 'projectRoot' | 'teamAccess' | 'teamDelivery'
+  'project' | 'projectRoot' | 'teamAccess' | 'teamDelivery' | 'requestSequence'
 > & {
   record: Pick<PreparedRun['record'], 'projectId' | 'agentId'>;
 };
@@ -23,14 +31,30 @@ export interface TeamRuntime {
 }
 export interface TeamHost {
   inspect(projectId: string, agentId: string): TeamRuntime | undefined;
-  teamUnavailable(projectId: string, agentId: string): string | undefined;
-  assertTeamDispatch(projectId: string, agentId: string, runId: string): void;
+  chainCorrection(
+    sender: TeamCaller,
+    sequence: number | undefined,
+    recipientId: string,
+    earlier: boolean,
+  ): TeamChainCorrection | undefined;
+  teamUnavailable(
+    projectId: string,
+    agentId: string,
+    correction?: TeamChainCorrection,
+  ): string | undefined;
+  assertTeamDispatch(
+    projectId: string,
+    agentId: string,
+    runId: string,
+    correction?: TeamChainCorrection,
+  ): void;
   launchTeamTask(
     projectId: string,
     agentId: string,
     text: string,
     delivery: TeamDelivery,
     beforeDispatch: (run: PreparedRun) => Promise<void>,
+    correction?: TeamChainCorrection,
   ): Promise<unknown>;
 }
 export type MessageState =
@@ -52,6 +76,7 @@ export interface TeamMessage {
   /** Only undelivered explicit task input, never profile or skill snapshots. */
   text?: string;
   lineage: string[];
+  chainCorrection?: TeamRequestIdentity;
   expectedSession?: { id: string; path: string };
   runId?: string;
   sessionId?: string;
@@ -65,12 +90,15 @@ export function publicMessage(message: TeamMessage, armed: boolean) {
     bodyHash: _hash,
     dispatchHash: _dispatchHash,
     lineage: _lineage,
+    chainCorrection: _chainCorrection,
     expectedSession: _expected,
     ...safe
   } = message;
+  const expiredCorrection = message.state === 'queued' && !armed && !!message.chainCorrection;
   return {
     ...safe,
     preview: message.text?.slice(0, 500),
-    requiresExplicitResume: message.state === 'queued' && !armed,
+    reason: expiredCorrection ? t('error.teamSupport.chainCorrectionExpired') : safe.reason,
+    requiresExplicitResume: message.state === 'queued' && !armed && !expiredCorrection,
   };
 }

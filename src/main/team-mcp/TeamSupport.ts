@@ -9,18 +9,24 @@ import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import type { SessionMcpGroup, ChannelEvent } from '../pi/RunChannel.ts';
 import type { ModelConnectionStatus } from '../../shared/connections.ts';
 import { hasModelConfiguration } from '../../shared/modelConfiguration.ts';
-import { teamScope, recipient } from './scope.ts';
+import { isEarlierStage, teamScope, recipient } from './scope.ts';
 import { teamTools } from './tools.ts';
 import { helperTeamSettings, helperTeamTools } from './helperSettings.ts';
 import { TeamJournal, messageHash, messageId } from './TeamJournal.ts';
 import { verifyReceipt } from './receipt.ts';
-import { publicMessage, type TeamHost, type TeamCaller } from './types.ts';
+import {
+  publicMessage,
+  type TeamHost,
+  type TeamCaller,
+  type TeamChainCorrection,
+} from './types.ts';
 
 export class TeamSupport {
   private host?: TeamHost;
   private stopping = false;
   private readonly journals = new Map<string, TeamJournal>();
   private readonly armed = new Set<string>();
+  private readonly corrections = new Map<string, { run: TeamCaller; grant: TeamChainCorrection }>();
   private readonly pumping = new Set<string>();
   private readonly contexts = new Map<string, TeamCaller>();
   private timer = setInterval(() => {
@@ -51,6 +57,7 @@ export class TeamSupport {
     this.stopping = true;
     clearInterval(this.timer);
     this.armed.clear();
+    this.corrections.clear();
     this.contexts.clear();
   }
   private journal(run: TeamCaller) {
@@ -95,8 +102,11 @@ export class TeamSupport {
         };
       });
       this.armed.delete(item.id);
+      this.corrections.delete(item.id);
     } else {
       if (item.state !== 'queued') throw new Error(t('error.teamSupport.onlyAnUndeliveredTaskCan'));
+      if (item.chainCorrection && !this.corrections.has(item.id))
+        throw new Error(t('error.teamSupport.chainCorrectionExpired'));
       run = await projectCaller(this.service, request.projectId, item.senderId);
       const scope = await teamScope(this.service, run);
       if (scope.project.sourceTeamId !== item.sourceTeamId)
@@ -132,6 +142,7 @@ export class TeamSupport {
     ];
   }
   async call(run: TeamCaller, name: string, args: Record<string, unknown>) {
+    const sequence = run.requestSequence;
     if (this.stopping) throw new Error(t('error.teamSupport.studioIsClosingNoNew'));
     if (!run.teamAccess) throw new Error(t('error.teamSupport.mcpTeamIsNotAssigned'));
     if (run.project.id === 'pi-setup-assistant')
@@ -154,9 +165,6 @@ export class TeamSupport {
         this.check,
       );
     const { current, saved } = recipient(scope, args);
-    const conflict = this.host?.teamUnavailable(scope.project.id, current.id);
-    if (conflict?.includes('цепочка'))
-      throw new Error(t('error.teamSupport.taskNotSentTheProject'));
     if (
       !hasModelConfiguration(current.model) ||
       !scope.connections.some(
@@ -175,6 +183,12 @@ export class TeamSupport {
     const lineage = [...(run.teamDelivery?.lineage ?? []), run.record.agentId];
     if (lineage.includes(current.id))
       throw new Error(t('error.teamSupport.selfMessagingAndTeamHandoff'));
+    const correction = this.host?.chainCorrection(
+      run,
+      sequence,
+      current.id,
+      isEarlierStage(scope, run.record.agentId, current.id),
+    );
     const now = Date.now();
     const item = await this.journal(run).accept({
       version: 1,
@@ -190,11 +204,22 @@ export class TeamSupport {
       text: args.text,
       bodyHash: messageHash(args.text),
       lineage,
+      chainCorrection: correction && { runId: correction.runId, sequence: correction.sequence },
       expectedSession: saved.session
         ? { id: saved.session.id, path: saved.session.path }
         : undefined,
     });
     if (item.state === 'queued') {
+      if (item.chainCorrection || correction) {
+        if (
+          !correction ||
+          item.chainCorrection?.runId !== correction.runId ||
+          item.chainCorrection.sequence !== correction.sequence
+        )
+          throw new Error(t('error.teamSupport.chainCorrectionExpired'));
+        if (!this.corrections.has(item.id))
+          this.corrections.set(item.id, { run, grant: correction });
+      }
       this.armed.add(item.id);
       this.contexts.set(`${run.projectRoot}/${scope.project.id}`, run);
       void this.pump(run).catch(() => {});
@@ -223,13 +248,25 @@ export class TeamSupport {
     if (!this.host || this.stopping) return;
     const journal = this.journal(run);
     const seen = new Set<string>();
-    for (const item of await journal.list()) {
+    const items = await journal.list();
+    if (this.corrections.size) {
+      // A queued ordinary task waits for the chain. It cannot block the correction the chain awaits.
+      const priority = (item: (typeof items)[number]) =>
+        item.state !== 'queued' ? 0 : this.corrections.has(item.id) ? 1 : 2;
+      items.sort((a, b) => priority(a) - priority(b));
+    }
+    for (const item of items) {
+      const correction = this.corrections.get(item.id);
+      const expired =
+        item.state === 'queued' &&
+        correction &&
+        !correction.grant.isCurrent(item.projectId, item.recipientId);
       if (
         !['queued', 'dispatching', 'received', 'uncertain'].includes(item.state) ||
-        seen.has(item.recipientId)
+        (seen.has(item.recipientId) && !expired)
       )
         continue;
-      seen.add(item.recipientId);
+      if (!expired) seen.add(item.recipientId);
       if (item.state === 'dispatching' && Date.now() - item.updatedAt > 60000)
         await journal.update(item.id, (previous) =>
           previous.state === 'dispatching'
@@ -244,9 +281,19 @@ export class TeamSupport {
       const key = `${run.projectRoot}/${run.project.id}/${item.recipientId}`;
       if (this.pumping.has(key)) continue;
       this.pumping.add(key);
-      void dispatchTeamMessage(this.service, this.host, run, item, journal)
+      void dispatchTeamMessage(
+        this.service,
+        this.host,
+        correction?.run ?? run,
+        item,
+        journal,
+        correction?.grant,
+      )
         .then(async () => {
-          if ((await journal.get(item.id))?.state !== 'queued') this.armed.delete(item.id);
+          if ((await journal.get(item.id))?.state !== 'queued') {
+            this.armed.delete(item.id);
+            this.corrections.delete(item.id);
+          }
         })
         .catch(() => {})
         .finally(() => this.pumping.delete(key));
