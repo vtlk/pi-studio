@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-17T22:35:05.288Z",
+  "checkedAt": "2026-11-21T16:44:26.209Z",
   "pi": "1.5.2",
   "realPiSdkProductionBridgeAndMcp": true,
   "localSyntheticModelOnly": true,
@@ -7,7 +7,10 @@
   "reports": [
     {
       "mode": "idle",
-      "requests": 11,
+      "requests": 12,
+      "inFlightRequestWasArmed": true,
+      "answeredAnAgentQuestionBeforeArming": true,
+      "keptSourcePidAndSentNoExtraInputWhenArmed": true,
       "samePidForEachReusedRecipient": true,
       "sameSessionAndJsonlPrefix": true,
       "oneTaskNoReplay": true,
@@ -17,6 +20,9 @@
     {
       "mode": "busy",
       "requests": 5,
+      "inFlightRequestWasArmed": true,
+      "answeredAnAgentQuestionBeforeArming": false,
+      "keptSourcePidAndSentNoExtraInputWhenArmed": true,
       "samePidForEachReusedRecipient": false,
       "sameSessionAndJsonlPrefix": false,
       "oneTaskNoReplay": false,

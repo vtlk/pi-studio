@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-21T16:48:10.917095+00:00",
+  "version": "0.2.0-alpha.128",
+  "sourceCommit": "740de0eea169566dd88e9b7b33949d9a1efb14ed",
+  "testsPassed": 603,
+  "nativeDesktopTestDeferred": 1,
+  "lintTypecheckArchitectureAndBuildPassed": true,
+  "actualPiQuestionResponseArmedWhileRunning": true,
+  "nativeChainProof": "chain-idle-reuse-native-proof.json",
+  "navigationProof": "navigation-ui-proof.json",
+  "unpackedMacBuildRemovedBytes": 567205311,
+  "freeBytesBefore": 10015240192,
+  "freeBytesAfter": 10378723328,
+  "retainedReleaseFiles": [
+    "Pi-Studio-0.2.0-alpha.128-darwin-arm64.update.json",
+    "Pi-Studio-0.2.0-alpha.128-mac-arm64.zip",
+    "Pi-Studio-0.2.0-alpha.128-mac-arm64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.128-win-x64.zip",
+    "Pi-Studio-0.2.0-alpha.128-win-x64.zip.sha256",
+    "Pi-Studio-0.2.0-alpha.128-win32-x64.update.json"
+  ],
+  "noNewRetainedChromeClones": true,
+  "nativeWindowsAcceptance": false,
+  "userInstallOrUserDataChanged": false
+}
