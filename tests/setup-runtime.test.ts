@@ -14,6 +14,7 @@ import { changeLanguage } from '../src/shared/i18n/index.ts';
 import { setupTools } from '../src/main/pi/setupTools.ts';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { StudioResources } from '../src/main/pi/StudioResources.ts';
+import { setupAssistantInstruction } from '../src/shared/systemAgentInstructions.ts';
 
 const node = 'D:\\Pi Studio\\компоненты\\node\\node.exe';
 const npm = 'D:\\Pi Studio\\компоненты\\node\\node_modules\\npm\\bin\\npm-cli.js';
@@ -124,6 +125,10 @@ test('existing editable helper roles get current setup rules without replacing u
   assert.ok(prompt.includes('call get_runtime'));
   assert.ok(prompt.includes('Ordinary npm libraries and CLI programs are not Pi plugins'));
   assert.ok(prompt.includes('Your helper output folder being empty says nothing'));
+  assert.match(prompt, /asks to add a skill, search for an existing skill online/);
+  assert.match(prompt, /Write a new skill only when the user explicitly asks/);
+  assert.match(setupAssistantInstruction, /добавить скилл, ищи готовый скилл в интернете/);
+  assert.match(setupAssistantInstruction, /Пиши новый скилл только по явной просьбе/);
   const ordinary = sessionSystemPrompt({
     instructions: 'USER PROJECT',
     record: { ...record, projectId: 'ordinary' },
