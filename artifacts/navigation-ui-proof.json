@@ -1,6 +1,6 @@
 {
-  "version": "0.2.0-alpha.138",
-  "checkedAt": "2026-11-21T23:43:43.194Z",
+  "version": "0.2.0-alpha.139",
+  "checkedAt": "2026-11-22T07:52:43.767Z",
   "checks": [
     {
       "language": "ru",
@@ -12,6 +12,7 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "continuationSwitchTargetsSelectedAgentWithoutLaunching": true,
+      "agentListWidthChangesWithPointerAndKeyboard": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
       "blackHeaderInBothThemes": true
@@ -26,6 +27,7 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "continuationSwitchTargetsSelectedAgentWithoutLaunching": true,
+      "agentListWidthChangesWithPointerAndKeyboard": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
       "blackHeaderInBothThemes": true
@@ -40,6 +42,7 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "continuationSwitchTargetsSelectedAgentWithoutLaunching": true,
+      "agentListWidthChangesWithPointerAndKeyboard": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
       "blackHeaderInBothThemes": true
@@ -54,6 +57,7 @@
       "refreshDoesNotNavigateOrMutate": true,
       "headerPaddingAndKeyboardBack": true,
       "continuationSwitchTargetsSelectedAgentWithoutLaunching": true,
+      "agentListWidthChangesWithPointerAndKeyboard": true,
       "hoverAndNoHorizontalOverflow": true,
       "chevronLeftIconAndFullWidthBottomBorder": true,
       "blackHeaderInBothThemes": true
