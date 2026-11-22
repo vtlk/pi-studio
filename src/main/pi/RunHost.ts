@@ -28,6 +28,7 @@ import { ContinuationCancelled } from './RunTypes.ts';
 import { refreshRuns, refreshRunSnapshot } from './refreshRuns.ts';
 import type { AgentRefreshConsent, AgentRefreshRun } from '../../shared/agentRefresh.ts';
 import type { ProjectCommandResult } from '../../shared/storage.ts';
+import type { SessionLeaseIdentity } from '../storage/sessionLease.ts';
 export class RunHost {
   private stopping = false;
   private readonly channel = new RunChannel();
@@ -309,6 +310,9 @@ export class RunHost {
         return action();
       },
     );
+  }
+  ownsIdleLease(projectId: string, lease: SessionLeaseIdentity) {
+    return this.changing.has(projectId) && this.chats.ownsIdleLease(projectId, lease);
   }
   async stopAgent(projectId: string, agentId: string) {
     const key = runKey({ projectId, agentId });

@@ -36,6 +36,9 @@ export class ProjectStore {
   snapshot(id: string) {
     return this.views.snapshot(this.get(id));
   }
+  clearOutputs(id: string, agentId: string) {
+    this.views.clearOutputs(this.get(id), agentId);
+  }
   location(id: string) {
     return join(this.root, 'projects', this.get(id).folderName!);
   }

@@ -12,6 +12,7 @@ import type { RunDependencies, LiveRun } from './RunTypes.ts';
 import { runKey } from './RunTypes.ts';
 import type { PreparedRun } from './ContextBuilder.ts';
 import type { EmbeddedChat } from './EmbeddedChat.ts';
+import type { SessionLeaseIdentity } from '../storage/sessionLease.ts';
 import { processAlive } from './terminal.ts';
 import { chatInput } from './chatInput.ts';
 
@@ -197,6 +198,30 @@ export class RunChats {
   assertIdle(projectId?: string) {
     if ([...this.sending].some((key) => !projectId || key.startsWith(`${projectId}/`)))
       throw new Error(t('Chat.sending'));
+  }
+  ownsIdleLease(projectId: string, lease: SessionLeaseIdentity) {
+    for (const { run, status, embedded } of this.live.values()) {
+      const { record } = run;
+      if (
+        record.projectId === projectId &&
+        record.workspaceMode === 'shared' &&
+        record.leaseDirectory === lease.directory &&
+        record.runId === lease.runId &&
+        embedded?.child.pid === lease.pid
+      ) {
+        const { state } = embedded;
+        return (
+          embedded.alive &&
+          status !== 'running' &&
+          state.phase === 'ready' &&
+          !state.working &&
+          !state.dialog &&
+          !state.queue?.steering.length &&
+          !state.queue?.followUp.length
+        );
+      }
+    }
+    return false;
   }
   sendingTo(projectId: string, agentId: string) {
     return this.sending.has(runKey({ projectId, agentId }));

@@ -171,6 +171,7 @@ try {
       folderName: 'project-' + profile.id,
       sourceTeamId: teams[index].id,
       createdAt: index + 1,
+      ...(profile.id === 'b' ? { workspaceMode: 'shared' } : {}),
       agents: [{ profile, outputPath: 'agents/' + profile.id + '/output', entries: [] }],
     }));
     const state = {
@@ -188,7 +189,19 @@ try {
     const calls = { launch: 0, commands: 0, saves: 0 };
     const clone = (value) => structuredClone(value);
     const continuationChanges = [];
-    window.__qa = { state, calls, continuationChanges };
+    const deletions = [];
+    const processListeners = new Set();
+    let processes = [];
+    window.__qa = {
+      state,
+      calls,
+      continuationChanges,
+      deletions,
+      setProcesses(next) {
+        processes = next;
+        for (const listener of processListeners) listener({ projectId: 'project-b', agentId: 'b' });
+      },
+    };
     window.studio = new Proxy(
       {
         getInfo: async () => ({ platform: 'darwin', version: 'QA', runtimeConnected: true }),
@@ -212,13 +225,21 @@ try {
           connections: {},
           mcps: {},
         }),
-        listPiProcesses: async () => [],
+        listPiProcesses: async () => clone(processes),
+        onChatChanged: (listener) => {
+          processListeners.add(listener);
+          return () => processListeners.delete(listener);
+        },
         listTeamImports: async () => [],
         listProjectUsage: async () => [],
         listProjectActivity: async () => [],
         listTeamMessages: async () => [],
         loadStudio: async () => clone(state),
         readProject: async (id) => clone(projects.find((project) => project.id === id)),
+        deleteAgentData: async (request) => {
+          deletions.push(clone(request));
+          return clone(projects.find((project) => project.id === request.projectId));
+        },
         prepareAgentRefresh: async ({ projectId }) => ({
           projectId,
           revision: 'qa',
@@ -249,8 +270,8 @@ try {
       },
       {
         get(target, key) {
-          if (String(key).startsWith('on')) return () => () => {};
           if (key in target) return target[key];
+          if (String(key).startsWith('on')) return () => () => {};
           return async () => {
             throw Error('Unexpected QA API: ' + String(key));
           };
@@ -565,6 +586,75 @@ try {
         `Array.from(document.querySelectorAll('.project-list-row')).find(button=>button.textContent.includes('Project b')).click()`,
       );
       await until(`document.querySelector('.project-header h1')?.textContent==='Project b'`);
+      const status = '.project-agent-menu .agent-status-icon';
+      const workingLabel = '.project-agent-working-label';
+      const run = {
+        projectId: 'project-b',
+        agentId: 'b',
+        runId: 'live-b',
+        pid: 42,
+        agentName: 'Agent b',
+        embedded: true,
+      };
+      await cdp('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }],
+      });
+      await js(
+        `window.__qa.setProcesses(${JSON.stringify([{ ...run, projectId: 'other-project', working: true }])})`,
+      );
+      await until(`!!document.querySelector('.pi-process-indicator')`);
+      assert.equal(await js(`document.querySelector('${status}').dataset.status`), 'idle');
+      await js(`window.__qa.setProcesses(${JSON.stringify([{ ...run, working: true }])})`);
+      await until(`document.querySelector('${status}')?.dataset.status==='running'`);
+      assert.equal(
+        await js(`getComputedStyle(document.querySelector('${status} svg')).animationName`),
+        'agent-status-spin',
+      );
+      await cdp('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
+      });
+      assert.equal(
+        await js(`getComputedStyle(document.querySelector('${status} svg')).animationName`),
+        'none',
+      );
+      assert.equal(
+        await js(`getComputedStyle(document.querySelector('${workingLabel}')).display`),
+        'block',
+      );
+      assert.equal(
+        await js(`document.querySelector('${workingLabel}').textContent`),
+        messages['agentActivity.working'],
+      );
+      await js(`window.__qa.setProcesses(${JSON.stringify([{ ...run, working: false }])})`);
+      await until(`document.querySelector('${status}')?.dataset.status==='idle'`);
+      await js('window.__qa.setProcesses([])');
+      await cdp('Emulation.setEmulatedMedia', { features: [] });
+      const deletionHeading = '[role="alertdialog"] h2';
+      const confirmTitle = JSON.stringify(messages['DeleteAgentDataButton.confirmSharedTitle']);
+      const chooseDeletion = async (label) => {
+        await click('.clear-agent-outputs');
+        await js(
+          `Array.from(document.querySelectorAll('[role="alertdialog"] .ui-list-row-main')).find((item) => item.textContent === ${JSON.stringify(label)}).click()`,
+        );
+        await until(`document.querySelector('${deletionHeading}')?.textContent===${confirmTitle}`);
+      };
+      await chooseDeletion(messages['DeleteAgentDataButton.teamFiles']);
+      assert.deepEqual(await js('window.__qa.deletions'), []);
+      await click('[role="alertdialog"] .dialog-footer .button:first-child');
+      await until(`!document.querySelector('${deletionHeading}')`);
+      assert.deepEqual(await js('window.__qa.deletions'), []);
+      await chooseDeletion(messages['DeleteAgentDataButton.everything']);
+      assert.ok(
+        await js(
+          `document.querySelector('[role="alertdialog"] .dialog-body').textContent.includes('Agent b')`,
+        ),
+      );
+      assert.deepEqual(await js('window.__qa.deletions'), []);
+      await click('[role="alertdialog"] .dialog-footer .button:last-child');
+      await until('window.__qa.deletions.length === 1');
+      assert.deepEqual(await js('window.__qa.deletions'), [
+        { folder: '/isolated-navigation-A', projectId: 'project-b', agentId: 'b', target: 'all' },
+      ]);
       const continuationSwitch = '.project-agent-heading [role="switch"]';
       await click(continuationSwitch);
       await until(
@@ -710,6 +800,8 @@ try {
         refreshDoesNotNavigateOrMutate: true,
         headerPaddingAndKeyboardBack: true,
         continuationSwitchTargetsSelectedAgentWithoutLaunching: true,
+        agentSpinnerFollowsLiveProjectProcessAndReducedMotion: true,
+        sharedDeletionRequiresExplicitConfirmation: true,
         agentListWidthChangesWithPointerAndKeyboard: true,
         hoverAndNoHorizontalOverflow: true,
         chevronLeftIconAndFullWidthBottomBorder: true,

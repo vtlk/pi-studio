@@ -168,8 +168,10 @@ test('shared clearing trashes only task files and keeps project metadata, all di
   await mkdir(join(f.root, 'agents/legacy/output'), { recursive: true });
   await writeFile(join(f.root, 'agents/legacy/output/keep.txt'), 'LEGACY');
   const document = await readFile(join(f.root, 'project.json'));
+  const before = await f.store.projects.read(f.project.id);
+  assert.ok(before.agents.every((agent) => agent.entries.some((entry) => entry.name === 'assets')));
   const trashed: string[] = [];
-  await deleteAgentData(
+  const cleared = await deleteAgentData(
     f.store,
     { target: 'files', folder: f.store.folder, projectId: f.project.id, agentId: 'one' },
     async (path) => {
@@ -179,6 +181,7 @@ test('shared clearing trashes only task files and keeps project metadata, all di
     },
   );
   assert.equal(trashed.length, 2);
+  assert.ok(cleared.agents.every((agent) => !agent.entries.length));
   assert.deepEqual(await readFile(join(f.root, 'project.json')), document);
   for (const agent of f.project.agents)
     assert.equal(

@@ -2,9 +2,9 @@ import { t } from '../../shared/i18n/index.ts';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { lstat, open, readFile, realpath } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import type { UpdateManifest } from '../../shared/updates.ts';
-import { powershellArguments, powershellLiteral, windowsPowershell } from '../pi/windowsShell.ts';
+import { powershellArguments, windowsPowershell } from '../pi/windowsShell.ts';
 
 const execute = promisify(execFile);
 export async function applicationIdentity(path: string) {
@@ -42,20 +42,77 @@ export async function designatedRequirement(root: string) {
   return requirement;
 }
 async function windowsSigner(path: string) {
-  const { stdout } = await execute(
-    windowsPowershell(),
-    powershellArguments(
-      `$s=Get-AuthenticodeSignature -LiteralPath ${powershellLiteral(path)}; @{status=[string]$s.Status;thumbprint=$s.SignerCertificate.Thumbprint}|ConvertTo-Json -Compress`,
-    ),
-    { windowsHide: true, timeout: 15000 },
-  );
-  return JSON.parse(stdout) as { status: string; thumbprint?: string };
+  try {
+    const { stdout } = await execute(
+      windowsPowershell(),
+      powershellArguments(
+        "$s=Get-AuthenticodeSignature -LiteralPath '.\\Pi Studio.exe'; @{status=[string]$s.Status;thumbprint=$s.SignerCertificate.Thumbprint}|ConvertTo-Json -Compress",
+      ),
+      { cwd: dirname(path), windowsHide: true, timeout: 30000, maxBuffer: 16384 },
+    );
+    return JSON.parse(stdout) as { status: string; thumbprint?: string };
+  } catch {
+    throw new Error(t('error.verifyApplication.windowsSignatureCheckFailed'));
+  }
 }
-/** Archive signatures authenticate both platforms; a signed installed binary additionally pins its OS publisher. */
+
+/** Read the PE32+ header and determine whether the executable has an embedded certificate table. */
+async function windowsHasCertificate(executable: string) {
+  const invalid = () => new Error(t('error.verifyApplication.invalidWindowsExecutable'));
+  const handle = await open(executable, 'r');
+  try {
+    const dos = Buffer.alloc(64);
+    if ((await handle.read(dos, 0, dos.length, 0)).bytesRead !== dos.length) throw invalid();
+    const offset = dos.readUInt32LE(60);
+    if (dos.toString('ascii', 0, 2) !== 'MZ' || offset < 64 || offset > 10 * 1024 ** 2)
+      throw invalid();
+
+    // PE signature + 20-byte COFF header, then the declared PE32+ optional header.
+    const coff = Buffer.alloc(24);
+    if (
+      (await handle.read(coff, 0, coff.length, offset)).bytesRead !== coff.length ||
+      coff.readUInt32LE(0) !== 0x4550 ||
+      coff.readUInt16LE(4) !== 0x8664
+    )
+      throw new Error(t('error.verifyApplication.theUpdateRequiresAWindows'));
+    const optional = Buffer.alloc(coff.readUInt16LE(20));
+    const dataDirectories = 112;
+    if (
+      optional.length < dataDirectories ||
+      (await handle.read(optional, 0, optional.length, offset + coff.length)).bytesRead !==
+        optional.length ||
+      optional.readUInt16LE(0) !== 0x20b
+    )
+      throw invalid();
+    const count = optional.readUInt32LE(108);
+    const directorySize = 8;
+    if (dataDirectories + count * directorySize > optional.length) throw invalid();
+    const securityIndex = 4;
+    if (count <= securityIndex) return false;
+    const certificateEntry = dataDirectories + securityIndex * directorySize;
+    // Unlike other data directories, the Certificate Table points to a file offset.
+    const position = optional.readUInt32LE(certificateEntry);
+    const size = optional.readUInt32LE(certificateEntry + 4);
+    if (position === 0 && size === 0) return false;
+    if (
+      position < offset + coff.length + optional.length ||
+      position % 8 !== 0 ||
+      size < directorySize ||
+      position + size > (await handle.stat()).size
+    )
+      throw invalid();
+    return true;
+  } finally {
+    await handle.close();
+  }
+}
+
+/** Archive signatures authenticate both platforms; an embedded Windows signature additionally pins its publisher. */
 export async function verifyApplication(
   candidate: string,
   current: string,
   manifest: UpdateManifest,
+  readWindowsSigner = windowsSigner,
 ) {
   await applicationIdentity(candidate);
   const metadata = applicationMetadata(candidate, manifest.platform);
@@ -89,25 +146,18 @@ export async function verifyApplication(
     )
       throw new Error(t('error.verifyApplication.macAppIdentifierOrArchitecture'));
   } else {
-    const handle = await open(executable, 'r');
-    try {
-      const header = Buffer.alloc(64);
-      await handle.read(header, 0, 64, 0);
-      const offset = header.readUInt32LE(60);
-      if (header.toString('ascii', 0, 2) !== 'MZ' || offset < 64 || offset > 10 * 1024 ** 2)
-        throw new Error(t('error.verifyApplication.invalidWindowsExecutable'));
-      const pe = Buffer.alloc(6);
-      const { bytesRead } = await handle.read(pe, 0, 6, offset);
-      if (bytesRead !== 6 || pe.readUInt32LE(0) !== 0x4550 || pe.readUInt16LE(4) !== 0x8664)
-        throw new Error(t('error.verifyApplication.theUpdateRequiresAWindows'));
-    } finally {
-      await handle.close();
-    }
-    const before = await windowsSigner(applicationExecutable(current, 'win32'));
-    if (before.thumbprint) {
-      const after = await windowsSigner(executable);
-      if (after.status !== 'Valid' || !before.thumbprint || after.thumbprint !== before.thumbprint)
-        throw new Error(t('error.verifyApplication.theWindowsSignaturePublisherChanged'));
-    }
+    const installed = applicationExecutable(current, 'win32');
+    await ordinaryFile(current, installed);
+    const candidateSigned = await windowsHasCertificate(executable);
+    const installedSigned = await windowsHasCertificate(installed);
+    // Official portable releases have no Authenticode certificate. Their archive is
+    // authenticated by the signed release manifest and its SHA-256 before extraction.
+    if (!installedSigned) return;
+    if (!candidateSigned)
+      throw new Error(t('error.verifyApplication.theWindowsSignaturePublisherChanged'));
+    const before = await readWindowsSigner(installed);
+    const after = await readWindowsSigner(executable);
+    if (!before?.thumbprint || after?.status !== 'Valid' || after.thumbprint !== before.thumbprint)
+      throw new Error(t('error.verifyApplication.theWindowsSignaturePublisherChanged'));
   }
 }

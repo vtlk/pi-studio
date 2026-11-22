@@ -14,16 +14,20 @@ export const agentStatusLabels: Record<AgentDisplayStatus, MessageKey> = {
   disabled: 'agentActivity.agentDisabled',
 };
 
-export function getAgentStatusLabel(agent: ProjectAgent): string {
-  const status = getAgentDisplayStatus(agent);
+export function getAgentStatusLabel(
+  agent: ProjectAgent,
+  status = getAgentDisplayStatus(agent),
+): string {
   if (status === 'error' && agent.runFailure) return failureLabel(agent.runFailure);
   return status === 'stopped' && agent.session
     ? t('agentActivity.dialogueSaved')
     : t(agentStatusLabels[status]);
 }
 
-export function getAgentDisplayStatus(agent: ProjectAgent): AgentDisplayStatus {
+export function getAgentDisplayStatus(agent: ProjectAgent, working = false): AgentDisplayStatus {
   return agent.profile.enabled
-    ? (agent.runStatus ?? (agent.session ? 'stopped' : 'idle'))
+    ? working
+      ? 'running'
+      : (agent.runStatus ?? (agent.session ? 'stopped' : 'idle'))
     : 'disabled';
 }

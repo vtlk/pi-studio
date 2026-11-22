@@ -179,10 +179,16 @@
     transform: rotate(360deg);
   }
 }
+.project-agent-working-label {
+  display: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .agent-status-icon[data-status='running'] svg,
   .project-launch-spinner {
     animation: none;
+  }
+  .project-agent-working-label {
+    display: block;
   }
 }
 .project-output-content {

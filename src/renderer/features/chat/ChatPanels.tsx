@@ -2,7 +2,7 @@ import { ChatDraftStore } from './ChatDraftStore';
 import { Button } from '@/shared/ui';
 import { VoiceDraftGuard } from '@/features/voice/VoiceDraftGuard';
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
-import type { ChatTarget } from '../../../shared/chat';
+import type { ChatTarget, PiProcessInfo } from '../../../shared/chat';
 import { t } from '../../../shared/i18n';
 import { useStorage } from '@/shared/storage/Storage';
 import { ChatPanelsContext } from './ChatPanels.context';
@@ -12,6 +12,7 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
   const [target, setTarget] = useState<ChatTarget | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [opening, setOpening] = useState<string[]>([]);
+  const [processes, setProcesses] = useState<PiProcessInfo[]>([]);
   const pending = useRef(new Map<string, Promise<void>>());
   const selection = useRef(0);
   const show = (next: ChatTarget | null) => {
@@ -43,6 +44,36 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     selection.current++;
     setTarget(null);
   }, [bootstrap?.folder]);
+  useEffect(() => {
+    const studio = window.studio;
+    if (!studio || !folder) return;
+    let active = true;
+    let reading = false;
+    const refresh = async () => {
+      if (reading) return;
+      reading = true;
+      try {
+        const next = await studio.listPiProcesses();
+        if (active)
+          setProcesses((previous) =>
+            JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
+          );
+      } catch {
+        // Retain the last successful snapshot on a transient IPC failure.
+      } finally {
+        reading = false;
+      }
+    };
+    void refresh();
+    const timer = setInterval(() => void refresh(), 1500);
+    const unsubscribe = studio.onChatChanged(() => void refresh());
+    return () => {
+      active = false;
+      clearInterval(timer);
+      unsubscribe();
+      setProcesses([]);
+    };
+  }, [folder]);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (!draftStore.unsaved()) return;
@@ -87,6 +118,7 @@ export function ChatPanelsProvider({ children }: { children: ReactNode }) {
     <ChatPanelsContext.Provider
       value={{
         target,
+        processes,
         open,
         reset: (next, runId) => open(next, false, runId),
         show,

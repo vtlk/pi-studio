@@ -80,6 +80,11 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
       setChangingContinuation(false);
     }
   };
+  const workingAgents = new Set(
+    chats.processes
+      .filter((process) => process.projectId === project.id && process.working)
+      .map((process) => process.agentId),
+  );
   return (
     <div className="project-workspace">
       <ProjectHeader project={project} onRefresh={() => setRefreshOpen(true)} />
@@ -124,9 +129,11 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
                 profiles.find((profile) => profile.id === agent.profile.id)?.model,
                 connections,
               ).ok;
-              const statusLabel = modelConfigured
-                ? getAgentStatusLabel(agent)
-                : t('ProjectView.noModelConnected');
+              const status = getAgentDisplayStatus(agent, workingAgents.has(agent.profile.id));
+              const statusLabel =
+                modelConfigured || status === 'running'
+                  ? getAgentStatusLabel(agent, status)
+                  : t('ProjectView.noModelConnected');
               return {
                 id: agent.profile.id,
                 label: t('ProjectView.summary', {
@@ -134,7 +141,7 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
                   value2: agent.profile.name || t('AgentList.untitled'),
                 }),
                 muted: !agent.profile.enabled,
-                icon: <AgentStatusIcon status={getAgentDisplayStatus(agent)} />,
+                icon: <AgentStatusIcon status={status} />,
                 iconTooltip: statusLabel,
                 ariaLabel: t('ProjectView.summary2', {
                   value1: index + 1,
@@ -142,7 +149,16 @@ function ProjectWorkspace({ project }: { project: WorkspaceProject }) {
                   value3: statusLabel,
                   value4: usageAccessible(agent.usage),
                 }),
-                description: <UsageMetrics usage={agent.usage} />,
+                description: (
+                  <>
+                    {status === 'running' && (
+                      <span className="project-agent-working-label" aria-hidden="true">
+                        {statusLabel}
+                      </span>
+                    )}
+                    <UsageMetrics usage={agent.usage} />
+                  </>
+                ),
                 actions: (
                   <AgentActions
                     agent={agent}

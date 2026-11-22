@@ -7,14 +7,30 @@ import {
   agentSessionDirectory,
   isSharedTaskPath,
 } from '../../shared/agentPaths.ts';
-import { hasLiveSessionLease, assertProjectSessionsClosed } from './sessionLease.ts';
+import {
+  hasLiveSessionLease,
+  assertProjectSessionsClosed,
+  type AllowSessionLease,
+} from './sessionLease.ts';
 import { isMissing, safePath } from './files.ts';
 import { stableId } from './validation.ts';
+
+async function moveToTrash(path: string, trash: (path: string) => Promise<void>) {
+  await trash(path);
+  try {
+    await lstat(path);
+  } catch (error) {
+    if (isMissing(error)) return;
+    throw error;
+  }
+  throw new Error(t('error.deleteAgentData.trashItemStillExists'));
+}
 
 /** Resolve only the selected agent's trusted folders; also used before stopping its idle Pi. */
 export async function resolveAgentDataDeletion(
   store: StudioStore,
   request: DeleteAgentDataRequest,
+  allowIdleLease?: AllowSessionLease,
 ) {
   if (!request || request.folder !== store.folder)
     throw new Error(t('registerTeamHandlers.studioFolderChanged'));
@@ -27,7 +43,7 @@ export async function resolveAgentDataDeletion(
   const root = await store.projects.directory(project.id);
   const directory = agentRuntimeDirectory(agent);
   if (project.workspaceMode === 'shared' && request.target !== 'dialogue')
-    await assertProjectSessionsClosed(project, root);
+    await assertProjectSessionsClosed(project, root, allowIdleLease);
   const paths = [
     ...(request.target === 'dialogue'
       ? []
@@ -57,11 +73,16 @@ export async function deleteAgentData(
   store: StudioStore,
   request: DeleteAgentDataRequest,
   trash: (path: string) => Promise<void>,
+  allowIdleLease?: AllowSessionLease,
 ) {
-  await resolveAgentDataDeletion(store, request);
+  await resolveAgentDataDeletion(store, request, allowIdleLease);
   if (request.target !== 'files')
     await store.projects.prepareAgentSessions(request.projectId, request.agentId);
-  const { project, agent, root, directory, paths } = await resolveAgentDataDeletion(store, request);
+  const { project, agent, root, directory, paths } = await resolveAgentDataDeletion(
+    store,
+    request,
+    allowIdleLease,
+  );
   if (request.target !== 'files') {
     if (await hasLiveSessionLease(await safePath(root, directory)))
       throw new Error(t('error.deleteAgentData.theDialogueIsStillOpen'));
@@ -70,7 +91,7 @@ export async function deleteAgentData(
     const absolute = await safePath(root, path, true);
     // Shared cleanup trashes only task entries, never the project root or Studio service state.
     if (project.workspaceMode === 'shared' && isSharedTaskPath(path)) {
-      await trash(absolute);
+      await moveToTrash(absolute, trash);
       continue;
     }
     let entries: string[];
@@ -80,9 +101,10 @@ export async function deleteAgentData(
       if (!isMissing(error)) throw error;
       entries = [];
     }
-    if (entries.length) await trash(absolute);
+    if (entries.length) await moveToTrash(absolute, trash);
     await mkdir(await safePath(root, path, true), { recursive: true });
   }
+  if (request.target !== 'dialogue') store.projects.clearOutputs(project.id, agent.profile.id);
   return request.target === 'files'
     ? store.projects.updateRuntime(project.id, agent.profile.id, 'idle')
     : store.projects.updateRuntime(project.id, agent.profile.id, 'idle', null);

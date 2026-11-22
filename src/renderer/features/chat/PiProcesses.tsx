@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Cpu } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
-import type { PiProcessInfo } from '../../../shared/chat';
 import { t, i18n } from '../../../shared/i18n';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { useNavigation } from '@/shared/model/Navigation';
@@ -12,35 +11,11 @@ import './chat.css';
 
 export function PiProcesses() {
   useTranslation(undefined, { i18n });
-  const [processes, setProcesses] = useState<PiProcessInfo[]>([]),
-    [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const panels = useChatPanels(),
     { navigate } = useNavigation(),
     { projects, setProjectId } = useWorkspace();
-  useEffect(() => {
-    let alive = true,
-      reading = false;
-    const read = async () => {
-      if (!window.studio || reading) return;
-      reading = true;
-      try {
-        const next = await window.studio.listPiProcesses();
-        if (alive) setProcesses(next);
-      } catch {
-        /* Retain the last known count on a transient IPC failure. */
-      } finally {
-        reading = false;
-      }
-    };
-    void read();
-    const timer = setInterval(() => void read(), 1500);
-    const unsubscribe = window.studio?.onChatChanged(() => void read());
-    return () => {
-      alive = false;
-      clearInterval(timer);
-      unsubscribe?.();
-    };
-  }, []);
+  const { processes } = panels;
   if (!processes.length) return null;
   const label = t('Chat.processesTooltip', { count: processes.length });
   return (

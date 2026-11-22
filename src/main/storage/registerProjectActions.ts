@@ -12,12 +12,14 @@ import { outputScope } from './outputScope.ts';
 import { readProjectScope } from './projectReadScope.ts';
 import { stableId } from './validation';
 import { deleteAgentData, resolveAgentDataDeletion } from './deleteAgentData';
+import type { SessionLeaseIdentity } from './sessionLease.ts';
 
 export function registerProjectActions(
   service: StudioService,
   caller: (event: IpcMainInvokeEvent) => unknown,
   mutation: {
     change: <T>(projectId: string, action: () => Promise<T>) => Promise<T>;
+    ownsIdleLease: (projectId: string, lease: SessionLeaseIdentity) => boolean;
     stopSession: (projectId: string, agentId: string) => Promise<void>;
     cleared: (projectId: string, agentId: string, target: DeleteAgentDataRequest['target']) => void;
   },
@@ -42,16 +44,23 @@ export function registerProjectActions(
       stableId(request?.projectId);
       stableId(request?.agentId);
       return mutation.change(request.projectId, async () => {
+        const allowIdleLease = (lease: SessionLeaseIdentity) =>
+          mutation.ownsIdleLease(request.projectId, lease);
         if (request.target !== 'files') {
           await service.serialize(async () => {
-            await resolveAgentDataDeletion(await service.load(), request);
+            await resolveAgentDataDeletion(await service.load(), request, allowIdleLease);
           });
           // Pi's final event uses the service queue too; stop outside it to avoid a deadlock.
           await mutation.stopSession(request.projectId, request.agentId);
         }
         return service.serialize(async () => {
           const store = await service.load();
-          const project = await deleteAgentData(store, request, (path) => shell.trashItem(path));
+          const project = await deleteAgentData(
+            store,
+            request,
+            (path) => shell.trashItem(path),
+            allowIdleLease,
+          );
           mutation.cleared(request.projectId, request.agentId, request.target);
           return store.accounting.enrich(project);
         });

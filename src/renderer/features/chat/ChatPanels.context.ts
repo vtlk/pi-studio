@@ -1,10 +1,11 @@
 import { createContext, useContext } from 'react';
 import type { ChatDraft, ChatSendResult } from '../../../shared/chatDrafts';
-import type { ChatTarget } from '../../../shared/chat';
+import type { ChatTarget, PiProcessInfo } from '../../../shared/chat';
 import type { ReferenceAttachment } from '@/shared/ui/ReferenceAttachments';
 
 export interface ChatPanelsValue {
   target: ChatTarget | null;
+  processes: PiProcessInfo[];
   error: string;
   opening: boolean;
   open: (target: ChatTarget, autoContinue?: boolean) => Promise<void>;

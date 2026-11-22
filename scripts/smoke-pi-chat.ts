@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rename, writeFile, rm } from 'node:fs/promises';
 import { createServer, type ServerResponse } from 'node:http';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { readProjectScope } from '../src/main/storage/projectReadScope.ts';
 import { loadOutput } from '../src/main/storage/outputs.ts';
+import { deleteAgentData } from '../src/main/storage/deleteAgentData.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 import { TeamSupport } from '../src/main/team-mcp/TeamSupport.ts';
 import { createStudioRunHost } from '../src/main/pi/createStudioRunHost.ts';
@@ -677,6 +678,58 @@ try {
   );
   lease.verify();
   lease.release();
+  const shared = (
+    await store.command({ kind: 'create', name: 'Shared QA', agents, workspaceMode: 'shared' })
+  ).projects.find((item) => item.workspaceMode === 'shared')!;
+  const sharedRoot = await store.projects.directory(shared.id);
+  const sharedTargets = agents.map(({ id }) => ({ projectId: shared.id, agentId: id }));
+  for (const item of sharedTargets) await host.launch({ ...item, autoContinue: false });
+  const sharedProcesses = host.processes();
+  assert.equal(sharedProcesses.length, sharedTargets.length);
+  await mkdir(join(sharedRoot, 'work'));
+  await writeFile(join(sharedRoot, 'work', 'nested.txt'), 'TEST_DATA');
+  await mkdir(join(sharedRoot, 'variants'));
+  await writeFile(join(sharedRoot, 'result.txt'), 'RESULT');
+  await store.projects.read(shared.id);
+  const clearRequest = { ...sharedTargets[0], folder: store.folder, target: 'files' as const };
+  await assert.rejects(
+    deleteAgentData(store, clearRequest, async () =>
+      assert.fail('Unrecognized leases block trash'),
+    ),
+  );
+  const trash = join(root, 'qa-trash');
+  await mkdir(trash);
+  const clear = () =>
+    host.withProjectChange(shared.id, false, () =>
+      service.serialize(() =>
+        deleteAgentData(
+          store,
+          clearRequest,
+          (path) => rename(path, join(trash, basename(path))),
+          (lease) => host.ownsIdleLease(shared.id, lease),
+        ),
+      ),
+    );
+  await host.sendChat({ ...sharedTargets[0], text: 'CHAT_SHARED_BUSY' });
+  await until(() => waiting.has('CHAT_SHARED_BUSY'), 'Shared agent work begins');
+  await assert.rejects(clear());
+  assert.deepEqual(await readdir(trash), []);
+  release('CHAT_SHARED_BUSY');
+  await until(() => {
+    try {
+      host.assertIdle(shared.id);
+      return true;
+    } catch {
+      return false;
+    }
+  }, 'Shared chat is idle before confirmed deletion');
+  const cleared = await clear();
+  assert.ok(cleared.agents.every(({ entries }) => entries.length === 0));
+  assert.deepEqual((await readdir(sharedRoot)).sort(), ['.pistudio', 'project.json']);
+  assert.deepEqual((await readdir(trash)).sort(), ['result.txt', 'variants', 'work']);
+  assert.equal(await readFile(join(trash, 'work', 'nested.txt'), 'utf8'), 'TEST_DATA');
+  assert.deepEqual(host.processes(), sharedProcesses);
+  assert.ok(cleared.agents[0].session, 'Clearing shared files preserves the saved transcript');
   assert.ok(!fixtureError);
   console.log(
     JSON.stringify(
@@ -708,6 +761,7 @@ try {
           'setup assistant native RPC process closes and is awaited before quit; no model input',
           'update waits for busy chats and drains owned idle processes',
           'update shutdown preserves exact JSONL and blocks new input',
+          'shared workspace clears files, nested and empty folders with exact owned idle chats, preserving PIDs and dialogue while rejecting work and foreign leases',
         ],
       },
       null,

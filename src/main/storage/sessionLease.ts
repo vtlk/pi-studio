@@ -11,6 +11,13 @@ import {
 } from './windowsSessionProcess.ts';
 
 const execute = promisify(execFile);
+export interface SessionLeaseIdentity {
+  directory: string;
+  pid: number;
+  runId: string;
+}
+export type AllowSessionLease = (lease: SessionLeaseIdentity) => boolean;
+
 function processExists(pid: number): boolean | undefined {
   try {
     process.kill(pid, 0);
@@ -22,6 +29,7 @@ function processExists(pid: number): boolean | undefined {
   }
 }
 interface LeaseDependencies {
+  allow?: AllowSessionLease;
   platform?: NodeJS.Platform;
   exists?: (pid: number) => boolean | undefined;
   windowsProcess?: (pid: number) => Promise<WindowsSessionProcess | null>;
@@ -48,6 +56,7 @@ export async function hasLiveSessionLease(cwd: string, dependencies: LeaseDepend
   )
     return false;
   const pid = lease!.pid!;
+  if (dependencies.allow?.({ directory: cwd, pid, runId: lease!.runId! })) return false;
   const exists = dependencies.exists ?? processExists;
   if (exists(pid) === false) return false;
   const windows = (dependencies.platform ?? process.platform) === 'win32';
@@ -98,13 +107,17 @@ export async function hasLiveSessionLease(cwd: string, dependencies: LeaseDepend
   }
 }
 
-export async function assertProjectSessionsClosed(project: WorkspaceProject, root: string) {
+export async function assertProjectSessionsClosed(
+  project: WorkspaceProject,
+  root: string,
+  allow?: AllowSessionLease,
+) {
   for (const agent of [
     ...project.agents,
     ...(project.archivedAgents ?? []).map((item) => item.agent),
   ]) {
     const cwd = await safePath(root, agentRuntimeDirectory(agent), true);
-    if (await hasLiveSessionLease(cwd))
+    if (await hasLiveSessionLease(cwd, { allow }))
       throw new Error(t('error.sessionLease.anotherPiProcessIsStill'));
   }
 }

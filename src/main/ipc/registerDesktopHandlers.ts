@@ -342,6 +342,7 @@ export function registerDesktopHandlers(
       images.assertIdle(projectId);
       return runs.withProjectChange(projectId, false, action);
     },
+    ownsIdleLease: (projectId, lease) => runs.ownsIdleLease(projectId, lease),
     stopSession: (projectId, agentId) => runs.stopAgent(projectId, agentId),
     cleared: (projectId, agentId, target) =>
       runs.outputsCleared(projectId, agentId, target !== 'files'),

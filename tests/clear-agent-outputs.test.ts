@@ -15,6 +15,7 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { StudioStore } from '../src/main/storage/StudioStore.ts';
 import { deleteAgentData } from '../src/main/storage/deleteAgentData.ts';
+import { ProjectReadViews } from '../src/main/storage/ProjectReadViews.ts';
 import type { Agent } from '../src/shared/studio.ts';
 
 async function fixture(t: TestContext) {
@@ -62,6 +63,12 @@ test('clearing moves only the selected output, including hidden/nested items, an
   const outside = join(f.root, 'outside.txt');
   await writeFile(outside, 'external original');
   await symlink(outside, join(f.output, 'external-link'));
+  await mkdir(join(f.output, 'empty-folder'));
+  const before = await f.store.projects.read(f.project.id);
+  assert.deepEqual(before.agents[0].entries.map(({ name }) => name).sort(), [
+    'empty-folder',
+    'nested',
+  ]);
   let calls = 0;
   const trash = join(f.root, 'FixtureTrash');
   const move = async (path: string) => {
@@ -72,6 +79,9 @@ test('clearing moves only the selected output, including hidden/nested items, an
   const cleared = await deleteAgentData(f.store, f.request, move);
   assert.equal(calls, 1);
   assert.deepEqual(await readdir(f.output), []);
+  assert.deepEqual(await readdir(join(trash, 'empty-folder')), []);
+  assert.deepEqual(cleared.agents[0].entries, []);
+  assert.deepEqual(cleared.agents[1].entries, before.agents[1].entries);
   assert.equal(await readFile(join(trash, 'nested/result.txt'), 'utf8'), 'creative result');
   assert.equal(await readFile(join(trash, '.hidden'), 'utf8'), 'hidden output');
   assert.equal(await readFile(outside, 'utf8'), 'external original');
@@ -107,6 +117,19 @@ test('wrong studio/agent and a symlinked output cannot trash unrelated files', a
   assert.equal(await readFile(join(saved, 'nested/result.txt'), 'utf8'), 'creative result');
 });
 
+test('an output walk started before a clear cannot restore cached directory entries', async (t) => {
+  const f = await fixture(t);
+  const views = new ProjectReadViews();
+  const read = () => views.read(f.project, f.directory, () => f.project);
+  assert.equal((await read()).agents[0].entries[0].name, 'nested');
+  const stale = read();
+  views.clearOutputs(f.project, 'artist');
+  // The stale walk can still see directory metadata, but it cannot publish it.
+  assert.deepEqual((await stale).agents[0].entries, []);
+  assert.deepEqual(views.snapshot(f.project).agents[0].entries, []);
+  assert.equal((await read()).agents[0].entries[0].name, 'nested', 'A new scan can show new data');
+});
+
 test('a rejected trash operation leaves every output and ready status intact', async (t) => {
   const f = await fixture(t);
   await assert.rejects(
@@ -120,6 +143,15 @@ test('a rejected trash operation leaves every output and ready status intact', a
   assert.equal((await f.store.projects.read(f.project.id)).agents[0].runStatus, 'ready');
 });
 
+test('a successful trash response cannot hide an output directory that still exists', async (t) => {
+  const f = await fixture(t);
+  await assert.rejects(
+    deleteAgentData(f.store, f.request, async () => {}),
+    /остался в проекте/,
+  );
+  assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
+});
+
 for (const target of ['dialogue', 'all'] as const) {
   test(`${target}: removes sessions and binding persistently, preserves settings and the other agent`, async (t) => {
     const f = await fixture(t);
@@ -128,6 +160,7 @@ for (const target of ['dialogue', 'all'] as const) {
     await writeFile(join(sessions, 'old-fork.jsonl'), 'old fork');
     await mkdir(join(sessions, 'nested'));
     await writeFile(join(sessions, 'nested/history.jsonl'), 'nested history');
+    const before = await f.store.projects.read(f.project.id);
     const moved: string[] = [];
     const cleared = await deleteAgentData(f.store, { ...f.request, target }, async (path) => {
       moved.push(path);
@@ -139,9 +172,13 @@ for (const target of ['dialogue', 'all'] as const) {
     assert.equal(cleared.agents[0].runStatus, 'idle');
     assert.deepEqual(cleared.agents[0].profile, f.project.agents[0].profile);
     assert.equal(cleared.agents[0].outputPath, f.project.agents[0].outputPath);
-    if (target === 'all') assert.deepEqual(await readdir(f.output), []);
-    else
+    if (target === 'all') {
+      assert.deepEqual(await readdir(f.output), []);
+      assert.deepEqual(cleared.agents[0].entries, []);
+    } else {
       assert.equal(await readFile(join(f.output, 'nested/result.txt'), 'utf8'), 'creative result');
+      assert.deepEqual(cleared.agents[0].entries, before.agents[0].entries);
+    }
     assert.equal(
       await readFile(join(f.directory, f.project.agents[1].outputPath, 'keep.txt'), 'utf8'),
       'other agent',
