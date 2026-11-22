@@ -23,7 +23,8 @@ await mkdir(process.env.PI_CODING_AGENT_DIR);
 const pi = await checkPi('');
 assert.ok(pi.supported);
 const testCorrections = process.argv.includes('--correction');
-const testReconnect = process.argv.includes('--codex-reconnect');
+const testBrokenPipe = process.argv.includes('--codex-epipe');
+const testReconnect = testBrokenPipe || process.argv.includes('--codex-reconnect');
 const codexModel = 'gpt-6-sol';
 const codexFixture = new URL('./fixtures/codex-loopback.mjs', import.meta.url);
 const codex = testReconnect ? await import(codexFixture.href) : undefined;
@@ -119,7 +120,9 @@ try {
           assert.equal(host.inspect(project.id, 'next')?.status, 'running');
           assert.equal(steps.get('next'), 1);
           assert.ok(body.input.some((m: { type: string }) => m.type === 'function_call_output'));
-          response.writeHead(200, { 'x-qa-connect-timeout': '1' }).end();
+          response
+            .writeHead(200, { 'x-qa-codex-failure': testBrokenPipe ? 'EPIPE' : 'CONNECT_TIMEOUT' })
+            .end();
           return;
         }
         response.writeHead(200, { 'Content-Type': 'text/event-stream' });
@@ -594,7 +597,8 @@ try {
         busyRecipientPreservedAndNoLateRetry: mode === 'busy',
         earlierAgentCorrectionCompletedAndOriginalChainResumed: correction,
         reusedEarlierAgentPid: mode === 'correction-idle',
-        nativeCodexConnectTimeouts: disconnects,
+        nativeCodexConnectTimeouts: testBrokenPipe ? 0 : disconnects,
+        nativeCodexBrokenPipes: testBrokenPipe ? disconnects : 0,
         nativeWindowsAcceptance: false,
       });
     } finally {
@@ -610,11 +614,13 @@ try {
   }
   await writeFile(
     new URL(
-      testReconnect
-        ? '../artifacts/codex-reconnect-native-proof.json'
-        : testCorrections
-          ? '../artifacts/chain-correction-native-proof.json'
-          : '../artifacts/chain-idle-reuse-native-proof.json',
+      testBrokenPipe
+        ? '../artifacts/codex-epipe-native-proof.json'
+        : testReconnect
+          ? '../artifacts/codex-reconnect-native-proof.json'
+          : testCorrections
+            ? '../artifacts/chain-correction-native-proof.json'
+            : '../artifacts/chain-idle-reuse-native-proof.json',
       import.meta.url,
     ),
     JSON.stringify(

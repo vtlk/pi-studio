@@ -36,17 +36,21 @@ test('Codex reconnect extends native retry only for transport failures and resto
       ctx,
     );
   const timeout = 'fetch failed: Connect Timeout Error (UND_ERR_CONNECT_TIMEOUT)';
+  const brokenPipe = 'fetch failed: write EPIPE';
   for (const error of [
     'HTTP 429: too many requests',
     'HTTP 401: unauthorized',
     'The usage limit has been reached',
     'Unsupported model',
+    'write EPIPE',
+    'HTTP 429: write EPIPE',
   ])
     end(error);
   end(timeout, 'openai');
+  end(brokenPipe, 'openai');
   assert.deepEqual(overrides, []);
 
-  end('terminated: read ETIMEDOUT');
+  end(brokenPipe);
   end(timeout);
   assert.deepEqual(overrides, [{ retry: { maxRetries: 24, maxAgentDelayMs: 30_000 } }]);
   assert.match(statuses[0] ?? '', /Восстанавливаем связь/);

@@ -1,7 +1,7 @@
 import { classifyProviderFailure } from './provider-failure.mjs';
 
 const connectionFailure =
-  /\b(?:UND_ERR_(?:CONNECT_TIMEOUT|HEADERS_TIMEOUT|BODY_TIMEOUT|SOCKET)|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENETUNREACH|EHOSTUNREACH|EAI_AGAIN)\b|\b(?:connect timeout|connection reset|socket hang up)\b/i;
+  /\b(?:UND_ERR_(?:CONNECT_TIMEOUT|HEADERS_TIMEOUT|BODY_TIMEOUT|SOCKET)|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENETUNREACH|EHOSTUNREACH|EAI_AGAIN)\b|\b(?:write EPIPE|connect timeout|connection reset|socket hang up)\b/i;
 
 export function registerCodexReconnect(pi, settings, language) {
   const { maxRetries, maxAgentDelayMs } = settings.getRetrySettings();

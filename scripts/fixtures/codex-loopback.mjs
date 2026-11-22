@@ -10,10 +10,14 @@ globalThis.fetch = async (input, options) => {
   if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1')
     throw new Error('Expected isolated Codex fixture');
   const response = await loopbackFetch(new URL('/codex', origin), options);
-  if (response.headers.get('x-qa-connect-timeout') !== '1') return response;
+  const failure = response.headers.get('x-qa-codex-failure');
+  if (!failure) return response;
   await response.body?.cancel();
   throw new TypeError('fetch failed', {
-    cause: Object.assign(new Error('Connect Timeout Error'), { code: 'UND_ERR_CONNECT_TIMEOUT' }),
+    cause:
+      failure === 'EPIPE'
+        ? Object.assign(new Error('write EPIPE'), { code: 'EPIPE', syscall: 'write' })
+        : Object.assign(new Error('Connect Timeout Error'), { code: 'UND_ERR_CONNECT_TIMEOUT' }),
   });
 };
 
