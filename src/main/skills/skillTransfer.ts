@@ -50,6 +50,7 @@ export async function consumeSkillBody(
   limit: number,
   signal: AbortSignal,
   consume: (chunk: Uint8Array) => Promise<void>,
+  limitMessage = t('error.remoteSkill.size'),
 ) {
   if (!response.ok || !response.body) {
     await response.body?.cancel();
@@ -58,13 +59,12 @@ export async function consumeSkillBody(
   const reader = response.body.getReader();
   let length = 0;
   try {
-    if (Number(response.headers.get('content-length')) > limit)
-      throw Error(t('error.remoteSkill.size'));
+    if (Number(response.headers.get('content-length')) > limit) throw Error(limitMessage);
     while (true) {
       const chunk = await readTransferChunk(reader, signal);
       if (chunk.done) break;
       length += chunk.value.length;
-      if (length > limit) throw Error(t('error.remoteSkill.size'));
+      if (length > limit) throw Error(limitMessage);
       await consume(chunk.value);
     }
     if (!length) throw Error(t('error.remoteSkill.download'));

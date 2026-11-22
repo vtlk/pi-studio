@@ -84,9 +84,23 @@ export async function skillSource(
     if (!/^[a-f0-9]{40,64}$/i.test(commit)) throw Error(t('error.remoteSkill.ref'));
     const suffix = kind ? tail.join('/').slice(ref.length).replace(/^\//, '') : undefined;
     const fromUrl = suffix ? skillPath(suffix, true) : undefined;
-    if (fromUrl !== undefined && selected !== undefined && fromUrl !== selected)
+    if (
+      fromUrl !== undefined &&
+      selected !== undefined &&
+      fromUrl !== selected &&
+      !(kind === 'tree' && selected.startsWith(fromUrl + '/'))
+    )
       throw Error(t('error.remoteSkill.path'));
-    return { url: new URL(`${base}/zipball/${commit}`), path: selected ?? fromUrl, commit };
+    return {
+      url: new URL(`${base}/zipball/${commit}`),
+      path: selected ?? fromUrl,
+      commit,
+      github: {
+        api: base,
+        raw: `https://raw.githubusercontent.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${commit}`,
+        kind,
+      },
+    };
   }
   throw Error(t('error.remoteSkill.ref'));
 }

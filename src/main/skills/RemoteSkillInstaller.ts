@@ -8,12 +8,13 @@ import type { StudioService } from '../storage/StudioStore.ts';
 import type { PreparedRun } from '../pi/ContextBuilder.ts';
 import { assertAdministrationScope } from '../pi/administrationScope.ts';
 import { assertSkillTargets, skillTargetIds } from '../storage/assignDownloadedSkill.ts';
-import { inspectSkill } from '../storage/skills.ts';
 import { safePath, isMissing } from '../storage/files.ts';
 import { transferTimeouts } from '../network/transfer.ts';
 import { skillSource } from './skillSource.ts';
 import { downloadSkill } from './skillTransfer.ts';
 import { extractSkillArchive } from './skillArchive.ts';
+import { downloadGithubSkill } from './githubSkill.ts';
+import { inspectDownloadedSkill } from './inspectDownloadedSkill.ts';
 
 export class RemoteSkillInstaller {
   private readonly service: StudioService;
@@ -47,53 +48,77 @@ export class RemoteSkillInstaller {
       ownsFinal = false,
       committed = false;
     try {
-      const archive = join(temporary, 'source.zip');
-      const sha256 = await downloadSkill(source.url, archive, signal, this.request);
-      if (args.sha256 !== undefined && sha256 !== String(args.sha256).toLowerCase())
-        throw Error(t('error.remoteSkill.hash'));
-      const unpackSignal = AbortSignal.any([signal, AbortSignal.timeout(transferTimeouts.unpack)]);
       const unpacked = join(temporary, 'unpacked');
-      const files = await extractSkillArchive(archive, unpacked, unpackSignal);
-      const first = files[0]?.split('/')[0];
-      const prefix =
-        first && files.every((file) => file.startsWith(first + '/')) ? first + '/' : '';
-      const paths = files
-        .filter((file) => posix.basename(file) === 'SKILL.md')
-        .map((file) => ({
-          file,
-          path: posix.dirname(file.slice(prefix.length)).replace(/^\.$/, ''),
-        }));
-      if (!paths.length) throw Error(t('error.remoteSkill.noSkill'));
-      const selected =
-        source.path !== undefined
-          ? paths.find((item) => item.path === source.path)
-          : paths.length === 1
-            ? paths[0]
-            : undefined;
-      if (!selected) {
-        if (source.path !== undefined) throw Error(t('error.remoteSkill.noSkill'));
-        if (paths.length > 100) throw Error(t('error.remoteSkill.size'));
-        const skills = [];
-        for (const item of paths) {
-          unpackSignal.throwIfAborted();
-          try {
-            const skill = await inspectSkill(join(unpacked, ...item.file.split('/')));
-            skills.push({ path: item.path, name: skill.name, description: skill.description });
-          } catch {
-            skills.push({ path: item.path, invalid: true });
+      let skillFolder = unpacked;
+      let sha256: string | undefined;
+      let unpackSignal = signal;
+      if (source.github && args.sha256 === undefined) {
+        const selection = await downloadGithubSkill(
+          {
+            ...source.github,
+            commit: source.commit,
+            path: source.path,
+            exact: args.skillPath !== undefined || source.github.kind === 'blob',
+          },
+          unpacked,
+          signal,
+          this.request,
+        );
+        if (selection) return { installed: false, ...selection, githubCommit: source.commit };
+      } else {
+        const archive = join(temporary, 'source.zip');
+        sha256 = await downloadSkill(source.url, archive, signal, this.request);
+        if (args.sha256 !== undefined && sha256 !== String(args.sha256).toLowerCase())
+          throw Error(t('error.remoteSkill.hash'));
+        unpackSignal = AbortSignal.any([signal, AbortSignal.timeout(transferTimeouts.unpack)]);
+        const files = await extractSkillArchive(archive, unpacked, unpackSignal);
+        const first = files[0]?.split('/')[0];
+        const prefix =
+          first && files.every((file) => file.startsWith(first + '/')) ? first + '/' : '';
+        const paths = files
+          .filter((file) => posix.basename(file) === 'SKILL.md')
+          .map((file) => ({
+            file,
+            path: posix.dirname(file.slice(prefix.length)).replace(/^\.$/, ''),
+          }));
+        if (!paths.length) throw Error(t('error.remoteSkill.noSkill'));
+        const selected =
+          source.path !== undefined
+            ? paths.find((item) => item.path === source.path)
+            : paths.length === 1
+              ? paths[0]
+              : undefined;
+        if (!selected) {
+          if (source.path !== undefined) throw Error(t('error.remoteSkill.noSkill'));
+          if (paths.length > 100) throw Error(t('error.remoteSkill.size'));
+          const skills = [];
+          for (const item of paths) {
+            unpackSignal.throwIfAborted();
+            try {
+              const { skill } = await inspectDownloadedSkill(
+                join(unpacked, ...posix.dirname(item.file).split('/')),
+                unpackSignal,
+              );
+              skills.push({ path: item.path, name: skill.name, description: skill.description });
+            } catch {
+              skills.push({ path: item.path, invalid: true });
+            }
           }
+          unpackSignal.throwIfAborted();
+          return {
+            installed: false,
+            selectionRequired: true,
+            skills,
+            archiveSha256: sha256,
+            ...(source.commit ? { githubCommit: source.commit } : {}),
+          };
         }
-        unpackSignal.throwIfAborted();
-        return {
-          installed: false,
-          selectionRequired: true,
-          skills,
-          archiveSha256: sha256,
-          ...(source.commit ? { githubCommit: source.commit } : {}),
-        };
+        skillFolder = join(unpacked, ...posix.dirname(selected.file).split('/'));
       }
-      const skillFolder = join(unpacked, ...posix.dirname(selected.file).split('/'));
-      const skill = await inspectSkill(skillFolder);
+      const { skill, frontmatterNormalized } = await inspectDownloadedSkill(
+        skillFolder,
+        unpackSignal,
+      );
       unpackSignal.throwIfAborted();
       const id = `skill-${randomUUID()}`;
       const root = await safePath(folder, '.pistudio/skills', true);
@@ -146,8 +171,9 @@ export class RemoteSkillInstaller {
         installed: true,
         resource,
         agentIds: ids,
-        archiveSha256: sha256,
+        ...(sha256 ? { archiveSha256: sha256 } : {}),
         ...(source.commit ? { githubCommit: source.commit } : {}),
+        ...(frontmatterNormalized ? { frontmatterNormalized: true } : {}),
         loadedInAgentSession: false,
         updatedProjectSnapshots: false,
       };

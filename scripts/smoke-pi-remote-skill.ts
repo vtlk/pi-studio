@@ -4,20 +4,20 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, readdir, realpath, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { StudioService } from '../src/main/storage/StudioStore.ts';
 import { parseAgent } from '../src/main/storage/validation.ts';
 import { createSetupAssistant } from '../src/main/pi/createSetupAssistant.ts';
 import { checkPi } from '../src/main/pi/checkPi.ts';
+import { resolvePiSdk } from '../src/main/pi/BrowserAuth.ts';
 import { endpointProviderId } from '../src/shared/modelEndpoint.ts';
 import type { Connection } from '../src/shared/connections.ts';
 import type { SystemAgent } from '../src/shared/systemAgents.ts';
 import type { Agent } from '../src/shared/studio.ts';
 import type { Resource } from '../src/shared/resources.ts';
-import type { LaunchAgentRequest, LaunchAgentResult } from '../src/shared/runtime.ts';
 
 const root = await mkdtemp(join(tmpdir(), 'pistudio-native-skill-url-'));
 const children: ChildProcess[] = [];
@@ -33,7 +33,8 @@ try {
   await mkdir(process.env.PI_CODING_AGENT_DIR);
   const service = new StudioService(join(root, 'prefs.json'), join(root, 'Studio'));
   const store = await service.load();
-  const source = 'https://github.com/anthropics/skills/tree/main/skills/pdf';
+  const source = 'https://github.com/MengTo/Skills';
+  const skillPath = 'agent-skills/illustration/illustration-outlined-cartoon';
   const name = 'qa-remote-skill';
   const requestedAgent = 'assigned-agent';
   const calls: string[] = [];
@@ -68,7 +69,7 @@ try {
         assert.equal(
           (state.resources as Resource[]).filter((item) => item.kind === 'skills').length,
           1,
-          'The real administration call committed the downloaded skill',
+          `The real administration call committed the downloaded skill: ${JSON.stringify(result).slice(0, 800)}`,
         );
       } else calls.push(tool);
       const delta = step
@@ -82,7 +83,12 @@ try {
                 type: 'function',
                 function: {
                   name: tool,
-                  arguments: JSON.stringify({ url: source, agentIds: [requestedAgent] }),
+                  arguments: JSON.stringify({
+                    url: source,
+                    ref: 'main',
+                    skillPath,
+                    agentIds: [requestedAgent],
+                  }),
                 },
               },
             ],
@@ -100,7 +106,7 @@ try {
         `data: ${JSON.stringify({ ...item({}, step ? 'stop' : 'tool_calls'), usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } })}\n\ndata: [DONE]\n\n`,
       );
     } catch (error) {
-      serverFailure = error;
+      serverFailure ??= error;
       response.writeHead(500);
       response.end('QA rejected the model turn');
     }
@@ -214,12 +220,7 @@ try {
   await helper.launch(request);
   assert.equal(await exits[0], 0, diagnostics);
   assert.equal(requests, 0, 'Opening the helper is idle');
-  // QA-only explicit synthetic user request through the existing internal headless path.
-  await (
-    helper as unknown as {
-      open(request: LaunchAgentRequest, message: string): Promise<LaunchAgentResult>;
-    }
-  ).open(
+  await helper.launchServiceTask(
     request,
     'Install the requested public skill into the exact requested agent. Do not run any downloaded commands.',
   );
@@ -230,7 +231,15 @@ try {
   const skills = (sections.resources as Resource[]).filter((item) => item.kind === 'skills');
   assert.equal(skills.length, 1);
   const skill = skills[0];
-  assert.equal(skill.name, 'pdf');
+  assert.equal(skill.name, 'illustration-outlined-cartoon');
+  const sdk = await import(pathToFileURL(await resolvePiSdk(await realpath(pi.path))).href);
+  const loaded = sdk.loadSkills({
+    cwd: root,
+    agentDir: process.env.PI_CODING_AGENT_DIR,
+    skillPaths: [skill.source],
+    includeDefaults: false,
+  });
+  assert.equal(loaded.skills[0]?.name, skill.name, 'Pi can load the installed SKILL.md');
   const agents = sections.agents as Agent[];
   assert.deepEqual(agents.find((item) => item.id === requestedAgent)!.skills, [skill.id]);
   assert.deepEqual(agents.find((item) => item.id === 'unassigned-agent')!.skills, []);
@@ -245,7 +254,11 @@ try {
     projectBefore,
     'Existing snapshots are not implicitly refreshed',
   );
-  assert.ok((await readFile(join(skill.source, 'SKILL.md'), 'utf8')).includes('pdf'));
+  assert.ok(
+    (await readFile(join(skill.source, 'SKILL.md'), 'utf8')).includes(
+      'illustration-outlined-cartoon',
+    ),
+  );
   assert.ok(
     (await readdir(join(skill.source, 'scripts'))).length > 0,
     'Companion scripts are preserved without execution',
@@ -278,7 +291,7 @@ try {
     'One successful installer receipt is persisted in the actual Pi dialogue',
   );
   assert.match(String(receipts[0].githubCommit), /^[a-f0-9]{40,64}$/);
-  assert.match(String(receipts[0].archiveSha256), /^[a-f0-9]{64}$/);
+  assert.equal(receipts[0].archiveSha256, undefined);
   proof = {
     checkedAt: new Date().toISOString(),
     version: JSON.parse(await readFile('package.json', 'utf8')).version,
@@ -287,7 +300,9 @@ try {
     realAdministrationMcpTool: calls[0],
     realPublicGitHubHttpsDownload: source,
     resolvedGitHubCommit: receipts[0].githubCommit,
-    downloadedArchiveSha256: receipts[0].archiveSha256,
+    downloadedGitHubFolder: skillPath,
+    frontmatterNormalized: receipts[0].frontmatterNormalized === true,
+    nativePiSkillLoaderVerified: true,
     localSyntheticModelOnly: true,
     paidModelRequests: 0,
     exactAgentAssignmentAndCompanionFiles: true,
