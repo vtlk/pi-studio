@@ -479,6 +479,50 @@ try {
         });
         continue;
       }
+      const agentColumnWidth = () =>
+        js(`document.querySelector('.agent-stages').getBoundingClientRect().width`);
+      const separator = '.agents-workspace .resize-handle';
+      const initialWidth = await agentColumnWidth();
+      const start = await js(
+        `(() => { const r = document.querySelector('${separator}').getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + 40}; })()`,
+      );
+      assert.equal(
+        await js(`document.querySelector('${separator}').getAttribute('aria-label')`),
+        messages['ProjectView.agentColumnWidth'],
+      );
+      await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', ...start });
+      await cdp('Input.dispatchMouseEvent', {
+        type: 'mousePressed',
+        button: 'left',
+        clickCount: 1,
+        ...start,
+      });
+      await until(`document.querySelector('${separator}').hasAttribute('data-dragging')`);
+      const end = { ...start, x: start.x + 100 };
+      await cdp('Input.dispatchMouseEvent', {
+        type: 'mouseMoved',
+        button: 'left',
+        buttons: 1,
+        ...end,
+      });
+      await until(
+        `document.querySelector('.agent-stages').getBoundingClientRect().width === ${initialWidth + 100}`,
+      );
+      await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', ...end });
+      assert.equal(await agentColumnWidth(), initialWidth + 100);
+      assert.equal(
+        await js(
+          `document.querySelector('.agents-workspace > .agent-editor').getBoundingClientRect().left === document.querySelector('${separator}').getBoundingClientRect().right`,
+        ),
+        true,
+      );
+      await cdp('Input.dispatchKeyEvent', {
+        type: 'keyDown',
+        key: 'Home',
+        code: 'Home',
+        windowsVirtualKeyCode: 36,
+      });
+      await until(`document.querySelector('.agent-stages').getBoundingClientRect().width === 200`);
       await click('[data-team-id="team-a"] .disclosure-trigger');
       await until(
         `document.querySelector('[data-team-id="team-a"] .disclosure-trigger')?.getAttribute('aria-expanded')==='false'`,
@@ -666,6 +710,7 @@ try {
         refreshDoesNotNavigateOrMutate: true,
         headerPaddingAndKeyboardBack: true,
         continuationSwitchTargetsSelectedAgentWithoutLaunching: true,
+        agentListWidthChangesWithPointerAndKeyboard: true,
         hoverAndNoHorizontalOverflow: true,
         chevronLeftIconAndFullWidthBottomBorder: true,
         blackHeaderInBothThemes: true,

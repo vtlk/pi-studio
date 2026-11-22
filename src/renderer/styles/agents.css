@@ -1,7 +1,6 @@
 .agents-workspace {
   position: relative;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   height: 100%;
   min-height: 0;
@@ -9,14 +8,13 @@
 }
 /* Anchor the assistant overlay to the editor grid area, leaving the team list usable. */
 .agents-workspace > .pi-chat-panel {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
 }
 .agent-stages {
   min-height: 0;
   overflow: hidden;
   padding: 0;
-  border-right: 1px solid var(--line);
   background: var(--sidebar);
 }
 .agent-stages > .section-menu {
